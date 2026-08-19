@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>意见反馈 - 织雾满穗</title>
+    <style>
+        /* ========== 全局变量和基础样式 ========== */
+        :root {
+            --primary: #6c5ce7;
+            --primary-dark: #5a4bd1;
+            --primary-light: #a29bfe;
+            --secondary: #00cec9;
+            --bg: #f8f9fc;
+            --bg-card: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --text-muted: #b2bec3;
+            --border: #e1e5eb;
+            --shadow: 0 4px 20px rgba(0,0,0,0.06);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== 顶部导航栏 ========== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;   /* 内容靠右 */
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .navbar .nav-links a {
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .navbar .nav-links a:hover {
+            background: var(--primary-light);
+            color: #fff;
+        }
+
+        /* 当前页面高亮 */
+        .navbar .nav-links a.active {
+            background: var(--primary-light);
+            color: #fff;
+        }
+
+        /* ========== 主内容区域 ========== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .feedback-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 600px;
+            border-left: 5px solid var(--primary);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .feedback-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feedback-card .desc {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+
+        /* ========== 表单样式 ========== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: var(--font);
+            transition: var(--transition);
+            background: #fafbfc;
+            color: var(--text);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(108,92,231,0.08);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font);
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108,92,231,0.35);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ========== 感谢信息（默认隐藏） ========== */
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .success-message .success-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .success-message h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        .success-message p {
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+        .success-message a {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .success-message a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108,92,231,0.3);
+        }
+
+        /* ========== 动画 ========== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 16px; height: 56px; }
+            .navbar .nav-links a { padding: 6px 10px; font-size: 0.85rem; }
+            .feedback-card { padding: 24px 18px; }
+            .feedback-card h2 { font-size: 1.4rem; }
+            .success-message h2 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 导航栏 ==================== -->
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="index.html">🏠 首页</a></li>
+            <li><a href="feedback.html" class="active">💬 反馈</a></li>
+        </ul>
+    </nav>
+
+    <!-- ==================== 主内容 ==================== -->
+    <div class="main-content">
+        <div class="feedback-card">
+            <!-- 表单区域 -->
+            <div id="formContainer">
+                <h2>💬 意见反馈</h2>
+                <p class="desc">我们重视你的每一个建议！请填写以下表单，我们会通过邮件收到你的反馈。</p>
+
+                <!-- 表单提交到 FormSubmit 服务 -->
+                <!-- action 中的邮箱地址可以改成你自己的接收邮箱 -->
+                <form id="feedbackForm" action="https://formsubmit.co/2560803486@qq.com" method="POST">
+                    <!-- 提交成功后跳转地址（由 JS 动态设置） -->
+                    <input type="hidden" name="_next" value="">
+                    <!-- 邮件主题 -->
+                    <input type="hidden" name="_subject" value="织雾满穗 - 新的反馈">
+                    <!-- 禁用验证码（可选） -->
+                    <input type="hidden" name="_captcha" value="false">
+
+                    <div class="form-group">
+                        <label for="feedbackName">你的称呼</label>
+                        <input type="text" id="feedbackName" name="name" placeholder="请输入你的名字或昵称" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackEmail">你的邮箱（必填，用于接收回复）</label>
+                        <input type="email" id="feedbackEmail" name="email" placeholder="请输入正确的邮箱地址" required />
+                        <div class="error-message" id="emailError">⚠️ 邮箱格式不正确，请检查后重新输入</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackMessage">反馈内容</label>
+                        <textarea id="feedbackMessage" name="message" placeholder="请详细描述你的建议、问题或想法..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">🚀 提交反馈</button>
+                </form>
+                <a href="index.html" class="back-link">← 返回首页</a>
+            </div>
+
+            <!-- 感谢信息区域（默认隐藏） -->
+            <div class="success-message" id="successMessage">
+                <div class="success-icon">🎉</div>
+                <h2>提交成功！</h2>
+                <p>感谢你的反馈，我们已经收到你的信息。<br>我们会尽快通过你留下的邮箱联系你。</p>
+                <a href="index.html">🏠 返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JavaScript 逻辑 ==================== -->
+    <script>
+        /**
+         * 检查 URL 中是否包含 success=true 参数
+         * 如果有，则显示感谢信息并隐藏表单
+         */
+        function checkSuccessParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                // 清除 URL 中的参数，让地址干净
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
+            } else {
+                document.getElementById('formContainer').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'none';
+            }
+        }
+
+        /**
+         * 表单提交前处理：
+         * 1. 验证邮箱格式
+         * 2. 动态设置 _next 字段为当前页面完整地址 + ?success=true
+         */
+        document.getElementById('feedbackForm').addEventListener('submit', function(event) {
+            // 1. 邮箱验证
+            const emailInput = document.getElementById('feedbackEmail');
+            const emailError = document.getElementById('emailError');
+            const emailValue = emailInput.value.trim();
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailPattern.test(emailValue)) {
+                event.preventDefault();          // 阻止提交
+                emailError.classList.add('show');
+                emailInput.focus();
+                return false;
+            } else {
+                emailError.classList.remove('show');
+            }
+
+            // 2. 设置 _next 字段
+            var nextInput = this.querySelector('input[name="_next"]');
+            if (nextInput) {
+                var baseUrl = window.location.href.split('?')[0];
+                nextInput.value = baseUrl + '?success=true';
+            }
+
+            return true;  // 允许提交
+        });
+
+        // 用户输入时自动隐藏错误提示
+        document.getElementById('feedbackEmail').addEventListener('input', function() {
+            document.getElementById('emailError').classList.remove('show');
+        });
+
+        // 页面加载时检查 URL
+        window.addEventListener('load', checkSuccessParam);
+        window.addEventListener('popstate', checkSuccessParam);
+    </script>
+</body>
+</html>
