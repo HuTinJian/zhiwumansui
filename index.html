@@ -7,23 +7,23 @@
   <style>
     /* ========== 全局变量 ========== */
     :root {
-      --primary: #6c5ce7;
+      --primary: #6c5ce7;          /* 主色：紫色 */
       --primary-dark: #5a4bd1;
       --primary-light: #a29bfe;
-      --secondary: #00cec9;
-      --accent: #fd79a8;
-      --bg: #f8f9fc;
-      --bg-card: #ffffff;
-      --text: #2d3436;
-      --text-light: #636e72;
-      --text-muted: #b2bec3;
-      --border: #e1e5eb;
-      --shadow: 0 4px 20px rgba(0,0,0,0.06);
-      --shadow-hover: 0 12px 40px rgba(0,0,0,0.1);
-      --radius: 16px;
-      --radius-sm: 10px;
-      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
-      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --secondary: #00cec9;        /* 辅助色：青色 */
+      --accent: #fd79a8;           /* 强调色：粉色 */
+      --bg: #f8f9fc;               /* 页面背景色 */
+      --bg-card: #ffffff;          /* 卡片背景色 */
+      --text: #2d3436;             /* 主要文字颜色 */
+      --text-light: #636e72;       /* 次要文字颜色 */
+      --text-muted: #b2bec3;       /* 更淡的文字颜色 */
+      --border: #e1e5eb;           /* 边框颜色 */
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);       /* 卡片阴影 */
+      --shadow-hover: 0 12px 40px rgba(0,0,0,0.1); /* 卡片悬停阴影 */
+      --radius: 16px;              /* 卡片圆角 */
+      --radius-sm: 10px;           /* 小圆角 */
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1); /* 过渡动画 */
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; /* 字体 */
     }
 
     * {
@@ -33,7 +33,7 @@
     }
 
     html {
-      scroll-behavior: smooth;
+      scroll-behavior: smooth; /* 页面平滑滚动 */
     }
 
     body {
@@ -46,18 +46,18 @@
 
     /* ========== 顶部导航栏 ========== */
     .navbar {
-      position: sticky;
+      position: sticky;           /* 页面滚动时固定在顶部 */
       top: 0;
       z-index: 100;
       background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px); /* 毛玻璃效果 */
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
       height: 64px;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: flex-end;  /* 导航链接靠右显示 */
     }
 
     .navbar .nav-links {
@@ -81,6 +81,7 @@
       color: #fff;
     }
 
+    /* 当前页面高亮 */
     .navbar .nav-links a.active {
       background: var(--primary-light);
       color: #fff;
@@ -175,17 +176,6 @@
       transform: translateY(-1px);
     }
 
-    .search-hint {
-      margin-top: 12px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .search-hint .highlight {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
     /* 无结果提示 */
     .no-results {
       display: none;
@@ -219,6 +209,7 @@
       overflow: hidden;
     }
 
+    /* 卡片顶部装饰条 */
     .card::before {
       content: '';
       position: absolute;
@@ -251,6 +242,7 @@
       margin-bottom: 12px;
     }
 
+    /* 不同分类的颜色 */
     .card .tag-tech { background: #e8f8f7; color: #00b894; }
     .card .tag-science { background: #f0e8ff; color: #6c5ce7; }
     .card .tag-art { background: #ffe8ef; color: #fd79a8; }
@@ -279,11 +271,13 @@
       gap: 6px;
     }
 
+    /* 搜索匹配时的高亮边框 */
     .card.highlight-result {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(253,121,168,0.2), var(--shadow-hover);
     }
 
+    /* 搜索关键词高亮 */
     mark {
       background: #fff3cd;
       padding: 2px 4px;
@@ -321,11 +315,13 @@
       transform: translateY(-3px);
     }
 
+    /* 图标图片样式 */
     .credits-icon {
-      width: 48px;          /* 图片显示宽度，可自行调整 */
-      height: 48px;         /* 图片显示高度 */
-      object-fit: contain;  /* 保持图片比例，完整显示 */
-      border-radius: 12px;   /* 圆角 */
+      width: 48px;           /* 图标显示宽度 */
+      height: 48px;          /* 图标显示高度 */
+      object-fit: contain;   /* 保持图片比例，完整显示 */
+      flex-shrink: 0;        /* 防止图标被压缩 */
+      border-radius: 50%;   /* 圆角大小，数值越大越圆 */
     }
 
     .credits-info {
@@ -362,13 +358,6 @@
       border-top: 1px solid var(--border);
       margin-top: 20px;
     }
-    .footer a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-    .footer a:hover {
-      text-decoration: underline;
-    }
 
     /* ========== 动画 ========== */
     @keyframes fadeInUp {
@@ -385,26 +374,27 @@
       .navbar { padding: 0 16px; height: 56px; }
       .navbar .nav-links a { padding: 6px 10px; font-size: 0.85rem; }
       .search-section h1 { font-size: 1.6rem; }
-    .search-box {
-      flex-wrap: nowrap;        /* 不换行，输入框和按钮并排 */
-      padding: 6px 6px 6px 12px;
-      border-radius: 30px;
-      margin: 0 16px;          /* 左右留边，不贴屏幕边缘 */
-      max-width: 100%;
-    }
-    .search-box input {
-      min-width: 0;            /* 允许输入框自动收缩 */
-      flex: 1;
-      order: 0;
-      padding: 10px 8px;
-    }
-    .search-box button {
-      order: 0;
-      width: auto;             /* 按钮宽度根据文字自动调整 */
-      margin-top: 0;
-      padding: 8px 16px;
-      white-space: nowrap;
-    }
+      /* 移动端搜索框不换行，左右留边 */
+      .search-box {
+        flex-wrap: nowrap;
+        padding: 6px 6px 6px 12px;
+        border-radius: 30px;
+        margin: 0 16px;
+        max-width: 100%;
+      }
+      .search-box input {
+        min-width: 0;
+        flex: 1;
+        order: 0;
+        padding: 10px 8px;
+      }
+      .search-box button {
+        order: 0;
+        width: auto;
+        margin-top: 0;
+        padding: 8px 16px;
+        white-space: nowrap;
+      }
       .content-grid { grid-template-columns: 1fr; }
       .credits-section { flex-direction: column; align-items: center; }
     }
@@ -444,82 +434,20 @@
     <!-- 内容卡片列表 -->
     <div class="content-grid" id="contentGrid">
       <!-- 卡片 1 -->
-      <div class="card" data-title="探索宇宙的奥秘：从大爆炸到暗物质" data-category="科学" data-tags="宇宙 天文 大爆炸 暗物质 星系">
-        <span class="card-tag tag-science">🔬 科学</span>
-        <h3>探索宇宙的奥秘：从大爆炸到暗物质</h3>
-        <p>宇宙的起源一直是人类最着迷的话题之一。从大爆炸理论到暗物质的发现，现代天文学正在揭开宇宙最深层的秘密。</p>
-        <div class="card-meta">📅 2026-08-15 &nbsp;·&nbsp; ⏱ 8 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 2 -->
-      <div class="card" data-title="现代 JavaScript 开发最佳实践" data-category="技术" data-tags="编程 JavaScript 前端 开发 代码">
-        <span class="card-tag tag-tech">💻 技术</span>
-        <h3>现代 JavaScript 开发最佳实践</h3>
-        <p>从 ES6+ 新特性到函数式编程，从模块化到性能优化，掌握这些最佳实践能让你写出更优雅、更高效的 JavaScript 代码。</p>
-        <div class="card-meta">📅 2026-08-12 &nbsp;·&nbsp; ⏱ 12 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 3 -->
-      <div class="card" data-title="印象派绘画的色彩哲学" data-category="艺术" data-tags="艺术 绘画 印象派 色彩 莫奈">
-        <span class="card-tag tag-art">🎨 艺术</span>
-        <h3>印象派绘画的色彩哲学</h3>
-        <p>莫奈、雷诺阿等印象派大师如何用光影和色彩颠覆了传统绘画？探索印象派背后的视觉革命和美学理念。</p>
-        <div class="card-meta">📅 2026-08-10 &nbsp;·&nbsp; ⏱ 6 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 4 -->
-      <div class="card" data-title="深度睡眠：改善睡眠质量的科学方法" data-category="生活" data-tags="健康 睡眠 生活 科学 放松">
-        <span class="card-tag tag-life">🌿 生活</span>
-        <h3>深度睡眠：改善睡眠质量的科学方法</h3>
-        <p>睡眠不足正在成为现代人的通病。基于最新神经科学研究，这篇文章分享7个经过验证的提升深度睡眠质量的方法。</p>
-        <div class="card-meta">📅 2026-08-08 &nbsp;·&nbsp; ⏱ 5 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 5 -->
-      <div class="card" data-title="人工智能如何重塑未来教育" data-category="技术" data-tags="AI 人工智能 教育 机器学习 未来">
-        <span class="card-tag tag-tech">💻 技术</span>
-        <h3>人工智能如何重塑未来教育</h3>
-        <p>从个性化学习到智能辅导系统，AI 正在改变教育的面貌。本文探讨人工智能在教育领域的最新应用和未来趋势。</p>
-        <div class="card-meta">📅 2026-08-05 &nbsp;·&nbsp; ⏱ 10 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 6 -->
-      <div class="card" data-title="黑洞照片背后的科学突破" data-category="科学" data-tags="宇宙 黑洞 天文 物理 相对论">
-        <span class="card-tag tag-science">🔬 科学</span>
-        <h3>黑洞照片背后的科学突破</h3>
-        <p>2019年人类第一次拍摄到黑洞照片，这一里程碑式的成就背后有哪些科学突破？事件视界望远镜是如何工作的？</p>
-        <div class="card-meta">📅 2026-08-01 &nbsp;·&nbsp; ⏱ 9 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 7 -->
-      <div class="card" data-title="极简主义生活方式指南" data-category="生活" data-tags="极简 生活 整理 断舍离 幸福感">
-        <span class="card-tag tag-life">🌿 生活</span>
-        <h3>极简主义生活方式指南</h3>
-        <p>在物质过剩的时代，极简主义提供了一条通往内心平静的路径。学习如何通过"断舍离"找到真正重要的东西。</p>
-        <div class="card-meta">📅 2026-07-28 &nbsp;·&nbsp; ⏱ 7 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 8 -->
-      <div class="card" data-title="达芬奇：跨越艺术与科学的天才" data-category="艺术" data-tags="艺术 达芬奇 文艺复兴 天才 科学">
-        <span class="card-tag tag-art">🎨 艺术</span>
-        <h3>达芬奇：跨越艺术与科学的天才</h3>
-        <p>达芬奇不仅是伟大的画家，更是杰出的科学家和发明家。探索这位文艺复兴巨人如何将艺术与科学完美融合。</p>
-        <div class="card-meta">📅 2026-07-25 &nbsp;·&nbsp; ⏱ 11 分钟阅读</div>
-      </div>
-
-      <!-- 卡片 9 -->
-      <div class="card" data-title="量子计算的现状与未来" data-category="技术" data-tags="量子 计算 物理 科技 未来">
-        <span class="card-tag tag-tech">💻 技术</span>
-        <h3>量子计算的现状与未来</h3>
-        <p>量子计算机有望解决经典计算机无法处理的复杂问题。本文带你了解量子计算的基本原理、最新进展和商业应用前景。</p>
-        <div class="card-meta">📅 2026-07-20 &nbsp;·&nbsp; ⏱ 13 分钟阅读</div>
+      <div class="card" data-title="Roblox 音乐ID 宝库" data-category="游戏" data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库" data-link="roblox.html">
+        <span class="card-tag tag-tech">🎮 游戏</span>
+        <h3>Roblox音乐ID宝库</h3>
+        <p>收录数千个 Roblox 游戏内可用的音乐ID，覆盖热门歌曲、经典BGM、游戏音效等，支持一键复制，帮助玩家快速为游戏添加背景音乐或音效。</p>
+        <div class="card-meta">📅 持续更新 &nbsp;·&nbsp; ⏱ 点击进入</div>
       </div>
     </div>
   </div>
 
   <!-- ==================== 开发者与支持者展示 ==================== -->
   <div class="credits-section">
+    <!-- 开发者卡片 -->
     <div class="credits-card">
+      <!-- 请将 src 改为你实际的开发者图片文件名 -->
       <img class="credits-icon" src="developer.png" alt="开发者图标" />
       <div class="credits-info">
         <span class="credits-label">开发者</span>
@@ -527,7 +455,9 @@
         <span class="credits-en">HuTinJian</span>
       </div>
     </div>
+    <!-- 支持者卡片 -->
     <div class="credits-card">
+      <!-- 请将 src 改为你实际的支持者图片文件名 -->
       <img class="credits-icon" src="deepseek.png" alt="支持者图标" />
       <div class="credits-info">
         <span class="credits-label">支持者</span>
@@ -539,7 +469,7 @@
 
   <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
-    <p>© 2026 织雾满穗 · 用知识照亮世界 </p>
+    <p>© 2026 ZhiMist 工作室 · 用知识照亮世界</p>
   </footer>
 
   <!-- ==================== JavaScript 逻辑 ==================== -->
@@ -553,12 +483,15 @@
 
     /**
      * 执行搜索过滤
+     * - 检查输入的关键词是否出现在卡片的标题、分类、标签或正文中
+     * - 匹配则显示并高亮关键词，否则隐藏
      */
     function performSearch() {
       const query = searchInput.value.trim().toLowerCase();
       let matchCount = 0;
 
       cards.forEach(function(card) {
+        // 获取卡片可搜索文本
         const title = card.getAttribute('data-title') || '';
         const category = card.getAttribute('data-category') || '';
         const tags = card.getAttribute('data-tags') || '';
@@ -566,22 +499,26 @@
         const searchableText = (title + ' ' + category + ' ' + tags + ' ' + bodyText).toLowerCase();
 
         if (query === '') {
+          // 空关键词：显示所有卡片
           card.style.display = '';
           card.classList.remove('highlight-result');
           removeHighlights(card);
           matchCount++;
         } else if (searchableText.includes(query)) {
+          // 匹配成功
           card.style.display = '';
           card.classList.add('highlight-result');
           highlightKeyword(card, query);
           matchCount++;
         } else {
+          // 不匹配
           card.style.display = 'none';
           card.classList.remove('highlight-result');
           removeHighlights(card);
         }
       });
 
+      // 控制无结果提示
       if (matchCount === 0 && query !== '') {
         noResults.classList.add('show');
         contentGrid.style.display = 'none';
@@ -590,6 +527,7 @@
         contentGrid.style.display = '';
       }
 
+      // 如果搜索框为空，恢复所有卡片
       if (query === '') {
         cards.forEach(function(card) {
           card.style.display = '';
@@ -602,7 +540,7 @@
     }
 
     /**
-     * 在卡片中高亮关键词
+     * 在卡片中高亮匹配的关键词
      */
     function highlightKeyword(card, keyword) {
       removeHighlights(card);
@@ -621,7 +559,7 @@
     }
 
     /**
-     * 移除高亮
+     * 移除卡片中的高亮标记
      */
     function removeHighlights(card) {
       card.querySelectorAll('mark').forEach(function(mark) {
@@ -632,18 +570,20 @@
     }
 
     /**
-     * 转义正则特殊字符
+     * 转义正则表达式中的特殊字符
      */
     function escapeRegex(str) {
       return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // 事件监听
+    // 事件监听：输入实时搜索
     searchInput.addEventListener('input', performSearch);
+    // 点击搜索按钮
     searchBtn.addEventListener('click', function(e) {
       e.preventDefault();
       performSearch();
     });
+    // 按回车搜索
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -651,11 +591,16 @@
       }
     });
 
-    // 卡片点击提示
+    // 卡片点击处理：如果卡片有 data-link 属性，则跳转到对应网址；否则弹出提示
     cards.forEach(function(card) {
-      card.addEventListener('click', function() {
+     card.addEventListener('click', function() {
+      const link = card.getAttribute('data-link'); // 获取跳转链接
+      if (link) {
+        window.location.href = link; // 跳转到 roblox.html
+      } else {
         const title = card.getAttribute('data-title');
         alert('📖 你点击了：《' + title + '》\n\n（演示站点：此处可跳转到文章详情页）');
+        }
       });
     });
 
