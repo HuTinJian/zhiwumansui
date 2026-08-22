@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>🎵 Roblox ID 宝库 · 分组管理</title>
+    <title>🎵 Roblox 音乐ID 宝库 · 分组管理</title>
     <!-- =============================================================
          样式部分
          ============================================================ -->
@@ -559,16 +559,11 @@
      * 1. 配置区（您只需修改这里的变量）
      * ============================================================
      */
-    // ---- 1.1 数据加载模式 ----
+    // ---- 数据加载模式 ----
     const USE_EXTERNAL_JSON = true;          // true=从外部JSON加载, false=使用硬编码后备数据
     const EXTERNAL_JSON_URL = 'roblox_music_id.json';   // 外部数据文件路径（同目录下）
     const DATA_VERSION = 'v2.0';             // 版本号（更新数据时递增，强制刷新用户缓存）
     const ADMIN_PASSWORD = 'Roblox2026';     // 管理模式密码
-
-    // ---- 1.2 硬编码后备数据（仅一条示例） ----
-    const DEFAULT_DATA_JSON = `[
-        {"id":"119764702259846","name":"七里香","category":"中文流行","lineIndex":0}
-    ]`;
 
     /**
      * ============================================================
