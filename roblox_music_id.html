@@ -2,47 +2,96 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 视口设置：确保移动端正确缩放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>🎵 Roblox 音乐ID 宝库 · 分组管理</title>
 
     <!-- =============================================================
-         样式部分：全面适配 手机/平板/桌面
-         ============================================================= -->
+    样式部分：粉色主题 + 全面适配
+    ============================================================= -->
     <style>
-        /* ----- 1. 全局重置，保证各浏览器表现一致 ----- */
+        /* ============================================================
+           1. 粉色主题 CSS 变量（全局）
+           ============================================================ */
+        :root {
+            /* 主色系 */
+            --primary: #dc6b82;
+            --primary-dark: #c7546a;
+            --primary-light: #f0a3b4;
+            --secondary: #f8c8d2;
+            --accent: #e88da1;
+
+            /* 背景与卡片 */
+            --bg: #fdf2f5;
+            --bg-card: #ffffff;
+
+            /* 文字颜色 */
+            --text: #4a3f44;
+            --text-light: #6e5f65;
+            --text-muted: #b5a1a8;
+
+            /* 边框与阴影 */
+            --border: #f0d9de;
+            --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
+            --shadow-hover: 0 12px 40px rgba(220, 107, 130, 0.15);
+
+            /* 圆角 */
+            --radius: 20px;
+            --radius-sm: 14px;
+
+            /* 动画 */
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* 字体 */
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+        }
+
+        /* ============================================================
+           2. 全局重置
+           ============================================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        html, body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: #f5f7fb;
-            color: #1e293b;
+
+        html,
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text);
             padding: 12px;
             min-height: 100vh;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
         }
 
-        /* ----- 2. 头部（深色渐变） ----- */
+        /* ============================================================
+           3. 头部（粉色渐变 + 深色文字）
+           ============================================================ */
         .header {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            color: #fff;
+            background: linear-gradient(145deg, #f8d7de, #f0c4cd);
+            border: 1px solid var(--border);
+            color: var(--text);
             padding: 16px 20px;
-            border-radius: 20px;
+            border-radius: var(--radius);
             margin-bottom: 20px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
             position: relative;
             z-index: 10;
+            transition: box-shadow var(--transition);
         }
+
+        .header:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
         .header-top {
             display: flex;
             flex-wrap: wrap;
@@ -50,24 +99,29 @@
             justify-content: space-between;
             gap: 10px;
         }
+
         .header h1 {
             font-size: clamp(18px, 2.8vw, 24px);
             font-weight: 700;
             cursor: pointer;
             user-select: none;
-            transition: opacity 0.2s;
+            transition: opacity var(--transition);
             flex: 1 1 auto;
             min-width: 160px;
+            color: var(--text);
         }
+
         .header h1:hover {
-            opacity: 0.8;
+            opacity: 0.75;
         }
+
         .header h1 small {
             font-size: clamp(11px, 1.4vw, 14px);
             font-weight: 400;
             opacity: 0.7;
             margin-left: 8px;
             white-space: nowrap;
+            color: var(--text-light);
         }
 
         /* 统计信息行 */
@@ -79,13 +133,16 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 8px 16px;
+            color: var(--text);
         }
+
         .stats .btn-group {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
         }
-        /* 管理按钮通用 */
+
+        /* 管理按钮（粉色系） */
         .stats .btn-import,
         .stats .btn-danger,
         .stats .btn-success,
@@ -95,7 +152,7 @@
             border-radius: 30px;
             font-size: clamp(11px, 1vw, 13px);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--transition);
             white-space: nowrap;
             height: 32px;
             display: inline-flex;
@@ -104,52 +161,57 @@
             font-weight: 500;
             gap: 4px;
         }
+
         .stats .btn-import {
-            background: #3b82f6;
+            background: var(--primary);
             color: #fff;
         }
         .stats .btn-import:hover {
-            background: #2563eb;
+            background: var(--primary-dark);
             transform: scale(1.03);
         }
+
         .stats .btn-danger {
-            background: #ef4444;
+            background: #e8747a;
             color: #fff;
         }
         .stats .btn-danger:hover {
-            background: #dc2626;
+            background: #d45c62;
             transform: scale(1.03);
         }
+
         .stats .btn-success {
-            background: #22c55e;
+            background: #8cb8a8;
             color: #fff;
         }
         .stats .btn-success:hover {
-            background: #16a34a;
+            background: #72a392;
             transform: scale(1.03);
         }
+
         .stats .btn-recycle {
-            background: #f59e0b;
+            background: #e8b07a;
             color: #fff;
         }
         .stats .btn-recycle:hover {
-            background: #d97706;
+            background: #d99d62;
             transform: scale(1.03);
         }
+
         .stats .admin-hint {
             font-size: clamp(10px, 0.9vw, 12px);
             opacity: 0.5;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-left: 4px;
         }
         .stats .admin-hint strong {
-            color: #fbbf24;
+            color: var(--primary-dark);
         }
 
         /* 回收站徽章 */
         #recycleCount {
             font-size: 12px;
-            background: #f59e0b;
+            background: var(--primary);
             color: #fff;
             padding: 0 10px;
             border-radius: 30px;
@@ -158,34 +220,38 @@
             font-weight: 500;
         }
 
-        /* ----- 3. 导航栏（毛玻璃胶囊组） ----- */
+        /* ============================================================
+           4. 导航栏（毛玻璃胶囊 · 粉色适配）
+           ============================================================ */
         .header-nav {
             display: inline-flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(220, 107, 130, 0.2);
             border-radius: 40px;
             padding: 4px 6px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: border-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 12px rgba(220, 107, 130, 0.08);
+            transition: all var(--transition);
             flex-shrink: 0;
         }
+
         .header-nav:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            border-color: rgba(220, 107, 130, 0.35);
+            box-shadow: 0 4px 20px rgba(220, 107, 130, 0.12);
         }
+
         .nav-btn {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-light);
             padding: 6px 14px;
             border-radius: 30px;
             font-size: clamp(12px, 1vw, 13px);
             font-weight: 500;
             text-decoration: none;
-            transition: all 0.25s ease;
+            transition: all var(--transition);
             height: 30px;
             display: inline-flex;
             align-items: center;
@@ -194,30 +260,36 @@
             letter-spacing: 0.3px;
             white-space: nowrap;
         }
+
         .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
+            background: rgba(220, 107, 130, 0.12);
+            color: var(--text);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 8px rgba(220, 107, 130, 0.05);
         }
+
         .nav-btn:active {
             transform: scale(0.95);
         }
+
         #homeBtn:hover {
-            background: rgba(59, 130, 246, 0.25);
+            background: rgba(220, 107, 130, 0.18);
         }
         #feedbackBtn:hover {
-            background: rgba(34, 197, 94, 0.2);
+            background: rgba(140, 184, 168, 0.2);
         }
+
         .nav-divider {
             width: 1px;
             height: 20px;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(220, 107, 130, 0.15);
             margin: 0 2px;
             flex-shrink: 0;
         }
 
-        /* ----- 4. 搜索栏与筛选 ----- */
+        /* ============================================================
+           5. 搜索栏与筛选
+           ============================================================ */
         .search-box {
             display: flex;
             gap: 10px;
@@ -225,141 +297,171 @@
             flex-wrap: wrap;
             align-items: center;
         }
+
         .search-box input {
             flex: 1 1 200px;
             min-width: 160px;
             padding: 10px 18px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border);
             border-radius: 60px;
             font-size: clamp(14px, 1.2vw, 16px);
-            background: #fff;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--bg-card);
+            color: var(--text);
+            transition: all var(--transition);
             outline: none;
             height: 46px;
         }
+
         .search-box input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
         }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
         .filter-tabs {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             align-items: center;
         }
+
         .filter-tabs button {
             padding: 6px 14px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border);
             border-radius: 60px;
-            background: #fff;
+            background: var(--bg-card);
             font-size: clamp(12px, 1vw, 13px);
             font-weight: 500;
-            color: #475569;
+            color: var(--text-light);
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all var(--transition);
             white-space: nowrap;
             height: 38px;
             display: inline-flex;
             align-items: center;
         }
+
         .filter-tabs button.active {
-            background: #1e293b;
+            background: var(--primary);
             color: #fff;
-            border-color: #1e293b;
+            border-color: var(--primary);
         }
-        .filter-tabs button:hover {
+
+        .filter-tabs button:hover:not(.active) {
+            border-color: var(--primary-light);
+            background: rgba(220, 107, 130, 0.04);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         }
+
         .btn-multi {
-            background: #e2e8f0;
-            color: #1e293b;
-            border: 2px solid #cbd5e1;
+            background: var(--bg-card);
+            color: var(--text-light);
+            border: 2px solid var(--border);
             padding: 6px 16px;
             border-radius: 60px;
             font-size: clamp(12px, 1vw, 13px);
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all var(--transition);
             white-space: nowrap;
             height: 38px;
             display: inline-flex;
             align-items: center;
         }
+
         .btn-multi.active {
-            background: #f59e0b;
+            background: var(--primary);
             color: #fff;
-            border-color: #b45309;
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
-        }
-        .btn-multi:hover {
-            transform: scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(220, 107, 130, 0.2);
         }
 
-        /* ----- 5. 鸣谢名单（柔和卡片） ----- */
+        .btn-multi:hover:not(.active) {
+            border-color: var(--primary-light);
+            background: rgba(220, 107, 130, 0.04);
+        }
+
+        /* ============================================================
+           6. 鸣谢名单（粉色柔和卡片）
+           ============================================================ */
         .credit-section {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             padding: 8px 16px;
             margin-bottom: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: all var(--transition);
+            box-shadow: var(--shadow);
         }
+
         .credit-section:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-hover);
         }
+
         .credit-content {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px 12px;
             flex-wrap: wrap;
-            color: #1e293b;
+            color: var(--text);
             font-size: clamp(12px, 1vw, 14px);
         }
+
         .credit-icon {
             font-size: clamp(16px, 1.4vw, 20px);
         }
+
         .credit-text {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
             gap: 4px 10px;
         }
+
         .credit-text strong {
-            color: #f59e0b;
+            color: var(--primary);
             font-weight: 600;
         }
+
         .credit-item {
-            color: #334155;
-            transition: color 0.2s;
+            color: var(--text-light);
+            transition: color var(--transition);
         }
+
         .credit-item:hover {
-            color: #0f172a;
+            color: var(--text);
         }
+
         .credit-divider {
-            color: #94a3b8;
+            color: var(--text-muted);
             user-select: none;
         }
 
-        /* ----- 6. 歌曲分组卡片 ----- */
+        /* ============================================================
+           7. 歌曲分组卡片
+           ============================================================ */
         .song-group {
-            background: #fff;
-            border-radius: 16px;
-            border: 1px solid #edf2f7;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
             margin-bottom: 10px;
             padding: 12px 16px;
-            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            transition: all var(--transition);
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
+
         .song-group:hover {
-            border-color: #b9d0f0;
-            background: #fafcff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-1px);
         }
+
         .group-header {
             display: flex;
             flex-wrap: wrap;
@@ -368,6 +470,7 @@
             gap: 6px 12px;
             margin-bottom: 8px;
         }
+
         .group-name {
             font-size: clamp(16px, 1.6vw, 19px);
             font-weight: 600;
@@ -377,9 +480,11 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 6px;
+            color: var(--text);
         }
+
         .badge-multi {
-            background: #f59e0b;
+            background: var(--primary);
             color: #fff;
             font-size: clamp(10px, 0.8vw, 11px);
             font-weight: 600;
@@ -389,6 +494,7 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
+
         .group-right {
             display: flex;
             flex-wrap: wrap;
@@ -396,10 +502,11 @@
             gap: 6px;
             flex-shrink: 0;
         }
+
         .group-category {
             font-size: clamp(10px, 0.8vw, 11px);
-            background: #eef2f6;
-            color: #475569;
+            background: var(--secondary);
+            color: var(--text-light);
             padding: 2px 12px;
             border-radius: 30px;
             font-weight: 600;
@@ -407,13 +514,16 @@
             line-height: 22px;
         }
 
-        /* ----- 7. ID 列表（垂直排列） ----- */
+        /* ============================================================
+           8. ID 列表
+           ============================================================ */
         .id-list {
             display: flex;
             flex-direction: column;
             gap: 4px;
             margin-top: 4px;
         }
+
         .id-row {
             display: flex;
             flex-wrap: wrap;
@@ -422,31 +532,35 @@
             gap: 6px 12px;
             padding: 4px 6px;
             border-radius: 8px;
-            background: #fafcff;
-            border-bottom: 1px dashed #eef2f6;
-            transition: background 0.15s;
+            background: rgba(253, 242, 245, 0.4);
+            border-bottom: 1px solid var(--border);
+            transition: background var(--transition);
         }
+
         .id-row:hover {
-            background: #f1f5f9;
+            background: rgba(253, 242, 245, 0.8);
         }
+
         .id-number {
             font-family: 'Courier New', monospace;
             font-size: clamp(13px, 1vw, 15px);
             font-weight: 500;
-            color: #2563eb;
+            color: var(--primary-dark);
             word-break: break-all;
             flex: 1 1 120px;
             min-width: 80px;
             padding: 2px 0;
         }
+
         .id-actions {
             display: flex;
             gap: 4px;
             align-items: center;
             flex-shrink: 0;
         }
+
         .btn-copy-id {
-            background: #1e293b;
+            background: var(--primary);
             border: none;
             color: #fff;
             padding: 2px 12px;
@@ -454,55 +568,65 @@
             font-size: clamp(11px, 0.9vw, 13px);
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all var(--transition);
             height: 28px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             white-space: nowrap;
         }
+
         .btn-copy-id:hover {
-            background: #3b82f6;
+            background: var(--primary-dark);
+            transform: scale(1.03);
         }
+
         .btn-copy-id:active {
             transform: scale(0.92);
         }
+
         .btn-copy-id.copied {
-            background: #22c55e;
+            background: #8cb8a8;
         }
+
         .btn-delete-id {
             background: transparent;
             border: none;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: clamp(14px, 1vw, 16px);
             cursor: pointer;
             padding: 0 4px;
             height: 28px;
             display: inline-flex;
             align-items: center;
-            transition: all 0.15s ease;
+            transition: all var(--transition);
             border-radius: 40px;
         }
+
         .btn-delete-id:hover {
-            color: #dc2626;
-            background: #fee2e2;
+            color: #d45c62;
+            background: rgba(232, 116, 122, 0.12);
             padding: 0 10px;
         }
+
         .btn-delete-id:active {
             transform: scale(0.85);
         }
+
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #94a3b8;
+            color: var(--text-muted);
         }
 
-        /* ----- 8. 弹窗（通用） ----- */
+        /* ============================================================
+           9. 弹窗（通用）
+           ============================================================ */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(74, 63, 68, 0.45);
             justify-content: center;
             align-items: center;
             z-index: 999;
@@ -510,21 +634,25 @@
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
         }
+
         .modal.show {
             display: flex;
         }
+
         .modal-content {
-            background: #fff;
-            border-radius: 24px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
             padding: 20px 24px;
             max-width: 700px;
             width: 100%;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-hover);
             animation: modalFadeIn 0.25s ease;
+            border: 1px solid var(--border);
         }
+
         @keyframes modalFadeIn {
             from {
                 opacity: 0;
@@ -535,26 +663,33 @@
                 transform: scale(1) translateY(0);
             }
         }
+
         .modal-content h2 {
             font-size: clamp(18px, 2vw, 22px);
             margin-bottom: 10px;
+            color: var(--text);
         }
+
         .modal-content textarea {
             flex: 1;
             min-height: 200px;
             padding: 12px;
             font-family: monospace;
             font-size: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
             resize: vertical;
             width: 100%;
-            transition: border-color 0.2s;
+            transition: border-color var(--transition);
+            background: var(--bg);
+            color: var(--text);
         }
+
         .modal-content textarea:focus {
-            border-color: #3b82f6;
+            border-color: var(--primary);
             outline: none;
         }
+
         .modal-actions {
             display: flex;
             flex-wrap: wrap;
@@ -562,159 +697,186 @@
             margin-top: 16px;
             justify-content: flex-end;
         }
+
         .modal-actions button {
             padding: 8px 22px;
             border: none;
             border-radius: 40px;
             font-size: clamp(14px, 1vw, 16px);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--transition);
             min-height: 42px;
             font-weight: 500;
         }
+
         .modal-actions .btn-confirm {
-            background: #3b82f6;
+            background: var(--primary);
             color: #fff;
         }
         .modal-actions .btn-confirm:hover {
-            background: #2563eb;
+            background: var(--primary-dark);
         }
+
         .modal-actions .btn-cancel {
-            background: #e2e8f0;
-            color: #1e293b;
+            background: var(--border);
+            color: var(--text);
         }
         .modal-actions .btn-cancel:hover {
-            background: #cbd5e1;
+            background: #e6c9cf;
         }
+
         .modal-actions .btn-danger {
-            background: #ef4444;
+            background: #e8747a;
             color: #fff;
         }
         .modal-actions .btn-danger:hover {
-            background: #dc2626;
+            background: #d45c62;
         }
+
         #importStatus {
             margin-top: 6px;
             font-size: 14px;
-            color: #22c55e;
+            color: #8cb8a8;
             word-break: break-all;
         }
 
-        /* 密码弹窗窄版 */
+        /* 密码弹窗 */
         .password-modal .modal-content {
             max-width: 400px;
         }
+
         .password-modal input[type="password"] {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
             font-size: 16px;
             margin: 12px 0;
-            transition: border-color 0.2s;
+            transition: border-color var(--transition);
+            background: var(--bg);
+            color: var(--text);
         }
+
         .password-modal input[type="password"]:focus {
-            border-color: #3b82f6;
+            border-color: var(--primary);
             outline: none;
         }
+
         .password-modal .error {
-            color: #ef4444;
+            color: #d45c62;
             font-size: 14px;
             margin-top: 4px;
         }
 
-        /* 回收站弹窗宽版 */
+        /* 回收站弹窗 */
         .recycle-modal .modal-content {
             max-width: 800px;
         }
+
         .recycle-item {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
             padding: 8px 12px;
-            border-bottom: 1px solid #eef2f6;
+            border-bottom: 1px solid var(--border);
             gap: 8px 12px;
         }
+
         .recycle-item .info {
             display: flex;
             flex-wrap: wrap;
             gap: 6px 14px;
             flex: 1 1 200px;
         }
+
         .recycle-item .info .name {
             font-weight: 500;
+            color: var(--text);
         }
+
         .recycle-item .info .id {
-            color: #2563eb;
+            color: var(--primary-dark);
             font-family: monospace;
         }
+
         .recycle-item .info .time {
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 12px;
         }
+
         .recycle-actions {
             display: flex;
             gap: 6px;
             flex-shrink: 0;
         }
+
         .recycle-actions button {
             padding: 4px 14px;
             border: none;
             border-radius: 30px;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all var(--transition);
             font-weight: 500;
         }
+
         .recycle-actions .restore-btn {
-            background: #22c55e;
+            background: #8cb8a8;
             color: #fff;
         }
         .recycle-actions .restore-btn:hover {
-            background: #16a34a;
+            background: #72a392;
         }
+
         .recycle-actions .delete-btn {
-            background: #fee2e2;
-            color: #dc2626;
+            background: rgba(232, 116, 122, 0.12);
+            color: #d45c62;
         }
         .recycle-actions .delete-btn:hover {
-            background: #fecaca;
+            background: rgba(232, 116, 122, 0.2);
         }
+
         .recycle-empty {
-            color: #94a3b8;
+            color: var(--text-muted);
             text-align: center;
             padding: 30px 0;
         }
 
-        /* ----- 9. Toast 提示 ----- */
+        /* ============================================================
+           10. Toast 提示
+           ============================================================ */
         .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1e293b;
-            color: #fff;
+            background: var(--text);
+            color: var(--bg-card);
             padding: 10px 24px;
             border-radius: 60px;
             font-size: clamp(13px, 1vw, 15px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-hover);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition);
             pointer-events: none;
             z-index: 1000;
             text-align: center;
             max-width: 92%;
             font-weight: 500;
         }
+
         .toast.show {
             opacity: 1;
         }
 
-        /* ----- 10. 权限控制 ----- */
+        /* ============================================================
+           11. 权限控制
+           ============================================================ */
         .admin-only {
             display: none !important;
         }
+
         .mode-manage .admin-only {
             display: inline-flex !important;
         }
@@ -722,11 +884,11 @@
             display: inline-flex !important;
         }
 
-        /* =============================================================
-           响应式适配（手机 / 平板 / 桌面）
-           ============================================================= */
+        /* ============================================================
+           12. 响应式适配
+           ============================================================ */
 
-        /* --- 小型手机（< 400px） --- */
+        /* --- 小型手机 (< 400px) --- */
         @media (max-width: 400px) {
             body {
                 padding: 6px;
@@ -808,9 +970,6 @@
                 font-size: 14px;
                 padding: 6px 16px;
             }
-            .recycle-item .info {
-                gap: 4px 10px;
-            }
             .toast {
                 font-size: 12px;
                 padding: 8px 16px;
@@ -818,7 +977,7 @@
             }
         }
 
-        /* --- 手机（400px - 640px） --- */
+        /* --- 手机 (400px - 640px) --- */
         @media (min-width: 401px) and (max-width: 640px) {
             body {
                 padding: 8px;
@@ -891,7 +1050,7 @@
             }
         }
 
-        /* --- 平板（641px - 1024px） --- */
+        /* --- 平板 (641px - 1024px) --- */
         @media (min-width: 641px) and (max-width: 1024px) {
             .header h1 {
                 font-size: 22px;
@@ -927,7 +1086,7 @@
             }
         }
 
-        /* --- 桌面（> 1024px） --- */
+        /* --- 桌面 (> 1024px) --- */
         @media (min-width: 1025px) {
             .header h1 {
                 font-size: 24px;
@@ -1054,7 +1213,7 @@
     <div class="modal" id="importModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>📄 粘贴原始数据</h2>
-            <p style="color:#475569; font-size:14px; margin-bottom:8px;">自动提取ID并合并同名歌名，保留原始顺序。</p>
+            <p style="color:var(--text-light); font-size:14px; margin-bottom:8px;">自动提取ID并合并同名歌名，保留原始顺序。</p>
             <textarea id="rawText" placeholder="将您从网页复制的所有文本粘贴到这里..."></textarea>
             <div id="importStatus"></div>
             <div class="modal-actions">
@@ -1068,7 +1227,7 @@
     <div class="modal password-modal" id="passwordModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>🔐 管理验证</h2>
-            <p style="color:#475569; font-size:14px;">请输入管理密码以开启编辑功能：</p>
+            <p style="color:var(--text-light); font-size:14px;">请输入管理密码以开启编辑功能：</p>
             <input type="password" id="passwordInput" placeholder="输入密码" autocomplete="off">
             <div id="passwordError" class="error" style="display:none;">密码错误，请重试。</div>
             <div class="modal-actions">
@@ -1081,7 +1240,7 @@
     <!-- ===== 回收站弹窗 ===== -->
     <div class="modal recycle-modal" id="recycleModal" role="dialog" aria-modal="true">
         <div class="modal-content">
-            <h2>♻️ 回收站 <span id="recycleCountTitle" style="font-size:14px; color:#94a3b8; font-weight:400;"></span></h2>
+            <h2>♻️ 回收站 <span id="recycleCountTitle" style="font-size:14px; color:var(--text-muted); font-weight:400;"></span></h2>
             <div id="recycleList" style="overflow-y:auto; flex:1; margin:12px 0;"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="closeRecycleBtn">关闭</button>
@@ -1101,7 +1260,7 @@
          */
         const USE_EXTERNAL_JSON = true; // true=从外部JSON加载，false=使用硬编码后备
         const EXTERNAL_JSON_URL = 'roblox_music_id.json'; // 外部数据文件
-        const DATA_VERSION = 'v5.1'; // 数据版本号（递增可强制刷新用户缓存）
+        const DATA_VERSION = 'v5.2'; // 数据版本号（递增可强制刷新用户缓存）
         const ADMIN_PASSWORD = 'HuTinJianZW'; // 管理模式密码
 
         // 硬编码后备数据（仅用作外部加载失败时的应急）
@@ -1434,14 +1593,16 @@
 
                 let category = '其他';
                 const lower = name.toLowerCase();
-                if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj')) category =
-                    'Phonk/DJ';
-                else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes('古筝') ||
+                if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj'))
+                    category = 'Phonk/DJ';
+                else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes(
+                        '古筝') ||
                     lower.includes('二胡') || lower.includes('箫') || lower.includes('笛') || lower.includes('琴') ||
                     lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶')) category = '古风国风';
-                else if (lower.includes('搞笑') || lower.includes('音效') || lower.includes('惨叫') || lower.includes('笑声') ||
+                else if (lower.includes('搞笑') || lower.includes('音效') || lower.includes('惨叫') || lower.includes(
+                        '笑声') ||
                     lower.includes('魔性') || lower.includes('鬼畜') || lower.includes('沙雕') || lower.includes('梗'))
-                category = '搞笑音效';
+                    category = '搞笑音效';
                 else if (lower.includes('周杰伦') || lower.includes('杰伦')) category = '周杰伦';
                 else if (lower.includes('英文') || /[a-zA-Z]/.test(name) && !lower.includes('中文')) category = '英文热门';
                 else category = '中文流行';
