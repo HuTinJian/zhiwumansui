@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 视口设置：确保移动端正确缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>🎵 Roblox 音乐ID 宝库 · 分组管理</title>
+
+    <!-- =============================================================
+         样式部分：全面适配 手机/平板/桌面
+         ============================================================= -->
+    <style>
+        /* ----- 1. 全局重置，保证各浏览器表现一致 ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding: 12px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ----- 2. 头部（深色渐变） ----- */
+        .header {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+        .header-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .header h1 {
+            font-size: clamp(18px, 2.8vw, 24px);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+            flex: 1 1 auto;
+            min-width: 160px;
+        }
+        .header h1:hover {
+            opacity: 0.8;
+        }
+        .header h1 small {
+            font-size: clamp(11px, 1.4vw, 14px);
+            font-weight: 400;
+            opacity: 0.7;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        /* 统计信息行 */
+        .header .stats {
+            margin-top: 8px;
+            font-size: clamp(12px, 1.2vw, 14px);
+            opacity: 0.85;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 16px;
+        }
+        .stats .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        /* 管理按钮通用 */
+        .stats .btn-import,
+        .stats .btn-danger,
+        .stats .btn-success,
+        .stats .btn-recycle {
+            border: none;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: clamp(11px, 1vw, 13px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            gap: 4px;
+        }
+        .stats .btn-import {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .stats .btn-import:hover {
+            background: #2563eb;
+            transform: scale(1.03);
+        }
+        .stats .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .stats .btn-danger:hover {
+            background: #dc2626;
+            transform: scale(1.03);
+        }
+        .stats .btn-success {
+            background: #22c55e;
+            color: #fff;
+        }
+        .stats .btn-success:hover {
+            background: #16a34a;
+            transform: scale(1.03);
+        }
+        .stats .btn-recycle {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .stats .btn-recycle:hover {
+            background: #d97706;
+            transform: scale(1.03);
+        }
+        .stats .admin-hint {
+            font-size: clamp(10px, 0.9vw, 12px);
+            opacity: 0.5;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+        .stats .admin-hint strong {
+            color: #fbbf24;
+        }
+
+        /* 回收站徽章 */
+        #recycleCount {
+            font-size: 12px;
+            background: #f59e0b;
+            color: #fff;
+            padding: 0 10px;
+            border-radius: 30px;
+            line-height: 22px;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* ----- 3. 导航栏（毛玻璃胶囊组） ----- */
+        .header-nav {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 4px 6px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            flex-shrink: 0;
+        }
+        .header-nav:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: clamp(12px, 1vw, 13px);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+        }
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        #homeBtn:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+        #feedbackBtn:hover {
+            background: rgba(34, 197, 94, 0.2);
+        }
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            margin: 0 2px;
+            flex-shrink: 0;
+        }
+
+        /* ----- 4. 搜索栏与筛选 ----- */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box input {
+            flex: 1 1 200px;
+            min-width: 160px;
+            padding: 10px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 60px;
+            font-size: clamp(14px, 1.2vw, 16px);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            height: 46px;
+        }
+        .search-box input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+        }
+        .filter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .filter-tabs button {
+            padding: 6px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 60px;
+            background: #fff;
+            font-size: clamp(12px, 1vw, 13px);
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .filter-tabs button.active {
+            background: #1e293b;
+            color: #fff;
+            border-color: #1e293b;
+        }
+        .filter-tabs button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        .btn-multi {
+            background: #e2e8f0;
+            color: #1e293b;
+            border: 2px solid #cbd5e1;
+            padding: 6px 16px;
+            border-radius: 60px;
+            font-size: clamp(12px, 1vw, 13px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-multi.active {
+            background: #f59e0b;
+            color: #fff;
+            border-color: #b45309;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+        }
+        .btn-multi:hover {
+            transform: scale(1.02);
+        }
+
+        /* ----- 5. 鸣谢名单（柔和卡片） ----- */
+        .credit-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 8px 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+        .credit-section:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .credit-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px 12px;
+            flex-wrap: wrap;
+            color: #1e293b;
+            font-size: clamp(12px, 1vw, 14px);
+        }
+        .credit-icon {
+            font-size: clamp(16px, 1.4vw, 20px);
+        }
+        .credit-text {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+        }
+        .credit-text strong {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        .credit-item {
+            color: #334155;
+            transition: color 0.2s;
+        }
+        .credit-item:hover {
+            color: #0f172a;
+        }
+        .credit-divider {
+            color: #94a3b8;
+            user-select: none;
+        }
+
+        /* ----- 6. 歌曲分组卡片 ----- */
+        .song-group {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #edf2f7;
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+        .song-group:hover {
+            border-color: #b9d0f0;
+            background: #fafcff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .group-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px 12px;
+            margin-bottom: 8px;
+        }
+        .group-name {
+            font-size: clamp(16px, 1.6vw, 19px);
+            font-weight: 600;
+            word-break: break-word;
+            flex: 1 1 140px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .badge-multi {
+            background: #f59e0b;
+            color: #fff;
+            font-size: clamp(10px, 0.8vw, 11px);
+            font-weight: 600;
+            padding: 0 10px;
+            border-radius: 30px;
+            line-height: 22px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .group-right {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .group-category {
+            font-size: clamp(10px, 0.8vw, 11px);
+            background: #eef2f6;
+            color: #475569;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            white-space: nowrap;
+            line-height: 22px;
+        }
+
+        /* ----- 7. ID 列表（垂直排列） ----- */
+        .id-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .id-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px 12px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            background: #fafcff;
+            border-bottom: 1px dashed #eef2f6;
+            transition: background 0.15s;
+        }
+        .id-row:hover {
+            background: #f1f5f9;
+        }
+        .id-number {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(13px, 1vw, 15px);
+            font-weight: 500;
+            color: #2563eb;
+            word-break: break-all;
+            flex: 1 1 120px;
+            min-width: 80px;
+            padding: 2px 0;
+        }
+        .id-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-copy-id {
+            background: #1e293b;
+            border: none;
+            color: #fff;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: clamp(11px, 0.9vw, 13px);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .btn-copy-id:hover {
+            background: #3b82f6;
+        }
+        .btn-copy-id:active {
+            transform: scale(0.92);
+        }
+        .btn-copy-id.copied {
+            background: #22c55e;
+        }
+        .btn-delete-id {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: clamp(14px, 1vw, 16px);
+            cursor: pointer;
+            padding: 0 4px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.15s ease;
+            border-radius: 40px;
+        }
+        .btn-delete-id:hover {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 0 10px;
+        }
+        .btn-delete-id:active {
+            transform: scale(0.85);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        /* ----- 8. 弹窗（通用） ----- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 24px;
+            padding: 20px 24px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.25s ease;
+        }
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal-content h2 {
+            font-size: clamp(18px, 2vw, 22px);
+            margin-bottom: 10px;
+        }
+        .modal-content textarea {
+            flex: 1;
+            min-height: 200px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            resize: vertical;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .modal-content textarea:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: flex-end;
+        }
+        .modal-actions button {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 40px;
+            font-size: clamp(14px, 1vw, 16px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 42px;
+            font-weight: 500;
+        }
+        .modal-actions .btn-confirm {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .modal-actions .btn-confirm:hover {
+            background: #2563eb;
+        }
+        .modal-actions .btn-cancel {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .modal-actions .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+        .modal-actions .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .modal-actions .btn-danger:hover {
+            background: #dc2626;
+        }
+        #importStatus {
+            margin-top: 6px;
+            font-size: 14px;
+            color: #22c55e;
+            word-break: break-all;
+        }
+
+        /* 密码弹窗窄版 */
+        .password-modal .modal-content {
+            max-width: 400px;
+        }
+        .password-modal input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            margin: 12px 0;
+            transition: border-color 0.2s;
+        }
+        .password-modal input[type="password"]:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .password-modal .error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* 回收站弹窗宽版 */
+        .recycle-modal .modal-content {
+            max-width: 800px;
+        }
+        .recycle-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eef2f6;
+            gap: 8px 12px;
+        }
+        .recycle-item .info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            flex: 1 1 200px;
+        }
+        .recycle-item .info .name {
+            font-weight: 500;
+        }
+        .recycle-item .info .id {
+            color: #2563eb;
+            font-family: monospace;
+        }
+        .recycle-item .info .time {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .recycle-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .recycle-actions button {
+            padding: 4px 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-weight: 500;
+        }
+        .recycle-actions .restore-btn {
+            background: #22c55e;
+            color: #fff;
+        }
+        .recycle-actions .restore-btn:hover {
+            background: #16a34a;
+        }
+        .recycle-actions .delete-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .recycle-actions .delete-btn:hover {
+            background: #fecaca;
+        }
+        .recycle-empty {
+            color: #94a3b8;
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        /* ----- 9. Toast 提示 ----- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-size: clamp(13px, 1vw, 15px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+            text-align: center;
+            max-width: 92%;
+            font-weight: 500;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* ----- 10. 权限控制 ----- */
+        .admin-only {
+            display: none !important;
+        }
+        .mode-manage .admin-only {
+            display: inline-flex !important;
+        }
+        .mode-manage .btn-delete-id {
+            display: inline-flex !important;
+        }
+
+        /* =============================================================
+           响应式适配（手机 / 平板 / 桌面）
+           ============================================================= */
+
+        /* --- 小型手机（< 400px） --- */
+        @media (max-width: 400px) {
+            body {
+                padding: 6px;
+            }
+            .header {
+                padding: 12px 14px;
+            }
+            .header h1 {
+                font-size: 17px;
+                min-width: 120px;
+            }
+            .header h1 small {
+                font-size: 10px;
+            }
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .header-nav {
+                align-self: flex-start;
+                padding: 3px 4px;
+            }
+            .nav-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+                height: 26px;
+            }
+            .nav-divider {
+                height: 14px;
+            }
+            .search-box input {
+                height: 40px;
+                font-size: 15px;
+                padding: 8px 14px;
+                min-width: 120px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 32px;
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .song-group {
+                padding: 10px 12px;
+            }
+            .group-name {
+                font-size: 15px;
+            }
+            .id-number {
+                font-size: 12px;
+                min-width: 60px;
+            }
+            .btn-copy-id {
+                font-size: 11px;
+                padding: 2px 10px;
+                height: 26px;
+            }
+            .btn-delete-id {
+                font-size: 14px;
+                height: 26px;
+            }
+            .credit-content {
+                font-size: 11px;
+            }
+            .stats .btn-import,
+            .stats .btn-danger,
+            .stats .btn-success,
+            .stats .btn-recycle {
+                font-size: 10px;
+                padding: 2px 10px;
+                height: 28px;
+            }
+            .modal-content {
+                padding: 16px;
+            }
+            .modal-actions button {
+                min-height: 38px;
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .recycle-item .info {
+                gap: 4px 10px;
+            }
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                bottom: 16px;
+            }
+        }
+
+        /* --- 手机（400px - 640px） --- */
+        @media (min-width: 401px) and (max-width: 640px) {
+            body {
+                padding: 8px;
+            }
+            .header {
+                padding: 14px 16px;
+            }
+            .header h1 {
+                font-size: 19px;
+            }
+            .header-top {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .header-nav {
+                padding: 3px 5px;
+            }
+            .nav-btn {
+                font-size: 12px;
+                padding: 4px 12px;
+                height: 28px;
+            }
+            .nav-divider {
+                height: 16px;
+            }
+            .search-box input {
+                height: 42px;
+                font-size: 15px;
+                padding: 8px 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 34px;
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            .song-group {
+                padding: 10px 14px;
+            }
+            .group-name {
+                font-size: 16px;
+            }
+            .id-number {
+                font-size: 13px;
+            }
+            .btn-copy-id {
+                font-size: 12px;
+                padding: 2px 12px;
+                height: 28px;
+            }
+            .btn-delete-id {
+                font-size: 15px;
+                height: 28px;
+            }
+            .stats .btn-import,
+            .stats .btn-danger,
+            .stats .btn-success,
+            .stats .btn-recycle {
+                font-size: 11px;
+                padding: 3px 12px;
+                height: 30px;
+            }
+            .modal-content {
+                padding: 18px;
+            }
+            .toast {
+                font-size: 13px;
+                padding: 8px 18px;
+                bottom: 20px;
+            }
+        }
+
+        /* --- 平板（641px - 1024px） --- */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            .header-nav {
+                padding: 4px 6px;
+            }
+            .nav-btn {
+                font-size: 13px;
+                padding: 6px 16px;
+                height: 32px;
+            }
+            .search-box input {
+                height: 46px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 38px;
+            }
+            .song-group {
+                padding: 14px 18px;
+            }
+            .id-number {
+                font-size: 14px;
+            }
+            .stats .btn-import,
+            .stats .btn-danger,
+            .stats .btn-success,
+            .stats .btn-recycle {
+                font-size: 12px;
+                padding: 4px 14px;
+                height: 32px;
+            }
+        }
+
+        /* --- 桌面（> 1024px） --- */
+        @media (min-width: 1025px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            .header-nav {
+                padding: 4px 8px;
+            }
+            .nav-btn {
+                font-size: 14px;
+                padding: 6px 20px;
+                height: 34px;
+            }
+            .search-box input {
+                height: 48px;
+                font-size: 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 40px;
+                font-size: 13px;
+            }
+            .song-group {
+                padding: 16px 20px;
+            }
+            .id-number {
+                font-size: 15px;
+            }
+            .btn-copy-id {
+                font-size: 13px;
+                padding: 2px 16px;
+                height: 30px;
+            }
+            .stats .btn-import,
+            .stats .btn-danger,
+            .stats .btn-success,
+            .stats .btn-recycle {
+                font-size: 13px;
+                padding: 4px 16px;
+                height: 34px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="appContainer">
+
+        <!-- ==========================================================
+        页面头部
+        ========================================================== -->
+        <header class="header">
+            <div class="header-top">
+                <!-- 标题：双击切换管理模式 -->
+                <h1 id="mainTitle">🎵 Roblox 音乐ID 宝库 <small id="modeLabel">游客模式</small></h1>
+
+                <!-- 右侧统计 + 导航 -->
+                <div class="stats" style="margin-top:0;">
+                    <span>📚 <strong id="totalGroupCount">0</strong> 组</span>
+                    <span>🎶 <strong id="totalIdCount">0</strong> 个ID</span>
+                    <span>🔁 <strong id="multiGroupCount">0</strong> 组多ID</span>
+
+                    <!-- 回收站徽章（仅管理员可见） -->
+                    <span class="admin-only" id="recycleCount">♻️ 回收站 <strong id="recycleNum">0</strong></span>
+
+                    <!-- 导航栏（毛玻璃胶囊） -->
+                    <nav class="header-nav" aria-label="主导航">
+                        <a href="index.html" class="nav-btn" id="homeBtn">🏠 首页</a>
+                        <span class="nav-divider" aria-hidden="true"></span>
+                        <a href="feedback.html" class="nav-btn" id="feedbackBtn">📩 反馈</a>
+                    </nav>
+
+                    <span class="admin-hint" id="modeHint">双击标题切换管理</span>
+                </div>
+            </div>
+
+            <!-- 管理按钮组 -->
+            <div class="stats">
+                <div class="btn-group">
+                    <button class="btn-import admin-only" id="openImportBtn">📥 导入</button>
+                    <button class="btn-success admin-only" id="exportBtn">💾 导出</button>
+                    <button class="btn-recycle admin-only" id="openRecycleBtn">♻️ 回收站</button>
+                    <button class="btn-danger admin-only" id="clearAllBtn">🧹 清空</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==========================================================
+        鸣谢名单
+        ========================================================== -->
+        <section class="credit-section" aria-label="鸣谢">
+            <div class="credit-content">
+                <span class="credit-icon">🙏</span>
+                <div class="credit-text">
+                    <strong>特别鸣谢</strong>
+                    <span class="credit-item">🎬 视频平台 UP主 的精彩内容</span>
+                    <span class="credit-divider">·</span>
+                    <span class="credit-item">📋 Duck 整理本歌单的所有歌曲</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================================
+        搜索与筛选
+        ========================================================== -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜索歌名或ID..." aria-label="搜索歌曲">
+            <div class="filter-tabs" id="categoryTabs" role="tablist">
+                <button class="active" data-cat="all" role="tab">全部</button>
+            </div>
+            <button class="btn-multi" id="multiToggleBtn" aria-pressed="false">🔁 多ID</button>
+        </div>
+
+        <!-- ==========================================================
+        歌曲列表（由 JavaScript 动态渲染）
+        ========================================================== -->
+        <div id="songListContainer" role="list"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
+    </div>
+
+    <!-- ===== Toast 提示 ===== -->
+    <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+    <!-- ===== 导入弹窗 ===== -->
+    <div class="modal" id="importModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>📄 粘贴原始数据</h2>
+            <p style="color:#475569; font-size:14px; margin-bottom:8px;">自动提取ID并合并同名歌名，保留原始顺序。</p>
+            <textarea id="rawText" placeholder="将您从网页复制的所有文本粘贴到这里..."></textarea>
+            <div id="importStatus"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelImport">取消</button>
+                <button class="btn-confirm" id="confirmImport">✅ 确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 密码弹窗 ===== -->
+    <div class="modal password-modal" id="passwordModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>🔐 管理验证</h2>
+            <p style="color:#475569; font-size:14px;">请输入管理密码以开启编辑功能：</p>
+            <input type="password" id="passwordInput" placeholder="输入密码" autocomplete="off">
+            <div id="passwordError" class="error" style="display:none;">密码错误，请重试。</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelPassword">取消</button>
+                <button class="btn-confirm" id="confirmPassword">✅ 确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 回收站弹窗 ===== -->
+    <div class="modal recycle-modal" id="recycleModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>♻️ 回收站 <span id="recycleCountTitle" style="font-size:14px; color:#94a3b8; font-weight:400;"></span></h2>
+            <div id="recycleList" style="overflow-y:auto; flex:1; margin:12px 0;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="closeRecycleBtn">关闭</button>
+                <button class="btn-danger" id="emptyRecycleBtn">🧹 清空回收站</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================================
+    JavaScript 核心逻辑（完整注释）
+    ============================================================= -->
+    <script>
+        /**
+         * ============================================================
+         * 1. 配置区（您只需修改这些变量）
+         * ============================================================
+         */
+        const USE_EXTERNAL_JSON = true; // true=从外部JSON加载，false=使用硬编码后备
+        const EXTERNAL_JSON_URL = 'roblox_music_id.json'; // 外部数据文件
+        const DATA_VERSION = 'v5.1'; // 数据版本号（递增可强制刷新用户缓存）
+        const ADMIN_PASSWORD = 'HuTinJianZW'; // 管理模式密码
+
+        // 硬编码后备数据（仅用作外部加载失败时的应急）
+        const DEFAULT_DATA_JSON = `[
+            {"id":"119764702259846","name":"七里香","category":"中文流行","lineIndex":0}
+        ]`;
+
+        /**
+         * ============================================================
+         * 2. 核心数据
+         * ============================================================
+         */
+        let songDatabase = []; // 主数据
+        let recycleBin = []; // 回收站
+        let isAdmin = false; // 是否管理模式
+
+        /**
+         * ============================================================
+         * 3. 辅助函数
+         * ============================================================
+         */
+
+        /** 转义HTML防止XSS */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /** 清洗歌名：去除竖线、括号、末尾标点 */
+        function cleanName(name) {
+            if (!name) return '未知歌名';
+            name = name.replace(/\s*[｜\|]\s*/g, '');
+            name = name.replace(/\s*[（(][^）)]*[）)]\s*$/, '');
+            name = name.replace(/[，。、：；！？\.,;:!?]+$/, '');
+            return name.trim() || '未知歌名';
+        }
+
+        /** Toast 提示 */
+        let toastTimer = null;
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+        }
+
+        /**
+         * ============================================================
+         * 4. 数据加载与持久化
+         * ============================================================
+         */
+
+        /** 保存数据到 localStorage */
+        function saveData() {
+            localStorage.setItem('songDB', JSON.stringify(songDatabase));
+            localStorage.setItem('recycleBin', JSON.stringify(recycleBin));
+            updateRecycleBadge();
+        }
+
+        /** 更新回收站徽章 */
+        function updateRecycleBadge() {
+            const badge = document.getElementById('recycleCount');
+            const num = document.getElementById('recycleNum');
+            if (recycleBin.length > 0) {
+                badge.style.display = 'inline-block';
+                num.textContent = recycleBin.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        /** 从硬编码加载（后备） */
+        function loadHardcodedData() {
+            try {
+                const raw = JSON.parse(DEFAULT_DATA_JSON);
+                const recycleIds = new Set(recycleBin.map(i => i.id));
+                songDatabase = raw
+                    .filter(i => !recycleIds.has(i.id))
+                    .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
+                saveData();
+                localStorage.setItem('songDBVersion', DATA_VERSION);
+                console.log(`✅ 硬编码数据加载成功，共 ${songDatabase.length} 首`);
+            } catch (e) {
+                console.error('❌ 硬编码数据解析失败:', e);
+                songDatabase = [];
+            }
+            updateRecycleBadge();
+            renderAll();
+        }
+
+        /** 主加载入口 */
+        function loadData() {
+            // 加载回收站
+            const recycleStored = localStorage.getItem('recycleBin');
+            if (recycleStored) {
+                try { recycleBin = JSON.parse(recycleStored); } catch (e) { recycleBin = []; }
+            }
+
+            // 检查缓存
+            const stored = localStorage.getItem('songDB');
+            const storedVersion = localStorage.getItem('songDBVersion');
+            if (stored && storedVersion === DATA_VERSION) {
+                try {
+                    songDatabase = JSON.parse(stored);
+                    updateRecycleBadge();
+                    renderAll();
+                    return;
+                } catch (e) { /* 缓存损坏，重新加载 */ }
+            }
+
+            // 外部加载或硬编码
+            if (USE_EXTERNAL_JSON) {
+                fetch(EXTERNAL_JSON_URL)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        const recycleIds = new Set(recycleBin.map(i => i.id));
+                        songDatabase = data
+                            .filter(i => !recycleIds.has(i.id))
+                            .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
+                        saveData();
+                        localStorage.setItem('songDBVersion', DATA_VERSION);
+                        console.log(`✅ 外部数据加载成功，共 ${songDatabase.length} 首（跳过回收站 ${recycleBin.length} 个ID）`);
+                        updateRecycleBadge();
+                        renderAll();
+                    })
+                    .catch(err => {
+                        console.error('❌ 外部JSON加载失败，使用后备数据:', err);
+                        loadHardcodedData();
+                    });
+            } else {
+                loadHardcodedData();
+            }
+        }
+
+        /**
+         * ============================================================
+         * 5. 模式管理（游客/管理员）
+         * ============================================================
+         */
+        function loadMode() {
+            isAdmin = localStorage.getItem('adminMode') === 'true';
+            applyMode();
+        }
+
+        function applyMode() {
+            const container = document.getElementById('appContainer');
+            const label = document.getElementById('modeLabel');
+            const hint = document.getElementById('modeHint');
+            if (isAdmin) {
+                container.classList.remove('mode-readonly');
+                container.classList.add('mode-manage');
+                label.textContent = '管理模式';
+                hint.innerHTML = '双击标题 <strong>退出</strong> 管理';
+            } else {
+                container.classList.remove('mode-manage');
+                container.classList.add('mode-readonly');
+                label.textContent = '游客模式';
+                hint.textContent = '双击标题切换管理';
+            }
+            updateRecycleBadge();
+        }
+
+        /** 双击标题切换 */
+        function toggleAdminMode() {
+            if (isAdmin) {
+                isAdmin = false;
+                localStorage.setItem('adminMode', 'false');
+                applyMode();
+                showToast('已退出管理模式');
+                renderList();
+            } else {
+                document.getElementById('passwordModal').classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordError').style.display = 'none';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        /** 验证密码 */
+        function verifyPassword(pwd) {
+            if (pwd === ADMIN_PASSWORD) {
+                isAdmin = true;
+                localStorage.setItem('adminMode', 'true');
+                applyMode();
+                document.getElementById('passwordModal').classList.remove('show');
+                showToast('✅ 已进入管理模式');
+                renderList();
+            } else {
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        /**
+         * ============================================================
+         * 6. 回收站操作
+         * ============================================================
+         */
+
+        /** 移入回收站 */
+        function moveToRecycle(name, id) {
+            if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+            const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
+            if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
+            const item = songDatabase[idx];
+            if (!confirm(`确定将 ID ${id}（歌名：${name}）移入回收站吗？\n您可以在回收站中恢复它。`)) return;
+
+            songDatabase.splice(idx, 1);
+            recycleBin.push({ ...item, deletedAt: new Date().toISOString() });
+            saveData();
+            showToast(`✅ ID ${id} 已移入回收站`);
+            renderAll();
+        }
+
+        /** 从回收站恢复 */
+        function restoreFromRecycle(id) {
+            const idx = recycleBin.findIndex(i => i.id === id);
+            if (idx === -1) { showToast('⚠️ 回收站中未找到该ID'); return; }
+            const item = recycleBin[idx];
+            if (songDatabase.some(i => i.id === id)) {
+                showToast('⚠️ 该ID已存在于主列表中，已从回收站删除');
+                recycleBin.splice(idx, 1);
+                saveData();
+                renderRecycleList();
+                return;
+            }
+            recycleBin.splice(idx, 1);
+            const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
+            item.lineIndex = maxLine + 1;
+            songDatabase.push(item);
+            saveData();
+            showToast(`✅ 已恢复 ID ${id}（${item.name}）`);
+            renderAll();
+            renderRecycleList();
+        }
+
+        /** 永久删除（不可恢复） */
+        function permanentlyDeleteFromRecycle(id) {
+            if (!confirm(`确定要永久删除回收站中的 ID ${id} 吗？此操作不可恢复！`)) return;
+            const idx = recycleBin.findIndex(i => i.id === id);
+            if (idx === -1) return;
+            recycleBin.splice(idx, 1);
+            saveData();
+            showToast(`🗑️ 已永久删除 ID ${id}`);
+            renderRecycleList();
+            updateRecycleBadge();
+        }
+
+        /** 清空回收站 */
+        function emptyRecycleBin() {
+            if (recycleBin.length === 0) { showToast('回收站已是空的'); return; }
+            if (!confirm(`⚠️ 确定要清空回收站吗？将永久删除 ${recycleBin.length} 个ID，此操作不可恢复！`)) return;
+            recycleBin = [];
+            saveData();
+            showToast('🗑️ 回收站已清空');
+            renderRecycleList();
+            updateRecycleBadge();
+        }
+
+        /** 渲染回收站列表 */
+        function renderRecycleList() {
+            const container = document.getElementById('recycleList');
+            const title = document.getElementById('recycleCountTitle');
+            if (recycleBin.length === 0) {
+                container.innerHTML = '<div class="recycle-empty">回收站是空的 🗑️</div>';
+                title.textContent = '(空)';
+                return;
+            }
+            title.textContent = `(${recycleBin.length} 个ID)`;
+            const sorted = [...recycleBin].sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+            let html = '';
+            sorted.forEach(item => {
+                const time = item.deletedAt ? new Date(item.deletedAt).toLocaleString() : '未知时间';
+                html += `
+                    <div class="recycle-item">
+                        <div class="info">
+                            <span class="name">${escapeHtml(item.name)}</span>
+                            <span class="id">${escapeHtml(item.id)}</span>
+                            <span class="time">🗑️ ${time}</span>
+                        </div>
+                        <div class="recycle-actions">
+                            <button class="restore-btn" data-id="${escapeHtml(item.id)}">♻️ 恢复</button>
+                            <button class="delete-btn" data-id="${escapeHtml(item.id)}">✕ 永久删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.restore-btn').forEach(btn => {
+                btn.onclick = () => restoreFromRecycle(btn.dataset.id);
+            });
+            container.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = () => permanentlyDeleteFromRecycle(btn.dataset.id);
+            });
+        }
+
+        /**
+         * ============================================================
+         * 7. 导入功能（自动跳过回收站中的ID）
+         * ============================================================
+         */
+        function parseRawText(text) {
+            const lines = text.split(/\r?\n/);
+            const result = [];
+            const idSet = new Set();
+            const idRegex = /\b(\d{10,})\b/g;
+            let lineIndex = 0;
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) { lineIndex++; continue; }
+                const ids = line.match(idRegex);
+                if (!ids) { lineIndex++; continue; }
+                const id = ids[0];
+                if (idSet.has(id)) { lineIndex++; continue; }
+                idSet.add(id);
+                let name = line.replace(id, '').trim();
+                name = name.replace(/^[\d]+[\.\、\s]+/, '');
+                name = name.replace(/^[\d]+[\s]*[\)）]/, '');
+                name = name.replace(/^[\|•·\-\s]+/, '');
+                name = name.replace(/[\|•·\-]+$/, '');
+                name = cleanName(name);
+
+                let category = '其他';
+                const lower = name.toLowerCase();
+                if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj')) category =
+                    'Phonk/DJ';
+                else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes('古筝') ||
+                    lower.includes('二胡') || lower.includes('箫') || lower.includes('笛') || lower.includes('琴') ||
+                    lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶')) category = '古风国风';
+                else if (lower.includes('搞笑') || lower.includes('音效') || lower.includes('惨叫') || lower.includes('笑声') ||
+                    lower.includes('魔性') || lower.includes('鬼畜') || lower.includes('沙雕') || lower.includes('梗'))
+                category = '搞笑音效';
+                else if (lower.includes('周杰伦') || lower.includes('杰伦')) category = '周杰伦';
+                else if (lower.includes('英文') || /[a-zA-Z]/.test(name) && !lower.includes('中文')) category = '英文热门';
+                else category = '中文流行';
+
+                result.push({ id, name, category, lineIndex });
+                lineIndex++;
+            }
+            return result;
+        }
+
+        function importData(rawText) {
+            if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+            const parsed = parseRawText(rawText);
+            if (parsed.length === 0) {
+                document.getElementById('importStatus').textContent = '⚠️ 未解析到任何有效条目';
+                return;
+            }
+
+            const recycleIds = new Set(recycleBin.map(i => i.id));
+            const toAdd = parsed.filter(i => !recycleIds.has(i.id));
+            const skipped = parsed.length - toAdd.length;
+
+            const existingMap = {};
+            songDatabase.forEach(i => { existingMap[i.id] = i; });
+            let added = 0,
+                updated = 0;
+            toAdd.forEach(newItem => {
+                if (existingMap[newItem.id]) {
+                    const old = existingMap[newItem.id];
+                    if (old.name !== newItem.name || old.category !== newItem.category || old.lineIndex !== newItem
+                        .lineIndex) {
+                        old.name = newItem.name;
+                        old.category = newItem.category;
+                        old.lineIndex = newItem.lineIndex;
+                        updated++;
+                    }
+                } else {
+                    songDatabase.push(newItem);
+                    existingMap[newItem.id] = newItem;
+                    added++;
+                }
+            });
+
+            saveData();
+            let msg = `✅ 导入完成！新增 ${added} 首，更新 ${updated} 首`;
+            if (skipped > 0) msg += `，跳过 ${skipped} 个已在回收站中的ID`;
+            document.getElementById('importStatus').textContent = msg;
+            renderAll();
+            setTimeout(() => document.getElementById('importModal').classList.remove('show'), 1500);
+        }
+
+        /**
+         * ============================================================
+         * 8. 其他管理员操作
+         * ============================================================
+         */
+        function clearAllData() {
+            if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+            if (!confirm('⚠️ 确定要清空所有数据吗？此操作不可恢复！')) return;
+            songDatabase = [];
+            recycleBin = [];
+            saveData();
+            renderAll();
+            showToast('已清空所有数据');
+        }
+
+        function exportData() {
+            if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+            const blob = new Blob([JSON.stringify(songDatabase, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roblox_ids_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * ============================================================
+         * 9. 渲染引擎
+         * ============================================================
+         */
+        let currentCategory = 'all';
+        let currentKeyword = '';
+        let showMultiOnly = false;
+
+        function renderAll() {
+            // 统计
+            const uniqueNames = new Set(songDatabase.map(i => i.name));
+            document.getElementById('totalGroupCount').textContent = uniqueNames.size;
+            document.getElementById('totalIdCount').textContent = songDatabase.length;
+
+            const nameCountMap = {};
+            songDatabase.forEach(i => { nameCountMap[i.name] = (nameCountMap[i.name] || 0) + 1; });
+            let multiCount = Object.values(nameCountMap).filter(c => c > 1).length;
+            document.getElementById('multiGroupCount').textContent = multiCount;
+
+            // 分类按钮
+            const tabsContainer = document.getElementById('categoryTabs');
+            while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
+            const categories = new Set(songDatabase.map(i => i.category));
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.dataset.cat = cat;
+                btn.textContent = cat;
+                btn.setAttribute('role', 'tab');
+                tabsContainer.appendChild(btn);
+            });
+
+            const allBtns = tabsContainer.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                btn.onclick = function() {
+                    const cat = this.dataset.cat;
+                    if (cat === 'all') {
+                        if (showMultiOnly) {
+                            showMultiOnly = false;
+                            document.getElementById('multiToggleBtn').classList.remove('active');
+                        }
+                        currentCategory = 'all';
+                    } else {
+                        currentCategory = cat;
+                    }
+                    allBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderList();
+                };
+            });
+            allBtns.forEach(b => {
+                if (b.dataset.cat === currentCategory) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            // 搜索
+            document.getElementById('searchInput').oninput = function() {
+                currentKeyword = this.value;
+                renderList();
+            };
+
+            // 多ID切换
+            const multiBtn = document.getElementById('multiToggleBtn');
+            multiBtn.onclick = function() {
+                showMultiOnly = !showMultiOnly;
+                this.classList.toggle('active');
+                this.setAttribute('aria-pressed', showMultiOnly);
+                renderList();
+            };
+            if (showMultiOnly) {
+                multiBtn.classList.add('active');
+                multiBtn.setAttribute('aria-pressed', 'true');
+            }
+
+            renderList();
+        }
+
+        function renderList() {
+            const keyword = currentKeyword.trim().toLowerCase();
+
+            // 过滤
+            let filtered = songDatabase.filter(item => {
+                const catMatch = currentCategory === 'all' || item.category === currentCategory;
+                const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
+                return catMatch && kwMatch;
+            });
+
+            // 分组
+            const groupMap = {};
+            filtered.forEach(item => {
+                if (!groupMap[item.name]) {
+                    groupMap[item.name] = { name: item.name, ids: [], categories: new Set(), firstLine: Infinity };
+                }
+                groupMap[item.name].ids.push(item.id);
+                groupMap[item.name].categories.add(item.category);
+                if (item.lineIndex < groupMap[item.name].firstLine) {
+                    groupMap[item.name].firstLine = item.lineIndex;
+                }
+            });
+
+            let groups = Object.values(groupMap);
+            groups.sort((a, b) => a.firstLine - b.firstLine);
+
+            if (showMultiOnly) {
+                groups = groups.filter(g => g.ids.length > 1);
+            }
+
+            const container = document.getElementById('songListContainer');
+            const empty = document.getElementById('emptyState');
+
+            if (groups.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            let html = '';
+            groups.forEach(group => {
+                const catStr = Array.from(group.categories).join(' / ');
+                const safeName = escapeHtml(group.name);
+                const isMulti = group.ids.length > 1;
+
+                let nameHtml = safeName;
+                if (isMulti) nameHtml += ` <span class="badge-multi">多ID</span>`;
+
+                let rowsHtml = '';
+                group.ids.forEach(id => {
+                    rowsHtml += `
+                        <div class="id-row">
+                            <span class="id-number">${escapeHtml(id)}</span>
+                            <div class="id-actions">
+                                <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
+                                <button class="btn-delete-id admin-only" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入回收站">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="song-group" data-group-name="${safeName}">
+                        <div class="group-header">
+                            <div class="group-name">${nameHtml}</div>
+                            <div class="group-right">
+                                <span class="group-category">${escapeHtml(catStr)}</span>
+                            </div>
+                        </div>
+                        <div class="id-list">${rowsHtml}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // 事件委托
+            container.onclick = function(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+
+                if (target.classList.contains('btn-copy-id')) {
+                    e.stopPropagation();
+                    copyToClipboard(target.dataset.id, target);
+                    showToast('✅ 已复制ID，可搜索歌名查看所有版本');
+                    return;
+                }
+
+                if (target.classList.contains('btn-delete-id')) {
+                    e.stopPropagation();
+                    moveToRecycle(target.dataset.name, target.dataset.id);
+                    return;
+                }
+            };
+        }
+
+        /**
+         * ============================================================
+         * 10. 复制功能
+         * ============================================================
+         */
+        function copyToClipboard(text, btn) {
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(text).then(() => showCopiedFeedback(btn))
+                    .catch(() => fallbackCopy(text, btn));
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showCopiedFeedback(btn);
+            } catch (e) {
+                alert('复制失败，请手动复制: ' + text);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function showCopiedFeedback(btn) {
+            const orig = btn.textContent;
+            btn.textContent = '✅ 已复制';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = orig;
+                btn.classList.remove('copied');
+            }, 1500);
+        }
+
+        /**
+         * ============================================================
+         * 11. 初始化
+         * ============================================================
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMode();
+            loadData();
+
+            // 双击标题
+            document.getElementById('mainTitle').addEventListener('dblclick', toggleAdminMode);
+
+            // 导入
+            document.getElementById('openImportBtn').addEventListener('click', function() {
+                if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+                document.getElementById('importModal').classList.add('show');
+                document.getElementById('rawText').value = '';
+                document.getElementById('importStatus').textContent = '';
+            });
+            document.getElementById('cancelImport').addEventListener('click', function() {
+                document.getElementById('importModal').classList.remove('show');
+            });
+            document.getElementById('confirmImport').addEventListener('click', function() {
+                if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+                const raw = document.getElementById('rawText').value;
+                if (!raw.trim()) {
+                    document.getElementById('importStatus').textContent = '⚠️ 请粘贴数据';
+                    return;
+                }
+                importData(raw);
+            });
+
+            // 回收站
+            document.getElementById('openRecycleBtn').addEventListener('click', function() {
+                if (!isAdmin) { showToast('⚠️ 请先进入管理模式'); return; }
+                document.getElementById('recycleModal').classList.add('show');
+                renderRecycleList();
+            });
+            document.getElementById('closeRecycleBtn').addEventListener('click', function() {
+                document.getElementById('recycleModal').classList.remove('show');
+            });
+            document.getElementById('emptyRecycleBtn').addEventListener('click', emptyRecycleBin);
+            document.getElementById('recycleModal').addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('show');
+            });
+
+            // 导出 & 清空
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+
+            // 密码弹窗
+            document.getElementById('cancelPassword').addEventListener('click', function() {
+                document.getElementById('passwordModal').classList.remove('show');
+                document.getElementById('passwordError').style.display = 'none';
+            });
+            document.getElementById('confirmPassword').addEventListener('click', function() {
+                verifyPassword(document.getElementById('passwordInput').value);
+            });
+            document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('confirmPassword').click();
+            });
+            document.getElementById('passwordModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                    document.getElementById('passwordError').style.display = 'none';
+                }
+            });
+
+            // 导入弹窗外部关闭
+            document.getElementById('importModal').addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>
