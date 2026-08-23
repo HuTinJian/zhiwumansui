@@ -438,7 +438,7 @@
         }
         .toast.show { opacity: 1; }
 
-        /* ===== 只读模式隐藏管理元素 ===== */
+        /* ===== 游客模式隐藏管理元素 ===== */
         .admin-only { display: none !important; }
         .mode-manage .admin-only { display: inline-flex !important; }
         .mode-manage .btn-delete-id { display: inline-flex !important; }
@@ -472,7 +472,7 @@
     <!-- ===== 头部 ===== -->
     <div class="header">
         <div class="header-top">
-            <h1 id="mainTitle">🎵 ID 宝库 <small id="modeLabel">只读模式</small></h1>
+            <h1 id="mainTitle">🎵 ID 宝库 <small id="modeLabel">游客模式</small></h1>
             <div class="stats" style="margin-top:0;">
                 <span>📚 <strong id="totalGroupCount">0</strong> 组</span>
                 <span>🎶 <strong id="totalIdCount">0</strong> 个ID</span>
@@ -674,7 +674,7 @@
 
     /**
      * ============================================================
-     * 5. 模式管理（只读 / 管理）
+     * 5. 模式管理（游客 / 管理）
      * ============================================================
      */
     function loadMode() {
@@ -695,7 +695,7 @@
         } else {
             container.classList.remove('mode-manage');
             container.classList.add('mode-readonly');
-            modeLabel.textContent = '只读模式';
+            modeLabel.textContent = '游客模式';
             hint.textContent = '双击标题切换管理';
         }
     }
@@ -705,7 +705,7 @@
             isAdmin = false;
             localStorage.setItem('adminMode', 'false');
             applyMode();
-            showToast('已退出管理模式，回到只读');
+            showToast('已退出管理模式，回到游客');
             renderList();
         } else {
             document.getElementById('passwordModal').classList.add('show');
