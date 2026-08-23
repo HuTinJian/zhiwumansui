@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <!-- 保证移动端正确缩放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>意见反馈 - 织雾满穗</title>
   <style>
@@ -33,22 +34,19 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;                /* 确保页面高度等于视口高度 */
-    }
-
     body {
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.7;            /* 恢复常规行高 */
+      line-height: 1.7;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ========== 顶部导航栏（与主页一致：高度64px） ========== */
+    /* ========== 顶部导航栏（与主页一致：桌面端64px） ========== */
     .navbar {
       position: sticky;
       top: 0;
@@ -59,11 +57,11 @@
       border-bottom: 1px solid var(--border);
       box-shadow: 0 2px 10px rgba(220, 107, 130, 0.05);
       padding: 0 24px;
-      height: 64px;               /* 与主页导航栏高度一致 */
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      flex-shrink: 0;             /* 导航栏不参与压缩 */
+      flex-shrink: 0;
     }
 
     .navbar .nav-links {
@@ -88,6 +86,7 @@
       transform: translateY(-1px);
     }
 
+    /* 当前页高亮 */
     .navbar .nav-links a.active {
       background: var(--primary);
       color: #fff;
@@ -97,21 +96,20 @@
 
     /* ========== 主内容区域 ========== */
     .main-content {
-      flex: 1;                    /* 占据导航栏之外的全部高度 */
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 20px 20px 0;       /* 上方留白充足 */
-      min-height: 0;
+      padding: 20px 20px 0;       /* 去掉底部大留白，交由 credits 和 footer 控制 */
+      width: 100%;
     }
 
-    /* ========== 反馈卡片（恢复常规大小） ========== */
+    /* ========== 反馈卡片（已按你的修改：内边距20px 36px） ========== */
     .feedback-card {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 20px 36px;         /* 常规内边距 */
+      padding: 20px 36px;
       width: 100%;
       max-width: 600px;
       border-left: 5px solid var(--primary);
@@ -120,7 +118,7 @@
     }
 
     .feedback-card h2 {
-      font-size: 1.8rem;          /* 恢复标题大小 */
+      font-size: 1.8rem;
       font-weight: 700;
       margin-bottom: 8px;
       display: flex;
@@ -135,7 +133,7 @@
       margin-bottom: 24px;
     }
 
-    /* ========== 表单样式（恢复常规大小） ========== */
+    /* ========== 表单样式 ========== */
     .form-group {
       margin-bottom: 18px;
     }
@@ -150,7 +148,7 @@
 
     input, textarea {
       width: 100%;
-      padding: 12px 16px;         /* 恢复输入框内边距 */
+      padding: 12px 16px;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       font-size: 0.95rem;
@@ -169,7 +167,7 @@
 
     textarea {
       resize: vertical;
-      min-height: 120px;          /* 恢复文本框高度 */
+      min-height: 120px;
     }
 
     .error-message {
@@ -186,7 +184,7 @@
       background: linear-gradient(135deg, var(--primary), var(--accent));
       border: none;
       color: #fff;
-      padding: 14px 32px;         /* 恢复按钮内边距 */
+      padding: 14px 32px;
       border-radius: 50px;
       font-size: 1rem;
       font-weight: 700;
@@ -254,77 +252,80 @@
       transform: translateY(-2px);
     }
 
-    /* ========== 开发者与支持者展示（低调，固定在底部） ========== */
+    /* ========== 开发者与支持者展示（与主页尺寸一致，间距调整） ========== */
     .credits-section {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 20px;
       flex-wrap: wrap;
-      margin: auto auto 0;        /* 上边距自动，将内容推到底部 */
-      max-width: 700px;
-      padding: 0 20px 0;
+      margin: 40px auto 20px;      /* 与主页完全一致：上边距40px，下边距20px */
+      max-width: 800px;
+      padding: 0 20px;
+      width: 100%;
     }
 
     .credits-card {
-      background: rgba(255, 255, 255, 0.6);
+      background: var(--bg-card);
       border-radius: var(--radius-sm);
-      box-shadow: 0 2px 10px rgba(220, 107, 130, 0.05);
-      padding: 12px 18px;
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       transition: var(--transition);
-      border: 1px solid rgba(220, 107, 130, 0.1);
-      min-width: 180px;
+      border: 2px solid transparent;
+      min-width: 220px;
     }
 
     .credits-card:hover {
       border-color: rgba(220, 107, 130, 0.2);
-      box-shadow: 0 6px 20px rgba(220, 107, 130, 0.12);
-      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(220, 107, 130, 0.18);
+      transform: translateY(-3px);
     }
 
     .credits-icon {
-      width: 32px;
-      height: 32px;
+      width: 48px;
+      height: 48px;
       object-fit: contain;
       flex-shrink: 0;
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     .credits-info {
       display: flex;
       flex-direction: column;
-      line-height: 1.3;
+      line-height: 1.4;
     }
 
     .credits-label {
-      font-size: 0.65rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
 
     .credits-name {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-light);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
     }
 
     .credits-en {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      font-size: 0.85rem;
+      color: var(--text-light);
     }
 
-    /* ========== 页脚 ========== */
+    /* ========== 页脚（与主页保持一致的上边距20px） ========== */
     .footer {
       text-align: center;
       padding: 16px 20px;
       color: var(--text-muted);
       font-size: 0.8rem;
       border-top: 1px solid var(--border);
+      margin-top: 20px;           /* 与主页一致的 margin-top */
       flex-shrink: 0;
+      width: 100%;
     }
 
     /* ========== 动画 ========== */
@@ -334,15 +335,79 @@
     }
 
     /* ========== 响应式设计 ========== */
+
+    /* 平板和手机横屏（768px 以下） */
     @media (max-width: 768px) {
-      .navbar { padding: 0 16px; height: 56px; }  /* 移动端导航栏适当降低 */
-      .navbar .nav-links a { padding: 6px 12px; font-size: 0.85rem; }
-      .main-content { padding: 24px 16px 0; }
-      .feedback-card { padding: 24px 18px; margin-bottom: 30px; }
-      .feedback-card h2 { font-size: 1.4rem; }
-      .success-message h2 { font-size: 1.4rem; }
-      .credits-section { flex-direction: column; align-items: center; gap: 10px; }
-      .credits-card { min-width: 100%; justify-content: center; }
+      .navbar {
+        padding: 0 12px;
+        height: 56px;
+      }
+      .navbar .nav-links a {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+      }
+      .main-content {
+        padding: 16px 12px 0;
+      }
+      .feedback-card {
+        padding: 16px;
+        margin-bottom: 20px;
+        border-left: 3px solid var(--primary);
+      }
+      .feedback-card h2 {
+        font-size: 1.3rem;
+      }
+      .feedback-card .desc {
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+      }
+      input, textarea {
+        padding: 10px 12px;
+        font-size: 16px;
+      }
+      textarea {
+        min-height: 80px;
+      }
+      .btn-submit {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+      }
+      .credits-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin: 30px auto 20px;   /* 移动端适当缩小上边距 */
+      }
+      .credits-card {
+        width: 100%;
+        min-width: unset;
+        justify-content: center;
+        padding: 16px 20px;
+      }
+      .credits-icon {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    /* 手机竖屏（480px 以下） */
+    @media (max-width: 480px) {
+      .feedback-card {
+        padding: 12px;
+      }
+      .feedback-card h2 {
+        font-size: 1.2rem;
+      }
+      .credits-card {
+        padding: 12px 16px;
+      }
+      .credits-icon {
+        width: 32px;
+        height: 32px;
+      }
+      .credits-name {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
@@ -365,13 +430,9 @@
         <p class="desc">我们重视你的每一个建议！请填写以下表单，我们会通过邮件收到你的反馈。</p>
 
         <!-- 表单提交到 FormSubmit 服务 -->
-        <!-- action 中的邮箱地址可以改成你自己的接收邮箱 -->
         <form id="feedbackForm" action="https://formsubmit.co/2560803486@qq.com" method="POST">
-          <!-- 提交成功后跳转地址（由 JS 动态设置） -->
           <input type="hidden" name="_next" value="">
-          <!-- 邮件主题 -->
           <input type="hidden" name="_subject" value="ZhiMist 工作室 - 新的反馈">
-          <!-- 禁用验证码（可选） -->
           <input type="hidden" name="_captcha" value="false">
 
           <div class="form-group">
@@ -401,11 +462,9 @@
       </div>
     </div>
 
-    <!-- ==================== 开发者与支持者展示（自动固定在底部） ==================== -->
+    <!-- ==================== 开发者与支持者展示（与主页一致） ==================== -->
     <div class="credits-section">
-      <!-- 开发者卡片 -->
       <div class="credits-card">
-        <!-- 请将 src 改为你实际的开发者图片文件名 -->
         <img class="credits-icon" src="developer.png" alt="开发者图标" />
         <div class="credits-info">
           <span class="credits-label">开发者</span>
@@ -413,9 +472,7 @@
           <span class="credits-en">HuTinJian</span>
         </div>
       </div>
-      <!-- 支持者卡片 -->
       <div class="credits-card">
-        <!-- 支持者图标文件名已改为 deepseek.png -->
         <img class="credits-icon" src="deepseek.png" alt="支持者图标" />
         <div class="credits-info">
           <span class="credits-label">支持者</span>
@@ -435,14 +492,12 @@
   <script>
     /**
      * 检查 URL 中是否包含 success=true 参数
-     * 如果有，则显示感谢信息并隐藏表单
      */
     function checkSuccessParam() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'true') {
         document.getElementById('formContainer').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
-        // 清除 URL 中的参数，让地址干净
         if (window.history && window.history.replaceState) {
           window.history.replaceState(null, '', window.location.pathname);
         }
@@ -453,25 +508,16 @@
     }
 
     /**
-     * 表单提交前处理：
-     * 1. 使用严格的正则验证邮箱格式
-     * 2. 动态设置 _next 字段为当前页面完整地址 + ?success=true
+     * 表单提交前处理
      */
     document.getElementById('feedbackForm').addEventListener('submit', function(event) {
-      // 1. 邮箱验证（严格版）
       const emailInput = document.getElementById('feedbackEmail');
       const emailError = document.getElementById('emailError');
       const emailValue = emailInput.value.trim();
-
-      // 严格邮箱正则：
-      // - 用户名部分允许字母、数字、点、下划线、百分号、加号、减号
-      // - 必须包含 @
-      // - 域名部分允许字母、数字、连字符和点，但至少有一个点，且最后一个点后必须至少有两个字母
-      // - 这样可以拒绝 5@5.5 这种域名和顶级域都是数字的不规范邮箱
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
 
       if (!emailPattern.test(emailValue)) {
-        event.preventDefault();          // 阻止提交
+        event.preventDefault();
         emailError.classList.add('show');
         emailInput.focus();
         return false;
@@ -479,22 +525,19 @@
         emailError.classList.remove('show');
       }
 
-      // 2. 设置 _next 字段
       var nextInput = this.querySelector('input[name="_next"]');
       if (nextInput) {
         var baseUrl = window.location.href.split('?')[0];
         nextInput.value = baseUrl + '?success=true';
       }
 
-      return true;  // 允许提交
+      return true;
     });
 
-    // 用户输入时自动隐藏错误提示
     document.getElementById('feedbackEmail').addEventListener('input', function() {
       document.getElementById('emailError').classList.remove('show');
     });
 
-    // 页面加载时检查 URL
     window.addEventListener('load', checkSuccessParam);
     window.addEventListener('popstate', checkSuccessParam);
   </script>
