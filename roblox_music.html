@@ -1581,6 +1581,35 @@
             </div>
         </div>
     </div>
+    
+    <!-- ===== 隔离区弹窗（动态标题） ===== -->
+<div class="modal quarantine-modal" id="quarantineModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <h2 id="quarantineModalTitle">⛔ 隔离区</h2>
+        <!-- 隔离区搜索框 -->
+        <div class="quarantine-search-box">
+            <input type="text" id="quarantineSearchInput" placeholder="🔍 搜索隔离区（歌名或ID）..." aria-label="搜索隔离区">
+        </div>
+        <!-- 隔离区批量操作栏 -->
+        <div class="quarantine-batch-bar" id="quarantineBatchBar">
+            <span class="info">已选 <strong id="quarantineSelectedCount">0</strong> 个ID</span>
+            <div class="actions">
+                <button class="btn-batch-clear" id="quarantineBatchClearBtn">取消选择</button>
+                <button class="btn-batch-release" id="quarantineBatchReleaseBtn">🔓 批量恢复</button>
+            </div>
+        </div>
+        <!-- 隔离区列表 -->
+        <div id="quarantineList" style="overflow-y:auto; flex:1; margin:8px 0;"></div>
+        <!-- 隔离区底部操作按钮 -->
+        <div class="quarantine-footer-actions">
+            <button class="btn-restore-all" id="restoreAllBtn">♻️ 全部恢复</button>
+            <button class="btn-export" id="exportQuarantineBtn">📤 导出</button>
+            <!-- 导入按钮（仅管理员可见） -->
+            <button class="btn-import admin-only" id="importQuarantineBtn">📥 导入</button>
+            <button class="btn-close" id="closeQuarantineBtn">关闭</button>
+        </div>
+    </div>
+</div>
 
     <!-- ===== 联系方式弹窗（仅游客导出后显示） ===== -->
     <div class="modal" id="contactModal" role="dialog" aria-modal="true">
