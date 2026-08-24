@@ -652,17 +652,6 @@
             gap: 8px;
         }
 
-        .batch-bar .actions button {
-            padding: 4px 16px;
-            border: none;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        /* "隔离选中" 按钮（原"删除选中"） */
         .batch-bar .actions .btn-batch-delete {
             background: #e8747a;
             color: #fff;
@@ -1627,8 +1616,8 @@
         const EXTERNAL_JSON_URL = 'roblox_music.json';
 
         // ---- 1.2 隔离区配置 ----
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // 管理员隔离区自动加载外部文件
-        const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine_admin.json';
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true;
+        const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json'; // 外部加载管理员隔离区
 
         // ---- 1.3 版本与密码 ----
         const DATA_VERSION = 'v7.0';
@@ -1703,6 +1692,7 @@
 
         /** 获取当前模式对应的隔离区导出文件名 */
         function getCurrentQuarantineExportName() {
+            // 管理员导出 roblox_music_quarantine.json，游客导出 roblox_music_quarantine_guest.json
             return isAdmin ? 'roblox_music_quarantine.json' : 'roblox_music_quarantine_guest.json';
         }
 
@@ -2225,7 +2215,7 @@
             a.download = getCurrentQuarantineExportName();
             a.click();
             URL.revokeObjectURL(url);
-            // 不再显示 "隔离区已导出" Toast
+            // 不显示 "隔离区已导出" Toast
 
             // 游客导出后弹出联系方式弹窗
             if (!isAdmin) {
