@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <!-- viewport 保证移动端正确缩放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>知识分享平台 - 织雾满穗</title>
   <style>
@@ -87,7 +86,7 @@
       transform: translateY(-1px);
     }
 
-    /* 当前页高亮 */
+    /* 当前页面高亮 */
     .navbar .nav-links a.active {
       background: var(--primary);
       color: #fff;
@@ -324,13 +323,13 @@
       transform: translateY(-3px);
     }
 
-    /* 图标图片样式 */
+    /* 图标图片样式（圆形） */
     .credits-icon {
       width: 48px;
       height: 48px;
-      object-fit: contain;   /* 保持图片比例 */
+      object-fit: cover;          /* 确保图片填充为圆形 */
       flex-shrink: 0;
-      border-radius: 12px;
+      border-radius: 50%;         /* 关键：圆形 */
     }
 
     .credits-info {
@@ -385,7 +384,6 @@
       .navbar { padding: 0 16px; height: 56px; }
       .navbar .nav-links a { padding: 6px 12px; font-size: 0.85rem; }
       .search-section h1 { font-size: 1.8rem; }
-      /* 搜索框保持一行，左右留边 */
       .search-box {
         flex-wrap: nowrap;
         padding: 6px 6px 6px 12px;
@@ -406,7 +404,7 @@
         padding: 8px 16px;
         white-space: nowrap;
       }
-      .content-grid { grid-template-columns: 1fr; }  /* 单列显示 */
+      .content-grid { grid-template-columns: 1fr; }
       .credits-section { flex-direction: column; align-items: center; gap: 12px; }
       .credits-card { min-width: 100%; justify-content: center; }
     }
@@ -419,6 +417,7 @@
       .card { padding: 20px; }
       .card h3 { font-size: 1.05rem; }
       .credits-card { padding: 16px; }
+      .credits-icon { width: 40px; height: 40px; }
     }
   </style>
 </head>
@@ -451,7 +450,7 @@
     <!-- 内容卡片列表（目前只有一张卡片） -->
     <div class="content-grid" id="contentGrid">
       <!-- 卡片 1：Roblox 音乐ID 宝库 -->
-      <div class="card" data-title="Roblox 音乐ID 宝库" data-category="游戏" data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库" data-link="roblox_music_id.html">
+      <div class="card" data-title="Roblox 音乐ID 宝库" data-category="游戏" data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库" data-link="roblox_music.html">
         <span class="card-tag tag-tech">🎮 游戏</span>
         <h3>Roblox 音乐ID 宝库</h3>
         <p>收录数千个 Roblox 游戏内可用的音乐ID，覆盖热门歌曲、经典BGM、游戏音效等，支持一键复制，帮助玩家快速为游戏添加背景音乐或音效。</p>

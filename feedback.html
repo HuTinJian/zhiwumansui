@@ -2,23 +2,22 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <!-- 保证移动端正确缩放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>意见反馈 - 织雾满穗</title>
   <style>
     /* ========== 全局变量（粉色主题，与主页统一） ========== */
     :root {
-      --primary: #dc6b82;          /* 主色：暖粉色 */
-      --primary-dark: #c7546a;     /* 深粉，用于悬停 */
-      --primary-light: #f0a3b4;    /* 浅粉，用于边框 */
-      --secondary: #f8c8d2;        /* 辅助粉 */
-      --accent: #e88da1;           /* 强调粉 */
-      --bg: #fdf2f5;               /* 页面背景：极浅粉，护眼 */
-      --bg-card: #ffffff;          /* 卡片背景：纯白 */
-      --text: #4a3f44;             /* 主要文字 */
-      --text-light: #6e5f65;       /* 次要文字 */
-      --text-muted: #b5a1a8;       /* 辅助文字 */
-      --border: #f0d9de;           /* 浅粉边框 */
+      --primary: #dc6b82;
+      --primary-dark: #c7546a;
+      --primary-light: #f0a3b4;
+      --secondary: #f8c8d2;
+      --accent: #e88da1;
+      --bg: #fdf2f5;
+      --bg-card: #ffffff;
+      --text: #4a3f44;
+      --text-light: #6e5f65;
+      --text-muted: #b5a1a8;
+      --border: #f0d9de;
       --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
       --shadow-hover: 0 12px 40px rgba(220, 107, 130, 0.15);
       --radius: 20px;
@@ -46,7 +45,7 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ========== 顶部导航栏（与主页一致：桌面端64px） ========== */
+    /* ========== 顶部导航栏（与主页一致） ========== */
     .navbar {
       position: sticky;
       top: 0;
@@ -86,7 +85,6 @@
       transform: translateY(-1px);
     }
 
-    /* 当前页高亮 */
     .navbar .nav-links a.active {
       background: var(--primary);
       color: #fff;
@@ -100,11 +98,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 20px 20px 0;       /* 去掉底部大留白，交由 credits 和 footer 控制 */
+      padding: 20px 20px 0;
       width: 100%;
     }
 
-    /* ========== 反馈卡片（已按你的修改：内边距20px 36px） ========== */
+    /* ========== 反馈卡片（已修改为 20px 36px） ========== */
     .feedback-card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -114,7 +112,7 @@
       max-width: 600px;
       border-left: 5px solid var(--primary);
       animation: fadeInUp 0.5s ease-out;
-      margin-bottom: 40px;        /* 与开发者区域的间隔 */
+      margin-bottom: 40px;
     }
 
     .feedback-card h2 {
@@ -252,13 +250,13 @@
       transform: translateY(-2px);
     }
 
-    /* ========== 开发者与支持者展示（与主页尺寸一致，间距调整） ========== */
+    /* ========== 开发者与支持者展示（与主页一致，图标圆形） ========== */
     .credits-section {
       display: flex;
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
-      margin: 40px auto 20px;      /* 与主页完全一致：上边距40px，下边距20px */
+      margin: 40px auto 20px;
       max-width: 800px;
       padding: 0 20px;
       width: 100%;
@@ -286,9 +284,9 @@
     .credits-icon {
       width: 48px;
       height: 48px;
-      object-fit: contain;
+      object-fit: cover;
       flex-shrink: 0;
-      border-radius: 12px;
+      border-radius: 50%;         /* 圆形图标 */
     }
 
     .credits-info {
@@ -316,14 +314,14 @@
       color: var(--text-light);
     }
 
-    /* ========== 页脚（与主页保持一致的上边距20px） ========== */
+    /* ========== 页脚 ========== */
     .footer {
       text-align: center;
       padding: 16px 20px;
       color: var(--text-muted);
       font-size: 0.8rem;
       border-top: 1px solid var(--border);
-      margin-top: 20px;           /* 与主页一致的 margin-top */
+      margin-top: 20px;
       flex-shrink: 0;
       width: 100%;
     }
@@ -338,76 +336,27 @@
 
     /* 平板和手机横屏（768px 以下） */
     @media (max-width: 768px) {
-      .navbar {
-        padding: 0 12px;
-        height: 56px;
-      }
-      .navbar .nav-links a {
-        padding: 6px 10px;
-        font-size: 0.85rem;
-      }
-      .main-content {
-        padding: 16px 12px 0;
-      }
-      .feedback-card {
-        padding: 16px;
-        margin-bottom: 20px;
-        border-left: 3px solid var(--primary);
-      }
-      .feedback-card h2 {
-        font-size: 1.3rem;
-      }
-      .feedback-card .desc {
-        font-size: 0.85rem;
-        margin-bottom: 16px;
-      }
-      input, textarea {
-        padding: 10px 12px;
-        font-size: 16px;
-      }
-      textarea {
-        min-height: 80px;
-      }
-      .btn-submit {
-        padding: 12px 20px;
-        font-size: 0.95rem;
-      }
-      .credits-section {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        margin: 30px auto 20px;   /* 移动端适当缩小上边距 */
-      }
-      .credits-card {
-        width: 100%;
-        min-width: unset;
-        justify-content: center;
-        padding: 16px 20px;
-      }
-      .credits-icon {
-        width: 40px;
-        height: 40px;
-      }
+      .navbar { padding: 0 12px; height: 56px; }
+      .navbar .nav-links a { padding: 6px 10px; font-size: 0.85rem; }
+      .main-content { padding: 16px 12px 0; }
+      .feedback-card { padding: 16px; margin-bottom: 20px; border-left: 3px solid var(--primary); }
+      .feedback-card h2 { font-size: 1.3rem; }
+      .feedback-card .desc { font-size: 0.85rem; margin-bottom: 16px; }
+      input, textarea { padding: 10px 12px; font-size: 16px; }
+      textarea { min-height: 80px; }
+      .btn-submit { padding: 12px 20px; font-size: 0.95rem; }
+      .credits-section { flex-direction: column; align-items: center; gap: 12px; margin: 30px auto 20px; }
+      .credits-card { width: 100%; min-width: unset; justify-content: center; padding: 16px 20px; }
+      .credits-icon { width: 40px; height: 40px; }
     }
 
     /* 手机竖屏（480px 以下） */
     @media (max-width: 480px) {
-      .feedback-card {
-        padding: 12px;
-      }
-      .feedback-card h2 {
-        font-size: 1.2rem;
-      }
-      .credits-card {
-        padding: 12px 16px;
-      }
-      .credits-icon {
-        width: 32px;
-        height: 32px;
-      }
-      .credits-name {
-        font-size: 1rem;
-      }
+      .feedback-card { padding: 12px; }
+      .feedback-card h2 { font-size: 1.2rem; }
+      .credits-card { padding: 12px 16px; }
+      .credits-icon { width: 32px; height: 32px; }
+      .credits-name { font-size: 1rem; }
     }
   </style>
 </head>
@@ -462,7 +411,7 @@
       </div>
     </div>
 
-    <!-- ==================== 开发者与支持者展示（与主页一致） ==================== -->
+    <!-- ==================== 开发者与支持者展示 ==================== -->
     <div class="credits-section">
       <div class="credits-card">
         <img class="credits-icon" src="developer.png" alt="开发者图标" />
