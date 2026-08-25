@@ -921,14 +921,6 @@
             background: #2563eb;
             transform: scale(1.02);
         }
-        .quarantine-footer-actions .btn-import {
-            background: #8b5cf6;
-            color: #fff;
-        }
-        .quarantine-footer-actions .btn-import:hover {
-            background: #7c3aed;
-            transform: scale(1.02);
-        }
         .quarantine-footer-actions .btn-close {
             background: var(--border);
             color: var(--text);
@@ -1218,7 +1210,7 @@
             <div class="quarantine-footer-actions">
                 <button class="btn-restore-all" id="restoreAllBtn">♻️ 全部恢复</button>
                 <button class="btn-export" id="exportQuarantineBtn">📤 导出</button>
-                <button class="btn-import admin-only" id="importQuarantineBtn">📥 导入</button>
+                <!-- 已删除 "📥 导入" 按钮 -->
                 <button class="btn-close" id="closeQuarantineBtn">关闭</button>
             </div>
         </div>
@@ -1264,14 +1256,12 @@
          * 配置区
          * ============================================================
          */
-        const USE_EXTERNAL_JSON = true;
-        const EXTERNAL_JSON_URL = 'roblox_music.json';
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true;
+        const USE_EXTERNAL_JSON = true;                     // 是否从外部加载主数据
+        const EXTERNAL_JSON_URL = 'roblox_music.json';      // 主数据URL
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true;        // ✅ 开启：刷新时自动合并外部隔离区文件
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const DATA_VERSION = 'v7.0';
+        const DATA_VERSION = 'v7.1';                       // ✅ 版本升级
         const ADMIN_PASSWORD = 'HuTinJianZW';
-        const DEVELOPER_EMAIL = '2560803486@qq.com';
-        const DEVELOPER_QQ = '2560803486';
 
         /**
          * ============================================================
@@ -1321,7 +1311,7 @@
             quarantineBatchRelease: $('quarantineBatchReleaseBtn'),
             restoreAllBtn: $('restoreAllBtn'),
             exportQuarantine: $('exportQuarantineBtn'),
-            importQuarantine: $('importQuarantineBtn'),
+            // importQuarantine: $('importQuarantineBtn'), // 已删除
             closeQuarantine: $('closeQuarantineBtn'),
             toast: $('toast'),
             importModal: $('importModal'),
@@ -1380,7 +1370,6 @@
             toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
         }
 
-        // ✨ 修改：模式名称改为“游客”和“开发者”
         function getCurrentQuarantine() {
             return isAdmin ? quarantineBinAdmin : quarantineBinGuest;
         }
@@ -1452,10 +1441,11 @@
 
         /**
          * ============================================================
-         * 数据加载
+         * 数据加载（主数据 + 隔离区）
          * ============================================================
          */
         function loadData() {
+            // 加载本地隔离区数据
             const guestStored = localStorage.getItem('quarantineBinGuest');
             if (guestStored) {
                 try { quarantineBinGuest = JSON.parse(guestStored); } catch (e) { quarantineBinGuest = []; }
@@ -1469,17 +1459,20 @@
                 quarantineBinAdmin = [];
             }
 
+            // 尝试加载主数据缓存
             const stored = localStorage.getItem('songDB');
             const storedVersion = localStorage.getItem('songDBVersion');
             if (stored && storedVersion === DATA_VERSION) {
                 try {
                     songDatabase = JSON.parse(stored);
+                    // ✅ 自动合并外部管理员隔离区
                     loadExternalAdminQuarantine();
                     renderAll();
                     return;
                 } catch (e) { /* 缓存损坏，重新加载外部 */ }
             }
 
+            // 从外部JSON加载主数据
             if (USE_EXTERNAL_JSON) {
                 fetch(EXTERNAL_JSON_URL)
                     .then(res => {
@@ -1487,6 +1480,7 @@
                         return res.json();
                     })
                     .then(data => {
+                        // 过滤掉已在隔离区中的ID（避免重复）
                         const filterIds = getFilterIds();
                         songDatabase = data
                             .filter(i => !filterIds.has(i.id))
@@ -1511,6 +1505,7 @@
             }
         }
 
+        // 获取所有需要过滤的ID（管理员+游客隔离区）
         function getFilterIds() {
             const ids = new Set();
             quarantineBinAdmin.forEach(item => ids.add(item.id));
@@ -1520,6 +1515,7 @@
             return ids;
         }
 
+        // ✅ 加载外部管理员隔离区并合并（可重复执行，但会跳过已存在的ID）
         function loadExternalAdminQuarantine() {
             if (!USE_EXTERNAL_QUARANTINE_ADMIN) return;
             fetch(EXTERNAL_QUARANTINE_ADMIN_URL)
@@ -1556,7 +1552,7 @@
 
         /**
          * ============================================================
-         * 模式管理
+         * 模式管理（游客 / 开发者）
          * ============================================================
          */
         function loadMode() {
@@ -1573,17 +1569,17 @@
             if (isAdmin) {
                 container.classList.remove('mode-readonly');
                 container.classList.add('mode-manage');
-                label.textContent = '开发者'; // ✨ 修改：改为“开发者”
+                label.textContent = '开发者';
                 hint.innerHTML = '双击标题 <strong>退出开发者模式</strong>';
-                quarantineBtn.textContent = '⛔ 隔离区（开发者）'; // ✨ 修改
+                quarantineBtn.textContent = '⛔ 隔离区（开发者）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             } else {
                 container.classList.remove('mode-manage');
                 container.classList.add('mode-readonly');
-                label.textContent = '游客'; // ✨ 修改：改为“游客”
+                label.textContent = '游客';
                 hint.innerHTML = '双击标题 <strong>进入开发者模式</strong>';
-                quarantineBtn.textContent = '⛔ 隔离区（游客）'; // ✨ 修改
+                quarantineBtn.textContent = '⛔ 隔离区（游客）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             }
@@ -1592,7 +1588,6 @@
         }
 
         function updateQuarantineTitle() {
-            // ✨ 修改：标题只显示模式名称，不加“（空）”
             dom.quarantineTitle.textContent = isAdmin ? '⛔ 隔离区（开发者）' : '⛔ 隔离区（游客）';
         }
 
@@ -1727,7 +1722,7 @@
 
         /**
          * ============================================================
-         * 隔离区操作
+         * 隔离区操作（含去重逻辑）
          * ============================================================
          */
         function toggleQuarantineBatchMode(forceState) {
@@ -1762,6 +1757,7 @@
             document.querySelectorAll('.quarantine-checkbox').forEach(cb => cb.checked = false);
         }
 
+        // 批量恢复（带去重）
         async function batchReleaseFromQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (selectedQuarantineIds.size === 0) { showToast('⚠️ 请先选择要恢复的ID'); return; }
@@ -1779,11 +1775,19 @@
                     newQuarantine.push(item);
                 }
             }
+
+            const existingIds = new Set(songDatabase.map(i => i.id));
+            let addedCount = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
             toRelease.forEach((item, index) => {
-                item.lineIndex = maxLine + 1 + index;
-                songDatabase.push(item);
+                if (!existingIds.has(item.id)) {
+                    item.lineIndex = maxLine + 1 + addedCount;
+                    songDatabase.push(item);
+                    existingIds.add(item.id);
+                    addedCount++;
+                }
             });
+
             if (isAdmin) {
                 quarantineBinAdmin = newQuarantine;
             } else {
@@ -1791,17 +1795,22 @@
             }
             selectedQuarantineIds.clear();
             saveData();
-            showToast(`🔓 已恢复 ${toRelease.length} 个ID`);
+            showToast(`🔓 已恢复 ${addedCount} 个ID（跳过 ${toRelease.length - addedCount} 个已存在的ID）`);
             if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             renderAll();
             renderQuarantineList();
         }
 
+        // 单个恢复（带去重）
         async function releaseFromQuarantine(id) {
             const quarantine = getCurrentQuarantine();
             const idx = quarantine.findIndex(i => i.id === id);
             if (idx === -1) { showToast('⚠️ 隔离区中未找到该ID'); return; }
             const item = quarantine[idx];
+            if (songDatabase.some(i => i.id === id)) {
+                showToast('⚠️ 该ID已在主列表中，无需重复恢复');
+                return;
+            }
             const confirmed = await showConfirm('恢复',
                 `确定将 ID ${id}（歌名：${item.name}）从隔离区恢复吗？\n恢复后，该ID将回到列表，下次导入时不再跳过。`
             );
@@ -1817,6 +1826,7 @@
             renderQuarantineList();
         }
 
+        // 全部恢复（带去重）
         async function restoreAllFromQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (quarantine.length === 0) { showToast('隔离区已是空的'); return; }
@@ -1825,22 +1835,33 @@
             );
             if (!confirmed) return;
 
+            const existingIds = new Set(songDatabase.map(i => i.id));
+            let addedCount = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
-            quarantine.forEach((item, index) => {
-                item.lineIndex = maxLine + 1 + index;
-                songDatabase.push(item);
+            const toKeep = [];
+            quarantine.forEach(item => {
+                if (existingIds.has(item.id)) {
+                    toKeep.push(item);
+                } else {
+                    item.lineIndex = maxLine + 1 + addedCount;
+                    songDatabase.push(item);
+                    existingIds.add(item.id);
+                    addedCount++;
+                }
             });
+
             if (isAdmin) {
-                quarantineBinAdmin = [];
+                quarantineBinAdmin = toKeep;
             } else {
-                quarantineBinGuest = [];
+                quarantineBinGuest = toKeep;
             }
             saveData();
-            showToast(`♻️ 已全部恢复 ${quarantine.length} 个ID`);
+            showToast(`♻️ 已恢复 ${addedCount} 个ID（跳过 ${quarantine.length - addedCount} 个已存在的ID）`);
             renderAll();
             renderQuarantineList();
         }
 
+        // 导出隔离区
         async function exportQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (quarantine.length === 0) { showToast('隔离区是空的，无需导出'); return; }
@@ -1873,51 +1894,9 @@
             }
         }
 
-        function importQuarantineFromFile() {
-            if (!isAdmin) { showToast('⚠️ 仅管理员可导入'); return; }
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        if (!Array.isArray(data)) {
-                            showToast('⚠️ 文件格式错误，需为JSON数组');
-                            return;
-                        }
-                        const existingIds = new Set(quarantineBinAdmin.map(i => i.id));
-                        let added = 0;
-                        data.forEach(item => {
-                            if (!existingIds.has(item.id)) {
-                                if (!item.quarantinedAt) {
-                                    item.quarantinedAt = getNowStr();
-                                }
-                                quarantineBinAdmin.push(item);
-                                existingIds.add(item.id);
-                                added++;
-                            }
-                        });
-                        if (added > 0) {
-                            saveData();
-                            renderQuarantineList();
-                            showToast(`✅ 导入成功，新增 ${added} 个ID`);
-                        } else {
-                            showToast('⚠️ 没有新ID可导入');
-                        }
-                    } catch (err) {
-                        showToast('⚠️ 文件解析失败，请检查JSON格式');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
+        // ✅ 已删除 importQuarantineFromFile 函数（隔离区导入按钮已移除）
 
-        // ✨ 修改：隔离区渲染，不显示“（空）”，只显示模式名和数量（有内容时）
+        // 渲染隔离区列表
         function renderQuarantineList() {
             const container = dom.quarantineList;
             const title = dom.quarantineTitle;
@@ -1935,10 +1914,10 @@
             const modeLabel = getModeName();
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="quarantine-empty">隔离区是空的 ⛔</div>';
-                title.textContent = `⛔ 隔离区（${modeLabel}）`; // ✨ 不显示“（空）”
+                title.textContent = `⛔ 隔离区（${modeLabel}）`;
                 return;
             }
-            title.textContent = `⛔ 隔离区（${modeLabel}）（${filtered.length} 个ID）`; // ✨ 有内容时显示数量
+            title.textContent = `⛔ 隔离区（${modeLabel}）（${filtered.length} 个ID）`;
 
             const sorted = [...filtered].sort((a, b) => {
                 const timeA = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
@@ -1990,7 +1969,7 @@
 
         /**
          * ============================================================
-         * 导入主列表
+         * 导入主列表（解析原始文本）
          * ============================================================
          */
         function parseRawText(text) {
@@ -2051,7 +2030,7 @@
         }
 
         async function importData(rawText) {
-            if (!isAdmin) { showToast('⚠️ 仅管理员可导入'); return; }
+            if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
             const parsed = parseRawText(rawText);
             if (parsed.length === 0) {
                 dom.importStatus.textContent = '⚠️ 未解析到任何有效条目';
@@ -2093,11 +2072,11 @@
 
         /**
          * ============================================================
-         * 管理员其他操作
+         * 开发者操作：清空、导出主列表
          * ============================================================
          */
         async function clearAllData() {
-            if (!isAdmin) { showToast('⚠️ 仅管理员可操作'); return; }
+            if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
             if (songDatabase.length === 0) { showToast('列表已是空的'); return; }
             const confirmed = await showConfirm('清空列表',
                 `⚠️ 确定要清空列表中的所有 ${songDatabase.length} 个ID吗？此操作不可恢复！`
@@ -2109,9 +2088,8 @@
             showToast('🗑️ 列表已清空');
         }
 
-        // ✨ 修改：开发者模式导出文件名固定为 roblox_music.json
         async function exportData() {
-            if (!isAdmin) { showToast('⚠️ 仅管理员可导出主列表'); return; }
+            if (!isAdmin) { showToast('⚠️ 仅开发者可导出主列表'); return; }
             if (songDatabase.length === 0) { showToast('列表为空，无需导出'); return; }
             const confirmed = await showConfirm('确认导出',
                 `您即将导出当前列表中的所有歌曲ID（共 ${songDatabase.length} 个）。\n\n导出的数据仅包含歌曲ID和歌名，可用于备份或反馈。\n\n确认导出吗？`
@@ -2123,7 +2101,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'roblox_music.json'; // ✨ 固定文件名
+            a.download = 'roblox_music.json';
             a.click();
             URL.revokeObjectURL(url);
             showToast('✅ 列表已导出');
@@ -2365,14 +2343,14 @@
             dom.mainTitle.addEventListener('dblclick', toggleAdminMode);
 
             dom.openImportBtn.addEventListener('click', function() {
-                if (!isAdmin) { showToast('⚠️ 仅管理员可导入'); return; }
+                if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 dom.importModal.classList.add('show');
                 dom.rawText.value = '';
                 dom.importStatus.textContent = '';
             });
             dom.cancelImport.addEventListener('click', () => dom.importModal.classList.remove('show'));
             dom.confirmImport.addEventListener('click', function() {
-                if (!isAdmin) { showToast('⚠️ 仅管理员可导入'); return; }
+                if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 const raw = dom.rawText.value;
                 if (!raw.trim()) {
                     dom.importStatus.textContent = '⚠️ 请粘贴数据';
@@ -2388,7 +2366,7 @@
                 updateQuarantineTitle();
                 dom.quarantineModal.classList.add('show');
                 renderQuarantineList();
-                dom.importQuarantine.style.display = isAdmin ? 'inline-flex' : 'none';
+                // 不再需要控制导入按钮的显示
                 if (quarantineBatchMode) {
                     dom.quarantineModal.querySelector('.modal-content').classList.add('quarantine-batch-mode');
                 }
@@ -2411,7 +2389,7 @@
 
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
-            dom.importQuarantine.addEventListener('click', importQuarantineFromFile);
+            // dom.importQuarantine 已删除，不绑定事件
 
             dom.batchToggle.addEventListener('click', function() {
                 toggleBatchMode();
