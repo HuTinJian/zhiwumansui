@@ -329,7 +329,7 @@
       height: 48px;
       object-fit: cover;          /* 确保图片填充为圆形 */
       flex-shrink: 0;
-      border-radius: 50%;         /* 关键：圆形 */
+      border-radius: 50%;         /* 圆形 */
     }
 
     .credits-info {
@@ -449,11 +449,19 @@
 
     <!-- 内容卡片列表（目前只有一张卡片） -->
     <div class="content-grid" id="contentGrid">
-      <!-- 卡片 1：Roblox 音乐ID 宝库 -->
-      <div class="card" data-title="Roblox 音乐ID 宝库" data-category="游戏" data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库" data-link="roblox_music.html">
+      <!-- 卡片 1：Roblox ID 宝库（仅音乐ID） -->
+      <!-- data-title：卡片标题，用于搜索匹配 -->
+      <!-- data-category：分类（游戏） -->
+      <!-- data-tags：标签，用于搜索匹配，便于用户搜索相关关键词 -->
+      <!-- data-link：点击卡片后跳转的目标页面 -->
+      <div class="card" 
+           data-title="Roblox ID 宝库" 
+           data-category="游戏" 
+           data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库" 
+           data-link="roblox_music.html">
         <span class="card-tag tag-tech">🎮 游戏</span>
-        <h3>Roblox 音乐ID 宝库</h3>
-        <p>收录数千个 Roblox 游戏内可用的音乐ID，覆盖热门歌曲、经典BGM、游戏音效等，支持一键复制，帮助玩家快速为游戏添加背景音乐或音效。</p>
+        <h3>Roblox ID 宝库</h3>
+        <p>收录数千个 Roblox 游戏内可用的音乐ID，支持一键复制，帮助玩家快速为游戏添加背景音乐或音效。</p>
         <div class="card-meta">📅 持续更新 &nbsp;·&nbsp; ⏱ 点击进入</div>
       </div>
     </div>
@@ -499,6 +507,7 @@
 
     /**
      * 执行搜索过滤
+     * - 检查输入关键词是否出现在卡片的标题、分类、标签或正文中
      */
     function performSearch() {
       const query = searchInput.value.trim().toLowerCase();

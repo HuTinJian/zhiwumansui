@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>🎵 Roblox 音乐ID 宝库 · 分组管理</title>
+    <title>🎵 Roblox ID 宝库 · 分组管理</title>
     <style>
         /* ============================================================
            1. 全局主题颜色（粉色护眼系）
@@ -26,13 +26,18 @@
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             --nav-hover-bg: rgba(220, 107, 130, 0.18);
+            /* 鸣谢专用暖金色 */
+            --gold: #d4a06a;
+            --gold-light: #e8c49a;
+            --gold-bg: #fbf3e8;
         }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        html, body {
+        html,
+        body {
             font-family: var(--font);
             background-color: var(--bg);
             color: var(--text);
@@ -46,11 +51,11 @@
             margin: 0 auto;
             width: 100%;
         }
+
         /* ===== 头部 ===== */
         .header {
             background: linear-gradient(145deg, #f8d7de, #f0c4cd);
             border: 1px solid var(--border);
-            color: var(--text);
             padding: 16px 20px;
             border-radius: var(--radius);
             margin-bottom: 20px;
@@ -113,10 +118,11 @@
             border-radius: 40px;
             padding: 4px 6px;
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             box-shadow: 0 4px 12px rgba(220, 107, 130, 0.08);
             transition: all var(--transition);
             flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .header-nav:hover {
             border-color: rgba(220, 107, 130, 0.35);
@@ -148,6 +154,16 @@
         #feedbackBtn:hover {
             background: var(--nav-hover-bg);
         }
+        #thanksBtn {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        #thanksBtn:hover {
+            background: rgba(212, 160, 106, 0.2);
+            color: #b8894f;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(212, 160, 106, 0.3);
+        }
         .nav-divider {
             width: 1px;
             height: 20px;
@@ -155,26 +171,17 @@
             margin: 0 2px;
             flex-shrink: 0;
         }
-        .admin-hint {
-            font-size: clamp(12px, 1.1vw, 14px);
-            font-weight: 500;
-            color: #fff;
-            background: rgba(220, 107, 130, 0.25);
-            padding: 2px 12px;
-            border-radius: 30px;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            white-space: nowrap;
+        .nav-divider-gold {
+            width: 1px;
+            height: 20px;
+            background: rgba(212, 160, 106, 0.3);
+            margin: 0 2px;
             flex-shrink: 0;
         }
-        .admin-hint strong {
-            color: #fff;
-            font-weight: 600;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 0 6px;
-            border-radius: 20px;
+        .admin-hint {
+            display: none !important;
         }
+
         .header-actions {
             margin-top: 12px;
             display: flex;
@@ -252,6 +259,7 @@
             background: var(--primary-dark);
             box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3);
         }
+
         /* ===== 搜索与筛选 ===== */
         .search-box {
             display: flex;
@@ -336,53 +344,7 @@
             border-color: var(--primary-light);
             background: rgba(220, 107, 130, 0.04);
         }
-        /* ===== 鸣谢区域 ===== */
-        .credit-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 8px 16px;
-            margin-bottom: 16px;
-            transition: all var(--transition);
-            box-shadow: var(--shadow);
-        }
-        .credit-section:hover {
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow-hover);
-        }
-        .credit-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px 12px;
-            flex-wrap: wrap;
-            color: var(--text);
-            font-size: clamp(12px, 1vw, 14px);
-        }
-        .credit-icon {
-            font-size: clamp(16px, 1.4vw, 20px);
-        }
-        .credit-text {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 4px 10px;
-        }
-        .credit-text strong {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        .credit-item {
-            color: var(--text-light);
-            transition: color var(--transition);
-        }
-        .credit-item:hover {
-            color: var(--text);
-        }
-        .credit-divider {
-            color: var(--text-muted);
-            user-select: none;
-        }
+
         /* ===== 歌曲分组卡片 ===== */
         .song-group {
             background: var(--bg-card);
@@ -446,6 +408,7 @@
             white-space: nowrap;
             line-height: 22px;
         }
+
         /* ===== ID 列表 ===== */
         .id-list {
             display: flex;
@@ -541,6 +504,7 @@
         .btn-delete-id:active {
             transform: scale(0.85);
         }
+
         /* ===== 批量操作栏 ===== */
         .batch-bar {
             display: none;
@@ -600,7 +564,8 @@
             box-shadow: 0 6px 16px rgba(220, 107, 130, 0.15);
             background: linear-gradient(145deg, #e6c9cf, #dbb5bd);
         }
-        /* ===== 弹窗 ===== */
+
+        /* ===== 弹窗（通用） ===== */
         .modal {
             display: none;
             position: fixed;
@@ -611,7 +576,6 @@
             z-index: 999;
             padding: 16px;
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
         }
         .modal.show {
             display: flex;
@@ -689,6 +653,88 @@
         .modal-actions .btn-danger:hover {
             background: #d45c62;
         }
+
+        /* ---- 鸣谢弹窗专属暖金色 ---- */
+        .thanks-modal .modal-content {
+            border-color: var(--gold);
+            background: var(--gold-bg);
+            max-width: 600px;
+        }
+        .thanks-modal .modal-content h2 {
+            color: var(--gold);
+            text-align: center;
+            font-weight: 700;
+        }
+        .thanks-modal .subtitle {
+            text-align: center;
+            color: var(--gold);
+            font-style: italic;
+            font-size: clamp(14px, 1.2vw, 16px);
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        .thanks-category {
+            margin-bottom: 6px;
+        }
+        .thanks-category .cat-title {
+            font-weight: 700;
+            color: #7a4a5a;
+            font-size: clamp(16px, 1.2vw, 18px);
+            border-bottom: 1px solid var(--gold-light);
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .thanks-person {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 4px 8px;
+            padding: 2px 0;
+            font-size: clamp(13px, 1vw, 15px);
+            color: var(--text);
+        }
+        .thanks-person .name {
+            font-weight: 600;
+            color: #d4884a;
+            font-size: clamp(14px, 1vw, 16px);
+        }
+        .thanks-person .platform {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        .thanks-person .message {
+            color: var(--text-light);
+            font-size: 0.95em;
+        }
+        .thanks-footer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gold-light);
+            text-align: center;
+            color: var(--text-light);
+            font-size: clamp(13px, 1vw, 15px);
+            line-height: 1.8;
+        }
+        .thanks-footer .highlight {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .thanks-footer .contact {
+            color: var(--gold);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .thanks-footer .closing {
+            font-style: italic;
+            margin-top: 8px;
+            color: var(--text);
+        }
+        .thanks-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px 0;
+        }
+
         /* ---- 密码输入框 ---- */
         .password-modal .modal-content {
             max-width: 400px;
@@ -717,6 +763,7 @@
             font-size: 14px;
             margin-top: 4px;
         }
+
         /* ---- 导入弹窗 ---- */
         .import-modal .modal-content textarea {
             width: 100%;
@@ -741,6 +788,7 @@
         .import-modal .modal-content textarea::placeholder {
             color: var(--text-muted);
         }
+
         /* ---- 隔离区弹窗 ---- */
         .quarantine-modal .modal-content {
             max-width: 800px;
@@ -928,6 +976,7 @@
         .quarantine-footer-actions .btn-close:hover {
             background: #e6c9cf;
         }
+
         /* ===== Toast ===== */
         .toast {
             position: fixed;
@@ -951,6 +1000,7 @@
         .toast.show {
             opacity: 1;
         }
+
         /* ===== 权限控制 ===== */
         .admin-only {
             display: none !important;
@@ -967,129 +1017,364 @@
         .quarantine-batch-mode .quarantine-checkbox {
             display: inline-block !important;
         }
+
         /* ===== 响应式适配 ===== */
         @media (max-width: 400px) {
-            body { padding: 6px; }
-            .header { padding: 12px 14px; }
-            .header h1 { font-size: 17px; }
-            .header h1 small { font-size: 10px; }
-            .header-nav { padding: 3px 4px; }
-            .nav-btn { font-size: 11px; padding: 4px 10px; height: 26px; }
-            .nav-divider { height: 14px; }
-            .admin-hint { font-size: 11px; padding: 1px 8px; }
-            .search-box input { height: 40px; font-size: 15px; padding: 8px 14px; min-width: 120px; }
-            .filter-tabs button, .btn-multi { height: 32px; font-size: 11px; padding: 4px 10px; }
-            .song-group { padding: 10px 12px; }
-            .group-name { font-size: 15px; }
-            .id-number { font-size: 12px; min-width: 60px; }
-            .btn-copy-id { font-size: 11px; padding: 2px 10px; height: 26px; }
-            .btn-delete-id { font-size: 14px; height: 26px; }
-            .credit-content { font-size: 11px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 10px; padding: 2px 10px; height: 28px;
+            body {
+                padding: 6px;
             }
-            .modal-content { padding: 16px; }
-            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
-            .toast { font-size: 12px; padding: 8px 16px; bottom: 16px; }
-            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
-            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
-            .import-modal .modal-content textarea { min-height: 200px; font-size: 14px; padding: 10px 14px; }
-            .quarantine-search-box input { height: 30px; font-size: 12px; padding: 6px 10px; }
-            .quarantine-footer-actions button { font-size: 11px; padding: 3px 10px; }
+            .header {
+                padding: 12px 14px;
+            }
+            .header h1 {
+                font-size: 17px;
+            }
+            .header h1 small {
+                font-size: 10px;
+            }
+            .header-nav {
+                padding: 3px 4px;
+                gap: 2px;
+            }
+            .nav-btn {
+                font-size: 10px;
+                padding: 3px 6px;
+                height: 24px;
+            }
+            .nav-divider,
+            .nav-divider-gold {
+                height: 14px;
+                margin: 0 1px;
+            }
+            .search-box input {
+                height: 40px;
+                font-size: 15px;
+                padding: 8px 14px;
+                min-width: 120px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 32px;
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .song-group {
+                padding: 10px 12px;
+            }
+            .group-name {
+                font-size: 15px;
+            }
+            .id-number {
+                font-size: 12px;
+                min-width: 60px;
+            }
+            .btn-copy-id {
+                font-size: 11px;
+                padding: 2px 10px;
+                height: 26px;
+            }
+            .btn-delete-id {
+                font-size: 14px;
+                height: 26px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 10px;
+                padding: 2px 10px;
+                height: 28px;
+            }
+            .modal-content {
+                padding: 16px;
+            }
+            .modal-actions button {
+                min-height: 38px;
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                bottom: 16px;
+            }
+            .batch-bar,
+            .quarantine-batch-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .batch-bar .actions,
+            .quarantine-batch-bar .actions {
+                justify-content: flex-end;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 200px;
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            .quarantine-search-box input {
+                height: 30px;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 4px 12px; font-size: 11px;
+                padding: 4px 12px;
+                font-size: 11px;
+            }
+            .thanks-modal .modal-content {
+                max-width: 95%;
+                padding: 16px;
             }
         }
         @media (max-width: 640px) {
-            body { padding: 8px; }
-            .header { padding: 14px 16px; }
-            .header h1 { font-size: 19px; text-align: center; }
-            .header-top { flex-direction: column; align-items: stretch; gap: 6px; }
-            .header-stats { justify-content: center; gap: 6px 10px; }
-            .header-nav-wrapper { justify-content: center; margin-left: 0; flex-wrap: wrap; gap: 6px; }
-            .header-nav { align-self: center; padding: 3px 5px; }
-            .nav-btn { font-size: 12px; padding: 4px 12px; height: 28px; }
-            .nav-divider { height: 16px; }
-            .admin-hint { font-size: 12px; padding: 2px 10px; }
-            .header-actions { justify-content: center; }
-            .btn-group { justify-content: center; }
-            .search-box input { height: 42px; font-size: 15px; padding: 8px 16px; }
-            .filter-tabs button, .btn-multi { height: 34px; font-size: 12px; padding: 4px 12px; }
-            .song-group { padding: 10px 14px; }
-            .group-name { font-size: 16px; }
-            .id-number { font-size: 13px; }
-            .btn-copy-id { font-size: 12px; padding: 2px 12px; height: 28px; }
-            .btn-delete-id { font-size: 15px; height: 28px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 11px; padding: 3px 12px; height: 30px;
+            body {
+                padding: 8px;
             }
-            .modal-content { padding: 18px; }
-            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
-            .toast { font-size: 13px; padding: 8px 18px; bottom: 20px; }
-            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
-            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
-            .import-modal .modal-content textarea { min-height: 220px; font-size: 15px; }
-            .credit-section { padding: 8px 14px; border-radius: 12px; margin-bottom: 12px; }
-            .credit-content { font-size: 12px; gap: 6px; }
-            .credit-text { gap: 4px 8px; justify-content: center; }
-            .credit-icon { font-size: 15px; }
-            .quarantine-search-box input { height: 34px; font-size: 13px; }
-            .quarantine-footer-actions { justify-content: center; }
-            .quarantine-footer-actions button { font-size: 12px; padding: 4px 12px; }
+            .header {
+                padding: 14px 16px;
+            }
+            .header h1 {
+                font-size: 19px;
+                text-align: center;
+            }
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .header-stats {
+                justify-content: center;
+                gap: 6px 10px;
+            }
+            .header-nav-wrapper {
+                justify-content: center;
+                margin-left: 0;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .header-nav {
+                align-self: center;
+                padding: 4px 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2px;
+            }
+            .nav-btn {
+                font-size: 11px;
+                padding: 4px 8px;
+                height: 26px;
+                min-width: 50px;
+            }
+            .nav-divider,
+            .nav-divider-gold {
+                height: 14px;
+                margin: 0 1px;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .btn-group {
+                justify-content: center;
+            }
+            .search-box input {
+                height: 42px;
+                font-size: 15px;
+                padding: 8px 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 34px;
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            .song-group {
+                padding: 10px 14px;
+            }
+            .group-name {
+                font-size: 16px;
+            }
+            .id-number {
+                font-size: 13px;
+            }
+            .btn-copy-id {
+                font-size: 12px;
+                padding: 2px 12px;
+                height: 28px;
+            }
+            .btn-delete-id {
+                font-size: 15px;
+                height: 28px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 11px;
+                padding: 3px 12px;
+                height: 30px;
+            }
+            .modal-content {
+                padding: 18px;
+            }
+            .modal-actions button {
+                min-height: 38px;
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .toast {
+                font-size: 13px;
+                padding: 8px 18px;
+                bottom: 20px;
+            }
+            .batch-bar,
+            .quarantine-batch-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .batch-bar .actions,
+            .quarantine-batch-bar .actions {
+                justify-content: flex-end;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 220px;
+                font-size: 15px;
+            }
+            .quarantine-search-box input {
+                height: 34px;
+                font-size: 13px;
+            }
+            .quarantine-footer-actions {
+                justify-content: center;
+            }
+            .quarantine-footer-actions button {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 5px 14px; font-size: 12px;
+                padding: 5px 14px;
+                font-size: 12px;
+            }
+            .thanks-modal .modal-content {
+                max-width: 95%;
+                padding: 18px;
             }
         }
         @media (min-width: 641px) and (max-width: 1024px) {
-            .header h1 { font-size: 22px; }
-            .header-nav { padding: 4px 6px; }
-            .nav-btn { font-size: 13px; padding: 6px 16px; height: 32px; }
-            .search-box input { height: 46px; }
-            .filter-tabs button, .btn-multi { height: 38px; }
-            .song-group { padding: 14px 18px; }
-            .id-number { font-size: 14px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 12px; padding: 4px 14px; height: 32px;
+            .header h1 {
+                font-size: 22px;
             }
-            .quarantine-footer-actions button { font-size: 12px; padding: 4px 14px; }
+            .header-nav {
+                padding: 4px 6px;
+            }
+            .nav-btn {
+                font-size: 13px;
+                padding: 6px 16px;
+                height: 32px;
+            }
+            .search-box input {
+                height: 46px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 38px;
+            }
+            .song-group {
+                padding: 14px 18px;
+            }
+            .id-number {
+                font-size: 14px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 12px;
+                padding: 4px 14px;
+                height: 32px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 12px;
+                padding: 4px 14px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 16px; font-size: 12px;
+                padding: 6px 16px;
+                font-size: 12px;
             }
         }
         @media (min-width: 1025px) {
-            .header h1 { font-size: 24px; }
-            .header-nav { padding: 4px 8px; }
-            .nav-btn { font-size: 14px; padding: 6px 20px; height: 34px; }
-            .search-box input { height: 48px; font-size: 16px; }
-            .filter-tabs button, .btn-multi { height: 40px; font-size: 13px; }
-            .song-group { padding: 16px 20px; }
-            .id-number { font-size: 15px; }
-            .btn-copy-id { font-size: 13px; padding: 2px 16px; height: 30px; }
-            .btn-delete-id { font-size: 16px; height: 30px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 13px; padding: 4px 16px; height: 34px;
+            .header h1 {
+                font-size: 24px;
             }
-            .admin-hint { font-size: 14px; padding: 2px 14px; }
-            .import-modal .modal-content textarea { min-height: 300px; }
-            .quarantine-footer-actions button { font-size: 13px; padding: 6px 18px; }
+            .header-nav {
+                padding: 4px 8px;
+            }
+            .nav-btn {
+                font-size: 14px;
+                padding: 6px 20px;
+                height: 34px;
+            }
+            .search-box input {
+                height: 48px;
+                font-size: 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 40px;
+                font-size: 13px;
+            }
+            .song-group {
+                padding: 16px 20px;
+            }
+            .id-number {
+                font-size: 15px;
+            }
+            .btn-copy-id {
+                font-size: 13px;
+                padding: 2px 16px;
+                height: 30px;
+            }
+            .btn-delete-id {
+                font-size: 16px;
+                height: 30px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 13px;
+                padding: 4px 16px;
+                height: 34px;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 300px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 13px;
+                padding: 6px 18px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 20px; font-size: 13px;
+                padding: 6px 20px;
+                font-size: 13px;
             }
         }
     </style>
@@ -1099,7 +1384,7 @@
         <!-- ===== 头部 ===== -->
         <header class="header">
             <div class="header-top">
-                <h1 id="mainTitle">🎵 Roblox 音乐ID 宝库 <small id="modeLabel">游客</small></h1>
+                <h1 id="mainTitle">🎵 Roblox ID 宝库 <small id="modeLabel">游客</small></h1>
                 <div class="header-stats">
                     <span>📚 <strong id="totalGroupCount">0</strong> 组</span>
                     <span>🎶 <strong id="totalIdCount">0</strong> 个ID</span>
@@ -1110,8 +1395,9 @@
                         <a href="index.html" class="nav-btn" id="homeBtn">🏠 首页</a>
                         <span class="nav-divider" aria-hidden="true"></span>
                         <a href="feedback.html" class="nav-btn" id="feedbackBtn">📩 反馈</a>
+                        <span class="nav-divider-gold" aria-hidden="true"></span>
+                        <button class="nav-btn" id="thanksBtn">❤️ 鸣谢名单</button>
                     </nav>
-                    <span class="admin-hint" id="modeHint">双击标题 <strong>进入开发者模式</strong></span>
                 </div>
             </div>
             <div class="header-actions">
@@ -1125,20 +1411,7 @@
             </div>
         </header>
 
-        <!-- ===== 鸣谢 ===== -->
-        <section class="credit-section" aria-label="鸣谢">
-            <div class="credit-content">
-                <span class="credit-icon">🙏</span>
-                <div class="credit-text">
-                    <strong>特别鸣谢</strong>
-                    <span class="credit-item">🎬 视频平台 UP主 的精彩内容</span>
-                    <span class="credit-divider">·</span>
-                    <span class="credit-item">📋 duck 整理本歌单的所有歌曲</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== 搜索筛选 ===== -->
+        <!-- ===== 搜索与筛选 ===== -->
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 搜索歌名或ID..." aria-label="搜索歌曲">
             <div class="filter-tabs" id="categoryTabs" role="tablist">
@@ -1156,12 +1429,12 @@
             </div>
         </div>
 
-        <!-- ===== 歌曲列表 ===== -->
+        <!-- ===== 歌曲列表容器 ===== -->
         <div id="songListContainer" role="list"></div>
         <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
     </div>
 
-    <!-- ===== Toast ===== -->
+    <!-- ===== Toast 提示 ===== -->
     <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
     <!-- ===== 导入弹窗 ===== -->
@@ -1210,8 +1483,26 @@
             <div class="quarantine-footer-actions">
                 <button class="btn-restore-all" id="restoreAllBtn">♻️ 全部恢复</button>
                 <button class="btn-export" id="exportQuarantineBtn">📤 导出</button>
-                <!-- 已删除 "📥 导入" 按钮 -->
                 <button class="btn-close" id="closeQuarantineBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 鸣谢名单弹窗（暖金色） ===== -->
+    <div class="modal thanks-modal" id="thanksModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>❤️ 鸣谢名单</h2>
+            <div class="subtitle">“因为你们，这个项目才更美好。”</div>
+            <div id="thanksListContainer" style="flex:1; overflow-y:auto; margin:8px 0;">
+                <div class="thanks-empty">加载中...</div>
+            </div>
+            <div class="thanks-footer">
+                <div>如果有没有写到的UP主/反馈者，请联系我 ❤️</div>
+                <div class="contact">📱 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
+                <div class="closing">每一份分享都值得被铭记，每一次整理都值得被感谢。</div>
+            </div>
+            <div class="modal-actions" style="justify-content:center; margin-top:12px;">
+                <button class="btn-cancel" id="closeThanksBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -1228,18 +1519,18 @@
         </div>
     </div>
 
-    <!-- ===== 联系方式弹窗 ===== -->
+    <!-- ===== 联系方式弹窗（导出隔离区后提示） ===== -->
     <div class="modal" id="contactModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>📬 提交反馈</h2>
             <p id="contactMessage" style="white-space:pre-wrap; line-height:1.8;">
-导出成功！请将导出的文件发送给开发者！
+                导出成功！请将导出的文件发送给开发者！
 
-开发者联系方式：
-📧 邮箱：2560803486@qq.com
-💬 QQ：2560803486
+                开发者联系方式：
+                📧 邮箱：2560803486@qq.com
+                💬 QQ：2560803486
 
-© <span id="copyrightYear">2026</span> 织雾满穗 · 用知识照亮世界
+                © <span id="copyrightYear">2026</span> 织雾满穗 · 用知识照亮世界
             </p>
             <div class="modal-actions">
                 <button class="btn-confirm" id="contactOkBtn">我知道了</button>
@@ -1253,37 +1544,37 @@
     <script>
         /**
          * ============================================================
-         * 配置区
+         * 配置区（所有 JSON 均使用时间戳自动刷新，无需版本号）
          * ============================================================
          */
-        const USE_EXTERNAL_JSON = true;                     // 是否从外部加载主数据
-        const EXTERNAL_JSON_URL = 'roblox_music.json';      // 主数据URL
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true;        // ✅ 开启：刷新时自动合并外部隔离区文件
+        const USE_EXTERNAL_JSON = true; // 是否从外部加载主数据
+        const EXTERNAL_JSON_URL = 'roblox_music.json'; // 主数据文件
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // 是否自动合并管理员隔离区
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const DATA_VERSION = 'v7.1';                       // ✅ 版本升级
-        const ADMIN_PASSWORD = 'HuTinJianZW';
+        const ADMIN_PASSWORD = 'HuTinJianZW'; // 管理员密码
+        const THANKS_JSON_URL = 'roblox_music_thanks.json'; // 鸣谢名单文件
 
         /**
          * ============================================================
          * 全局变量
          * ============================================================
          */
-        let songDatabase = [];
-        let quarantineBinGuest = [];
-        let quarantineBinAdmin = [];
-        let isAdmin = false;
-        let batchMode = false;
-        let selectedIds = new Set();
-        let quarantineBatchMode = false;
-        let selectedQuarantineIds = new Set();
-        let currentCategory = 'all';
-        let currentKeyword = '';
-        let showMultiOnly = false;
-        let toastTimer = null;
+        let songDatabase = []; // 主列表数据
+        let quarantineBinGuest = []; // 游客隔离区
+        let quarantineBinAdmin = []; // 管理员隔离区
+        let isAdmin = false; // 当前是否为管理员模式
+        let batchMode = false; // 主列表批量模式开关
+        let selectedIds = new Set(); // 主列表批量选中的ID
+        let quarantineBatchMode = false; // 隔离区批量模式开关
+        let selectedQuarantineIds = new Set(); // 隔离区批量选中的ID
+        let currentCategory = 'all'; // 当前筛选的分类
+        let currentKeyword = ''; // 当前搜索关键词
+        let showMultiOnly = false; // 是否只显示多ID分组
+        let toastTimer = null; // Toast 定时器
 
         /**
          * ============================================================
-         * DOM 引用
+         * DOM 引用（缓存常用元素）
          * ============================================================
          */
         const $ = (id) => document.getElementById(id);
@@ -1311,7 +1602,6 @@
             quarantineBatchRelease: $('quarantineBatchReleaseBtn'),
             restoreAllBtn: $('restoreAllBtn'),
             exportQuarantine: $('exportQuarantineBtn'),
-            // importQuarantine: $('importQuarantineBtn'), // 已删除
             closeQuarantine: $('closeQuarantineBtn'),
             toast: $('toast'),
             importModal: $('importModal'),
@@ -1334,12 +1624,15 @@
             copyrightYear: $('copyrightYear'),
             mainTitle: $('mainTitle'),
             modeLabel: $('modeLabel'),
-            modeHint: $('modeHint'),
             openQuarantineBtn: $('openQuarantineBtn'),
             openImportBtn: $('openImportBtn'),
             exportBtn: $('exportBtn'),
             clearAllBtn: $('clearAllBtn'),
             appContainer: $('appContainer'),
+            thanksBtn: $('thanksBtn'),
+            thanksModal: $('thanksModal'),
+            thanksListContainer: $('thanksListContainer'),
+            closeThanksBtn: $('closeThanksBtn'),
         };
 
         /**
@@ -1347,12 +1640,14 @@
          * 辅助函数
          * ============================================================
          */
+        // HTML转义（防XSS）
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
+        // 清理歌名中的多余符号
         function cleanName(name) {
             if (!name) return '未知歌名';
             name = name.replace(/[《》]/g, '');
@@ -1362,6 +1657,7 @@
             return name.trim() || '未知歌名';
         }
 
+        // 显示 Toast 提示
         function showToast(msg) {
             const el = dom.toast;
             el.textContent = msg;
@@ -1370,18 +1666,22 @@
             toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
         }
 
+        // 获取当前模式下的隔离区数据
         function getCurrentQuarantine() {
             return isAdmin ? quarantineBinAdmin : quarantineBinGuest;
         }
 
+        // 获取当前隔离区的导出文件名
         function getQuarantineExportName() {
             return isAdmin ? 'roblox_music_quarantine.json' : 'roblox_music_quarantine_guest.json';
         }
 
+        // 获取当前模式名称（游客/开发者）
         function getModeName() {
             return isAdmin ? '开发者' : '游客';
         }
 
+        // 生成当前时间字符串（用于隔离区记录）
         function getNowStr() {
             const d = new Date();
             return d.getFullYear() + '-' +
@@ -1393,7 +1693,7 @@
 
         /**
          * ============================================================
-         * 自定义确认对话框
+         * 自定义确认对话框（Promise 封装）
          * ============================================================
          */
         function showConfirm(title, message) {
@@ -1403,10 +1703,14 @@
                 dom.confirmMessage.textContent = message;
                 modal.classList.add('show');
 
-                const okHandler = () => { modal.classList.remove('show');
-                    resolve(true); };
-                const cancelHandler = () => { modal.classList.remove('show');
-                    resolve(false); };
+                const okHandler = () => {
+                    modal.classList.remove('show');
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    modal.classList.remove('show');
+                    resolve(false);
+                };
                 const clickOutside = (e) => {
                     if (e.target === modal) {
                         modal.removeEventListener('click', clickOutside);
@@ -1420,17 +1724,20 @@
             });
         }
 
+        // 显示联系方式弹窗（游客导出隔离区后出现）
         function showContactModal() {
             dom.copyrightYear.textContent = new Date().getFullYear();
             dom.contactModal.classList.add('show');
             dom.contactOk.onclick = () => dom.contactModal.classList.remove('show');
-            dom.contactModal.onclick = (e) => { if (e.target === dom.contactModal) dom.contactModal.classList.remove(
-                    'show'); };
+            dom.contactModal.onclick = (e) => {
+                if (e.target === dom.contactModal) dom.contactModal.classList.remove(
+                    'show');
+            };
         }
 
         /**
          * ============================================================
-         * 数据持久化
+         * 数据持久化（localStorage）
          * ============================================================
          */
         function saveData() {
@@ -1441,11 +1748,11 @@
 
         /**
          * ============================================================
-         * 数据加载（主数据 + 隔离区）
+         * 数据加载（主数据 + 隔离区）—— 全部使用时间戳自动刷新
          * ============================================================
          */
         function loadData() {
-            // 加载本地隔离区数据
+            // 加载本地隔离区
             const guestStored = localStorage.getItem('quarantineBinGuest');
             if (guestStored) {
                 try { quarantineBinGuest = JSON.parse(guestStored); } catch (e) { quarantineBinGuest = []; }
@@ -1459,35 +1766,23 @@
                 quarantineBinAdmin = [];
             }
 
-            // 尝试加载主数据缓存
-            const stored = localStorage.getItem('songDB');
-            const storedVersion = localStorage.getItem('songDBVersion');
-            if (stored && storedVersion === DATA_VERSION) {
-                try {
-                    songDatabase = JSON.parse(stored);
-                    // ✅ 自动合并外部管理员隔离区
-                    loadExternalAdminQuarantine();
-                    renderAll();
-                    return;
-                } catch (e) { /* 缓存损坏，重新加载外部 */ }
-            }
-
-            // 从外部JSON加载主数据
+            // 主数据不再使用版本号缓存，每次都重新请求（带时间戳）
             if (USE_EXTERNAL_JSON) {
-                fetch(EXTERNAL_JSON_URL)
+                const url = EXTERNAL_JSON_URL + '?t=' + Date.now();
+                fetch(url)
                     .then(res => {
                         if (!res.ok) throw new Error(`HTTP ${res.status}`);
                         return res.json();
                     })
                     .then(data => {
-                        // 过滤掉已在隔离区中的ID（避免重复）
+                        // 过滤掉已在隔离区中的 ID
                         const filterIds = getFilterIds();
                         songDatabase = data
                             .filter(i => !filterIds.has(i.id))
                             .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
-                        saveData();
-                        localStorage.setItem('songDBVersion', DATA_VERSION);
-                        console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 首`);
+                        saveData(); // 更新缓存（供后续离线浏览，但下次刷新仍会重新请求）
+                        console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 个ID`);
+                        // 自动合并外部管理员隔离区（也带时间戳）
                         loadExternalAdminQuarantine();
                         renderAll();
                     })
@@ -1515,10 +1810,11 @@
             return ids;
         }
 
-        // ✅ 加载外部管理员隔离区并合并（可重复执行，但会跳过已存在的ID）
+        // 加载外部管理员隔离区并合并（带时间戳，自动刷新）
         function loadExternalAdminQuarantine() {
             if (!USE_EXTERNAL_QUARANTINE_ADMIN) return;
-            fetch(EXTERNAL_QUARANTINE_ADMIN_URL)
+            const url = EXTERNAL_QUARANTINE_ADMIN_URL + '?t=' + Date.now();
+            fetch(url)
                 .then(res => {
                     if (!res.ok) {
                         console.log('ℹ️ 外部管理员隔离区文件不存在，跳过');
@@ -1563,14 +1859,12 @@
         function applyMode() {
             const container = dom.appContainer;
             const label = dom.modeLabel;
-            const hint = dom.modeHint;
             const quarantineBtn = dom.openQuarantineBtn;
 
             if (isAdmin) {
                 container.classList.remove('mode-readonly');
                 container.classList.add('mode-manage');
                 label.textContent = '开发者';
-                hint.innerHTML = '双击标题 <strong>退出开发者模式</strong>';
                 quarantineBtn.textContent = '⛔ 隔离区（开发者）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
@@ -1578,7 +1872,6 @@
                 container.classList.remove('mode-manage');
                 container.classList.add('mode-readonly');
                 label.textContent = '游客';
-                hint.innerHTML = '双击标题 <strong>进入开发者模式</strong>';
                 quarantineBtn.textContent = '⛔ 隔离区（游客）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
@@ -1591,6 +1884,7 @@
             dom.quarantineTitle.textContent = isAdmin ? '⛔ 隔离区（开发者）' : '⛔ 隔离区（游客）';
         }
 
+        // 双击标题切换管理模式
         function toggleAdminMode() {
             if (isAdmin) {
                 isAdmin = false;
@@ -1659,6 +1953,7 @@
             document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
         }
 
+        // 批量隔离选中的 ID
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
             const modeName = getModeName();
@@ -1695,7 +1990,7 @@
 
         /**
          * ============================================================
-         * 单个隔离
+         * 单个隔离（点击 ✕ 按钮）
          * ============================================================
          */
         async function moveToQuarantine(name, id) {
@@ -1757,7 +2052,7 @@
             document.querySelectorAll('.quarantine-checkbox').forEach(cb => cb.checked = false);
         }
 
-        // 批量恢复（带去重）
+        // 批量恢复隔离区选中的 ID
         async function batchReleaseFromQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (selectedQuarantineIds.size === 0) { showToast('⚠️ 请先选择要恢复的ID'); return; }
@@ -1776,6 +2071,7 @@
                 }
             }
 
+            // 去重：只添加主列表中不存在的 ID
             const existingIds = new Set(songDatabase.map(i => i.id));
             let addedCount = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
@@ -1801,7 +2097,7 @@
             renderQuarantineList();
         }
 
-        // 单个恢复（带去重）
+        // 单个恢复
         async function releaseFromQuarantine(id) {
             const quarantine = getCurrentQuarantine();
             const idx = quarantine.findIndex(i => i.id === id);
@@ -1841,7 +2137,7 @@
             const toKeep = [];
             quarantine.forEach(item => {
                 if (existingIds.has(item.id)) {
-                    toKeep.push(item);
+                    toKeep.push(item); // 已存在则留在隔离区
                 } else {
                     item.lineIndex = maxLine + 1 + addedCount;
                     songDatabase.push(item);
@@ -1870,11 +2166,11 @@
             if (isAdmin) {
                 title = '⛔ 隔离区（开发者）';
                 message =
-                    `您即将导出开发者隔离区中的所有歌曲ID列表！\n\n导出内容：已认定的无效/问题歌曲ID（共 ${quarantine.length} 个）。\n\n注意：此文件可用于备份或迁移黑名单数据！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
+                    `您即将导出开发者隔离区中的所有ID列表！\n\n导出内容：已认定的无效/问题ID（共 ${quarantine.length} 个）。\n\n注意：此文件可用于备份或迁移黑名单数据！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
             } else {
                 title = '⛔ 隔离区（游客）';
                 message =
-                    `您即将导出隔离区中的所有歌曲ID列表！\n\n导出内容：不可用/有问题的歌曲ID（共 ${quarantine.length} 个）。\n\n注意：此文件仅用于向开发者反馈有问题的歌曲！\n导出的数据仅代表您的建议，开发者将逐一审核，不保证全部采纳！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
+                    `您即将导出隔离区中的所有ID列表！\n\n导出内容：不可用/有问题的ID（共 ${quarantine.length} 个）。\n\n注意：此文件仅用于向开发者反馈有问题的ID！\n导出的数据仅代表您的建议，开发者将逐一审核，不保证全部采纳！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
             }
 
             const confirmed = await showConfirm(title, message);
@@ -1893,8 +2189,6 @@
                 setTimeout(() => showContactModal(), 300);
             }
         }
-
-        // ✅ 已删除 importQuarantineFromFile 函数（隔离区导入按钮已移除）
 
         // 渲染隔离区列表
         function renderQuarantineList() {
@@ -1919,6 +2213,7 @@
             }
             title.textContent = `⛔ 隔离区（${modeLabel}）（${filtered.length} 个ID）`;
 
+            // 按隔离时间倒序
             const sorted = [...filtered].sort((a, b) => {
                 const timeA = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
                 const timeB = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
@@ -1930,21 +2225,22 @@
                 const time = item.quarantinedAt || '未知时间';
                 const checked = selectedQuarantineIds.has(item.id) ? 'checked' : '';
                 html += `
-                    <div class="quarantine-item">
-                        <div class="info">
-                            <input type="checkbox" class="quarantine-checkbox" data-id="${escapeHtml(item.id)}" ${checked}>
-                            <span class="name">${escapeHtml(item.name)}</span>
-                            <span class="id">${escapeHtml(item.id)}</span>
-                            <span class="time">⛔ ${escapeHtml(time)}</span>
+                        <div class="quarantine-item">
+                            <div class="info">
+                                <input type="checkbox" class="quarantine-checkbox" data-id="${escapeHtml(item.id)}" ${checked}>
+                                <span class="name">${escapeHtml(item.name)}</span>
+                                <span class="id">${escapeHtml(item.id)}</span>
+                                <span class="time">⛔ ${escapeHtml(time)}</span>
+                            </div>
+                            <div class="quarantine-actions">
+                                <button class="release-btn" data-id="${escapeHtml(item.id)}">🔓 恢复</button>
+                            </div>
                         </div>
-                        <div class="quarantine-actions">
-                            <button class="release-btn" data-id="${escapeHtml(item.id)}">🔓 恢复</button>
-                        </div>
-                    </div>
-                `;
+                    `;
             });
             container.innerHTML = html;
 
+            // 绑定复选框事件
             container.querySelectorAll('.quarantine-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -1960,6 +2256,7 @@
                 }
             });
 
+            // 绑定恢复按钮事件
             container.querySelectorAll('.release-btn').forEach(btn => {
                 btn.onclick = () => releaseFromQuarantine(btn.dataset.id);
             });
@@ -1969,7 +2266,61 @@
 
         /**
          * ============================================================
-         * 导入主列表（解析原始文本）
+         * 鸣谢名单（外部 JSON + 时间戳自动刷新）
+         * ============================================================
+         */
+        function loadThanksList() {
+            const container = dom.thanksListContainer;
+            container.innerHTML = '<div class="thanks-empty">加载中...</div>';
+
+            const url = THANKS_JSON_URL + '?t=' + Date.now();
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    if (!Array.isArray(data) || data.length === 0) {
+                        container.innerHTML = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
+                        return;
+                    }
+                    renderThanksData(data);
+                })
+                .catch(err => {
+                    console.warn('鸣谢名单加载失败:', err);
+                    container.innerHTML = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
+                });
+        }
+
+        function renderThanksData(data) {
+            const container = dom.thanksListContainer;
+            let html = '';
+            data.forEach(category => {
+                if (!category.people || category.people.length === 0) return;
+                html += `<div class="thanks-category">`;
+                html += `<div class="cat-title">${escapeHtml(category.category)}</div>`;
+                category.people.forEach(person => {
+                    html += `<div class="thanks-person">`;
+                    html += `<span class="name">${escapeHtml(person.name)}</span>`;
+                    if (person.platform) {
+                        html += `<span class="platform">· ${escapeHtml(person.platform)}</span>`;
+                    }
+                    if (person.message) {
+                        html += `<span class="message">${escapeHtml(person.message)}</span>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            });
+            if (!html) {
+                html = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        /**
+         * ============================================================
+         * 导入主列表（解析原始文本提取 ID）
          * ============================================================
          */
         function parseRawText(text) {
@@ -1989,6 +2340,7 @@
                 }
                 if (ids.length === 0) { globalLineIndex++; continue; }
 
+                // 提取歌名（去掉ID和多余符号）
                 let name = line;
                 ids.forEach(id => { name = name.replace(id, ''); });
                 name = name.replace(/^[\d]+[\.\、\s]+/, '');
@@ -2000,9 +2352,11 @@
 
                 ids.forEach((id, idx) => {
                     if (result.some(r => r.id === id)) return;
+                    // 自动分类（简单规则）
                     let category = '中文流行';
                     const lower = name.toLowerCase();
-                    if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj'))
+                    if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes(
+                            'dj'))
                         category = 'Phonk/DJ';
                     else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes(
                             '古筝') ||
@@ -2063,7 +2417,7 @@
             });
 
             saveData();
-            let msg = `✅ 导入完成！新增 ${added} 首，更新 ${updated} 首`;
+            let msg = `✅ 导入完成！新增 ${added} 个，更新 ${updated} 个`;
             if (skipped > 0) msg += `，跳过 ${skipped} 个已在隔离区中的ID`;
             dom.importStatus.textContent = msg;
             renderAll();
@@ -2072,7 +2426,7 @@
 
         /**
          * ============================================================
-         * 开发者操作：清空、导出主列表
+         * 开发者操作：清空列表、导出主数据
          * ============================================================
          */
         async function clearAllData() {
@@ -2088,11 +2442,12 @@
             showToast('🗑️ 列表已清空');
         }
 
+        // 导出主列表，固定文件名 roblox_music.json
         async function exportData() {
             if (!isAdmin) { showToast('⚠️ 仅开发者可导出主列表'); return; }
             if (songDatabase.length === 0) { showToast('列表为空，无需导出'); return; }
             const confirmed = await showConfirm('确认导出',
-                `您即将导出当前列表中的所有歌曲ID（共 ${songDatabase.length} 个）。\n\n导出的数据仅包含歌曲ID和歌名，可用于备份或反馈。\n\n确认导出吗？`
+                `您即将导出当前列表中的所有ID（共 ${songDatabase.length} 个）。\n\n导出的数据包含ID和歌名，可用于备份。\n\n确认导出吗？`
             );
             if (!confirmed) return;
 
@@ -2109,10 +2464,11 @@
 
         /**
          * ============================================================
-         * 主渲染引擎
+         * 主渲染引擎（统计、分类、列表）
          * ============================================================
          */
         function renderAll() {
+            // 更新统计信息
             const uniqueNames = new Set(songDatabase.map(i => i.name));
             dom.totalGroup.textContent = uniqueNames.size;
             dom.totalId.textContent = songDatabase.length;
@@ -2122,6 +2478,7 @@
             let multiCount = Object.values(nameCountMap).filter(c => c > 1).length;
             dom.multiGroup.textContent = multiCount;
 
+            // 更新分类标签
             const tabsContainer = dom.categoryTabs;
             while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
             const categories = new Set(songDatabase.map(i => i.category));
@@ -2133,6 +2490,7 @@
                 tabsContainer.appendChild(btn);
             });
 
+            // 绑定分类切换事件
             const allBtns = tabsContainer.querySelectorAll('button');
             allBtns.forEach(btn => {
                 btn.onclick = function() {
@@ -2152,16 +2510,19 @@
                     renderList();
                 };
             });
+            // 高亮当前分类
             allBtns.forEach(b => {
                 if (b.dataset.cat === currentCategory) b.classList.add('active');
                 else b.classList.remove('active');
             });
 
+            // 搜索框输入事件
             dom.searchInput.oninput = function() {
                 currentKeyword = this.value;
                 renderList();
             };
 
+            // 多ID切换
             dom.multiToggleBtn.onclick = function() {
                 showMultiOnly = !showMultiOnly;
                 this.classList.toggle('active');
@@ -2176,6 +2537,9 @@
             renderList();
         }
 
+        /**
+         * 渲染主列表（按歌名分组）
+         */
         function renderList() {
             const keyword = currentKeyword.trim().toLowerCase();
 
@@ -2185,6 +2549,7 @@
                 return catMatch && kwMatch;
             });
 
+            // 按歌名分组
             const groupMap = {};
             filtered.forEach(item => {
                 if (!groupMap[item.name]) {
@@ -2228,32 +2593,33 @@
                 group.ids.forEach(id => {
                     const checked = selectedIds.has(id) ? 'checked' : '';
                     rowsHtml += `
-                        <div class="id-row">
-                            <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
-                            <span class="id-number">${escapeHtml(id)}</span>
-                            <div class="id-actions">
-                                <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
-                                <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                            <div class="id-row">
+                                <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
+                                <span class="id-number">${escapeHtml(id)}</span>
+                                <div class="id-actions">
+                                    <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
+                                    <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
                 });
 
                 html += `
-                    <div class="song-group" data-group-name="${safeName}">
-                        <div class="group-header">
-                            <div class="group-name">${nameHtml}</div>
-                            <div class="group-right">
-                                <span class="group-category">${escapeHtml(catStr)}</span>
+                        <div class="song-group" data-group-name="${safeName}">
+                            <div class="group-header">
+                                <div class="group-name">${nameHtml}</div>
+                                <div class="group-right">
+                                    <span class="group-category">${escapeHtml(catStr)}</span>
+                                </div>
                             </div>
+                            <div class="id-list">${rowsHtml}</div>
                         </div>
-                        <div class="id-list">${rowsHtml}</div>
-                    </div>
-                `;
+                    `;
             });
 
             container.innerHTML = html;
 
+            // 事件委托：复制和隔离按钮
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -2272,6 +2638,7 @@
                 }
             };
 
+            // 绑定复选框事件
             container.querySelectorAll('.id-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -2333,15 +2700,19 @@
 
         /**
          * ============================================================
-         * 初始化
+         * 初始化（页面加载完成后的启动流程）
          * ============================================================
          */
         document.addEventListener('DOMContentLoaded', function() {
+            // 加载模式（游客/开发者）
             loadMode();
+            // 加载数据（主列表 + 隔离区）
             loadData();
 
+            // 双击标题切换管理模式
             dom.mainTitle.addEventListener('dblclick', toggleAdminMode);
 
+            // ----- 导入主列表 -----
             dom.openImportBtn.addEventListener('click', function() {
                 if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 dom.importModal.classList.add('show');
@@ -2359,14 +2730,16 @@
                 importData(raw);
             });
 
+            // ----- 导出主列表 -----
             dom.exportBtn.addEventListener('click', exportData);
+            // ----- 清空列表 -----
             dom.clearAllBtn.addEventListener('click', clearAllData);
 
+            // ----- 隔离区弹窗控制 -----
             dom.openQuarantineBtn.addEventListener('click', function() {
                 updateQuarantineTitle();
                 dom.quarantineModal.classList.add('show');
                 renderQuarantineList();
-                // 不再需要控制导入按钮的显示
                 if (quarantineBatchMode) {
                     dom.quarantineModal.querySelector('.modal-content').classList.add('quarantine-batch-mode');
                 }
@@ -2382,21 +2755,22 @@
                 }
             });
 
+            // 隔离区搜索
             dom.quarantineSearch.addEventListener('input', renderQuarantineList);
-
+            // 隔离区批量操作
             dom.quarantineBatchClear.addEventListener('click', clearQuarantineSelected);
             dom.quarantineBatchRelease.addEventListener('click', batchReleaseFromQuarantine);
-
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
-            // dom.importQuarantine 已删除，不绑定事件
 
+            // ----- 主列表批量操作 -----
             dom.batchToggle.addEventListener('click', function() {
                 toggleBatchMode();
             });
             dom.batchClear.addEventListener('click', clearSelected);
             dom.batchDelete.addEventListener('click', batchDelete);
 
+            // ----- 密码弹窗 -----
             dom.cancelPassword.addEventListener('click', function() {
                 dom.passwordModal.classList.remove('show');
                 dom.passwordError.style.display = 'none';
@@ -2414,7 +2788,20 @@
                 }
             });
 
+            // 导入弹窗外部关闭
             dom.importModal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('show');
+            });
+
+            // ----- 鸣谢名单 -----
+            dom.thanksBtn.addEventListener('click', function() {
+                dom.thanksModal.classList.add('show');
+                loadThanksList(); // 每次打开重新加载（自动刷新）
+            });
+            dom.closeThanksBtn.addEventListener('click', function() {
+                dom.thanksModal.classList.remove('show');
+            });
+            dom.thanksModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
             });
         });

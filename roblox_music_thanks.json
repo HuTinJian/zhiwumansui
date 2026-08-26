@@ -1,0 +1,30 @@
+[
+    {
+        "category": "🎬 ID公益UP主",
+        "people": [
+            {
+                "name": "奈雨（欧小氪）",
+                "platform": "抖音",
+                "message": "坚持分享公益音乐ID，让更多玩家享受游戏的快乐"
+            }
+        ]
+    },
+    {
+        "category": "💬 反馈贡献者",
+        "people": [
+            {
+                "name": "加冰糖",
+                "message": "反馈了歌曲缺失问题"
+            }
+        ]
+    },
+    {
+        "category": "📋 歌单整理者",
+        "people": [
+            {
+                "name": "duck",
+                "message": "系统整理，但是暂停维护本歌单"
+            }
+        ]
+    }
+]
