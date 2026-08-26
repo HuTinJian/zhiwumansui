@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>🎵 Roblox ID 宝库 · 分组管理</title>
     <style>
-        /* ============================================================
-           1. 全局主题颜色（粉色护眼系）
-           ============================================================ */
+        /* ===== 全局颜色变量（粉色护眼系） ===== */
         :root {
             --primary: #dc6b82;
             --primary-dark: #c7546a;
@@ -26,18 +24,12 @@
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             --nav-hover-bg: rgba(220, 107, 130, 0.18);
-            /* 鸣谢专用暖金色 */
             --gold: #d4a06a;
             --gold-light: #e8c49a;
             --gold-bg: #fbf3e8;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html,
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
             font-family: var(--font);
             background-color: var(--bg);
             color: var(--text);
@@ -46,11 +38,7 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
 
         /* ===== 头部 ===== */
         .header {
@@ -62,9 +50,7 @@
             box-shadow: var(--shadow);
             transition: box-shadow var(--transition);
         }
-        .header:hover {
-            box-shadow: var(--shadow-hover);
-        }
+        .header:hover { box-shadow: var(--shadow-hover); }
         .header-top {
             display: flex;
             flex-wrap: wrap;
@@ -81,9 +67,7 @@
             flex: 0 0 auto;
             color: var(--text);
         }
-        .header h1:hover {
-            opacity: 0.75;
-        }
+        .header h1:hover { opacity: 0.75; }
         .header h1 small {
             font-size: clamp(11px, 1.4vw, 14px);
             font-weight: 400;
@@ -150,10 +134,7 @@
             color: var(--text);
             transform: translateY(-1px);
         }
-        #homeBtn:hover,
-        #feedbackBtn:hover {
-            background: var(--nav-hover-bg);
-        }
+        #homeBtn:hover, #feedbackBtn:hover { background: var(--nav-hover-bg); }
         #thanksBtn {
             color: var(--gold);
             font-weight: 600;
@@ -178,9 +159,7 @@
             margin: 0 2px;
             flex-shrink: 0;
         }
-        .admin-hint {
-            display: none !important;
-        }
+        .admin-hint { display: none !important; }
 
         .header-actions {
             margin-top: 12px;
@@ -215,50 +194,17 @@
             font-weight: 500;
             gap: 4px;
         }
-        .btn-group .btn-import {
-            background: var(--primary);
-            color: #fff;
-        }
-        .btn-group .btn-import:hover {
-            background: var(--primary-dark);
-            transform: scale(1.03);
-        }
-        .btn-group .btn-danger {
-            background: #e8747a;
-            color: #fff;
-        }
-        .btn-group .btn-danger:hover {
-            background: #d45c62;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-success {
-            background: #8cb8a8;
-            color: #fff;
-        }
-        .btn-group .btn-success:hover {
-            background: #72a392;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-quarantine {
-            background: #f472b6;
-            color: #fff;
-        }
-        .btn-group .btn-quarantine:hover {
-            background: #ec4899;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-batch {
-            background: #a78bfa;
-            color: #fff;
-        }
-        .btn-group .btn-batch:hover {
-            background: #8b5cf6;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-batch.active {
-            background: var(--primary-dark);
-            box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3);
-        }
+        .btn-group .btn-import { background: var(--primary); color: #fff; }
+        .btn-group .btn-import:hover { background: var(--primary-dark); transform: scale(1.03); }
+        .btn-group .btn-danger { background: #e8747a; color: #fff; }
+        .btn-group .btn-danger:hover { background: #d45c62; transform: scale(1.03); }
+        .btn-group .btn-success { background: #8cb8a8; color: #fff; }
+        .btn-group .btn-success:hover { background: #72a392; transform: scale(1.03); }
+        .btn-group .btn-quarantine { background: #f472b6; color: #fff; }
+        .btn-group .btn-quarantine:hover { background: #ec4899; transform: scale(1.03); }
+        .btn-group .btn-batch { background: #a78bfa; color: #fff; }
+        .btn-group .btn-batch:hover { background: #8b5cf6; transform: scale(1.03); }
+        .btn-group .btn-batch.active { background: var(--primary-dark); box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3); }
 
         /* ===== 搜索与筛选 ===== */
         .search-box {
@@ -285,9 +231,8 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
         }
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
+        .search-box input::placeholder { color: var(--text-muted); }
+
         .filter-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -319,6 +264,7 @@
             background: rgba(220, 107, 130, 0.04);
             transform: translateY(-1px);
         }
+
         .btn-multi {
             background: var(--bg-card);
             color: var(--text-light);
@@ -427,9 +373,7 @@
             border-bottom: 1px solid var(--border);
             transition: background var(--transition);
         }
-        .id-row:hover {
-            background: rgba(253, 242, 245, 0.8);
-        }
+        .id-row:hover { background: rgba(253, 242, 245, 0.8); }
         .id-checkbox {
             display: none;
             width: 18px;
@@ -438,9 +382,7 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .batch-mode .id-checkbox {
-            display: inline-block;
-        }
+        .batch-mode .id-checkbox { display: inline-block; }
         .id-number {
             font-family: 'Courier New', monospace;
             font-size: clamp(13px, 1vw, 15px);
@@ -473,16 +415,9 @@
             justify-content: center;
             white-space: nowrap;
         }
-        .btn-copy-id:hover {
-            background: var(--primary-dark);
-            transform: scale(1.03);
-        }
-        .btn-copy-id:active {
-            transform: scale(0.92);
-        }
-        .btn-copy-id.copied {
-            background: #8cb8a8;
-        }
+        .btn-copy-id:hover { background: var(--primary-dark); transform: scale(1.03); }
+        .btn-copy-id:active { transform: scale(0.92); }
+        .btn-copy-id.copied { background: #8cb8a8; }
         .btn-delete-id {
             background: transparent;
             border: none;
@@ -501,9 +436,7 @@
             background: rgba(232, 116, 122, 0.12);
             padding: 0 10px;
         }
-        .btn-delete-id:active {
-            transform: scale(0.85);
-        }
+        .btn-delete-id:active { transform: scale(0.85); }
 
         /* ===== 批量操作栏 ===== */
         .batch-bar {
@@ -519,16 +452,12 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow);
         }
-        .batch-bar.show {
-            display: flex;
-        }
+        .batch-bar.show { display: flex; }
         .batch-bar .info {
             font-size: 14px;
             color: var(--text-light);
         }
-        .batch-bar .info strong {
-            color: var(--text);
-        }
+        .batch-bar .info strong { color: var(--text); }
         .batch-bar .actions {
             display: flex;
             gap: 8px;
@@ -565,7 +494,7 @@
             background: linear-gradient(145deg, #e6c9cf, #dbb5bd);
         }
 
-        /* ===== 弹窗（通用） ===== */
+        /* ===== 弹窗 ===== */
         .modal {
             display: none;
             position: fixed;
@@ -577,9 +506,7 @@
             padding: 16px;
             backdrop-filter: blur(4px);
         }
-        .modal.show {
-            display: flex;
-        }
+        .modal.show { display: flex; }
         .modal-content {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -594,14 +521,8 @@
             border: 1px solid var(--border);
         }
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .modal-content h2 {
             font-size: clamp(18px, 2vw, 22px);
@@ -632,29 +553,14 @@
             min-height: 42px;
             font-weight: 500;
         }
-        .modal-actions .btn-confirm {
-            background: var(--primary);
-            color: #fff;
-        }
-        .modal-actions .btn-confirm:hover {
-            background: var(--primary-dark);
-        }
-        .modal-actions .btn-cancel {
-            background: var(--border);
-            color: var(--text);
-        }
-        .modal-actions .btn-cancel:hover {
-            background: #e6c9cf;
-        }
-        .modal-actions .btn-danger {
-            background: #e8747a;
-            color: #fff;
-        }
-        .modal-actions .btn-danger:hover {
-            background: #d45c62;
-        }
+        .modal-actions .btn-confirm { background: var(--primary); color: #fff; }
+        .modal-actions .btn-confirm:hover { background: var(--primary-dark); }
+        .modal-actions .btn-cancel { background: var(--border); color: var(--text); }
+        .modal-actions .btn-cancel:hover { background: #e6c9cf; }
+        .modal-actions .btn-danger { background: #e8747a; color: #fff; }
+        .modal-actions .btn-danger:hover { background: #d45c62; }
 
-        /* ---- 鸣谢弹窗专属暖金色 ---- */
+        /* ---- 鸣谢弹窗（暖金色） ---- */
         .thanks-modal .modal-content {
             border-color: var(--gold);
             background: var(--gold-bg);
@@ -673,9 +579,7 @@
             margin-bottom: 16px;
             opacity: 0.9;
         }
-        .thanks-category {
-            margin-bottom: 6px;
-        }
+        .thanks-category { margin-bottom: 6px; }
         .thanks-category .cat-title {
             font-weight: 700;
             color: #7a4a5a;
@@ -736,9 +640,7 @@
         }
 
         /* ---- 密码输入框 ---- */
-        .password-modal .modal-content {
-            max-width: 400px;
-        }
+        .password-modal .modal-content { max-width: 400px; }
         .password-modal input[type="password"] {
             width: 100%;
             padding: 12px 16px;
@@ -755,9 +657,7 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
         }
-        .password-modal input[type="password"]::placeholder {
-            color: var(--text-muted);
-        }
+        .password-modal input[type="password"]::placeholder { color: var(--text-muted); }
         .password-modal .error {
             color: #d45c62;
             font-size: 14px;
@@ -785,14 +685,10 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
         }
-        .import-modal .modal-content textarea::placeholder {
-            color: var(--text-muted);
-        }
+        .import-modal .modal-content textarea::placeholder { color: var(--text-muted); }
 
         /* ---- 隔离区弹窗 ---- */
-        .quarantine-modal .modal-content {
-            max-width: 800px;
-        }
+        .quarantine-modal .modal-content { max-width: 800px; }
         .quarantine-search-box {
             display: flex;
             gap: 10px;
@@ -827,16 +723,12 @@
             margin: 8px 0 12px 0;
             box-shadow: var(--shadow);
         }
-        .quarantine-batch-bar.show {
-            display: flex;
-        }
+        .quarantine-batch-bar.show { display: flex; }
         .quarantine-batch-bar .info {
             font-size: 14px;
             color: var(--text-light);
         }
-        .quarantine-batch-bar .info strong {
-            color: var(--text);
-        }
+        .quarantine-batch-bar .info strong { color: var(--text); }
         .quarantine-batch-bar .actions {
             display: flex;
             gap: 8px;
@@ -928,9 +820,7 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .quarantine-batch-mode .quarantine-checkbox {
-            display: inline-block;
-        }
+        .quarantine-batch-mode .quarantine-checkbox { display: inline-block; }
         .quarantine-empty {
             color: var(--text-muted);
             text-align: center;
@@ -953,29 +843,12 @@
             transition: all var(--transition);
             white-space: nowrap;
         }
-        .quarantine-footer-actions .btn-restore-all {
-            background: #22c55e;
-            color: #fff;
-        }
-        .quarantine-footer-actions .btn-restore-all:hover {
-            background: #16a34a;
-            transform: scale(1.02);
-        }
-        .quarantine-footer-actions .btn-export {
-            background: #3b82f6;
-            color: #fff;
-        }
-        .quarantine-footer-actions .btn-export:hover {
-            background: #2563eb;
-            transform: scale(1.02);
-        }
-        .quarantine-footer-actions .btn-close {
-            background: var(--border);
-            color: var(--text);
-        }
-        .quarantine-footer-actions .btn-close:hover {
-            background: #e6c9cf;
-        }
+        .quarantine-footer-actions .btn-restore-all { background: #22c55e; color: #fff; }
+        .quarantine-footer-actions .btn-restore-all:hover { background: #16a34a; transform: scale(1.02); }
+        .quarantine-footer-actions .btn-export { background: #3b82f6; color: #fff; }
+        .quarantine-footer-actions .btn-export:hover { background: #2563eb; transform: scale(1.02); }
+        .quarantine-footer-actions .btn-close { background: var(--border); color: var(--text); }
+        .quarantine-footer-actions .btn-close:hover { background: #e6c9cf; }
 
         /* ===== Toast ===== */
         .toast {
@@ -997,385 +870,125 @@
             max-width: 92%;
             font-weight: 500;
         }
-        .toast.show {
-            opacity: 1;
-        }
+        .toast.show { opacity: 1; }
 
         /* ===== 权限控制 ===== */
-        .admin-only {
-            display: none !important;
-        }
-        .mode-manage .admin-only {
-            display: inline-flex !important;
-        }
-        .mode-readonly .admin-only {
-            display: none !important;
-        }
-        .batch-mode .id-checkbox {
-            display: inline-block !important;
-        }
-        .quarantine-batch-mode .quarantine-checkbox {
-            display: inline-block !important;
-        }
+        .admin-only { display: none !important; }
+        .mode-manage .admin-only { display: inline-flex !important; }
+        .mode-readonly .admin-only { display: none !important; }
+        .batch-mode .id-checkbox { display: inline-block !important; }
+        .quarantine-batch-mode .quarantine-checkbox { display: inline-block !important; }
 
         /* ===== 响应式适配 ===== */
         @media (max-width: 400px) {
-            body {
-                padding: 6px;
+            body { padding: 6px; }
+            .header { padding: 12px 14px; }
+            .header h1 { font-size: 17px; }
+            .header h1 small { font-size: 10px; }
+            .header-nav { padding: 3px 4px; gap: 2px; }
+            .nav-btn { font-size: 10px; padding: 3px 6px; height: 24px; }
+            .nav-divider, .nav-divider-gold { height: 14px; margin: 0 1px; }
+            .search-box input { height: 40px; font-size: 15px; padding: 8px 14px; min-width: 120px; }
+            .filter-tabs button, .btn-multi { height: 32px; font-size: 11px; padding: 4px 10px; }
+            .song-group { padding: 10px 12px; }
+            .group-name { font-size: 15px; }
+            .id-number { font-size: 12px; min-width: 60px; }
+            .btn-copy-id { font-size: 11px; padding: 2px 10px; height: 26px; }
+            .btn-delete-id { font-size: 14px; height: 26px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size: 10px; padding: 2px 10px; height: 28px;
             }
-            .header {
-                padding: 12px 14px;
-            }
-            .header h1 {
-                font-size: 17px;
-            }
-            .header h1 small {
-                font-size: 10px;
-            }
-            .header-nav {
-                padding: 3px 4px;
-                gap: 2px;
-            }
-            .nav-btn {
-                font-size: 10px;
-                padding: 3px 6px;
-                height: 24px;
-            }
-            .nav-divider,
-            .nav-divider-gold {
-                height: 14px;
-                margin: 0 1px;
-            }
-            .search-box input {
-                height: 40px;
-                font-size: 15px;
-                padding: 8px 14px;
-                min-width: 120px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 32px;
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-            .song-group {
-                padding: 10px 12px;
-            }
-            .group-name {
-                font-size: 15px;
-            }
-            .id-number {
-                font-size: 12px;
-                min-width: 60px;
-            }
-            .btn-copy-id {
-                font-size: 11px;
-                padding: 2px 10px;
-                height: 26px;
-            }
-            .btn-delete-id {
-                font-size: 14px;
-                height: 26px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 10px;
-                padding: 2px 10px;
-                height: 28px;
-            }
-            .modal-content {
-                padding: 16px;
-            }
-            .modal-actions button {
-                min-height: 38px;
-                font-size: 14px;
-                padding: 6px 16px;
-            }
-            .toast {
-                font-size: 12px;
-                padding: 8px 16px;
-                bottom: 16px;
-            }
-            .batch-bar,
-            .quarantine-batch-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .batch-bar .actions,
-            .quarantine-batch-bar .actions {
-                justify-content: flex-end;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 200px;
-                font-size: 14px;
-                padding: 10px 14px;
-            }
-            .quarantine-search-box input {
-                height: 30px;
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 11px;
-                padding: 3px 10px;
-            }
+            .modal-content { padding: 16px; }
+            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
+            .toast { font-size: 12px; padding: 8px 16px; bottom: 16px; }
+            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
+            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
+            .import-modal .modal-content textarea { min-height: 200px; font-size: 14px; padding: 10px 14px; }
+            .quarantine-search-box input { height: 30px; font-size: 12px; padding: 6px 10px; }
+            .quarantine-footer-actions button { font-size: 11px; padding: 3px 10px; }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 4px 12px;
-                font-size: 11px;
-            }
-            .thanks-modal .modal-content {
-                max-width: 95%;
-                padding: 16px;
-            }
+            .quarantine-batch-bar .actions .btn-batch-clear { padding: 4px 12px; font-size: 11px; }
+            .thanks-modal .modal-content { max-width: 95%; padding: 16px; }
         }
         @media (max-width: 640px) {
-            body {
-                padding: 8px;
+            body { padding: 8px; }
+            .header { padding: 14px 16px; }
+            .header h1 { font-size: 19px; text-align: center; }
+            .header-top { flex-direction: column; align-items: stretch; gap: 6px; }
+            .header-stats { justify-content: center; gap: 6px 10px; }
+            .header-nav-wrapper { justify-content: center; margin-left: 0; flex-wrap: wrap; gap: 6px; }
+            .header-nav { align-self: center; padding: 4px 8px; flex-wrap: wrap; justify-content: center; gap: 2px; }
+            .nav-btn { font-size: 11px; padding: 4px 8px; height: 26px; min-width: 50px; }
+            .nav-divider, .nav-divider-gold { height: 14px; margin: 0 1px; }
+            .header-actions { justify-content: center; }
+            .btn-group { justify-content: center; }
+            .search-box input { height: 42px; font-size: 15px; padding: 8px 16px; }
+            .filter-tabs button, .btn-multi { height: 34px; font-size: 12px; padding: 4px 12px; }
+            .song-group { padding: 10px 14px; }
+            .group-name { font-size: 16px; }
+            .id-number { font-size: 13px; }
+            .btn-copy-id { font-size: 12px; padding: 2px 12px; height: 28px; }
+            .btn-delete-id { font-size: 15px; height: 28px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size: 11px; padding: 3px 12px; height: 30px;
             }
-            .header {
-                padding: 14px 16px;
-            }
-            .header h1 {
-                font-size: 19px;
-                text-align: center;
-            }
-            .header-top {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 6px;
-            }
-            .header-stats {
-                justify-content: center;
-                gap: 6px 10px;
-            }
-            .header-nav-wrapper {
-                justify-content: center;
-                margin-left: 0;
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            .header-nav {
-                align-self: center;
-                padding: 4px 8px;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 2px;
-            }
-            .nav-btn {
-                font-size: 11px;
-                padding: 4px 8px;
-                height: 26px;
-                min-width: 50px;
-            }
-            .nav-divider,
-            .nav-divider-gold {
-                height: 14px;
-                margin: 0 1px;
-            }
-            .header-actions {
-                justify-content: center;
-            }
-            .btn-group {
-                justify-content: center;
-            }
-            .search-box input {
-                height: 42px;
-                font-size: 15px;
-                padding: 8px 16px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 34px;
-                font-size: 12px;
-                padding: 4px 12px;
-            }
-            .song-group {
-                padding: 10px 14px;
-            }
-            .group-name {
-                font-size: 16px;
-            }
-            .id-number {
-                font-size: 13px;
-            }
-            .btn-copy-id {
-                font-size: 12px;
-                padding: 2px 12px;
-                height: 28px;
-            }
-            .btn-delete-id {
-                font-size: 15px;
-                height: 28px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 11px;
-                padding: 3px 12px;
-                height: 30px;
-            }
-            .modal-content {
-                padding: 18px;
-            }
-            .modal-actions button {
-                min-height: 38px;
-                font-size: 14px;
-                padding: 6px 16px;
-            }
-            .toast {
-                font-size: 13px;
-                padding: 8px 18px;
-                bottom: 20px;
-            }
-            .batch-bar,
-            .quarantine-batch-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .batch-bar .actions,
-            .quarantine-batch-bar .actions {
-                justify-content: flex-end;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 220px;
-                font-size: 15px;
-            }
-            .quarantine-search-box input {
-                height: 34px;
-                font-size: 13px;
-            }
-            .quarantine-footer-actions {
-                justify-content: center;
-            }
-            .quarantine-footer-actions button {
-                font-size: 12px;
-                padding: 4px 12px;
-            }
+            .modal-content { padding: 18px; }
+            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
+            .toast { font-size: 13px; padding: 8px 18px; bottom: 20px; }
+            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
+            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
+            .import-modal .modal-content textarea { min-height: 220px; font-size: 15px; }
+            .quarantine-search-box input { height: 34px; font-size: 13px; }
+            .quarantine-footer-actions { justify-content: center; }
+            .quarantine-footer-actions button { font-size: 12px; padding: 4px 12px; }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 5px 14px;
-                font-size: 12px;
-            }
-            .thanks-modal .modal-content {
-                max-width: 95%;
-                padding: 18px;
-            }
+            .quarantine-batch-bar .actions .btn-batch-clear { padding: 5px 14px; font-size: 12px; }
+            .thanks-modal .modal-content { max-width: 95%; padding: 18px; }
         }
         @media (min-width: 641px) and (max-width: 1024px) {
-            .header h1 {
-                font-size: 22px;
+            .header h1 { font-size: 22px; }
+            .header-nav { padding: 4px 6px; }
+            .nav-btn { font-size: 13px; padding: 6px 16px; height: 32px; }
+            .search-box input { height: 46px; }
+            .filter-tabs button, .btn-multi { height: 38px; }
+            .song-group { padding: 14px 18px; }
+            .id-number { font-size: 14px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size: 12px; padding: 4px 14px; height: 32px;
             }
-            .header-nav {
-                padding: 4px 6px;
-            }
-            .nav-btn {
-                font-size: 13px;
-                padding: 6px 16px;
-                height: 32px;
-            }
-            .search-box input {
-                height: 46px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 38px;
-            }
-            .song-group {
-                padding: 14px 18px;
-            }
-            .id-number {
-                font-size: 14px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 12px;
-                padding: 4px 14px;
-                height: 32px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 12px;
-                padding: 4px 14px;
-            }
+            .quarantine-footer-actions button { font-size: 12px; padding: 4px 14px; }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 16px;
-                font-size: 12px;
-            }
+            .quarantine-batch-bar .actions .btn-batch-clear { padding: 6px 16px; font-size: 12px; }
         }
         @media (min-width: 1025px) {
-            .header h1 {
-                font-size: 24px;
+            .header h1 { font-size: 24px; }
+            .header-nav { padding: 4px 8px; }
+            .nav-btn { font-size: 14px; padding: 6px 20px; height: 34px; }
+            .search-box input { height: 48px; font-size: 16px; }
+            .filter-tabs button, .btn-multi { height: 40px; font-size: 13px; }
+            .song-group { padding: 16px 20px; }
+            .id-number { font-size: 15px; }
+            .btn-copy-id { font-size: 13px; padding: 2px 16px; height: 30px; }
+            .btn-delete-id { font-size: 16px; height: 30px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size: 13px; padding: 4px 16px; height: 34px;
             }
-            .header-nav {
-                padding: 4px 8px;
-            }
-            .nav-btn {
-                font-size: 14px;
-                padding: 6px 20px;
-                height: 34px;
-            }
-            .search-box input {
-                height: 48px;
-                font-size: 16px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 40px;
-                font-size: 13px;
-            }
-            .song-group {
-                padding: 16px 20px;
-            }
-            .id-number {
-                font-size: 15px;
-            }
-            .btn-copy-id {
-                font-size: 13px;
-                padding: 2px 16px;
-                height: 30px;
-            }
-            .btn-delete-id {
-                font-size: 16px;
-                height: 30px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 13px;
-                padding: 4px 16px;
-                height: 34px;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 300px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 13px;
-                padding: 6px 18px;
-            }
+            .import-modal .modal-content textarea { min-height: 300px; }
+            .quarantine-footer-actions button { font-size: 13px; padding: 6px 18px; }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 20px;
-                font-size: 13px;
-            }
+            .quarantine-batch-bar .actions .btn-batch-clear { padding: 6px 20px; font-size: 13px; }
         }
     </style>
 </head>
@@ -1434,7 +1047,7 @@
         <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
     </div>
 
-    <!-- ===== Toast 提示 ===== -->
+    <!-- ===== Toast ===== -->
     <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
     <!-- ===== 导入弹窗 ===== -->
@@ -1488,7 +1101,7 @@
         </div>
     </div>
 
-    <!-- ===== 鸣谢名单弹窗（暖金色） ===== -->
+    <!-- ===== 鸣谢名单弹窗 ===== -->
     <div class="modal thanks-modal" id="thanksModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>❤️ 鸣谢名单</h2>
@@ -1519,7 +1132,7 @@
         </div>
     </div>
 
-    <!-- ===== 联系方式弹窗（导出隔离区后提示） ===== -->
+    <!-- ===== 联系方式弹窗 ===== -->
     <div class="modal" id="contactModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>📬 提交反馈</h2>
@@ -1538,44 +1151,35 @@
         </div>
     </div>
 
-    <!-- =============================================================
-     JavaScript
-     ============================================================= -->
     <script>
         /**
-         * ============================================================
-         * 配置区（所有 JSON 均使用时间戳自动刷新，无需版本号）
-         * ============================================================
+         * ===== 配置区（可修改） =====
          */
-        const USE_EXTERNAL_JSON = true; // 是否从外部加载主数据
-        const EXTERNAL_JSON_URL = 'roblox_music.json'; // 主数据文件
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // 是否自动合并管理员隔离区
+        const USE_EXTERNAL_JSON = true; // true=从外部加载，false=空数据
+        const EXTERNAL_JSON_URL = 'roblox_music.json';
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // true=自动合并外部隔离区
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const ADMIN_PASSWORD = 'HuTinJianZW'; // 管理员密码
-        const THANKS_JSON_URL = 'roblox_music_thanks.json'; // 鸣谢名单文件
+        const ADMIN_PASSWORD = 'HuTinJianZW'; // 开发者密码
+        const THANKS_JSON_URL = 'roblox_music_thanks.json';
 
         /**
-         * ============================================================
-         * 全局变量
-         * ============================================================
+         * ===== 全局变量 =====
          */
-        let songDatabase = []; // 主列表数据
-        let quarantineBinGuest = []; // 游客隔离区
-        let quarantineBinAdmin = []; // 管理员隔离区
-        let isAdmin = false; // 当前是否为管理员模式
-        let batchMode = false; // 主列表批量模式开关
-        let selectedIds = new Set(); // 主列表批量选中的ID
-        let quarantineBatchMode = false; // 隔离区批量模式开关
-        let selectedQuarantineIds = new Set(); // 隔离区批量选中的ID
-        let currentCategory = 'all'; // 当前筛选的分类
-        let currentKeyword = ''; // 当前搜索关键词
-        let showMultiOnly = false; // 是否只显示多ID分组
-        let toastTimer = null; // Toast 定时器
+        let songDatabase = [];
+        let quarantineBinGuest = [];
+        let quarantineBinAdmin = [];
+        let isAdmin = false;
+        let batchMode = false;
+        let selectedIds = new Set();
+        let quarantineBatchMode = false;
+        let selectedQuarantineIds = new Set();
+        let currentCategory = 'all';
+        let currentKeyword = '';
+        let showMultiOnly = false;
+        let toastTimer = null;
 
         /**
-         * ============================================================
-         * DOM 引用（缓存常用元素）
-         * ============================================================
+         * ===== DOM 引用 =====
          */
         const $ = (id) => document.getElementById(id);
         const dom = {
@@ -1636,18 +1240,14 @@
         };
 
         /**
-         * ============================================================
-         * 辅助函数
-         * ============================================================
+         * ===== 辅助函数 =====
          */
-        // HTML转义（防XSS）
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // 清理歌名中的多余符号
         function cleanName(name) {
             if (!name) return '未知歌名';
             name = name.replace(/[《》]/g, '');
@@ -1657,7 +1257,6 @@
             return name.trim() || '未知歌名';
         }
 
-        // 显示 Toast 提示
         function showToast(msg) {
             const el = dom.toast;
             el.textContent = msg;
@@ -1666,22 +1265,18 @@
             toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
         }
 
-        // 获取当前模式下的隔离区数据
         function getCurrentQuarantine() {
             return isAdmin ? quarantineBinAdmin : quarantineBinGuest;
         }
 
-        // 获取当前隔离区的导出文件名
         function getQuarantineExportName() {
             return isAdmin ? 'roblox_music_quarantine.json' : 'roblox_music_quarantine_guest.json';
         }
 
-        // 获取当前模式名称（游客/开发者）
         function getModeName() {
             return isAdmin ? '开发者' : '游客';
         }
 
-        // 生成当前时间字符串（用于隔离区记录）
         function getNowStr() {
             const d = new Date();
             return d.getFullYear() + '-' +
@@ -1692,9 +1287,7 @@
         }
 
         /**
-         * ============================================================
-         * 自定义确认对话框（Promise 封装）
-         * ============================================================
+         * ===== 确认对话框 =====
          */
         function showConfirm(title, message) {
             return new Promise((resolve) => {
@@ -1703,14 +1296,10 @@
                 dom.confirmMessage.textContent = message;
                 modal.classList.add('show');
 
-                const okHandler = () => {
-                    modal.classList.remove('show');
-                    resolve(true);
-                };
-                const cancelHandler = () => {
-                    modal.classList.remove('show');
-                    resolve(false);
-                };
+                const okHandler = () => { modal.classList.remove('show');
+                    resolve(true); };
+                const cancelHandler = () => { modal.classList.remove('show');
+                    resolve(false); };
                 const clickOutside = (e) => {
                     if (e.target === modal) {
                         modal.removeEventListener('click', clickOutside);
@@ -1724,21 +1313,17 @@
             });
         }
 
-        // 显示联系方式弹窗（游客导出隔离区后出现）
         function showContactModal() {
             dom.copyrightYear.textContent = new Date().getFullYear();
             dom.contactModal.classList.add('show');
             dom.contactOk.onclick = () => dom.contactModal.classList.remove('show');
             dom.contactModal.onclick = (e) => {
-                if (e.target === dom.contactModal) dom.contactModal.classList.remove(
-                    'show');
+                if (e.target === dom.contactModal) dom.contactModal.classList.remove('show');
             };
         }
 
         /**
-         * ============================================================
-         * 数据持久化（localStorage）
-         * ============================================================
+         * ===== 数据保存 =====
          */
         function saveData() {
             localStorage.setItem('songDB', JSON.stringify(songDatabase));
@@ -1747,12 +1332,10 @@
         }
 
         /**
-         * ============================================================
-         * 数据加载（主数据 + 隔离区）—— 全部使用时间戳自动刷新
-         * ============================================================
+         * ===== 数据加载 =====
          */
         function loadData() {
-            // 加载本地隔离区
+            // 读取本地隔离区
             const guestStored = localStorage.getItem('quarantineBinGuest');
             if (guestStored) {
                 try { quarantineBinGuest = JSON.parse(guestStored); } catch (e) { quarantineBinGuest = []; }
@@ -1766,7 +1349,7 @@
                 quarantineBinAdmin = [];
             }
 
-            // 主数据不再使用版本号缓存，每次都重新请求（带时间戳）
+            // 主数据：每次刷新重新请求（带时间戳防缓存）
             if (USE_EXTERNAL_JSON) {
                 const url = EXTERNAL_JSON_URL + '?t=' + Date.now();
                 fetch(url)
@@ -1775,14 +1358,12 @@
                         return res.json();
                     })
                     .then(data => {
-                        // 过滤掉已在隔离区中的 ID
                         const filterIds = getFilterIds();
                         songDatabase = data
                             .filter(i => !filterIds.has(i.id))
                             .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
-                        saveData(); // 更新缓存（供后续离线浏览，但下次刷新仍会重新请求）
+                        saveData();
                         console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 个ID`);
-                        // 自动合并外部管理员隔离区（也带时间戳）
                         loadExternalAdminQuarantine();
                         renderAll();
                     })
@@ -1800,7 +1381,6 @@
             }
         }
 
-        // 获取所有需要过滤的ID（管理员+游客隔离区）
         function getFilterIds() {
             const ids = new Set();
             quarantineBinAdmin.forEach(item => ids.add(item.id));
@@ -1810,7 +1390,6 @@
             return ids;
         }
 
-        // 加载外部管理员隔离区并合并（带时间戳，自动刷新）
         function loadExternalAdminQuarantine() {
             if (!USE_EXTERNAL_QUARANTINE_ADMIN) return;
             const url = EXTERNAL_QUARANTINE_ADMIN_URL + '?t=' + Date.now();
@@ -1847,9 +1426,7 @@
         }
 
         /**
-         * ============================================================
-         * 模式管理（游客 / 开发者）
-         * ============================================================
+         * ===== 模式切换 =====
          */
         function loadMode() {
             isAdmin = localStorage.getItem('adminMode') === 'true';
@@ -1884,7 +1461,6 @@
             dom.quarantineTitle.textContent = isAdmin ? '⛔ 隔离区（开发者）' : '⛔ 隔离区（游客）';
         }
 
-        // 双击标题切换管理模式
         function toggleAdminMode() {
             if (isAdmin) {
                 isAdmin = false;
@@ -1916,9 +1492,7 @@
         }
 
         /**
-         * ============================================================
-         * 主列表批量操作
-         * ============================================================
+         * ===== 主列表批量操作 =====
          */
         function toggleBatchMode(forceState) {
             const newState = (forceState !== undefined) ? forceState : !batchMode;
@@ -1953,7 +1527,6 @@
             document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
         }
 
-        // 批量隔离选中的 ID
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
             const modeName = getModeName();
@@ -1989,9 +1562,7 @@
         }
 
         /**
-         * ============================================================
-         * 单个隔离（点击 ✕ 按钮）
-         * ============================================================
+         * ===== 单个隔离 =====
          */
         async function moveToQuarantine(name, id) {
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
@@ -2016,9 +1587,7 @@
         }
 
         /**
-         * ============================================================
-         * 隔离区操作（含去重逻辑）
-         * ============================================================
+         * ===== 隔离区操作 =====
          */
         function toggleQuarantineBatchMode(forceState) {
             const newState = (forceState !== undefined) ? forceState : !quarantineBatchMode;
@@ -2052,7 +1621,6 @@
             document.querySelectorAll('.quarantine-checkbox').forEach(cb => cb.checked = false);
         }
 
-        // 批量恢复隔离区选中的 ID
         async function batchReleaseFromQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (selectedQuarantineIds.size === 0) { showToast('⚠️ 请先选择要恢复的ID'); return; }
@@ -2071,7 +1639,6 @@
                 }
             }
 
-            // 去重：只添加主列表中不存在的 ID
             const existingIds = new Set(songDatabase.map(i => i.id));
             let addedCount = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
@@ -2097,7 +1664,6 @@
             renderQuarantineList();
         }
 
-        // 单个恢复
         async function releaseFromQuarantine(id) {
             const quarantine = getCurrentQuarantine();
             const idx = quarantine.findIndex(i => i.id === id);
@@ -2122,7 +1688,6 @@
             renderQuarantineList();
         }
 
-        // 全部恢复（带去重）
         async function restoreAllFromQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (quarantine.length === 0) { showToast('隔离区已是空的'); return; }
@@ -2137,7 +1702,7 @@
             const toKeep = [];
             quarantine.forEach(item => {
                 if (existingIds.has(item.id)) {
-                    toKeep.push(item); // 已存在则留在隔离区
+                    toKeep.push(item);
                 } else {
                     item.lineIndex = maxLine + 1 + addedCount;
                     songDatabase.push(item);
@@ -2157,7 +1722,6 @@
             renderQuarantineList();
         }
 
-        // 导出隔离区
         async function exportQuarantine() {
             const quarantine = getCurrentQuarantine();
             if (quarantine.length === 0) { showToast('隔离区是空的，无需导出'); return; }
@@ -2190,7 +1754,6 @@
             }
         }
 
-        // 渲染隔离区列表
         function renderQuarantineList() {
             const container = dom.quarantineList;
             const title = dom.quarantineTitle;
@@ -2213,7 +1776,6 @@
             }
             title.textContent = `⛔ 隔离区（${modeLabel}）（${filtered.length} 个ID）`;
 
-            // 按隔离时间倒序
             const sorted = [...filtered].sort((a, b) => {
                 const timeA = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
                 const timeB = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
@@ -2240,7 +1802,6 @@
             });
             container.innerHTML = html;
 
-            // 绑定复选框事件
             container.querySelectorAll('.quarantine-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -2256,7 +1817,6 @@
                 }
             });
 
-            // 绑定恢复按钮事件
             container.querySelectorAll('.release-btn').forEach(btn => {
                 btn.onclick = () => releaseFromQuarantine(btn.dataset.id);
             });
@@ -2265,9 +1825,7 @@
         }
 
         /**
-         * ============================================================
-         * 鸣谢名单（外部 JSON + 时间戳自动刷新）
-         * ============================================================
+         * ===== 鸣谢名单 =====
          */
         function loadThanksList() {
             const container = dom.thanksListContainer;
@@ -2319,9 +1877,7 @@
         }
 
         /**
-         * ============================================================
-         * 导入主列表（解析原始文本提取 ID）
-         * ============================================================
+         * ===== 导入主列表（解析粘贴文本） =====
          */
         function parseRawText(text) {
             const lines = text.split(/\r?\n/);
@@ -2340,7 +1896,6 @@
                 }
                 if (ids.length === 0) { globalLineIndex++; continue; }
 
-                // 提取歌名（去掉ID和多余符号）
                 let name = line;
                 ids.forEach(id => { name = name.replace(id, ''); });
                 name = name.replace(/^[\d]+[\.\、\s]+/, '');
@@ -2352,11 +1907,9 @@
 
                 ids.forEach((id, idx) => {
                     if (result.some(r => r.id === id)) return;
-                    // 自动分类（简单规则）
                     let category = '中文流行';
                     const lower = name.toLowerCase();
-                    if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes(
-                            'dj'))
+                    if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj'))
                         category = 'Phonk/DJ';
                     else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes(
                             '古筝') ||
@@ -2425,9 +1978,7 @@
         }
 
         /**
-         * ============================================================
-         * 开发者操作：清空列表、导出主数据
-         * ============================================================
+         * ===== 开发者操作 =====
          */
         async function clearAllData() {
             if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
@@ -2442,7 +1993,6 @@
             showToast('🗑️ 列表已清空');
         }
 
-        // 导出主列表，固定文件名 roblox_music.json
         async function exportData() {
             if (!isAdmin) { showToast('⚠️ 仅开发者可导出主列表'); return; }
             if (songDatabase.length === 0) { showToast('列表为空，无需导出'); return; }
@@ -2463,12 +2013,9 @@
         }
 
         /**
-         * ============================================================
-         * 主渲染引擎（统计、分类、列表）
-         * ============================================================
+         * ===== 主渲染 =====
          */
         function renderAll() {
-            // 更新统计信息
             const uniqueNames = new Set(songDatabase.map(i => i.name));
             dom.totalGroup.textContent = uniqueNames.size;
             dom.totalId.textContent = songDatabase.length;
@@ -2478,7 +2025,7 @@
             let multiCount = Object.values(nameCountMap).filter(c => c > 1).length;
             dom.multiGroup.textContent = multiCount;
 
-            // 更新分类标签
+            // 生成分类按钮
             const tabsContainer = dom.categoryTabs;
             while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
             const categories = new Set(songDatabase.map(i => i.category));
@@ -2490,7 +2037,7 @@
                 tabsContainer.appendChild(btn);
             });
 
-            // 绑定分类切换事件
+            // 分类切换
             const allBtns = tabsContainer.querySelectorAll('button');
             allBtns.forEach(btn => {
                 btn.onclick = function() {
@@ -2510,19 +2057,16 @@
                     renderList();
                 };
             });
-            // 高亮当前分类
             allBtns.forEach(b => {
                 if (b.dataset.cat === currentCategory) b.classList.add('active');
                 else b.classList.remove('active');
             });
 
-            // 搜索框输入事件
             dom.searchInput.oninput = function() {
                 currentKeyword = this.value;
                 renderList();
             };
 
-            // 多ID切换
             dom.multiToggleBtn.onclick = function() {
                 showMultiOnly = !showMultiOnly;
                 this.classList.toggle('active');
@@ -2537,9 +2081,6 @@
             renderList();
         }
 
-        /**
-         * 渲染主列表（按歌名分组）
-         */
         function renderList() {
             const keyword = currentKeyword.trim().toLowerCase();
 
@@ -2619,7 +2160,7 @@
 
             container.innerHTML = html;
 
-            // 事件委托：复制和隔离按钮
+            // 点击复制/隔离
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -2638,7 +2179,7 @@
                 }
             };
 
-            // 绑定复选框事件
+            // 复选框
             container.querySelectorAll('.id-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -2658,9 +2199,7 @@
         }
 
         /**
-         * ============================================================
-         * 复制功能
-         * ============================================================
+         * ===== 复制功能 =====
          */
         function copyToClipboard(text, btn) {
             if (navigator.clipboard?.writeText) {
@@ -2699,20 +2238,14 @@
         }
 
         /**
-         * ============================================================
-         * 初始化（页面加载完成后的启动流程）
-         * ============================================================
+         * ===== 初始化 =====
          */
         document.addEventListener('DOMContentLoaded', function() {
-            // 加载模式（游客/开发者）
             loadMode();
-            // 加载数据（主列表 + 隔离区）
             loadData();
 
-            // 双击标题切换管理模式
             dom.mainTitle.addEventListener('dblclick', toggleAdminMode);
 
-            // ----- 导入主列表 -----
             dom.openImportBtn.addEventListener('click', function() {
                 if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 dom.importModal.classList.add('show');
@@ -2730,12 +2263,9 @@
                 importData(raw);
             });
 
-            // ----- 导出主列表 -----
             dom.exportBtn.addEventListener('click', exportData);
-            // ----- 清空列表 -----
             dom.clearAllBtn.addEventListener('click', clearAllData);
 
-            // ----- 隔离区弹窗控制 -----
             dom.openQuarantineBtn.addEventListener('click', function() {
                 updateQuarantineTitle();
                 dom.quarantineModal.classList.add('show');
@@ -2755,22 +2285,18 @@
                 }
             });
 
-            // 隔离区搜索
             dom.quarantineSearch.addEventListener('input', renderQuarantineList);
-            // 隔离区批量操作
             dom.quarantineBatchClear.addEventListener('click', clearQuarantineSelected);
             dom.quarantineBatchRelease.addEventListener('click', batchReleaseFromQuarantine);
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
 
-            // ----- 主列表批量操作 -----
             dom.batchToggle.addEventListener('click', function() {
                 toggleBatchMode();
             });
             dom.batchClear.addEventListener('click', clearSelected);
             dom.batchDelete.addEventListener('click', batchDelete);
 
-            // ----- 密码弹窗 -----
             dom.cancelPassword.addEventListener('click', function() {
                 dom.passwordModal.classList.remove('show');
                 dom.passwordError.style.display = 'none';
@@ -2788,15 +2314,13 @@
                 }
             });
 
-            // 导入弹窗外部关闭
             dom.importModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
             });
 
-            // ----- 鸣谢名单 -----
             dom.thanksBtn.addEventListener('click', function() {
                 dom.thanksModal.classList.add('show');
-                loadThanksList(); // 每次打开重新加载（自动刷新）
+                loadThanksList();
             });
             dom.closeThanksBtn.addEventListener('click', function() {
                 dom.thanksModal.classList.remove('show');
