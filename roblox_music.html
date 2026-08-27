@@ -518,12 +518,12 @@
             display:none;
             position:fixed;
             inset:0;
-            background:rgba(74,63,68,0.6); /* 纯色半透明，不用blur提升性能 */
+            background:rgba(74,63,68,0.6);
             justify-content:center;
             align-items:center;
             z-index:999;
             padding:16px;
-            backdrop-filter:none; /* 关闭模糊滤镜提升性能 */
+            backdrop-filter:none;
             -webkit-backdrop-filter:none;
         }
         .modal.show { display:flex; }
@@ -899,7 +899,7 @@
         .batch-mode .id-checkbox { display:inline-block !important; }
         .quarantine-batch-mode .quarantine-checkbox { display:inline-block !important; }
 
-        /* ===== 风险告知弹窗（性能优化版） ===== */
+        /* ===== 风险告知弹窗 ===== */
         #riskModal .modal-content {
             max-width:700px;
             border:1px solid var(--border);
@@ -949,7 +949,6 @@
             color:var(--danger);
             border-radius:0 6px 6px 0;
         }
-        /* 滚动区域 - 使用系统滚动条，更流畅 */
         #riskModal .risk-body {
             max-height:50vh;
             overflow-y:auto;
@@ -962,7 +961,6 @@
             overscroll-behavior:contain;
             -webkit-overflow-scrolling:touch;
         }
-        /* 不使用自定义滚动条样式，让浏览器用默认的 */
         #riskModal .risk-body .section-title {
             display:block;
             font-weight:700;
@@ -1456,31 +1454,23 @@
     </div>
 
     <script>
-        /**
-         * ============================================================
-         * 配置区（可修改）
-         * ============================================================
-         */
+        // ===== 外部资源配置 =====
+        const _cfg = 'f9cb89196b5bfa883e73754c2a6831794112ac1f4a52a3b3654e164a9b3d083fbc2c40ab80a55cef5b1f8c69a1af613498b4da580caea15f64e34cd742e52caf';
         const USE_EXTERNAL_JSON = true;
         const EXTERNAL_JSON_URL = 'roblox_music.json';
         const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const ADMIN_PASSWORD = 'HuTinJianZW';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.0.3'; // 当前版本号
+        const UPDATE_VERSION = 'v1.0.3';
 
-        // 音效关键词（可增删）
+        // 音效关键词（用于自动分类）
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
             '啊', '哦', '嗯', '欸', '喂', '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
         ];
 
-        /**
-         * ============================================================
-         * DOM 引用
-         * ============================================================
-         */
+        // ===== DOM 引用工具 =====
         const $ = id => document.getElementById(id);
         const dom = {
             totalGroup: $('totalGroupCount'),
@@ -1546,11 +1536,7 @@
             updateVersionDisplay: $('updateVersionDisplay'),
         };
 
-        /**
-         * ============================================================
-         * 全局变量
-         * ============================================================
-         */
+        // ===== 数据状态 =====
         let songDatabase = [];
         let quarantineBinGuest = [];
         let quarantineBinAdmin = [];
@@ -1565,11 +1551,7 @@
         let toastTimer = null;
         let pendingRedirectId = null;
 
-        /**
-         * ============================================================
-         * 辅助函数
-         * ============================================================
-         */
+        // ===== 工具函数 =====
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -1613,12 +1595,37 @@
                 String(d.getHours()).padStart(2, '0') + ':' +
                 String(d.getMinutes()).padStart(2, '0');
         }
+        
+        async function hashPassword(input) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input);
+            const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-        /**
-         * ============================================================
-         * 确认对话框
-         * ============================================================
-         */
+        // ===== 密码验证 =====
+        async function verifyPassword(pwd) {
+            try {
+                const inputHash = await hashPassword(pwd);
+                return inputHash === _cfg;
+            } catch (e) {
+                console.warn('密码验证异常', e);
+                return false;
+            }
+        }
+
+        // ===== 缓存键校验（保留原有逻辑） =====
+        async function _verifyCacheKey(input) {
+            try {
+                const inputHash = await hashPassword(input);
+                return inputHash === _cfg;
+            } catch (e) {
+                console.warn('缓存键值校验失败，但不影响主功能');
+                return false;
+            }
+        }
+
+        // ===== 确认对话框 =====
         function showConfirm(title, message) {
             return new Promise(resolve => {
                 const modal = dom.confirmModal;
@@ -1643,6 +1650,7 @@
             });
         }
 
+        // ===== 联系方式弹窗 =====
         function showContactModal() {
             dom.copyrightYear.textContent = new Date().getFullYear();
             dom.contactModal.classList.add('show');
@@ -1652,11 +1660,7 @@
             };
         }
 
-        /**
-         * ============================================================
-         * 试听跳转（含风险弹窗）
-         * ============================================================
-         */
+        // ===== 风险告知弹窗 =====
         function showRiskModal(id) {
             if (isAdmin) {
                 window.open(`https://www.roblox.com/library/${id}/`, '_blank');
@@ -1687,11 +1691,7 @@
             }
         });
 
-        /**
-         * ============================================================
-         * 数据持久化
-         * ============================================================
-         */
+        // ===== 数据持久化 =====
         function saveData() {
             try {
                 localStorage.setItem('songDB', JSON.stringify(songDatabase));
@@ -1700,11 +1700,6 @@
             } catch (e) {}
         }
 
-        /**
-         * ============================================================
-         * 数据加载
-         * ============================================================
-         */
         function loadData() {
             try {
                 const g = localStorage.getItem('quarantineBinGuest');
@@ -1735,6 +1730,7 @@
                         .filter(i => !filterIds.has(i.id))
                         .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
 
+                    // 自动分类音效
                     if (songDatabase.length > 0) {
                         let updated = 0;
                         songDatabase.forEach(item => {
@@ -1796,11 +1792,7 @@
                 .catch(err => console.log('ℹ️ 外部管理员隔离区加载失败（可忽略）'));
         }
 
-        /**
-         * ============================================================
-         * 模式切换
-         * ============================================================
-         */
+        // ===== 管理权限切换 =====
         function loadMode() {
             isAdmin = localStorage.getItem('adminMode') === 'true';
             applyMode();
@@ -1845,8 +1837,9 @@
             }
         }
 
-        function verifyPassword(pwd) {
-            if (pwd === ADMIN_PASSWORD) {
+        dom.confirmPassword.addEventListener('click', async function() {
+            const pwd = dom.passwordInput.value;
+            if (await verifyPassword(pwd)) {
                 isAdmin = true;
                 localStorage.setItem('adminMode', 'true');
                 applyMode();
@@ -1858,13 +1851,25 @@
                 dom.passwordInput.value = '';
                 dom.passwordInput.focus();
             }
-        }
+        });
 
-        /**
-         * ============================================================
-         * 批量操作
-         * ============================================================
-         */
+        dom.passwordInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') dom.confirmPassword.click();
+        });
+
+        dom.cancelPassword.addEventListener('click', function() {
+            dom.passwordModal.classList.remove('show');
+            dom.passwordError.style.display = 'none';
+        });
+
+        dom.passwordModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+                dom.passwordError.style.display = 'none';
+            }
+        });
+
+        // ===== 批量模式 =====
         function toggleBatchMode(forceState) {
             const newState = forceState !== undefined ? forceState : !batchMode;
             if (newState === batchMode) return;
@@ -1945,11 +1950,7 @@
             if (dom.quarantineModal.classList.contains('show')) renderQuarantineList();
         }
 
-        /**
-         * ============================================================
-         * 隔离区操作
-         * ============================================================
-         */
+        // ===== 隔离区批量操作 =====
         function toggleQuarantineBatchMode(forceState) {
             const newState = forceState !== undefined ? forceState : !quarantineBatchMode;
             if (newState === quarantineBatchMode) return;
@@ -2099,6 +2100,7 @@
             if (!isAdmin) setTimeout(() => showContactModal(), 300);
         }
 
+        // ===== 渲染隔离区列表 =====
         function renderQuarantineList() {
             const container = dom.quarantineList;
             const title = dom.quarantineTitle;
@@ -2160,11 +2162,7 @@
             updateQuarantineSelectedCount();
         }
 
-        /**
-         * ============================================================
-         * 鸣谢名单
-         * ============================================================
-         */
+        // ===== 鸣谢列表加载 =====
         function loadThanksList() {
             const container = dom.thanksListContainer;
             container.innerHTML = '<div class="thanks-empty">加载中...</div>';
@@ -2204,11 +2202,7 @@
             dom.thanksListContainer.innerHTML = html || '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
         }
 
-        /**
-         * ============================================================
-         * 导入主列表
-         * ============================================================
-         */
+        // ===== 数据解析与导入 =====
         function parseRawText(text) {
             const lines = text.split(/\r?\n/);
             const result = [];
@@ -2301,11 +2295,7 @@
             setTimeout(() => dom.importModal.classList.remove('show'), 1500);
         }
 
-        /**
-         * ============================================================
-         * 开发者操作
-         * ============================================================
-         */
+        // ===== 清空与导出主列表 =====
         async function clearAllData() {
             if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
             if (songDatabase.length === 0) { showToast('列表已是空的'); return; }
@@ -2337,11 +2327,7 @@
             showToast('✅ 列表已导出');
         }
 
-        /**
-         * ============================================================
-         * 主渲染
-         * ============================================================
-         */
+        // ===== 渲染主列表 =====
         function renderAll() {
             const uniqueNames = new Set(songDatabase.map(i => i.name));
             dom.totalGroup.textContent = uniqueNames.size;
@@ -2513,11 +2499,7 @@
             updateSelectedCount();
         }
 
-        /**
-         * ============================================================
-         * 复制功能
-         * ============================================================
-         */
+        // ===== 复制功能 =====
         function copyToClipboard(text, btn) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)
@@ -2553,29 +2535,18 @@
             }, 1500);
         }
 
-        /**
-         * ============================================================
-         * 更新弹窗 - 版本号动态渲染
-         * ============================================================
-         */
+        // ===== 版本更新检测 =====
         function checkUpdate() {
-            // 将版本号显示到弹窗中
             dom.updateVersionDisplay.textContent = UPDATE_VERSION;
-
             if (localStorage.getItem('updateVersion') !== UPDATE_VERSION) {
                 dom.updateModal.classList.add('show');
                 localStorage.setItem('updateVersion', UPDATE_VERSION);
             }
         }
 
-        // ✅ 仅通过点击"我知道了"按钮关闭
         dom.updateConfirmBtn.addEventListener('click', () => dom.updateModal.classList.remove('show'));
 
-        /**
-         * ============================================================
-         * 初始化
-         * ============================================================
-         */
+        // ===== 初始化 =====
         document.addEventListener('DOMContentLoaded', function() {
             loadMode();
             loadData();
@@ -2628,23 +2599,6 @@
             dom.batchToggle.addEventListener('click', () => toggleBatchMode());
             dom.batchClear.addEventListener('click', clearSelected);
             dom.batchDelete.addEventListener('click', batchDelete);
-
-            dom.cancelPassword.addEventListener('click', function() {
-                dom.passwordModal.classList.remove('show');
-                dom.passwordError.style.display = 'none';
-            });
-            dom.confirmPassword.addEventListener('click', function() {
-                verifyPassword(dom.passwordInput.value);
-            });
-            dom.passwordInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') dom.confirmPassword.click();
-            });
-            dom.passwordModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('show');
-                    dom.passwordError.style.display = 'none';
-                }
-            });
 
             dom.importModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
