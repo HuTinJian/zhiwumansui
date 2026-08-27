@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>🎵 Roblox ID 宝库</title>
     <style>
-        /* ===== 全局颜色变量 ===== */
+        /* ===== 全局变量 ===== */
         :root {
             --primary: #dc6b82;
             --primary-dark: #c7546a;
@@ -17,13 +17,13 @@
             --text-light: #5e4a50;
             --text-muted: #b5a1a8;
             --border: #f0d9de;
-            --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
-            --shadow-hover: 0 12px 40px rgba(220, 107, 130, 0.15);
+            --shadow: 0 4px 20px rgba(220,107,130,0.08);
+            --shadow-hover: 0 12px 40px rgba(220,107,130,0.15);
             --radius: 20px;
             --radius-sm: 14px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            --nav-hover-bg: rgba(220, 107, 130, 0.18);
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+            --font: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+            --nav-hover-bg: rgba(220,107,130,0.18);
             --gold: #d4a06a;
             --gold-light: #e8c49a;
             --gold-bg: #fbf3e8;
@@ -31,1524 +31,1185 @@
             --danger-light: #e74c3c;
             --danger-bg: #fdf0ed;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html,
-        body {
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
             font-family: var(--font);
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
             padding: 12px;
-            min-height: 100vh;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
+            min-height:100vh;
+            overflow-x:hidden;
+            -webkit-font-smoothing:antialiased;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .container { max-width:1200px; margin:0 auto; width:100%; }
 
         /* ===== 头部 ===== */
         .header {
-            background: linear-gradient(145deg, #f8d7de, #f0c4cd);
-            border: 1px solid var(--border);
-            padding: 16px 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            transition: box-shadow var(--transition);
+            background: linear-gradient(145deg,#f8d7de,#f0c4cd);
+            border:1px solid var(--border);
+            padding:16px 20px;
+            border-radius:var(--radius);
+            margin-bottom:20px;
+            box-shadow:var(--shadow);
+            transition:box-shadow var(--transition);
         }
-        .header:hover {
-            box-shadow: var(--shadow-hover);
-        }
+        .header:hover { box-shadow:var(--shadow-hover); }
         .header-top {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px 20px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px 20px;
         }
         .header h1 {
-            font-size: clamp(18px, 2.8vw, 24px);
-            font-weight: 700;
-            cursor: pointer;
-            user-select: none;
-            transition: opacity var(--transition);
-            flex: 0 0 auto;
-            color: var(--text);
+            font-size:clamp(18px,2.8vw,24px);
+            font-weight:700;
+            cursor:pointer;
+            user-select:none;
+            transition:opacity var(--transition);
+            flex:0 0 auto;
+            color:var(--text);
         }
-        .header h1:hover {
-            opacity: 0.75;
-        }
+        .header h1:hover { opacity:0.75; }
         .header h1 small {
-            font-size: clamp(11px, 1.4vw, 14px);
-            font-weight: 400;
-            opacity: 0.7;
-            margin-left: 8px;
-            white-space: nowrap;
-            color: var(--text-light);
+            font-size:clamp(11px,1.4vw,14px);
+            font-weight:400;
+            opacity:0.7;
+            margin-left:8px;
+            white-space:nowrap;
+            color:var(--text-light);
         }
         .header-stats {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 16px;
-            font-size: clamp(12px, 1.2vw, 14px);
-            color: var(--text);
-            flex: 1 1 auto;
-            justify-content: flex-start;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:8px 16px;
+            font-size:clamp(12px,1.2vw,14px);
+            color:var(--text);
+            flex:1 1 auto;
+            justify-content:flex-start;
         }
         .header-nav-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-            margin-left: auto;
-            flex-wrap: wrap;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            flex-shrink:0;
+            margin-left:auto;
+            flex-wrap:wrap;
         }
         .header-nav {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(220, 107, 130, 0.2);
-            border-radius: 40px;
-            padding: 4px 6px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 4px 12px rgba(220, 107, 130, 0.08);
-            transition: all var(--transition);
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: center;
+            display:inline-flex;
+            align-items:center;
+            background:rgba(255,255,255,0.5);
+            border:1px solid rgba(220,107,130,0.2);
+            border-radius:40px;
+            padding:4px 6px;
+            backdrop-filter:blur(12px);
+            box-shadow:0 4px 12px rgba(220,107,130,0.08);
+            transition:all var(--transition);
+            flex-shrink:0;
+            flex-wrap:wrap;
+            justify-content:center;
         }
         .header-nav:hover {
-            border-color: rgba(220, 107, 130, 0.35);
-            box-shadow: 0 4px 20px rgba(220, 107, 130, 0.12);
+            border-color:rgba(220,107,130,0.35);
+            box-shadow:0 4px 20px rgba(220,107,130,0.12);
         }
         .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-light);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: clamp(12px, 1vw, 13px);
-            font-weight: 500;
-            text-decoration: none;
-            transition: all var(--transition);
-            height: 30px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            white-space: nowrap;
+            background:transparent;
+            border:none;
+            color:var(--text-light);
+            padding:6px 14px;
+            border-radius:30px;
+            font-size:clamp(12px,1vw,13px);
+            font-weight:500;
+            text-decoration:none;
+            transition:all var(--transition);
+            height:30px;
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            cursor:pointer;
+            white-space:nowrap;
         }
         .nav-btn:hover {
-            background: var(--nav-hover-bg);
-            color: var(--text);
-            transform: translateY(-1px);
+            background:var(--nav-hover-bg);
+            color:var(--text);
+            transform:translateY(-1px);
         }
-        #homeBtn:hover,
-        #feedbackBtn:hover {
-            background: var(--nav-hover-bg);
-        }
+        #homeBtn:hover, #feedbackBtn:hover { background:var(--nav-hover-bg); }
         #thanksBtn {
-            color: var(--gold);
-            font-weight: 600;
+            color:var(--gold);
+            font-weight:600;
         }
         #thanksBtn:hover {
-            background: rgba(212, 160, 106, 0.2);
-            color: #b8894f;
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(212, 160, 106, 0.3);
+            background:rgba(212,160,106,0.2);
+            color:#b8894f;
+            transform:translateY(-2px);
+            box-shadow:0 0 20px rgba(212,160,106,0.3);
         }
         .nav-divider {
-            width: 1px;
-            height: 20px;
-            background: rgba(220, 107, 130, 0.15);
-            margin: 0 2px;
-            flex-shrink: 0;
+            width:1px;
+            height:20px;
+            background:rgba(220,107,130,0.15);
+            margin:0 2px;
+            flex-shrink:0;
         }
         .nav-divider-gold {
-            width: 1px;
-            height: 20px;
-            background: rgba(212, 160, 106, 0.3);
-            margin: 0 2px;
-            flex-shrink: 0;
+            width:1px;
+            height:20px;
+            background:rgba(212,160,106,0.3);
+            margin:0 2px;
+            flex-shrink:0;
         }
-        .admin-hint {
-            display: none !important;
-        }
+        .admin-hint { display:none !important; }
 
         .header-actions {
-            margin-top: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid rgba(220, 107, 130, 0.2);
-            padding-top: 12px;
+            margin-top:12px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:8px;
+            border-top:1px solid rgba(220,107,130,0.2);
+            padding-top:12px;
         }
         .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
         }
-        /* 头部操作按钮 */
         .btn-group .btn-import,
         .btn-group .btn-danger,
         .btn-group .btn-success,
         .btn-group .btn-quarantine,
         .btn-group .btn-batch {
-            border: none;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: clamp(11px, 1vw, 13px);
-            cursor: pointer;
-            transition: all var(--transition);
-            white-space: nowrap;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-            gap: 4px;
+            border:none;
+            padding:4px 14px;
+            border-radius:30px;
+            font-size:clamp(11px,1vw,13px);
+            cursor:pointer;
+            transition:all var(--transition);
+            white-space:nowrap;
+            height:32px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:500;
+            gap:4px;
         }
-        .btn-group .btn-import {
-            background: var(--primary);
-            color: #fff;
-        }
-        .btn-group .btn-import:hover {
-            background: var(--primary-dark);
-            transform: scale(1.03);
-        }
-        .btn-group .btn-danger {
-            background: #e8747a;
-            color: #fff;
-        }
-        .btn-group .btn-danger:hover {
-            background: #d45c62;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-success {
-            background: #8cb8a8;
-            color: #fff;
-        }
-        .btn-group .btn-success:hover {
-            background: #72a392;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-quarantine {
-            background: #f472b6;
-            color: #fff;
-        }
-        .btn-group .btn-quarantine:hover {
-            background: #ec4899;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-batch {
-            background: #a78bfa;
-            color: #fff;
-        }
-        .btn-group .btn-batch:hover {
-            background: #8b5cf6;
-            transform: scale(1.03);
-        }
-        .btn-group .btn-batch.active {
-            background: var(--primary-dark);
-            box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3);
-        }
+        .btn-group .btn-import { background:var(--primary); color:#fff; }
+        .btn-group .btn-import:hover { background:var(--primary-dark); transform:scale(1.03); }
+        .btn-group .btn-danger { background:#e8747a; color:#fff; }
+        .btn-group .btn-danger:hover { background:#d45c62; transform:scale(1.03); }
+        .btn-group .btn-success { background:#8cb8a8; color:#fff; }
+        .btn-group .btn-success:hover { background:#72a392; transform:scale(1.03); }
+        .btn-group .btn-quarantine { background:#f472b6; color:#fff; }
+        .btn-group .btn-quarantine:hover { background:#ec4899; transform:scale(1.03); }
+        .btn-group .btn-batch { background:#a78bfa; color:#fff; }
+        .btn-group .btn-batch:hover { background:#8b5cf6; transform:scale(1.03); }
+        .btn-group .btn-batch.active { background:var(--primary-dark); box-shadow:0 0 0 2px rgba(199,84,106,0.3); }
 
         /* ===== 搜索与筛选 ===== */
         .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
+            display:flex;
+            gap:10px;
+            margin-bottom:20px;
+            flex-wrap:wrap;
+            align-items:center;
         }
         .search-box input {
-            flex: 1 1 200px;
-            min-width: 160px;
-            padding: 10px 18px;
-            border: 2px solid var(--border);
-            border-radius: 60px;
-            font-size: clamp(14px, 1.2vw, 16px);
-            background: var(--bg-card);
-            color: var(--text);
-            transition: all var(--transition);
-            outline: none;
-            height: 46px;
+            flex:1 1 200px;
+            min-width:160px;
+            padding:10px 18px;
+            border:2px solid var(--border);
+            border-radius:60px;
+            font-size:clamp(14px,1.2vw,16px);
+            background:var(--bg-card);
+            color:var(--text);
+            transition:all var(--transition);
+            outline:none;
+            height:46px;
         }
         .search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+            border-color:var(--primary);
+            box-shadow:0 0 0 4px rgba(220,107,130,0.12);
         }
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
+        .search-box input::placeholder { color:var(--text-muted); }
         .filter-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
+            align-items:center;
         }
         .filter-tabs button {
-            padding: 6px 14px;
-            border: 2px solid var(--border);
-            border-radius: 60px;
-            background: var(--bg-card);
-            font-size: clamp(12px, 1vw, 13px);
-            font-weight: 500;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: all var(--transition);
-            white-space: nowrap;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
+            padding:6px 14px;
+            border:2px solid var(--border);
+            border-radius:60px;
+            background:var(--bg-card);
+            font-size:clamp(12px,1vw,13px);
+            font-weight:500;
+            color:var(--text-light);
+            cursor:pointer;
+            transition:all var(--transition);
+            white-space:nowrap;
+            height:38px;
+            display:inline-flex;
+            align-items:center;
         }
         .filter-tabs button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
+            background:var(--primary);
+            color:#fff;
+            border-color:var(--primary);
         }
         .filter-tabs button:hover:not(.active) {
-            border-color: var(--primary-light);
-            background: rgba(220, 107, 130, 0.04);
-            transform: translateY(-1px);
+            border-color:var(--primary-light);
+            background:rgba(220,107,130,0.04);
+            transform:translateY(-1px);
         }
         .btn-multi {
-            background: var(--bg-card);
-            color: var(--text-light);
-            border: 2px solid var(--border);
-            padding: 6px 16px;
-            border-radius: 60px;
-            font-size: clamp(12px, 1vw, 13px);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
-            white-space: nowrap;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
+            background:var(--bg-card);
+            color:var(--text-light);
+            border:2px solid var(--border);
+            padding:6px 16px;
+            border-radius:60px;
+            font-size:clamp(12px,1vw,13px);
+            font-weight:600;
+            cursor:pointer;
+            transition:all var(--transition);
+            white-space:nowrap;
+            height:38px;
+            display:inline-flex;
+            align-items:center;
         }
         .btn-multi.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(220, 107, 130, 0.2);
+            background:var(--primary);
+            color:#fff;
+            border-color:var(--primary);
+            box-shadow:0 0 0 2px rgba(220,107,130,0.2);
         }
         .btn-multi:hover:not(.active) {
-            border-color: var(--primary-light);
-            background: rgba(220, 107, 130, 0.04);
+            border-color:var(--primary-light);
+            background:rgba(220,107,130,0.04);
         }
 
-        /* ===== 歌曲分组卡片 ===== */
+        /* ===== 歌曲列表 ===== */
         .song-group {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            margin-bottom: 10px;
-            padding: 12px 16px;
-            transition: all var(--transition);
-            overflow: hidden;
-            box-shadow: var(--shadow);
+            background:var(--bg-card);
+            border-radius:var(--radius);
+            border:1px solid var(--border);
+            margin-bottom:10px;
+            padding:12px 16px;
+            transition:all var(--transition);
+            overflow:hidden;
+            box-shadow:var(--shadow);
         }
         .song-group:hover {
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-1px);
+            border-color:var(--primary-light);
+            box-shadow:var(--shadow-hover);
+            transform:translateY(-1px);
         }
         .group-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px 12px;
-            margin-bottom: 8px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:6px 12px;
+            margin-bottom:8px;
         }
         .group-name {
-            font-size: clamp(16px, 1.6vw, 19px);
-            font-weight: 600;
-            word-break: break-word;
-            flex: 1 1 140px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            color: var(--text);
+            font-size:clamp(16px,1.6vw,19px);
+            font-weight:600;
+            word-break:break-word;
+            flex:1 1 140px;
+            display:flex;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:6px;
+            color:var(--text);
         }
         .badge-multi {
-            background: var(--primary);
-            color: #fff;
-            font-size: clamp(10px, 0.8vw, 11px);
-            font-weight: 600;
-            padding: 0 10px;
-            border-radius: 30px;
-            line-height: 22px;
-            white-space: nowrap;
-            flex-shrink: 0;
+            background:var(--primary);
+            color:#fff;
+            font-size:clamp(10px,0.8vw,11px);
+            font-weight:600;
+            padding:0 10px;
+            border-radius:30px;
+            line-height:22px;
+            white-space:nowrap;
+            flex-shrink:0;
         }
         .group-right {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+            flex-shrink:0;
         }
         .group-category {
-            font-size: clamp(10px, 0.8vw, 11px);
-            background: var(--secondary);
-            color: var(--text-light);
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-weight: 600;
-            white-space: nowrap;
-            line-height: 22px;
+            font-size:clamp(10px,0.8vw,11px);
+            background:var(--secondary);
+            color:var(--text-light);
+            padding:2px 12px;
+            border-radius:30px;
+            font-weight:600;
+            white-space:nowrap;
+            line-height:22px;
         }
 
         /* ===== ID 列表 ===== */
         .id-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-top: 4px;
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+            margin-top:4px;
         }
         .id-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px 12px;
-            padding: 4px 6px;
-            border-radius: 8px;
-            background: rgba(253, 242, 245, 0.4);
-            border-bottom: 1px solid var(--border);
-            transition: background var(--transition);
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px 12px;
+            padding:4px 6px;
+            border-radius:8px;
+            background:rgba(253,242,245,0.4);
+            border-bottom:1px solid var(--border);
+            transition:background var(--transition);
         }
-        .id-row:hover {
-            background: rgba(253, 242, 245, 0.8);
-        }
+        .id-row:hover { background:rgba(253,242,245,0.8); }
         .id-checkbox {
-            display: none;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-            flex-shrink: 0;
+            display:none;
+            width:18px;
+            height:18px;
+            accent-color:var(--primary);
+            cursor:pointer;
+            flex-shrink:0;
         }
-        .batch-mode .id-checkbox {
-            display: inline-block;
-        }
+        .batch-mode .id-checkbox { display:inline-block; }
         .id-number {
-            font-family: 'Courier New', monospace;
-            font-size: clamp(13px, 1vw, 15px);
-            font-weight: 500;
-            color: var(--primary-dark);
-            word-break: break-all;
-            flex: 1 1 120px;
-            min-width: 80px;
-            padding: 2px 0;
+            font-family:'Courier New',monospace;
+            font-size:clamp(13px,1vw,15px);
+            font-weight:500;
+            color:var(--primary-dark);
+            word-break:break-all;
+            flex:1 1 120px;
+            min-width:80px;
+            padding:2px 0;
         }
         .id-actions {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            flex-shrink: 0;
+            display:flex;
+            gap:4px;
+            align-items:center;
+            flex-shrink:0;
         }
-        /* 复制按钮 */
         .btn-copy-id {
-            background: var(--primary);
-            border: none;
-            color: #fff;
-            padding: 2px 12px;
-            border-radius: 40px;
-            font-size: clamp(11px, 0.9vw, 13px);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--transition);
-            height: 28px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+            background:var(--primary);
+            border:none;
+            color:#fff;
+            padding:2px 12px;
+            border-radius:40px;
+            font-size:clamp(11px,0.9vw,13px);
+            font-weight:500;
+            cursor:pointer;
+            transition:all var(--transition);
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            white-space:nowrap;
         }
-        .btn-copy-id:hover {
-            background: var(--primary-dark);
-            transform: scale(1.03);
-        }
-        .btn-copy-id:active {
-            transform: scale(0.92);
-        }
-        .btn-copy-id.copied {
-            background: #8cb8a8;
-        }
-        /* 试听按钮 */
+        .btn-copy-id:hover { background:var(--primary-dark); transform:scale(1.03); }
+        .btn-copy-id:active { transform:scale(0.92); }
+        .btn-copy-id.copied { background:#8cb8a8; }
         .btn-play {
-            background: #6ec6a0;
-            border: none;
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 40px;
-            font-size: clamp(11px, 0.9vw, 13px);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--transition);
-            height: 28px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+            background:#6ec6a0;
+            border:none;
+            color:#fff;
+            padding:2px 10px;
+            border-radius:40px;
+            font-size:clamp(11px,0.9vw,13px);
+            font-weight:500;
+            cursor:pointer;
+            transition:all var(--transition);
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            white-space:nowrap;
         }
-        .btn-play:hover {
-            background: #56b08a;
-            transform: scale(1.03);
-        }
-        .btn-play:active {
-            transform: scale(0.92);
-        }
-        /* 删除/隔离按钮 */
+        .btn-play:hover { background:#56b08a; transform:scale(1.03); }
+        .btn-play:active { transform:scale(0.92); }
         .btn-delete-id {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: clamp(14px, 1vw, 16px);
-            cursor: pointer;
-            padding: 0 4px;
-            height: 28px;
-            display: inline-flex;
-            align-items: center;
-            transition: all var(--transition);
-            border-radius: 40px;
+            background:transparent;
+            border:none;
+            color:var(--text-muted);
+            font-size:clamp(14px,1vw,16px);
+            cursor:pointer;
+            padding:0 4px;
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            transition:all var(--transition);
+            border-radius:40px;
         }
         .btn-delete-id:hover {
-            color: #d45c62;
-            background: rgba(232, 116, 122, 0.12);
-            padding: 0 10px;
+            color:#d45c62;
+            background:rgba(232,116,122,0.12);
+            padding:0 10px;
         }
-        .btn-delete-id:active {
-            transform: scale(0.85);
-        }
+        .btn-delete-id:active { transform:scale(0.85); }
 
         /* ===== 批量操作栏 ===== */
         .batch-bar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--primary-light);
-            border-radius: var(--radius-sm);
-            padding: 10px 16px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
+            display:none;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:10px;
+            background:var(--bg-card);
+            border:1px solid var(--primary-light);
+            border-radius:var(--radius-sm);
+            padding:10px 16px;
+            margin-bottom:16px;
+            box-shadow:var(--shadow);
         }
-        .batch-bar.show {
-            display: flex;
-        }
+        .batch-bar.show { display:flex; }
         .batch-bar .info {
-            font-size: 14px;
-            color: var(--text-light);
+            font-size:14px;
+            color:var(--text-light);
         }
-        .batch-bar .info strong {
-            color: var(--text);
-        }
+        .batch-bar .info strong { color:var(--text); }
         .batch-bar .actions {
-            display: flex;
-            gap: 8px;
+            display:flex;
+            gap:8px;
         }
         .batch-bar .actions .btn-batch-delete {
-            background: linear-gradient(145deg, #e8747a, #d45c62);
-            color: #fff;
-            border: none;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            transition: all var(--transition);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(232, 116, 122, 0.3);
+            background:linear-gradient(145deg,#e8747a,#d45c62);
+            color:#fff;
+            border:none;
+            padding:6px 18px;
+            border-radius:40px;
+            font-weight:500;
+            transition:all var(--transition);
+            cursor:pointer;
+            box-shadow:0 2px 8px rgba(232,116,122,0.3);
         }
         .batch-bar .actions .btn-batch-delete:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 16px rgba(232, 116, 122, 0.4);
+            transform:translateY(-2px) scale(1.02);
+            box-shadow:0 6px 16px rgba(232,116,122,0.4);
         }
         .batch-bar .actions .btn-batch-clear {
-            background: linear-gradient(145deg, #f0d9de, #e6c9cf);
-            color: var(--text);
-            border: none;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            transition: all var(--transition);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(220, 107, 130, 0.1);
+            background:linear-gradient(145deg,#f0d9de,#e6c9cf);
+            color:var(--text);
+            border:none;
+            padding:6px 18px;
+            border-radius:40px;
+            font-weight:500;
+            transition:all var(--transition);
+            cursor:pointer;
+            box-shadow:0 2px 8px rgba(220,107,130,0.1);
         }
         .batch-bar .actions .btn-batch-clear:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 16px rgba(220, 107, 130, 0.15);
-            background: linear-gradient(145deg, #e6c9cf, #dbb5bd);
+            transform:translateY(-2px) scale(1.02);
+            box-shadow:0 6px 16px rgba(220,107,130,0.15);
+            background:linear-gradient(145deg,#e6c9cf,#dbb5bd);
         }
 
-        /* ===== 弹窗（通用） ===== */
+        /* ===== 弹窗通用 ===== */
         .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(74, 63, 68, 0.45);
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            padding: 16px;
-            backdrop-filter: blur(4px);
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(74,63,68,0.45);
+            justify-content:center;
+            align-items:center;
+            z-index:999;
+            padding:16px;
+            backdrop-filter:blur(4px);
         }
-        .modal.show {
-            display: flex;
-        }
+        .modal.show { display:flex; }
         .modal-content {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow-hover);
-            animation: modalFadeIn 0.25s ease;
-            border: 1px solid var(--border);
+            background:var(--bg-card);
+            border-radius:var(--radius);
+            padding:20px 24px;
+            max-width:500px;
+            width:100%;
+            max-height:90vh;
+            display:flex;
+            flex-direction:column;
+            box-shadow:var(--shadow-hover);
+            animation:modalFadeIn 0.25s ease;
+            border:1px solid var(--border);
         }
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            from { opacity:0; transform:scale(0.95) translateY(10px); }
+            to { opacity:1; transform:scale(1) translateY(0); }
         }
         .modal-content h2 {
-            font-size: clamp(18px, 2vw, 22px);
-            margin-bottom: 10px;
-            color: var(--text);
+            font-size:clamp(18px,2vw,22px);
+            margin-bottom:10px;
+            color:var(--text);
         }
         .modal-content p {
-            color: var(--text-light);
-            font-size: 15px;
-            margin-bottom: 16px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
+            color:var(--text-light);
+            font-size:15px;
+            margin-bottom:16px;
+            line-height:1.6;
+            white-space:pre-wrap;
+            word-break:break-word;
         }
         .modal-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: flex-end;
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            justify-content:flex-end;
         }
         .modal-actions button {
-            padding: 8px 22px;
-            border: none;
-            border-radius: 40px;
-            font-size: clamp(14px, 1vw, 16px);
-            cursor: pointer;
-            transition: all var(--transition);
-            min-height: 42px;
-            font-weight: 500;
+            padding:8px 22px;
+            border:none;
+            border-radius:40px;
+            font-size:clamp(14px,1vw,16px);
+            cursor:pointer;
+            transition:all var(--transition);
+            min-height:42px;
+            font-weight:500;
         }
-        .modal-actions .btn-confirm {
-            background: var(--primary);
-            color: #fff;
-        }
-        .modal-actions .btn-confirm:hover {
-            background: var(--primary-dark);
-        }
-        .modal-actions .btn-cancel {
-            background: var(--border);
-            color: var(--text);
-        }
-        .modal-actions .btn-cancel:hover {
-            background: #e6c9cf;
-        }
-        .modal-actions .btn-danger {
-            background: #e8747a;
-            color: #fff;
-        }
-        .modal-actions .btn-danger:hover {
-            background: #d45c62;
-        }
+        .modal-actions .btn-confirm { background:var(--primary); color:#fff; }
+        .modal-actions .btn-confirm:hover { background:var(--primary-dark); }
+        .modal-actions .btn-cancel { background:var(--border); color:var(--text); }
+        .modal-actions .btn-cancel:hover { background:#e6c9cf; }
+        .modal-actions .btn-danger { background:#e8747a; color:#fff; }
+        .modal-actions .btn-danger:hover { background:#d45c62; }
 
-        /* ---- 鸣谢弹窗（暖金色） ---- */
+        /* ===== 鸣谢弹窗 ===== */
         .thanks-modal .modal-content {
-            border-color: var(--gold);
-            background: var(--gold-bg);
-            max-width: 600px;
+            border-color:var(--gold);
+            background:var(--gold-bg);
+            max-width:600px;
         }
         .thanks-modal .modal-content h2 {
-            color: var(--gold);
-            text-align: center;
-            font-weight: 700;
+            color:var(--gold);
+            text-align:center;
+            font-weight:700;
         }
         .thanks-modal .subtitle {
-            text-align: center;
-            color: var(--gold);
-            font-style: italic;
-            font-size: clamp(14px, 1.2vw, 16px);
-            margin-bottom: 16px;
-            opacity: 0.9;
+            text-align:center;
+            color:var(--gold);
+            font-style:italic;
+            font-size:clamp(14px,1.2vw,16px);
+            margin-bottom:16px;
+            opacity:0.9;
         }
-        .thanks-category {
-            margin-bottom: 6px;
-        }
+        .thanks-category { margin-bottom:6px; }
         .thanks-category .cat-title {
-            font-weight: 700;
-            color: #7a4a5a;
-            font-size: clamp(16px, 1.2vw, 18px);
-            border-bottom: 1px solid var(--gold-light);
-            padding-bottom: 4px;
-            margin-bottom: 4px;
+            font-weight:700;
+            color:#7a4a5a;
+            font-size:clamp(16px,1.2vw,18px);
+            border-bottom:1px solid var(--gold-light);
+            padding-bottom:4px;
+            margin-bottom:4px;
         }
         .thanks-person {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            gap: 4px 8px;
-            padding: 2px 0;
-            font-size: clamp(13px, 1vw, 15px);
-            color: var(--text);
+            display:flex;
+            flex-wrap:wrap;
+            align-items:baseline;
+            gap:4px 8px;
+            padding:2px 0;
+            font-size:clamp(13px,1vw,15px);
+            color:var(--text);
         }
         .thanks-person .name {
-            font-weight: 600;
-            color: #d4884a;
-            font-size: clamp(14px, 1vw, 16px);
+            font-weight:600;
+            color:#d4884a;
+            font-size:clamp(14px,1vw,16px);
         }
         .thanks-person .platform {
-            color: var(--text-muted);
-            font-size: 0.9em;
+            color:var(--text-muted);
+            font-size:0.9em;
         }
         .thanks-person .message {
-            color: var(--text-light);
-            font-size: 0.95em;
+            color:var(--text-light);
+            font-size:0.95em;
         }
         .thanks-footer {
-            margin-top: 6px;
-            padding-top: 12px;
-            border-top: 1px solid var(--gold-light);
-            text-align: center;
-            color: var(--text-light);
-            font-size: clamp(13px, 1vw, 15px);
-            line-height: 1.8;
+            margin-top:6px;
+            padding-top:12px;
+            border-top:1px solid var(--gold-light);
+            text-align:center;
+            color:var(--text-light);
+            font-size:clamp(13px,1vw,15px);
+            line-height:1.8;
         }
         .thanks-footer .highlight {
-            color: var(--gold);
-            font-weight: 600;
+            color:var(--gold);
+            font-weight:600;
         }
         .thanks-footer .contact {
-            color: var(--gold);
-            font-weight: 600;
-            margin-top: 4px;
+            color:var(--gold);
+            font-weight:600;
+            margin-top:4px;
         }
         .thanks-footer .closing {
-            font-style: italic;
-            margin-top: 8px;
-            color: var(--text);
+            font-style:italic;
+            margin-top:8px;
+            color:var(--text);
         }
         .thanks-empty {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 20px 0;
+            text-align:center;
+            color:var(--text-muted);
+            padding:20px 0;
         }
 
-        /* ---- 密码弹窗 ---- */
-        .password-modal .modal-content {
-            max-width: 400px;
-        }
+        /* ===== 密码弹窗 ===== */
+        .password-modal .modal-content { max-width:400px; }
         .password-modal input[type="password"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            margin: 12px 0;
-            transition: border-color var(--transition), box-shadow var(--transition);
-            background: var(--bg);
-            color: var(--text);
-            outline: none;
+            width:100%;
+            padding:12px 16px;
+            border:2px solid var(--border);
+            border-radius:var(--radius-sm);
+            font-size:16px;
+            margin:12px 0;
+            transition:border-color var(--transition), box-shadow var(--transition);
+            background:var(--bg);
+            color:var(--text);
+            outline:none;
         }
         .password-modal input[type="password"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
+            border-color:var(--primary);
+            box-shadow:0 0 0 4px rgba(220,107,130,0.15);
         }
-        .password-modal input[type="password"]::placeholder {
-            color: var(--text-muted);
-        }
+        .password-modal input[type="password"]::placeholder { color:var(--text-muted); }
         .password-modal .error {
-            color: #d45c62;
-            font-size: 14px;
-            margin-top: 4px;
+            color:#d45c62;
+            font-size:14px;
+            margin-top:4px;
         }
 
-        /* ---- 导入弹窗 ---- */
+        /* ===== 导入弹窗 ===== */
         .import-modal .modal-content textarea {
-            width: 100%;
-            min-height: 260px;
-            padding: 14px 18px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            font-family: 'Courier New', monospace;
-            background: var(--bg);
-            color: var(--text);
-            transition: border-color var(--transition), box-shadow var(--transition);
-            resize: vertical;
-            outline: none;
-            margin: 12px 0;
-            line-height: 1.6;
+            width:100%;
+            min-height:260px;
+            padding:14px 18px;
+            border:2px solid var(--border);
+            border-radius:var(--radius-sm);
+            font-size:16px;
+            font-family:'Courier New',monospace;
+            background:var(--bg);
+            color:var(--text);
+            transition:border-color var(--transition), box-shadow var(--transition);
+            resize:vertical;
+            outline:none;
+            margin:12px 0;
+            line-height:1.6;
         }
         .import-modal .modal-content textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
+            border-color:var(--primary);
+            box-shadow:0 0 0 4px rgba(220,107,130,0.15);
         }
-        .import-modal .modal-content textarea::placeholder {
-            color: var(--text-muted);
-        }
+        .import-modal .modal-content textarea::placeholder { color:var(--text-muted); }
 
-        /* ---- 隔离区弹窗 ---- */
-        .quarantine-modal .modal-content {
-            max-width: 800px;
-        }
+        /* ===== 隔离区弹窗 ===== */
+        .quarantine-modal .modal-content { max-width:800px; }
         .quarantine-search-box {
-            display: flex;
-            gap: 10px;
-            margin: 8px 0 12px 0;
+            display:flex;
+            gap:10px;
+            margin:8px 0 12px 0;
         }
         .quarantine-search-box input {
-            flex: 1;
-            padding: 8px 14px;
-            border: 2px solid var(--border);
-            border-radius: 30px;
-            font-size: 14px;
-            background: var(--bg);
-            color: var(--text);
-            transition: border-color var(--transition), box-shadow var(--transition);
-            outline: none;
-            height: 38px;
+            flex:1;
+            padding:8px 14px;
+            border:2px solid var(--border);
+            border-radius:30px;
+            font-size:14px;
+            background:var(--bg);
+            color:var(--text);
+            transition:border-color var(--transition), box-shadow var(--transition);
+            outline:none;
+            height:38px;
         }
         .quarantine-search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+            border-color:var(--primary);
+            box-shadow:0 0 0 4px rgba(220,107,130,0.12);
         }
         .quarantine-batch-bar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--primary-light);
-            border-radius: var(--radius-sm);
-            padding: 10px 16px;
-            margin: 8px 0 12px 0;
-            box-shadow: var(--shadow);
+            display:none;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:10px;
+            background:var(--bg-card);
+            border:1px solid var(--primary-light);
+            border-radius:var(--radius-sm);
+            padding:10px 16px;
+            margin:8px 0 12px 0;
+            box-shadow:var(--shadow);
         }
-        .quarantine-batch-bar.show {
-            display: flex;
-        }
+        .quarantine-batch-bar.show { display:flex; }
         .quarantine-batch-bar .info {
-            font-size: 14px;
-            color: var(--text-light);
+            font-size:14px;
+            color:var(--text-light);
         }
-        .quarantine-batch-bar .info strong {
-            color: var(--text);
-        }
+        .quarantine-batch-bar .info strong { color:var(--text); }
         .quarantine-batch-bar .actions {
-            display: flex;
-            gap: 8px;
+            display:flex;
+            gap:8px;
         }
         .quarantine-batch-bar .actions .btn-batch-release {
-            background: linear-gradient(145deg, #8cb8a8, #72a392);
-            color: #fff;
-            border: none;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            transition: all var(--transition);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(140, 184, 168, 0.3);
+            background:linear-gradient(145deg,#8cb8a8,#72a392);
+            color:#fff;
+            border:none;
+            padding:6px 18px;
+            border-radius:40px;
+            font-weight:500;
+            transition:all var(--transition);
+            cursor:pointer;
+            box-shadow:0 2px 8px rgba(140,184,168,0.3);
         }
         .quarantine-batch-bar .actions .btn-batch-release:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 16px rgba(140, 184, 168, 0.4);
+            transform:translateY(-2px) scale(1.02);
+            box-shadow:0 6px 16px rgba(140,184,168,0.4);
         }
         .quarantine-batch-bar .actions .btn-batch-clear {
-            background: linear-gradient(145deg, #f0d9de, #e6c9cf);
-            color: var(--text);
-            border: none;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            transition: all var(--transition);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(220, 107, 130, 0.1);
+            background:linear-gradient(145deg,#f0d9de,#e6c9cf);
+            color:var(--text);
+            border:none;
+            padding:6px 18px;
+            border-radius:40px;
+            font-weight:500;
+            transition:all var(--transition);
+            cursor:pointer;
+            box-shadow:0 2px 8px rgba(220,107,130,0.1);
         }
         .quarantine-batch-bar .actions .btn-batch-clear:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 16px rgba(220, 107, 130, 0.15);
-            background: linear-gradient(145deg, #e6c9cf, #dbb5bd);
+            transform:translateY(-2px) scale(1.02);
+            box-shadow:0 6px 16px rgba(220,107,130,0.15);
+            background:linear-gradient(145deg,#e6c9cf,#dbb5bd);
         }
         .quarantine-item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border);
-            gap: 8px 12px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            padding:8px 12px;
+            border-bottom:1px solid var(--border);
+            gap:8px 12px;
         }
         .quarantine-item .info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px 14px;
-            flex: 1 1 200px;
-            align-items: center;
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px 14px;
+            flex:1 1 200px;
+            align-items:center;
         }
         .quarantine-item .info .name {
-            font-weight: 500;
-            color: var(--text);
+            font-weight:500;
+            color:var(--text);
         }
         .quarantine-item .info .id {
-            color: var(--primary-dark);
-            font-family: monospace;
+            color:var(--primary-dark);
+            font-family:monospace;
         }
         .quarantine-item .info .time {
-            color: var(--text-muted);
-            font-size: 12px;
+            color:var(--text-muted);
+            font-size:12px;
         }
         .quarantine-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
+            display:flex;
+            gap:6px;
+            flex-shrink:0;
         }
         .quarantine-actions .release-btn {
-            background: #8cb8a8;
-            color: #fff;
-            border: none;
-            padding: 2px 14px;
-            border-radius: 30px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all var(--transition);
-            height: 28px;
+            background:#8cb8a8;
+            color:#fff;
+            border:none;
+            padding:2px 14px;
+            border-radius:30px;
+            font-size:13px;
+            cursor:pointer;
+            transition:all var(--transition);
+            height:28px;
         }
         .quarantine-actions .release-btn:hover {
-            background: #72a392;
-            transform: scale(1.03);
+            background:#72a392;
+            transform:scale(1.03);
         }
         .quarantine-checkbox {
-            display: none;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-            flex-shrink: 0;
+            display:none;
+            width:18px;
+            height:18px;
+            accent-color:var(--primary);
+            cursor:pointer;
+            flex-shrink:0;
         }
-        .quarantine-batch-mode .quarantine-checkbox {
-            display: inline-block;
-        }
+        .quarantine-batch-mode .quarantine-checkbox { display:inline-block; }
         .quarantine-empty {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 30px 0;
+            color:var(--text-muted);
+            text-align:center;
+            padding:30px 0;
         }
         .quarantine-footer-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: flex-end;
-            margin-top: 12px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            justify-content:flex-end;
+            margin-top:12px;
         }
         .quarantine-footer-actions button {
-            padding: 6px 16px;
-            border: none;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--transition);
-            white-space: nowrap;
+            padding:6px 16px;
+            border:none;
+            border-radius:30px;
+            font-size:13px;
+            font-weight:500;
+            cursor:pointer;
+            transition:all var(--transition);
+            white-space:nowrap;
         }
-        .quarantine-footer-actions .btn-restore-all {
-            background: #22c55e;
-            color: #fff;
-        }
-        .quarantine-footer-actions .btn-restore-all:hover {
-            background: #16a34a;
-            transform: scale(1.02);
-        }
-        .quarantine-footer-actions .btn-export {
-            background: #3b82f6;
-            color: #fff;
-        }
-        .quarantine-footer-actions .btn-export:hover {
-            background: #2563eb;
-            transform: scale(1.02);
-        }
-        .quarantine-footer-actions .btn-close {
-            background: var(--border);
-            color: var(--text);
-        }
-        .quarantine-footer-actions .btn-close:hover {
-            background: #e6c9cf;
-        }
+        .quarantine-footer-actions .btn-restore-all { background:#22c55e; color:#fff; }
+        .quarantine-footer-actions .btn-restore-all:hover { background:#16a34a; transform:scale(1.02); }
+        .quarantine-footer-actions .btn-export { background:#3b82f6; color:#fff; }
+        .quarantine-footer-actions .btn-export:hover { background:#2563eb; transform:scale(1.02); }
+        .quarantine-footer-actions .btn-close { background:var(--border); color:var(--text); }
+        .quarantine-footer-actions .btn-close:hover { background:#e6c9cf; }
 
-        /* ===== Toast 提示 ===== */
+        /* ===== Toast ===== */
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--text);
-            color: var(--bg-card);
-            padding: 10px 24px;
-            border-radius: 60px;
-            font-size: clamp(13px, 1vw, 15px);
-            box-shadow: var(--shadow-hover);
-            opacity: 0;
-            transition: opacity var(--transition);
-            pointer-events: none;
-            z-index: 1000;
-            text-align: center;
-            max-width: 92%;
-            font-weight: 500;
+            position:fixed;
+            bottom:30px;
+            left:50%;
+            transform:translateX(-50%);
+            background:var(--text);
+            color:var(--bg-card);
+            padding:10px 24px;
+            border-radius:60px;
+            font-size:clamp(13px,1vw,15px);
+            box-shadow:var(--shadow-hover);
+            opacity:0;
+            transition:opacity var(--transition);
+            pointer-events:none;
+            z-index:1000;
+            text-align:center;
+            max-width:92%;
+            font-weight:500;
         }
-        .toast.show {
-            opacity: 1;
-        }
+        .toast.show { opacity:1; }
 
         /* ===== 权限控制 ===== */
-        .admin-only {
-            display: none !important;
-        }
-        .mode-manage .admin-only {
-            display: inline-flex !important;
-        }
-        .mode-readonly .admin-only {
-            display: none !important;
-        }
-        .batch-mode .id-checkbox {
-            display: inline-block !important;
-        }
-        .quarantine-batch-mode .quarantine-checkbox {
-            display: inline-block !important;
-        }
-
-        /* ===== 响应式适配 ===== */
-        @media (max-width: 400px) {
-            body {
-                padding: 6px;
-            }
-            .header {
-                padding: 12px 14px;
-            }
-            .header h1 {
-                font-size: 17px;
-            }
-            .header h1 small {
-                font-size: 10px;
-            }
-            .header-nav {
-                padding: 3px 4px;
-                gap: 2px;
-            }
-            .nav-btn {
-                font-size: 10px;
-                padding: 3px 6px;
-                height: 24px;
-            }
-            .nav-divider,
-            .nav-divider-gold {
-                height: 14px;
-                margin: 0 1px;
-            }
-            .search-box input {
-                height: 40px;
-                font-size: 15px;
-                padding: 8px 14px;
-                min-width: 120px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 32px;
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-            .song-group {
-                padding: 10px 12px;
-            }
-            .group-name {
-                font-size: 15px;
-            }
-            .id-number {
-                font-size: 12px;
-                min-width: 60px;
-            }
-            .btn-copy-id,
-            .btn-play {
-                font-size: 11px;
-                padding: 2px 10px;
-                height: 26px;
-            }
-            .btn-delete-id {
-                font-size: 14px;
-                height: 26px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 10px;
-                padding: 2px 10px;
-                height: 28px;
-            }
-            .modal-content {
-                padding: 16px;
-            }
-            .modal-actions button {
-                min-height: 38px;
-                font-size: 14px;
-                padding: 6px 16px;
-            }
-            .toast {
-                font-size: 12px;
-                padding: 8px 16px;
-                bottom: 16px;
-            }
-            .batch-bar,
-            .quarantine-batch-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .batch-bar .actions,
-            .quarantine-batch-bar .actions {
-                justify-content: flex-end;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 200px;
-                font-size: 14px;
-                padding: 10px 14px;
-            }
-            .quarantine-search-box input {
-                height: 30px;
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 11px;
-                padding: 3px 10px;
-            }
-            .batch-bar .actions .btn-batch-delete,
-            .batch-bar .actions .btn-batch-clear,
-            .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 4px 12px;
-                font-size: 11px;
-            }
-            .thanks-modal .modal-content {
-                max-width: 95%;
-                padding: 16px;
-            }
-            #riskModal .modal-content {
-                max-width: 95%;
-                padding: 14px;
-            }
-            #riskModal .risk-body {
-                max-height: 50vh;
-                font-size: 13px;
-            }
-        }
-        @media (max-width: 640px) {
-            body {
-                padding: 8px;
-            }
-            .header {
-                padding: 14px 16px;
-            }
-            .header h1 {
-                font-size: 19px;
-                text-align: center;
-            }
-            .header-top {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 6px;
-            }
-            .header-stats {
-                justify-content: center;
-                gap: 6px 10px;
-            }
-            .header-nav-wrapper {
-                justify-content: center;
-                margin-left: 0;
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            .header-nav {
-                align-self: center;
-                padding: 4px 8px;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 2px;
-            }
-            .nav-btn {
-                font-size: 11px;
-                padding: 4px 8px;
-                height: 26px;
-                min-width: 50px;
-            }
-            .nav-divider,
-            .nav-divider-gold {
-                height: 14px;
-                margin: 0 1px;
-            }
-            .header-actions {
-                justify-content: center;
-            }
-            .btn-group {
-                justify-content: center;
-            }
-            .search-box input {
-                height: 42px;
-                font-size: 15px;
-                padding: 8px 16px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 34px;
-                font-size: 12px;
-                padding: 4px 12px;
-            }
-            .song-group {
-                padding: 10px 14px;
-            }
-            .group-name {
-                font-size: 16px;
-            }
-            .id-number {
-                font-size: 13px;
-            }
-            .btn-copy-id,
-            .btn-play {
-                font-size: 12px;
-                padding: 2px 12px;
-                height: 28px;
-            }
-            .btn-delete-id {
-                font-size: 15px;
-                height: 28px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 11px;
-                padding: 3px 12px;
-                height: 30px;
-            }
-            .modal-content {
-                padding: 18px;
-            }
-            .modal-actions button {
-                min-height: 38px;
-                font-size: 14px;
-                padding: 6px 16px;
-            }
-            .toast {
-                font-size: 13px;
-                padding: 8px 18px;
-                bottom: 20px;
-            }
-            .batch-bar,
-            .quarantine-batch-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .batch-bar .actions,
-            .quarantine-batch-bar .actions {
-                justify-content: flex-end;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 220px;
-                font-size: 15px;
-            }
-            .quarantine-search-box input {
-                height: 34px;
-                font-size: 13px;
-            }
-            .quarantine-footer-actions {
-                justify-content: center;
-            }
-            .quarantine-footer-actions button {
-                font-size: 12px;
-                padding: 4px 12px;
-            }
-            .batch-bar .actions .btn-batch-delete,
-            .batch-bar .actions .btn-batch-clear,
-            .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 5px 14px;
-                font-size: 12px;
-            }
-            .thanks-modal .modal-content {
-                max-width: 95%;
-                padding: 18px;
-            }
-            #riskModal .modal-content {
-                max-width: 95%;
-                padding: 16px;
-            }
-            #riskModal .risk-body {
-                max-height: 55vh;
-                font-size: 13px;
-            }
-        }
-        @media (min-width: 641px) and (max-width: 1024px) {
-            .header h1 {
-                font-size: 22px;
-            }
-            .header-nav {
-                padding: 4px 6px;
-            }
-            .nav-btn {
-                font-size: 13px;
-                padding: 6px 16px;
-                height: 32px;
-            }
-            .search-box input {
-                height: 46px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 38px;
-            }
-            .song-group {
-                padding: 14px 18px;
-            }
-            .id-number {
-                font-size: 14px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 12px;
-                padding: 4px 14px;
-                height: 32px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 12px;
-                padding: 4px 14px;
-            }
-            .batch-bar .actions .btn-batch-delete,
-            .batch-bar .actions .btn-batch-clear,
-            .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 16px;
-                font-size: 12px;
-            }
-            #riskModal .modal-content {
-                max-width: 90%;
-            }
-            #riskModal .risk-body {
-                max-height: 60vh;
-            }
-        }
-        @media (min-width: 1025px) {
-            .header h1 {
-                font-size: 24px;
-            }
-            .header-nav {
-                padding: 4px 8px;
-            }
-            .nav-btn {
-                font-size: 14px;
-                padding: 6px 20px;
-                height: 34px;
-            }
-            .search-box input {
-                height: 48px;
-                font-size: 16px;
-            }
-            .filter-tabs button,
-            .btn-multi {
-                height: 40px;
-                font-size: 13px;
-            }
-            .song-group {
-                padding: 16px 20px;
-            }
-            .id-number {
-                font-size: 15px;
-            }
-            .btn-copy-id,
-            .btn-play {
-                font-size: 13px;
-                padding: 2px 16px;
-                height: 30px;
-            }
-            .btn-delete-id {
-                font-size: 16px;
-                height: 30px;
-            }
-            .btn-group .btn-import,
-            .btn-group .btn-danger,
-            .btn-group .btn-success,
-            .btn-group .btn-quarantine,
-            .btn-group .btn-batch {
-                font-size: 13px;
-                padding: 4px 16px;
-                height: 34px;
-            }
-            .import-modal .modal-content textarea {
-                min-height: 300px;
-            }
-            .quarantine-footer-actions button {
-                font-size: 13px;
-                padding: 6px 18px;
-            }
-            .batch-bar .actions .btn-batch-delete,
-            .batch-bar .actions .btn-batch-clear,
-            .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear {
-                padding: 6px 20px;
-                font-size: 13px;
-            }
-            #riskModal .risk-body {
-                max-height: 65vh;
-            }
-        }
+        .admin-only { display:none !important; }
+        .mode-manage .admin-only { display:inline-flex !important; }
+        .mode-readonly .admin-only { display:none !important; }
+        .batch-mode .id-checkbox { display:inline-block !important; }
+        .quarantine-batch-mode .quarantine-checkbox { display:inline-block !important; }
 
         /* ===== 风险告知弹窗 ===== */
         #riskModal .modal-content {
-            max-width: 700px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px 28px 16px;
-            background: var(--bg-card);
-            box-shadow: var(--shadow-hover);
+            max-width:700px;
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            padding:24px 28px 16px;
+            background:var(--bg-card);
+            box-shadow:var(--shadow-hover);
         }
-        /* 标题 */
         #riskModal .modal-content h2 {
-            font-size: clamp(20px, 2vw, 24px);
-            font-weight: 700;
-            color: var(--danger);
-            margin: 0 0 2px 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size:clamp(20px,2vw,24px);
+            font-weight:700;
+            color:var(--danger);
+            margin:0 0 2px 0;
+            padding:0;
+            display:flex;
+            align-items:center;
+            gap:8px;
         }
         #riskModal .modal-content h2::before {
-            content: "⚠️";
-            font-size: 1.1em;
+            content:"⚠️";
+            font-size:1.1em;
         }
-        /* 警示条 */
         #riskModal .sub-warning {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--danger);
-            background: var(--danger-bg);
-            padding: 4px 14px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 6px;
-            border: 1px solid var(--danger-light);
+            font-size:13px;
+            font-weight:500;
+            color:var(--danger);
+            background:var(--danger-bg);
+            padding:4px 14px;
+            border-radius:20px;
+            display:inline-block;
+            margin-bottom:6px;
+            border:1px solid var(--danger-light);
         }
-        /* 跳转提示 */
         #riskModal .redirect-notice {
-            background: var(--danger-bg);
-            border-left: 4px solid var(--danger);
-            padding: 8px 16px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: clamp(15px, 1.2vw, 17px);
-            color: var(--danger);
-            border-radius: 0 6px 6px 0;
+            background:var(--danger-bg);
+            border-left:4px solid var(--danger);
+            padding:8px 16px;
+            margin-bottom:8px;
+            font-weight:600;
+            font-size:clamp(15px,1.2vw,17px);
+            color:var(--danger);
+            border-radius:0 6px 6px 0;
         }
-        /* 滚动内容区 */
         #riskModal .risk-body {
-            max-height: 50vh;
-            overflow-y: auto;
-            padding-right: 6px;
-            font-size: 14px;
-            line-height: 1.8;
-            color: var(--text-light);
-            white-space: pre-wrap;
-            word-break: break-word;
+            max-height:50vh;
+            overflow-y:auto;
+            padding-right:6px;
+            font-size:14px;
+            line-height:1.8;
+            color:var(--text-light);
+            white-space:pre-wrap;
+            word-break:break-word;
         }
         #riskModal .risk-body::-webkit-scrollbar {
-            width: 5px;
+            width:5px;
         }
         #riskModal .risk-body::-webkit-scrollbar-thumb {
-            background: var(--danger-light);
-            border-radius: 4px;
+            background:var(--danger-light);
+            border-radius:4px;
         }
         #riskModal .risk-body::-webkit-scrollbar-track {
-            background: var(--bg);
-            border-radius: 4px;
+            background:var(--bg);
+            border-radius:4px;
         }
-        /* 章节标题 */
         #riskModal .risk-body .section-title {
-            display: block;
-            font-weight: 700;
-            color: var(--danger);
-            margin-top: 8px;
-            margin-bottom: 0px;
-            font-size: 1.02em;
+            display:block;
+            font-weight:700;
+            color:var(--danger);
+            margin-top:8px;
+            margin-bottom:0px;
+            font-size:1.02em;
         }
         #riskModal .risk-body .section-title:first-of-type {
-            margin-top: 0;
+            margin-top:0;
         }
-        /* 底部按钮 */
         #riskModal .modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 8px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
+            display:flex;
+            justify-content:center;
+            gap:12px;
+            margin-top:8px;
+            padding-top:10px;
+            border-top:1px solid var(--border);
         }
         #riskModal .modal-actions .btn-confirm {
-            background: var(--danger);
-            color: #fff;
-            font-weight: 600;
-            padding: 6px 28px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all var(--transition);
+            background:var(--danger);
+            color:#fff;
+            font-weight:600;
+            padding:6px 28px;
+            border:none;
+            border-radius:40px;
+            cursor:pointer;
+            transition:all var(--transition);
         }
         #riskModal .modal-actions .btn-confirm:hover {
-            background: #a93226;
-            transform: scale(1.02);
+            background:#a93226;
+            transform:scale(1.02);
         }
         #riskModal .modal-actions .btn-cancel {
-            background: var(--border);
-            color: var(--text);
-            font-weight: 500;
-            padding: 6px 24px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all var(--transition);
+            background:var(--border);
+            color:var(--text);
+            font-weight:500;
+            padding:6px 24px;
+            border:none;
+            border-radius:40px;
+            cursor:pointer;
+            transition:all var(--transition);
         }
         #riskModal .modal-actions .btn-cancel:hover {
-            background: #dbb5bd;
+            background:#dbb5bd;
+        }
+
+        /* ===== 更新弹窗 ===== */
+        #updateModal .modal-content {
+            max-width:550px;
+            border:none;
+            border-radius:var(--radius);
+            padding:0;
+            background:var(--bg-card);
+            box-shadow:var(--shadow-hover);
+            overflow:hidden;
+        }
+        #updateModal .update-header {
+            background:linear-gradient(135deg,var(--primary-light),var(--primary));
+            padding:14px 28px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        #updateModal .update-icon {
+            font-size:28px;
+            line-height:1;
+        }
+        #updateModal .update-header h2 {
+            font-size:20px;
+            font-weight:700;
+            color:#fff;
+            margin:0;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        #updateModal .update-version {
+            font-size:12px;
+            color:var(--primary);
+            background:rgba(255,255,255,0.9);
+            padding:1px 12px;
+            border-radius:20px;
+            font-weight:600;
+            line-height:24px;
+        }
+        #updateModal .update-body {
+            padding:14px 28px 8px;
+        }
+        #updateModal .update-item {
+            font-size:15px;
+            line-height:1.7;
+            color:var(--text-light);
+            padding:4px 0;
+            border-bottom:1px solid var(--border);
+        }
+        #updateModal .update-item:last-child {
+            border-bottom:none;
+        }
+        #updateModal .update-footer {
+            background:var(--bg);
+            padding:10px 28px 16px;
+            text-align:center;
+            border-top:1px solid var(--border);
+        }
+        #updateModal .update-thanks {
+            font-size:14px;
+            color:var(--text-light);
+            margin-bottom:10px;
+        }
+        #updateModal .btn-update-confirm {
+            background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+            color:#fff;
+            font-weight:600;
+            border:none;
+            padding:8px 36px;
+            border-radius:40px;
+            font-size:16px;
+            cursor:pointer;
+            transition:all var(--transition);
+            box-shadow:0 4px 12px rgba(220,107,130,0.3);
+        }
+        #updateModal .btn-update-confirm:hover {
+            transform:translateY(-2px);
+            box-shadow:0 8px 24px rgba(220,107,130,0.4);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width:400px) {
+            body { padding:6px; }
+            .header { padding:12px 14px; }
+            .header h1 { font-size:17px; }
+            .header h1 small { font-size:10px; }
+            .header-nav { padding:3px 4px; gap:2px; }
+            .nav-btn { font-size:10px; padding:3px 6px; height:24px; }
+            .nav-divider, .nav-divider-gold { height:14px; margin:0 1px; }
+            .search-box input { height:40px; font-size:15px; padding:8px 14px; min-width:120px; }
+            .filter-tabs button, .btn-multi { height:32px; font-size:11px; padding:4px 10px; }
+            .song-group { padding:10px 12px; }
+            .group-name { font-size:15px; }
+            .id-number { font-size:12px; min-width:60px; }
+            .btn-copy-id, .btn-play { font-size:11px; padding:2px 10px; height:26px; }
+            .btn-delete-id { font-size:14px; height:26px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size:10px; padding:2px 10px; height:28px;
+            }
+            .modal-content { padding:16px; }
+            .modal-actions button { min-height:38px; font-size:14px; padding:6px 16px; }
+            .toast { font-size:12px; padding:8px 16px; bottom:16px; }
+            .batch-bar, .quarantine-batch-bar { flex-direction:column; align-items:stretch; }
+            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content:flex-end; }
+            .import-modal .modal-content textarea { min-height:200px; font-size:14px; padding:10px 14px; }
+            .quarantine-search-box input { height:30px; font-size:12px; padding:6px 10px; }
+            .quarantine-footer-actions button { font-size:11px; padding:3px 10px; }
+            .batch-bar .actions .btn-batch-delete,
+            .batch-bar .actions .btn-batch-clear,
+            .quarantine-batch-bar .actions .btn-batch-release,
+            .quarantine-batch-bar .actions .btn-batch-clear { padding:4px 12px; font-size:11px; }
+            .thanks-modal .modal-content { max-width:95%; padding:16px; }
+            #riskModal .modal-content { max-width:95%; padding:14px; }
+            #riskModal .risk-body { max-height:50vh; font-size:13px; }
+            #updateModal .modal-content { max-width:95%; padding:0; }
+        }
+        @media (max-width:640px) {
+            body { padding:8px; }
+            .header { padding:14px 16px; }
+            .header h1 { font-size:19px; text-align:center; }
+            .header-top { flex-direction:column; align-items:stretch; gap:6px; }
+            .header-stats { justify-content:center; gap:6px 10px; }
+            .header-nav-wrapper { justify-content:center; margin-left:0; flex-wrap:wrap; gap:6px; }
+            .header-nav { align-self:center; padding:4px 8px; flex-wrap:wrap; justify-content:center; gap:2px; }
+            .nav-btn { font-size:11px; padding:4px 8px; height:26px; min-width:50px; }
+            .nav-divider, .nav-divider-gold { height:14px; margin:0 1px; }
+            .header-actions { justify-content:center; }
+            .btn-group { justify-content:center; }
+            .search-box input { height:42px; font-size:15px; padding:8px 16px; }
+            .filter-tabs button, .btn-multi { height:34px; font-size:12px; padding:4px 12px; }
+            .song-group { padding:10px 14px; }
+            .group-name { font-size:16px; }
+            .id-number { font-size:13px; }
+            .btn-copy-id, .btn-play { font-size:12px; padding:2px 12px; height:28px; }
+            .btn-delete-id { font-size:15px; height:28px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size:11px; padding:3px 12px; height:30px;
+            }
+            .modal-content { padding:18px; }
+            .modal-actions button { min-height:38px; font-size:14px; padding:6px 16px; }
+            .toast { font-size:13px; padding:8px 18px; bottom:20px; }
+            .batch-bar, .quarantine-batch-bar { flex-direction:column; align-items:stretch; }
+            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content:flex-end; }
+            .import-modal .modal-content textarea { min-height:220px; font-size:15px; }
+            .quarantine-search-box input { height:34px; font-size:13px; }
+            .quarantine-footer-actions { justify-content:center; }
+            .quarantine-footer-actions button { font-size:12px; padding:4px 12px; }
+            .batch-bar .actions .btn-batch-delete,
+            .batch-bar .actions .btn-batch-clear,
+            .quarantine-batch-bar .actions .btn-batch-release,
+            .quarantine-batch-bar .actions .btn-batch-clear { padding:5px 14px; font-size:12px; }
+            .thanks-modal .modal-content { max-width:95%; padding:18px; }
+            #riskModal .modal-content { max-width:95%; padding:16px; }
+            #riskModal .risk-body { max-height:55vh; font-size:13px; }
+            #updateModal .modal-content { max-width:95%; padding:0; }
+        }
+        @media (min-width:641px) and (max-width:1024px) {
+            .header h1 { font-size:22px; }
+            .header-nav { padding:4px 6px; }
+            .nav-btn { font-size:13px; padding:6px 16px; height:32px; }
+            .search-box input { height:46px; }
+            .filter-tabs button, .btn-multi { height:38px; }
+            .song-group { padding:14px 18px; }
+            .id-number { font-size:14px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size:12px; padding:4px 14px; height:32px;
+            }
+            .quarantine-footer-actions button { font-size:12px; padding:4px 14px; }
+            .batch-bar .actions .btn-batch-delete,
+            .batch-bar .actions .btn-batch-clear,
+            .quarantine-batch-bar .actions .btn-batch-release,
+            .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 16px; font-size:12px; }
+            #riskModal .modal-content { max-width:90%; }
+            #riskModal .risk-body { max-height:60vh; }
+        }
+        @media (min-width:1025px) {
+            .header h1 { font-size:24px; }
+            .header-nav { padding:4px 8px; }
+            .nav-btn { font-size:14px; padding:6px 20px; height:34px; }
+            .search-box input { height:48px; font-size:16px; }
+            .filter-tabs button, .btn-multi { height:40px; font-size:13px; }
+            .song-group { padding:16px 20px; }
+            .id-number { font-size:15px; }
+            .btn-copy-id, .btn-play { font-size:13px; padding:2px 16px; height:30px; }
+            .btn-delete-id { font-size:16px; height:30px; }
+            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
+            .btn-group .btn-quarantine, .btn-group .btn-batch {
+                font-size:13px; padding:4px 16px; height:34px;
+            }
+            .import-modal .modal-content textarea { min-height:300px; }
+            .quarantine-footer-actions button { font-size:13px; padding:6px 18px; }
+            .batch-bar .actions .btn-batch-delete,
+            .batch-bar .actions .btn-batch-clear,
+            .quarantine-batch-bar .actions .btn-batch-release,
+            .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 20px; font-size:13px; }
+            #riskModal .risk-body { max-height:65vh; }
         }
     </style>
 </head>
@@ -1701,6 +1362,28 @@
         </div>
     </div>
 
+    <!-- ===== 更新弹窗 ===== -->
+    <div class="modal" id="updateModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="update-header">
+                <span class="update-icon">🎉</span>
+                <h2>版本更新 <span class="update-version">v1.0.0</span></h2>
+            </div>
+            <div class="update-body" id="updateBody">
+                <div class="update-item">•新增「试听」功能，点击 🔗 试听 按钮可跳转至 Roblox 官方页面试听音乐。</div>
+                <div class="update-item">•新增法律与平台风险告知弹窗，每次试听前必须阅读并滚动到底部确认。</div>
+                <div class="update-item">•新增更新弹窗，版本更新后自动提示新内容。</div>
+                <div class="update-item">•优化界面样式，更清爽护眼。</div>
+                <div class="update-item">•修复音效自动分类问题，扩充了音效关键词。</div>
+                <div class="update-item">•隔离区去重逻辑完善。</div>
+            </div>
+            <div class="update-footer">
+                <div class="update-thanks">感谢您的使用！ ❤️</div>
+                <button class="btn-update-confirm" id="updateConfirmBtn">我知道了</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== 鸣谢名单弹窗 ===== -->
     <div class="modal thanks-modal" id="thanksModal" role="dialog" aria-modal="true">
         <div class="modal-content">
@@ -1754,17 +1437,18 @@
     <script>
         /**
          * ============================================================
-         * 配置区（可修改）
+         * 配置区
          * ============================================================
          */
-        const USE_EXTERNAL_JSON = true; // 是否从外部加载主数据
+        const USE_EXTERNAL_JSON = true;
         const EXTERNAL_JSON_URL = 'roblox_music.json';
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // 是否自动合并外部管理员隔离区
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const ADMIN_PASSWORD = 'HuTinJianZW'; // 开发者密码
+        const ADMIN_PASSWORD = 'HuTinJianZW';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
+        const UPDATE_VERSION = 'v1.0.0';
 
-        // 音效关键词列表（可自行增删）
+        // 音效关键词（可增删）
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1773,29 +1457,10 @@
 
         /**
          * ============================================================
-         * 全局变量
+         * DOM 引用（缓存常用元素）
          * ============================================================
          */
-        let songDatabase = []; // 主列表数据
-        let quarantineBinGuest = []; // 游客隔离区
-        let quarantineBinAdmin = []; // 管理员隔离区
-        let isAdmin = false; // 是否开发者模式
-        let batchMode = false; // 批量模式开关
-        let selectedIds = new Set(); // 批量选中的ID
-        let quarantineBatchMode = false; // 隔离区批量模式
-        let selectedQuarantineIds = new Set(); // 隔离区选中ID
-        let currentCategory = 'all'; // 当前分类筛选
-        let currentKeyword = ''; // 搜索关键词
-        let showMultiOnly = false; // 只显示多ID组
-        let toastTimer = null;
-        let pendingRedirectId = null; // 待跳转的ID（风险弹窗用）
-
-        /**
-         * ============================================================
-         * DOM 引用
-         * ============================================================
-         */
-        const $ = (id) => document.getElementById(id);
+        const $ = id => document.getElementById(id);
         const dom = {
             totalGroup: $('totalGroupCount'),
             totalId: $('totalIdCount'),
@@ -1855,7 +1520,28 @@
             riskConfirmBtn: $('riskConfirmBtn'),
             riskCancelBtn: $('riskCancelBtn'),
             riskBody: $('riskBody'),
+            updateModal: $('updateModal'),
+            updateConfirmBtn: $('updateConfirmBtn'),
         };
+
+        /**
+         * ============================================================
+         * 全局变量
+         * ============================================================
+         */
+        let songDatabase = [];
+        let quarantineBinGuest = [];
+        let quarantineBinAdmin = [];
+        let isAdmin = false;
+        let batchMode = false;
+        let selectedIds = new Set();
+        let quarantineBatchMode = false;
+        let selectedQuarantineIds = new Set();
+        let currentCategory = 'all';
+        let currentKeyword = '';
+        let showMultiOnly = false;
+        let toastTimer = null;
+        let pendingRedirectId = null;
 
         /**
          * ============================================================
@@ -1870,11 +1556,11 @@
 
         function cleanName(name) {
             if (!name) return '未知歌名';
-            name = name.replace(/[《》]/g, '');
-            name = name.replace(/\s*[｜\|]\s*/g, '');
-            name = name.replace(/\s*[（(][^）)]*[）)]\s*$/, '');
-            name = name.replace(/[，。、：；！？\.,;:!?]+$/, '');
-            return name.trim() || '未知歌名';
+            return name.replace(/[《》]/g, '')
+                .replace(/\s*[｜\|]\s*/g, '')
+                .replace(/\s*[（(][^）)]*[）)]\s*$/, '')
+                .replace(/[，。、：；！？\.,;:!?]+$/, '')
+                .trim() || '未知歌名';
         }
 
         function showToast(msg) {
@@ -1908,30 +1594,30 @@
 
         /**
          * ============================================================
-         * 确认对话框（Promise 封装）
+         * 确认对话框
          * ============================================================
          */
         function showConfirm(title, message) {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 const modal = dom.confirmModal;
                 dom.confirmTitle.textContent = title;
                 dom.confirmMessage.textContent = message;
                 modal.classList.add('show');
 
-                const okHandler = () => { modal.classList.remove('show');
+                const ok = () => { modal.classList.remove('show');
                     resolve(true); };
-                const cancelHandler = () => { modal.classList.remove('show');
+                const cancel = () => { modal.classList.remove('show');
                     resolve(false); };
-                const clickOutside = (e) => {
+                const outside = e => {
                     if (e.target === modal) {
-                        modal.removeEventListener('click', clickOutside);
+                        modal.removeEventListener('click', outside);
                         resolve(false);
                     }
                 };
 
-                dom.confirmOk.onclick = okHandler;
-                dom.confirmCancel.onclick = cancelHandler;
-                modal.addEventListener('click', clickOutside);
+                dom.confirmOk.onclick = ok;
+                dom.confirmCancel.onclick = cancel;
+                modal.addEventListener('click', outside);
             });
         }
 
@@ -1939,7 +1625,7 @@
             dom.copyrightYear.textContent = new Date().getFullYear();
             dom.contactModal.classList.add('show');
             dom.contactOk.onclick = () => dom.contactModal.classList.remove('show');
-            dom.contactModal.onclick = (e) => {
+            dom.contactModal.onclick = e => {
                 if (e.target === dom.contactModal) dom.contactModal.classList.remove('show');
             };
         }
@@ -1950,20 +1636,16 @@
          * ============================================================
          */
         function showRiskModal(id) {
-            // 开发者模式直接跳转，无弹窗
             if (isAdmin) {
                 window.open(`https://www.roblox.com/library/${id}/`, '_blank');
                 return;
             }
-            // 游客模式：显示风险弹窗
             pendingRedirectId = id;
             dom.riskModal.classList.add('show');
-            // 每次打开都重置滚动到顶部，强制用户滚动到底部才能看到按钮
             dom.riskBody.scrollTop = 0;
         }
 
-        // 确认跳转
-        dom.riskConfirmBtn.addEventListener('click', function() {
+        dom.riskConfirmBtn.addEventListener('click', () => {
             if (pendingRedirectId) {
                 window.open(`https://www.roblox.com/library/${pendingRedirectId}/`, '_blank');
                 pendingRedirectId = null;
@@ -1971,149 +1653,132 @@
             dom.riskModal.classList.remove('show');
         });
 
-        // 取消跳转
-        dom.riskCancelBtn.addEventListener('click', function() {
+        dom.riskCancelBtn.addEventListener('click', () => {
             pendingRedirectId = null;
             dom.riskModal.classList.remove('show');
         });
 
-        // 点击外部关闭弹窗
-        dom.riskModal.addEventListener('click', function(e) {
-            if (e.target === this) {
+        dom.riskModal.addEventListener('click', e => {
+            if (e.target === dom.riskModal) {
                 pendingRedirectId = null;
-                this.classList.remove('show');
+                dom.riskModal.classList.remove('show');
             }
         });
 
         /**
          * ============================================================
-         * 数据持久化（localStorage）
+         * 数据持久化
          * ============================================================
          */
         function saveData() {
-            localStorage.setItem('songDB', JSON.stringify(songDatabase));
-            localStorage.setItem('quarantineBinGuest', JSON.stringify(quarantineBinGuest));
-            localStorage.setItem('quarantineBinAdmin', JSON.stringify(quarantineBinAdmin));
+            try {
+                localStorage.setItem('songDB', JSON.stringify(songDatabase));
+                localStorage.setItem('quarantineBinGuest', JSON.stringify(quarantineBinGuest));
+                localStorage.setItem('quarantineBinAdmin', JSON.stringify(quarantineBinAdmin));
+            } catch (e) { /* 存储空间满或不可用 */ }
         }
 
         /**
          * ============================================================
-         * 数据加载（主数据 + 隔离区）
+         * 数据加载（带缓存优化）
          * ============================================================
          */
         function loadData() {
             // 读取本地隔离区
-            const guestStored = localStorage.getItem('quarantineBinGuest');
-            if (guestStored) {
-                try { quarantineBinGuest = JSON.parse(guestStored); } catch (e) { quarantineBinGuest = []; }
-            } else {
+            try {
+                const g = localStorage.getItem('quarantineBinGuest');
+                quarantineBinGuest = g ? JSON.parse(g) : [];
+                const a = localStorage.getItem('quarantineBinAdmin');
+                quarantineBinAdmin = a ? JSON.parse(a) : [];
+            } catch (e) {
                 quarantineBinGuest = [];
-            }
-            const adminStored = localStorage.getItem('quarantineBinAdmin');
-            if (adminStored) {
-                try { quarantineBinAdmin = JSON.parse(adminStored); } catch (e) { quarantineBinAdmin = []; }
-            } else {
                 quarantineBinAdmin = [];
             }
 
-            // 主数据：每次刷新重新请求（带时间戳防缓存）
-            if (USE_EXTERNAL_JSON) {
-                const url = EXTERNAL_JSON_URL + '?t=' + Date.now();
-                fetch(url)
-                    .then(res => {
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        return res.json();
-                    })
-                    .then(data => {
-                        const filterIds = getFilterIds();
-                        songDatabase = data
-                            .filter(i => !filterIds.has(i.id))
-                            .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
-
-                        // 自动音效分类（每次加载执行）
-                        if (songDatabase.length > 0) {
-                            let updated = 0;
-                            songDatabase.forEach(item => {
-                                const lower = item.name.toLowerCase();
-                                if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
-                                    if (item.category !== '搞笑音效') {
-                                        item.category = '搞笑音效';
-                                        updated++;
-                                    }
-                                }
-                            });
-                            if (updated > 0) {
-                                saveData();
-                                console.log(`✅ 自动分类完成，${updated} 个ID归入“搞笑音效”`);
-                            }
-                        }
-
-                        saveData();
-                        console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 个ID`);
-                        loadExternalAdminQuarantine();
-                        renderAll();
-                    })
-                    .catch(err => {
-                        console.error('❌ 主数据加载失败:', err);
-                        songDatabase = [];
-                        loadExternalAdminQuarantine();
-                        renderAll();
-                        showToast('⚠️ 主数据加载失败，请检查 roblox_music.json');
-                    });
-            } else {
+            if (!USE_EXTERNAL_JSON) {
                 songDatabase = [];
                 loadExternalAdminQuarantine();
                 renderAll();
+                return;
             }
+
+            const url = EXTERNAL_JSON_URL + '?t=' + Date.now();
+            fetch(url, { cache: 'no-store' })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    const filterIds = getFilterIds();
+                    songDatabase = data
+                        .filter(i => !filterIds.has(i.id))
+                        .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
+
+                    // 自动音效分类
+                    if (songDatabase.length > 0) {
+                        let updated = 0;
+                        songDatabase.forEach(item => {
+                            const lower = item.name.toLowerCase();
+                            if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
+                                if (item.category !== '搞笑音效') {
+                                    item.category = '搞笑音效';
+                                    updated++;
+                                }
+                            }
+                        });
+                        if (updated > 0) saveData();
+                    }
+
+                    saveData();
+                    console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 个ID`);
+                    loadExternalAdminQuarantine();
+                    renderAll();
+                })
+                .catch(err => {
+                    console.error('❌ 主数据加载失败:', err);
+                    songDatabase = [];
+                    loadExternalAdminQuarantine();
+                    renderAll();
+                    showToast('⚠️ 主数据加载失败，请检查 roblox_music.json');
+                });
         }
 
         function getFilterIds() {
             const ids = new Set();
-            quarantineBinAdmin.forEach(item => ids.add(item.id));
-            if (!isAdmin) {
-                quarantineBinGuest.forEach(item => ids.add(item.id));
-            }
+            quarantineBinAdmin.forEach(i => ids.add(i.id));
+            if (!isAdmin) quarantineBinGuest.forEach(i => ids.add(i.id));
             return ids;
         }
 
         function loadExternalAdminQuarantine() {
             if (!USE_EXTERNAL_QUARANTINE_ADMIN) return;
             const url = EXTERNAL_QUARANTINE_ADMIN_URL + '?t=' + Date.now();
-            fetch(url)
+            fetch(url, { cache: 'no-store' })
                 .then(res => {
-                    if (!res.ok) {
-                        console.log('ℹ️ 外部管理员隔离区文件不存在，跳过');
-                        return null;
-                    }
+                    if (!res.ok) { console.log('ℹ️ 外部管理员隔离区不存在，跳过'); return null; }
                     return res.json();
                 })
                 .then(data => {
                     if (!data || !Array.isArray(data)) return;
-                    const existingIds = new Set(quarantineBinAdmin.map(i => i.id));
+                    const existing = new Set(quarantineBinAdmin.map(i => i.id));
                     let added = 0;
                     data.forEach(item => {
-                        if (!existingIds.has(item.id)) {
-                            if (!item.quarantinedAt) {
-                                item.quarantinedAt = getNowStr();
-                            }
+                        if (!existing.has(item.id)) {
+                            if (!item.quarantinedAt) item.quarantinedAt = getNowStr();
                             quarantineBinAdmin.push(item);
-                            existingIds.add(item.id);
+                            existing.add(item.id);
                             added++;
                         }
                     });
-                    if (added > 0) {
-                        saveData();
-                        console.log(`✅ 外部管理员隔离区合并完成，新增 ${added} 个ID`);
-                    }
+                    if (added > 0) { saveData();
+                        console.log(`✅ 外部管理员隔离区合并完成，新增 ${added} 个ID`); }
                 })
-                .catch(err => {
-                    console.log('ℹ️ 外部管理员隔离区加载失败（可忽略）');
-                });
+                .catch(err => console.log('ℹ️ 外部管理员隔离区加载失败（可忽略）'));
         }
 
         /**
          * ============================================================
-         * 模式切换（游客/开发者）
+         * 模式切换
          * ============================================================
          */
         function loadMode() {
@@ -2123,21 +1788,17 @@
 
         function applyMode() {
             const container = dom.appContainer;
-            const label = dom.modeLabel;
-            const quarantineBtn = dom.openQuarantineBtn;
+            dom.modeLabel.textContent = isAdmin ? '开发者' : '游客';
+            dom.openQuarantineBtn.textContent = isAdmin ? '⛔ 隔离区（开发者）' : '⛔ 隔离区（游客）';
 
             if (isAdmin) {
                 container.classList.remove('mode-readonly');
                 container.classList.add('mode-manage');
-                label.textContent = '开发者';
-                quarantineBtn.textContent = '⛔ 隔离区（开发者）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             } else {
                 container.classList.remove('mode-manage');
                 container.classList.add('mode-readonly');
-                label.textContent = '游客';
-                quarantineBtn.textContent = '⛔ 隔离区（游客）';
                 if (batchMode) toggleBatchMode(false);
                 if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             }
@@ -2181,11 +1842,11 @@
 
         /**
          * ============================================================
-         * 主列表批量操作
+         * 批量操作
          * ============================================================
          */
         function toggleBatchMode(forceState) {
-            const newState = (forceState !== undefined) ? forceState : !batchMode;
+            const newState = forceState !== undefined ? forceState : !batchMode;
             if (newState === batchMode) return;
             batchMode = newState;
 
@@ -2219,63 +1880,49 @@
 
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
-            const modeName = getModeName();
             const confirmed = await showConfirm('批量隔离',
-                `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${modeName}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
+                `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
             );
             if (!confirmed) return;
 
-            const targetQuarantine = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
+            const target = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
             const toDelete = [];
             const newDb = [];
-            for (let item of songDatabase) {
+            const timeStr = getNowStr();
+            for (const item of songDatabase) {
                 if (selectedIds.has(item.id)) {
-                    toDelete.push(item);
+                    toDelete.push({ ...item, quarantinedAt: timeStr });
                 } else {
                     newDb.push(item);
                 }
             }
-            const timeStr = getNowStr();
-            toDelete.forEach(item => {
-                targetQuarantine.push({ ...item, quarantinedAt: timeStr });
-            });
+            target.push(...toDelete);
             songDatabase = newDb;
             selectedIds.clear();
             saveData();
-            showToast(`🗑️ 已移入隔离区 ${toDelete.length} 个ID（${modeName}模式）`);
+            showToast(`🗑️ 已移入隔离区 ${toDelete.length} 个ID（${getModeName()}模式）`);
             if (batchMode) toggleBatchMode(false);
             renderAll();
-            if (dom.quarantineModal.classList.contains('show')) {
-                renderQuarantineList();
-            }
+            if (dom.quarantineModal.classList.contains('show')) renderQuarantineList();
             updateSelectedCount();
         }
 
-        /**
-         * ============================================================
-         * 单个隔离（点击 ✕ 按钮）
-         * ============================================================
-         */
         async function moveToQuarantine(name, id) {
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
             if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
             const item = songDatabase[idx];
-            const modeName = getModeName();
             const confirmed = await showConfirm('隔离',
-                `确定将 ID ${id}（歌名：${name}）移入隔离区（${modeName}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
+                `确定将 ID ${id}（歌名：${name}）移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
             );
             if (!confirmed) return;
 
             songDatabase.splice(idx, 1);
-            const timeStr = getNowStr();
-            const targetQuarantine = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
-            targetQuarantine.push({ ...item, quarantinedAt: timeStr });
+            const target = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
+            target.push({ ...item, quarantinedAt: getNowStr() });
             saveData();
-            showToast(`⛔ ID ${id} 已移入隔离区（${modeName}模式）`);
+            showToast(`⛔ ID ${id} 已移入隔离区（${getModeName()}模式）`);
             renderAll();
-            if (dom.quarantineModal.classList.contains('show')) {
-                renderQuarantineList();
-            }
+            if (dom.quarantineModal.classList.contains('show')) renderQuarantineList();
         }
 
         /**
@@ -2284,7 +1931,7 @@
          * ============================================================
          */
         function toggleQuarantineBatchMode(forceState) {
-            const newState = (forceState !== undefined) ? forceState : !quarantineBatchMode;
+            const newState = forceState !== undefined ? forceState : !quarantineBatchMode;
             if (newState === quarantineBatchMode) return;
             quarantineBatchMode = newState;
 
@@ -2325,7 +1972,7 @@
 
             const toRelease = [];
             const newQuarantine = [];
-            for (let item of quarantine) {
+            for (const item of quarantine) {
                 if (selectedQuarantineIds.has(item.id)) {
                     toRelease.push(item);
                 } else {
@@ -2333,26 +1980,23 @@
                 }
             }
 
-            const existingIds = new Set(songDatabase.map(i => i.id));
-            let addedCount = 0;
+            const existing = new Set(songDatabase.map(i => i.id));
+            let added = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
-            toRelease.forEach((item, index) => {
-                if (!existingIds.has(item.id)) {
-                    item.lineIndex = maxLine + 1 + addedCount;
+            for (const item of toRelease) {
+                if (!existing.has(item.id)) {
+                    item.lineIndex = maxLine + 1 + added;
                     songDatabase.push(item);
-                    existingIds.add(item.id);
-                    addedCount++;
+                    existing.add(item.id);
+                    added++;
                 }
-            });
-
-            if (isAdmin) {
-                quarantineBinAdmin = newQuarantine;
-            } else {
-                quarantineBinGuest = newQuarantine;
             }
+
+            if (isAdmin) quarantineBinAdmin = newQuarantine;
+            else quarantineBinGuest = newQuarantine;
             selectedQuarantineIds.clear();
             saveData();
-            showToast(`🔓 已恢复 ${addedCount} 个ID（跳过 ${toRelease.length - addedCount} 个已存在的ID）`);
+            showToast(`🔓 已恢复 ${added} 个ID（跳过 ${toRelease.length - added} 个已存在的ID）`);
             if (quarantineBatchMode) toggleQuarantineBatchMode(false);
             renderAll();
             renderQuarantineList();
@@ -2390,28 +2034,25 @@
             );
             if (!confirmed) return;
 
-            const existingIds = new Set(songDatabase.map(i => i.id));
-            let addedCount = 0;
+            const existing = new Set(songDatabase.map(i => i.id));
+            let added = 0;
             const maxLine = songDatabase.reduce((m, i) => i.lineIndex > m ? i.lineIndex : m, 0);
             const toKeep = [];
-            quarantine.forEach(item => {
-                if (existingIds.has(item.id)) {
+            for (const item of quarantine) {
+                if (existing.has(item.id)) {
                     toKeep.push(item);
                 } else {
-                    item.lineIndex = maxLine + 1 + addedCount;
+                    item.lineIndex = maxLine + 1 + added;
                     songDatabase.push(item);
-                    existingIds.add(item.id);
-                    addedCount++;
+                    existing.add(item.id);
+                    added++;
                 }
-            });
-
-            if (isAdmin) {
-                quarantineBinAdmin = toKeep;
-            } else {
-                quarantineBinGuest = toKeep;
             }
+
+            if (isAdmin) quarantineBinAdmin = toKeep;
+            else quarantineBinGuest = toKeep;
             saveData();
-            showToast(`♻️ 已恢复 ${addedCount} 个ID（跳过 ${quarantine.length - addedCount} 个已存在的ID）`);
+            showToast(`♻️ 已恢复 ${added} 个ID（跳过 ${quarantine.length - added} 个已存在的ID）`);
             renderAll();
             renderQuarantineList();
         }
@@ -2420,22 +2061,14 @@
             const quarantine = getCurrentQuarantine();
             if (quarantine.length === 0) { showToast('隔离区是空的，无需导出'); return; }
 
-            let title, message;
-            if (isAdmin) {
-                title = '⛔ 隔离区（开发者）';
-                message =
-                    `您即将导出开发者隔离区中的所有ID列表！\n\n导出内容：已认定的无效/问题ID（共 ${quarantine.length} 个）。\n\n注意：此文件可用于备份或迁移黑名单数据！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
-            } else {
-                title = '⛔ 隔离区（游客）';
-                message =
-                    `您即将导出隔离区中的所有ID列表！\n\n导出内容：不可用/有问题的ID（共 ${quarantine.length} 个）。\n\n注意：此文件仅用于向开发者反馈有问题的ID！\n导出的数据仅代表您的建议，开发者将逐一审核，不保证全部采纳！\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
-            }
+            const title = isAdmin ? '⛔ 隔离区（开发者）' : '⛔ 隔离区（游客）';
+            const msg =
+                `您即将导出${isAdmin ? '开发者' : '游客'}隔离区中的所有ID列表！\n\n导出内容：${isAdmin ? '已认定的无效/问题' : '不可用/有问题的'}ID（共 ${quarantine.length} 个）。\n\n${isAdmin ? '此文件可用于备份或迁移黑名单数据！' : '此文件仅用于向开发者反馈有问题的ID！导出的数据仅代表您的建议，开发者将逐一审核，不保证全部采纳！'}\n\n请确认这些ID确实无效后再导出！\n是否确认导出？`;
 
-            const confirmed = await showConfirm(title, message);
+            const confirmed = await showConfirm(title, msg);
             if (!confirmed) return;
 
-            const dataStr = JSON.stringify(quarantine, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(quarantine, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -2443,24 +2076,18 @@
             a.click();
             URL.revokeObjectURL(url);
 
-            if (!isAdmin) {
-                setTimeout(() => showContactModal(), 300);
-            }
+            if (!isAdmin) setTimeout(() => showContactModal(), 300);
         }
 
         function renderQuarantineList() {
             const container = dom.quarantineList;
             const title = dom.quarantineTitle;
-            const searchKeyword = dom.quarantineSearch.value.trim().toLowerCase();
+            const keyword = dom.quarantineSearch.value.trim().toLowerCase();
 
             const quarantine = getCurrentQuarantine();
-            let filtered = quarantine;
-            if (searchKeyword) {
-                filtered = filtered.filter(item =>
-                    item.name.toLowerCase().includes(searchKeyword) ||
-                    item.id.includes(searchKeyword)
-                );
-            }
+            let filtered = keyword ? quarantine.filter(i =>
+                i.name.toLowerCase().includes(keyword) || i.id.includes(keyword)
+            ) : quarantine;
 
             const modeLabel = getModeName();
             if (filtered.length === 0) {
@@ -2471,44 +2098,39 @@
             title.textContent = `⛔ 隔离区（${modeLabel}）（${filtered.length} 个ID）`;
 
             const sorted = [...filtered].sort((a, b) => {
-                const timeA = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
-                const timeB = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
-                return timeB - timeA;
+                const ta = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
+                const tb = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
+                return tb - ta;
             });
 
             let html = '';
-            sorted.forEach(item => {
+            for (const item of sorted) {
                 const time = item.quarantinedAt || '未知时间';
                 const checked = selectedQuarantineIds.has(item.id) ? 'checked' : '';
                 html += `
-                        <div class="quarantine-item">
-                            <div class="info">
-                                <input type="checkbox" class="quarantine-checkbox" data-id="${escapeHtml(item.id)}" ${checked}>
-                                <span class="name">${escapeHtml(item.name)}</span>
-                                <span class="id">${escapeHtml(item.id)}</span>
-                                <span class="time">⛔ ${escapeHtml(time)}</span>
-                            </div>
-                            <div class="quarantine-actions">
-                                <button class="release-btn" data-id="${escapeHtml(item.id)}">🔓 恢复</button>
-                            </div>
+                    <div class="quarantine-item">
+                        <div class="info">
+                            <input type="checkbox" class="quarantine-checkbox" data-id="${escapeHtml(item.id)}" ${checked}>
+                            <span class="name">${escapeHtml(item.name)}</span>
+                            <span class="id">${escapeHtml(item.id)}</span>
+                            <span class="time">⛔ ${escapeHtml(time)}</span>
                         </div>
-                    `;
-            });
+                        <div class="quarantine-actions">
+                            <button class="release-btn" data-id="${escapeHtml(item.id)}">🔓 恢复</button>
+                        </div>
+                    </div>
+                `;
+            }
             container.innerHTML = html;
 
             container.querySelectorAll('.quarantine-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
-                    if (this.checked) {
-                        selectedQuarantineIds.add(id);
-                    } else {
-                        selectedQuarantineIds.delete(id);
-                    }
+                    if (this.checked) selectedQuarantineIds.add(id);
+                    else selectedQuarantineIds.delete(id);
                     updateQuarantineSelectedCount();
                 };
-                if (selectedQuarantineIds.has(cb.dataset.id)) {
-                    cb.checked = true;
-                }
+                if (selectedQuarantineIds.has(cb.dataset.id)) cb.checked = true;
             });
 
             container.querySelectorAll('.release-btn').forEach(btn => {
@@ -2520,15 +2142,14 @@
 
         /**
          * ============================================================
-         * 鸣谢名单（外部JSON + 时间戳自动刷新）
+         * 鸣谢名单
          * ============================================================
          */
         function loadThanksList() {
             const container = dom.thanksListContainer;
             container.innerHTML = '<div class="thanks-empty">加载中...</div>';
 
-            const url = THANKS_JSON_URL + '?t=' + Date.now();
-            fetch(url)
+            fetch(THANKS_JSON_URL + '?t=' + Date.now(), { cache: 'no-store' })
                 .then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
@@ -2540,41 +2161,32 @@
                     }
                     renderThanksData(data);
                 })
-                .catch(err => {
-                    console.warn('鸣谢名单加载失败:', err);
+                .catch(() => {
                     container.innerHTML = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
                 });
         }
 
         function renderThanksData(data) {
-            const container = dom.thanksListContainer;
             let html = '';
-            data.forEach(category => {
-                if (!category.people || category.people.length === 0) return;
+            for (const category of data) {
+                if (!category.people || category.people.length === 0) continue;
                 html += `<div class="thanks-category">`;
                 html += `<div class="cat-title">${escapeHtml(category.category)}</div>`;
-                category.people.forEach(person => {
+                for (const person of category.people) {
                     html += `<div class="thanks-person">`;
                     html += `<span class="name">${escapeHtml(person.name)}</span>`;
-                    if (person.platform) {
-                        html += `<span class="platform">· ${escapeHtml(person.platform)}</span>`;
-                    }
-                    if (person.message) {
-                        html += `<span class="message">${escapeHtml(person.message)}</span>`;
-                    }
+                    if (person.platform) html += `<span class="platform">· ${escapeHtml(person.platform)}</span>`;
+                    if (person.message) html += `<span class="message">${escapeHtml(person.message)}</span>`;
                     html += `</div>`;
-                });
+                }
                 html += `</div>`;
-            });
-            if (!html) {
-                html = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
             }
-            container.innerHTML = html;
+            dom.thanksListContainer.innerHTML = html || '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
         }
 
         /**
          * ============================================================
-         * 导入主列表（解析粘贴文本）
+         * 导入主列表
          * ============================================================
          */
         function parseRawText(text) {
@@ -2589,22 +2201,19 @@
 
                 const ids = [];
                 let match;
-                while ((match = idRegex.exec(line)) !== null) {
-                    ids.push(match[1]);
-                }
+                while ((match = idRegex.exec(line)) !== null) ids.push(match[1]);
                 if (ids.length === 0) { globalLineIndex++; continue; }
 
                 let name = line;
-                ids.forEach(id => { name = name.replace(id, ''); });
-                name = name.replace(/^[\d]+[\.\、\s]+/, '');
-                name = name.replace(/^[\d]+[\s]*[\)）]/, '');
-                name = name.replace(/^[\|•·\-\s]+/, '');
-                name = name.replace(/[\|•·\-]+$/, '');
-                name = cleanName(name);
-                if (!name) name = '未知歌名';
+                for (const id of ids) name = name.replace(id, '');
+                name = name.replace(/^[\d]+[\.\、\s]+/, '')
+                    .replace(/^[\d]+[\s]*[\)）]/, '')
+                    .replace(/^[\|•·\-\s]+/, '')
+                    .replace(/[\|•·\-]+$/, '');
+                name = cleanName(name) || '未知歌名';
 
-                ids.forEach((id, idx) => {
-                    if (result.some(r => r.id === id)) return;
+                for (const id of ids) {
+                    if (result.some(r => r.id === id)) continue;
                     let category = '中文流行';
                     const lower = name.toLowerCase();
 
@@ -2624,13 +2233,8 @@
                         category = '英文热门';
                     }
 
-                    result.push({
-                        id: id,
-                        name: name,
-                        category: category,
-                        lineIndex: globalLineIndex + idx * 0.1
-                    });
-                });
+                    result.push({ id, name, category, lineIndex: globalLineIndex + ids.indexOf(id) * 0.1 });
+                }
                 globalLineIndex++;
             }
             return result;
@@ -2649,25 +2253,25 @@
             const skipped = parsed.length - toAdd.length;
 
             const existingMap = {};
-            songDatabase.forEach(i => { existingMap[i.id] = i; });
+            for (const i of songDatabase) existingMap[i.id] = i;
+
             let added = 0,
                 updated = 0;
-            toAdd.forEach(newItem => {
-                if (existingMap[newItem.id]) {
-                    const old = existingMap[newItem.id];
-                    if (old.name !== newItem.name || old.category !== newItem.category || old.lineIndex !== newItem
-                        .lineIndex) {
-                        old.name = newItem.name;
-                        old.category = newItem.category;
-                        old.lineIndex = newItem.lineIndex;
+            for (const item of toAdd) {
+                if (existingMap[item.id]) {
+                    const old = existingMap[item.id];
+                    if (old.name !== item.name || old.category !== item.category || old.lineIndex !== item.lineIndex) {
+                        old.name = item.name;
+                        old.category = item.category;
+                        old.lineIndex = item.lineIndex;
                         updated++;
                     }
                 } else {
-                    songDatabase.push(newItem);
-                    existingMap[newItem.id] = newItem;
+                    songDatabase.push(item);
+                    existingMap[item.id] = item;
                     added++;
                 }
-            });
+            }
 
             saveData();
             let msg = `✅ 导入完成！新增 ${added} 个，更新 ${updated} 个`;
@@ -2679,7 +2283,7 @@
 
         /**
          * ============================================================
-         * 开发者操作（清空、导出主列表）
+         * 开发者操作
          * ============================================================
          */
         async function clearAllData() {
@@ -2703,8 +2307,7 @@
             );
             if (!confirmed) return;
 
-            const dataStr = JSON.stringify(songDatabase, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(songDatabase, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -2716,7 +2319,7 @@
 
         /**
          * ============================================================
-         * 主渲染引擎
+         * 主渲染
          * ============================================================
          */
         function renderAll() {
@@ -2725,25 +2328,23 @@
             dom.totalId.textContent = songDatabase.length;
 
             const nameCountMap = {};
-            songDatabase.forEach(i => { nameCountMap[i.name] = (nameCountMap[i.name] || 0) + 1; });
-            let multiCount = Object.values(nameCountMap).filter(c => c > 1).length;
-            dom.multiGroup.textContent = multiCount;
+            for (const i of songDatabase) nameCountMap[i.name] = (nameCountMap[i.name] || 0) + 1;
+            dom.multiGroup.textContent = Object.values(nameCountMap).filter(c => c > 1).length;
 
-            // 生成分类标签
+            // 分类标签
             const tabsContainer = dom.categoryTabs;
             while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
             const categories = new Set(songDatabase.map(i => i.category));
-            categories.forEach(cat => {
+            for (const cat of categories) {
                 const btn = document.createElement('button');
                 btn.dataset.cat = cat;
                 btn.textContent = cat;
                 btn.setAttribute('role', 'tab');
                 tabsContainer.appendChild(btn);
-            });
+            }
 
-            // 分类切换事件
             const allBtns = tabsContainer.querySelectorAll('button');
-            allBtns.forEach(btn => {
+            for (const btn of allBtns) {
                 btn.onclick = function() {
                     const cat = this.dataset.cat;
                     if (cat === 'all') {
@@ -2756,23 +2357,20 @@
                     } else {
                         currentCategory = cat;
                     }
-                    allBtns.forEach(b => b.classList.remove('active'));
+                    for (const b of allBtns) b.classList.remove('active');
                     this.classList.add('active');
                     renderList();
                 };
-            });
-            allBtns.forEach(b => {
-                if (b.dataset.cat === currentCategory) b.classList.add('active');
-                else b.classList.remove('active');
-            });
+            }
+            for (const b of allBtns) {
+                b.classList.toggle('active', b.dataset.cat === currentCategory);
+            }
 
-            // 搜索输入
             dom.searchInput.oninput = function() {
                 currentKeyword = this.value;
                 renderList();
             };
 
-            // 多ID切换
             dom.multiToggleBtn.onclick = function() {
                 showMultiOnly = !showMultiOnly;
                 this.classList.toggle('active');
@@ -2787,21 +2385,17 @@
             renderList();
         }
 
-        /**
-         * 渲染主列表（分组展示）
-         */
         function renderList() {
             const keyword = currentKeyword.trim().toLowerCase();
 
-            let filtered = songDatabase.filter(item => {
+            const filtered = songDatabase.filter(item => {
                 const catMatch = currentCategory === 'all' || item.category === currentCategory;
                 const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
                 return catMatch && kwMatch;
             });
 
-            // 按歌名分组
             const groupMap = {};
-            filtered.forEach(item => {
+            for (const item of filtered) {
                 if (!groupMap[item.name]) {
                     groupMap[item.name] = { name: item.name, ids: [], categories: new Set(), firstLine: Infinity };
                 }
@@ -2810,29 +2404,24 @@
                 if (item.lineIndex < groupMap[item.name].firstLine) {
                     groupMap[item.name].firstLine = item.lineIndex;
                 }
-            });
+            }
 
             let groups = Object.values(groupMap);
             groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
-
-            if (showMultiOnly) {
-                groups = groups.filter(g => g.ids.length > 1);
-            }
+            if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
 
             const container = dom.songContainer;
-            const empty = dom.emptyState;
-
             if (groups.length === 0) {
                 container.innerHTML = '';
-                empty.style.display = 'block';
+                dom.emptyState.style.display = 'block';
                 return;
             }
-            empty.style.display = 'none';
+            dom.emptyState.style.display = 'none';
 
             let html = '';
-            groups.forEach(group => {
+            for (const group of groups) {
                 group.ids.sort((a, b) => Number(a) - Number(b));
-                const catStr = Array.from(group.categories).join(' / ');
+                const catStr = [...group.categories].join(' / ');
                 const safeName = escapeHtml(group.name);
                 const isMulti = group.ids.length > 1;
 
@@ -2840,57 +2429,52 @@
                 if (isMulti) nameHtml += ` <span class="badge-multi">多ID</span>`;
 
                 let rowsHtml = '';
-                group.ids.forEach(id => {
+                for (const id of group.ids) {
                     const checked = selectedIds.has(id) ? 'checked' : '';
                     rowsHtml += `
-                            <div class="id-row">
-                                <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
-                                <span class="id-number">${escapeHtml(id)}</span>
-                                <div class="id-actions">
-                                    <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
-                                    <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
-                                    <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
-                                </div>
+                        <div class="id-row">
+                            <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
+                            <span class="id-number">${escapeHtml(id)}</span>
+                            <div class="id-actions">
+                                <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
+                                <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
+                                <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
                             </div>
-                        `;
-                });
-
-                html += `
-                        <div class="song-group" data-group-name="${safeName}">
-                            <div class="group-header">
-                                <div class="group-name">${nameHtml}</div>
-                                <div class="group-right">
-                                    <span class="group-category">${escapeHtml(catStr)}</span>
-                                </div>
-                            </div>
-                            <div class="id-list">${rowsHtml}</div>
                         </div>
                     `;
-            });
+                }
+
+                html += `
+                    <div class="song-group" data-group-name="${safeName}">
+                        <div class="group-header">
+                            <div class="group-name">${nameHtml}</div>
+                            <div class="group-right">
+                                <span class="group-category">${escapeHtml(catStr)}</span>
+                            </div>
+                        </div>
+                        <div class="id-list">${rowsHtml}</div>
+                    </div>
+                `;
+            }
 
             container.innerHTML = html;
 
-            // 事件委托：复制、试听、隔离
+            // 事件委托
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
 
-                // 试听（含风险弹窗）
                 if (target.classList.contains('btn-play')) {
                     e.stopPropagation();
                     showRiskModal(target.dataset.id);
                     return;
                 }
-
-                // 复制
                 if (target.classList.contains('btn-copy-id')) {
                     e.stopPropagation();
                     copyToClipboard(target.dataset.id, target);
                     showToast('✅ 已复制ID');
                     return;
                 }
-
-                // 隔离
                 if (target.classList.contains('btn-delete-id')) {
                     e.stopPropagation();
                     moveToQuarantine(target.dataset.name, target.dataset.id);
@@ -2899,20 +2483,15 @@
             };
 
             // 复选框
-            container.querySelectorAll('.id-checkbox').forEach(cb => {
+            for (const cb of container.querySelectorAll('.id-checkbox')) {
                 cb.onchange = function() {
                     const id = this.dataset.id;
-                    if (this.checked) {
-                        selectedIds.add(id);
-                    } else {
-                        selectedIds.delete(id);
-                    }
+                    if (this.checked) selectedIds.add(id);
+                    else selectedIds.delete(id);
                     updateSelectedCount();
                 };
-                if (selectedIds.has(cb.dataset.id)) {
-                    cb.checked = true;
-                }
-            });
+                if (selectedIds.has(cb.dataset.id)) cb.checked = true;
+            }
 
             updateSelectedCount();
         }
@@ -2923,7 +2502,7 @@
          * ============================================================
          */
         function copyToClipboard(text, btn) {
-            if (navigator.clipboard?.writeText) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)
                     .then(() => showCopiedFeedback(btn))
                     .catch(() => fallbackCopy(text, btn));
@@ -2935,8 +2514,7 @@
         function fallbackCopy(text, btn) {
             const ta = document.createElement('textarea');
             ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
+            ta.style.cssText = 'position:fixed;opacity:0;';
             document.body.appendChild(ta);
             ta.select();
             try {
@@ -2960,17 +2538,33 @@
 
         /**
          * ============================================================
+         * 更新弹窗
+         * ============================================================
+         */
+        function checkUpdate() {
+            if (localStorage.getItem('updateVersion') !== UPDATE_VERSION) {
+                dom.updateModal.classList.add('show');
+                localStorage.setItem('updateVersion', UPDATE_VERSION);
+            }
+        }
+
+        dom.updateConfirmBtn.addEventListener('click', () => dom.updateModal.classList.remove('show'));
+        dom.updateModal.addEventListener('click', e => {
+            if (e.target === dom.updateModal) dom.updateModal.classList.remove('show');
+        });
+
+        /**
+         * ============================================================
          * 初始化
          * ============================================================
          */
         document.addEventListener('DOMContentLoaded', function() {
             loadMode();
             loadData();
+            checkUpdate();
 
-            // 双击标题切换模式
             dom.mainTitle.addEventListener('dblclick', toggleAdminMode);
 
-            // ---- 导入主列表 ----
             dom.openImportBtn.addEventListener('click', function() {
                 if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 dom.importModal.classList.add('show');
@@ -2981,19 +2575,13 @@
             dom.confirmImport.addEventListener('click', function() {
                 if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 const raw = dom.rawText.value;
-                if (!raw.trim()) {
-                    dom.importStatus.textContent = '⚠️ 请粘贴数据';
-                    return;
-                }
+                if (!raw.trim()) { dom.importStatus.textContent = '⚠️ 请粘贴数据'; return; }
                 importData(raw);
             });
 
-            // ---- 导出主列表 ----
             dom.exportBtn.addEventListener('click', exportData);
-            // ---- 清空列表 ----
             dom.clearAllBtn.addEventListener('click', clearAllData);
 
-            // ---- 隔离区 ----
             dom.openQuarantineBtn.addEventListener('click', function() {
                 updateQuarantineTitle();
                 dom.quarantineModal.classList.add('show');
@@ -3019,14 +2607,10 @@
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
 
-            // ---- 主列表批量 ----
-            dom.batchToggle.addEventListener('click', function() {
-                toggleBatchMode();
-            });
+            dom.batchToggle.addEventListener('click', () => toggleBatchMode());
             dom.batchClear.addEventListener('click', clearSelected);
             dom.batchDelete.addEventListener('click', batchDelete);
 
-            // ---- 密码弹窗 ----
             dom.cancelPassword.addEventListener('click', function() {
                 dom.passwordModal.classList.remove('show');
                 dom.passwordError.style.display = 'none';
@@ -3044,19 +2628,15 @@
                 }
             });
 
-            // 导入弹窗外部关闭
             dom.importModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
             });
 
-            // ---- 鸣谢名单 ----
             dom.thanksBtn.addEventListener('click', function() {
                 dom.thanksModal.classList.add('show');
                 loadThanksList();
             });
-            dom.closeThanksBtn.addEventListener('click', function() {
-                dom.thanksModal.classList.remove('show');
-            });
+            dom.closeThanksBtn.addEventListener('click', () => dom.thanksModal.classList.remove('show'));
             dom.thanksModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
             });
