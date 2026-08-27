@@ -1050,6 +1050,13 @@
             font-weight:600;
             line-height:24px;
         }
+        #updateModal .update-time {
+            font-size:12px;
+            color:rgba(255,255,255,0.75);
+            font-weight:400;
+            margin-left:6px;
+            letter-spacing:0.5px;
+        }
         #updateModal .update-body {
             padding:14px 28px 8px;
         }
@@ -1073,6 +1080,15 @@
             font-size:14px;
             color:var(--text-light);
             margin-bottom:10px;
+        }
+        #updateModal .update-contact {
+            font-size:13px;
+            color:var(--text-light);
+            margin-bottom:12px;
+        }
+        #updateModal .update-contact .highlight {
+            color:var(--primary);
+            font-weight:600;
         }
         #updateModal .btn-update-confirm {
             background:linear-gradient(135deg,var(--primary),var(--primary-dark));
@@ -1362,12 +1378,16 @@
         </div>
     </div>
 
-    <!-- ===== 更新弹窗 ===== -->
+    <!-- ===== 更新弹窗（版本号由JS动态渲染） ===== -->
     <div class="modal" id="updateModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <div class="update-header">
                 <span class="update-icon">🎉</span>
-                <h2>版本更新 <span class="update-version">v1.0.0</span></h2>
+                <h2>
+                    版本更新
+                    <span class="update-version" id="updateVersionDisplay"></span>
+                    <span class="update-time">📅 2026.8.27 18:30</span>
+                </h2>
             </div>
             <div class="update-body" id="updateBody">
                 <div class="update-item">•新增「试听」功能，点击 🔗 试听 按钮可跳转至 Roblox 官方页面试听音乐。</div>
@@ -1379,6 +1399,7 @@
             </div>
             <div class="update-footer">
                 <div class="update-thanks">感谢您的使用！ ❤️</div>
+                <div class="update-contact">📱 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
                 <button class="btn-update-confirm" id="updateConfirmBtn">我知道了</button>
             </div>
         </div>
@@ -1446,7 +1467,7 @@
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const ADMIN_PASSWORD = 'HuTinJianZW';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.0.0';
+        const UPDATE_VERSION = 'v1.0.3';  // 版本号只在这里定义
 
         // 音效关键词（可增删）
         const SOUND_KEYWORDS = [
@@ -1457,7 +1478,7 @@
 
         /**
          * ============================================================
-         * DOM 引用（缓存常用元素）
+         * DOM 引用
          * ============================================================
          */
         const $ = id => document.getElementById(id);
@@ -1522,6 +1543,7 @@
             riskBody: $('riskBody'),
             updateModal: $('updateModal'),
             updateConfirmBtn: $('updateConfirmBtn'),
+            updateVersionDisplay: $('updateVersionDisplay'),
         };
 
         /**
@@ -1675,16 +1697,15 @@
                 localStorage.setItem('songDB', JSON.stringify(songDatabase));
                 localStorage.setItem('quarantineBinGuest', JSON.stringify(quarantineBinGuest));
                 localStorage.setItem('quarantineBinAdmin', JSON.stringify(quarantineBinAdmin));
-            } catch (e) { /* 存储空间满或不可用 */ }
+            } catch (e) {}
         }
 
         /**
          * ============================================================
-         * 数据加载（带缓存优化）
+         * 数据加载
          * ============================================================
          */
         function loadData() {
-            // 读取本地隔离区
             try {
                 const g = localStorage.getItem('quarantineBinGuest');
                 quarantineBinGuest = g ? JSON.parse(g) : [];
@@ -1714,7 +1735,6 @@
                         .filter(i => !filterIds.has(i.id))
                         .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
 
-                    // 自动音效分类
                     if (songDatabase.length > 0) {
                         let updated = 0;
                         songDatabase.forEach(item => {
@@ -2331,7 +2351,6 @@
             for (const i of songDatabase) nameCountMap[i.name] = (nameCountMap[i.name] || 0) + 1;
             dom.multiGroup.textContent = Object.values(nameCountMap).filter(c => c > 1).length;
 
-            // 分类标签
             const tabsContainer = dom.categoryTabs;
             while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
             const categories = new Set(songDatabase.map(i => i.category));
@@ -2459,7 +2478,6 @@
 
             container.innerHTML = html;
 
-            // 事件委托
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -2482,7 +2500,6 @@
                 }
             };
 
-            // 复选框
             for (const cb of container.querySelectorAll('.id-checkbox')) {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -2538,20 +2555,21 @@
 
         /**
          * ============================================================
-         * 更新弹窗
+         * 更新弹窗 - 版本号动态渲染
          * ============================================================
          */
         function checkUpdate() {
+            // 将版本号显示到弹窗中
+            dom.updateVersionDisplay.textContent = UPDATE_VERSION;
+
             if (localStorage.getItem('updateVersion') !== UPDATE_VERSION) {
                 dom.updateModal.classList.add('show');
                 localStorage.setItem('updateVersion', UPDATE_VERSION);
             }
         }
 
+        // ✅ 仅通过点击"我知道了"按钮关闭
         dom.updateConfirmBtn.addEventListener('click', () => dom.updateModal.classList.remove('show'));
-        dom.updateModal.addEventListener('click', e => {
-            if (e.target === dom.updateModal) dom.updateModal.classList.remove('show');
-        });
 
         /**
          * ============================================================
