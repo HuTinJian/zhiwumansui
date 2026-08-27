@@ -518,12 +518,13 @@
             display:none;
             position:fixed;
             inset:0;
-            background:rgba(74,63,68,0.45);
+            background:rgba(74,63,68,0.6); /* 纯色半透明，不用blur提升性能 */
             justify-content:center;
             align-items:center;
             z-index:999;
             padding:16px;
-            backdrop-filter:blur(4px);
+            backdrop-filter:none; /* 关闭模糊滤镜提升性能 */
+            -webkit-backdrop-filter:none;
         }
         .modal.show { display:flex; }
         .modal-content {
@@ -898,7 +899,7 @@
         .batch-mode .id-checkbox { display:inline-block !important; }
         .quarantine-batch-mode .quarantine-checkbox { display:inline-block !important; }
 
-        /* ===== 风险告知弹窗 ===== */
+        /* ===== 风险告知弹窗（性能优化版） ===== */
         #riskModal .modal-content {
             max-width:700px;
             border:1px solid var(--border);
@@ -906,6 +907,12 @@
             padding:24px 28px 16px;
             background:var(--bg-card);
             box-shadow:var(--shadow-hover);
+            will-change:transform;
+            animation:riskFadeIn 0.2s ease;
+        }
+        @keyframes riskFadeIn {
+            from { opacity:0; }
+            to { opacity:1; }
         }
         #riskModal .modal-content h2 {
             font-size:clamp(20px,2vw,24px);
@@ -942,27 +949,20 @@
             color:var(--danger);
             border-radius:0 6px 6px 0;
         }
+        /* 滚动区域 - 使用系统滚动条，更流畅 */
         #riskModal .risk-body {
             max-height:50vh;
             overflow-y:auto;
-            padding-right:6px;
+            padding-right:4px;
             font-size:14px;
             line-height:1.8;
             color:var(--text-light);
             white-space:pre-wrap;
             word-break:break-word;
+            overscroll-behavior:contain;
+            -webkit-overflow-scrolling:touch;
         }
-        #riskModal .risk-body::-webkit-scrollbar {
-            width:5px;
-        }
-        #riskModal .risk-body::-webkit-scrollbar-thumb {
-            background:var(--danger-light);
-            border-radius:4px;
-        }
-        #riskModal .risk-body::-webkit-scrollbar-track {
-            background:var(--bg);
-            border-radius:4px;
-        }
+        /* 不使用自定义滚动条样式，让浏览器用默认的 */
         #riskModal .risk-body .section-title {
             display:block;
             font-weight:700;
@@ -1141,7 +1141,7 @@
             .quarantine-batch-bar .actions .btn-batch-clear { padding:4px 12px; font-size:11px; }
             .thanks-modal .modal-content { max-width:95%; padding:16px; }
             #riskModal .modal-content { max-width:95%; padding:14px; }
-            #riskModal .risk-body { max-height:50vh; font-size:13px; }
+            #riskModal .risk-body { max-height:45vh; font-size:13px; }
             #updateModal .modal-content { max-width:95%; padding:0; }
         }
         @media (max-width:640px) {
@@ -1182,7 +1182,7 @@
             .quarantine-batch-bar .actions .btn-batch-clear { padding:5px 14px; font-size:12px; }
             .thanks-modal .modal-content { max-width:95%; padding:18px; }
             #riskModal .modal-content { max-width:95%; padding:16px; }
-            #riskModal .risk-body { max-height:55vh; font-size:13px; }
+            #riskModal .risk-body { max-height:50vh; font-size:13px; }
             #updateModal .modal-content { max-width:95%; padding:0; }
         }
         @media (min-width:641px) and (max-width:1024px) {
@@ -1203,7 +1203,7 @@
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 16px; font-size:12px; }
             #riskModal .modal-content { max-width:90%; }
-            #riskModal .risk-body { max-height:60vh; }
+            #riskModal .risk-body { max-height:55vh; }
         }
         @media (min-width:1025px) {
             .header h1 { font-size:24px; }
@@ -1225,7 +1225,7 @@
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 20px; font-size:13px; }
-            #riskModal .risk-body { max-height:65vh; }
+            #riskModal .risk-body { max-height:60vh; }
         }
     </style>
 </head>
@@ -1338,7 +1338,7 @@
         </div>
     </div>
 
-    <!-- ===== 风险告知弹窗 ===== -->
+    <!-- ===== 风险告知弹窗（性能优化版） ===== -->
     <div class="modal" id="riskModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2>法律与平台风险告知</h2>
@@ -1378,7 +1378,7 @@
         </div>
     </div>
 
-    <!-- ===== 更新弹窗（版本号由JS动态渲染） ===== -->
+    <!-- ===== 更新弹窗 ===== -->
     <div class="modal" id="updateModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <div class="update-header">
@@ -1386,7 +1386,7 @@
                 <h2>
                     版本更新
                     <span class="update-version" id="updateVersionDisplay"></span>
-                    <span class="update-time">📅 2026.8.27 18:30</span>
+                    <span class="update-time">📅 2026.8.27 18:06</span>
                 </h2>
             </div>
             <div class="update-body" id="updateBody">
@@ -1458,7 +1458,7 @@
     <script>
         /**
          * ============================================================
-         * 配置区
+         * 配置区（可修改）
          * ============================================================
          */
         const USE_EXTERNAL_JSON = true;
@@ -1467,7 +1467,7 @@
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const ADMIN_PASSWORD = 'HuTinJianZW';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.0.3';  // 版本号只在这里定义
+        const UPDATE_VERSION = 'v1.0.3'; // 当前版本号
 
         // 音效关键词（可增删）
         const SOUND_KEYWORDS = [
