@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>🎵 Roblox ID 宝库</title>
     <style>
-        /* ===== 全局颜色变量（粉色护眼系） ===== */
+        /* ===== 全局颜色变量 ===== */
         :root {
             --primary: #dc6b82;
             --primary-dark: #c7546a;
@@ -27,9 +27,17 @@
             --gold: #d4a06a;
             --gold-light: #e8c49a;
             --gold-bg: #fbf3e8;
+            --danger: #c0392b;
+            --danger-light: #e74c3c;
+            --danger-bg: #fdf0ed;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html,
+        body {
             font-family: var(--font);
             background-color: var(--bg);
             color: var(--text);
@@ -38,7 +46,11 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
 
         /* ===== 头部 ===== */
         .header {
@@ -50,7 +62,9 @@
             box-shadow: var(--shadow);
             transition: box-shadow var(--transition);
         }
-        .header:hover { box-shadow: var(--shadow-hover); }
+        .header:hover {
+            box-shadow: var(--shadow-hover);
+        }
         .header-top {
             display: flex;
             flex-wrap: wrap;
@@ -67,7 +81,9 @@
             flex: 0 0 auto;
             color: var(--text);
         }
-        .header h1:hover { opacity: 0.75; }
+        .header h1:hover {
+            opacity: 0.75;
+        }
         .header h1 small {
             font-size: clamp(11px, 1.4vw, 14px);
             font-weight: 400;
@@ -134,7 +150,10 @@
             color: var(--text);
             transform: translateY(-1px);
         }
-        #homeBtn:hover, #feedbackBtn:hover { background: var(--nav-hover-bg); }
+        #homeBtn:hover,
+        #feedbackBtn:hover {
+            background: var(--nav-hover-bg);
+        }
         #thanksBtn {
             color: var(--gold);
             font-weight: 600;
@@ -159,7 +178,9 @@
             margin: 0 2px;
             flex-shrink: 0;
         }
-        .admin-hint { display: none !important; } /* 隐藏“双击标题”提示 */
+        .admin-hint {
+            display: none !important;
+        }
 
         .header-actions {
             margin-top: 12px;
@@ -175,6 +196,7 @@
             flex-wrap: wrap;
             gap: 6px;
         }
+        /* 头部操作按钮 */
         .btn-group .btn-import,
         .btn-group .btn-danger,
         .btn-group .btn-success,
@@ -194,17 +216,50 @@
             font-weight: 500;
             gap: 4px;
         }
-        .btn-group .btn-import { background: var(--primary); color: #fff; }
-        .btn-group .btn-import:hover { background: var(--primary-dark); transform: scale(1.03); }
-        .btn-group .btn-danger { background: #e8747a; color: #fff; }
-        .btn-group .btn-danger:hover { background: #d45c62; transform: scale(1.03); }
-        .btn-group .btn-success { background: #8cb8a8; color: #fff; }
-        .btn-group .btn-success:hover { background: #72a392; transform: scale(1.03); }
-        .btn-group .btn-quarantine { background: #f472b6; color: #fff; }
-        .btn-group .btn-quarantine:hover { background: #ec4899; transform: scale(1.03); }
-        .btn-group .btn-batch { background: #a78bfa; color: #fff; }
-        .btn-group .btn-batch:hover { background: #8b5cf6; transform: scale(1.03); }
-        .btn-group .btn-batch.active { background: var(--primary-dark); box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3); }
+        .btn-group .btn-import {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-group .btn-import:hover {
+            background: var(--primary-dark);
+            transform: scale(1.03);
+        }
+        .btn-group .btn-danger {
+            background: #e8747a;
+            color: #fff;
+        }
+        .btn-group .btn-danger:hover {
+            background: #d45c62;
+            transform: scale(1.03);
+        }
+        .btn-group .btn-success {
+            background: #8cb8a8;
+            color: #fff;
+        }
+        .btn-group .btn-success:hover {
+            background: #72a392;
+            transform: scale(1.03);
+        }
+        .btn-group .btn-quarantine {
+            background: #f472b6;
+            color: #fff;
+        }
+        .btn-group .btn-quarantine:hover {
+            background: #ec4899;
+            transform: scale(1.03);
+        }
+        .btn-group .btn-batch {
+            background: #a78bfa;
+            color: #fff;
+        }
+        .btn-group .btn-batch:hover {
+            background: #8b5cf6;
+            transform: scale(1.03);
+        }
+        .btn-group .btn-batch.active {
+            background: var(--primary-dark);
+            box-shadow: 0 0 0 2px rgba(199, 84, 106, 0.3);
+        }
 
         /* ===== 搜索与筛选 ===== */
         .search-box {
@@ -231,8 +286,9 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
         }
-        .search-box input::placeholder { color: var(--text-muted); }
-
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
         .filter-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -264,7 +320,6 @@
             background: rgba(220, 107, 130, 0.04);
             transform: translateY(-1px);
         }
-
         .btn-multi {
             background: var(--bg-card);
             color: var(--text-light);
@@ -373,7 +428,9 @@
             border-bottom: 1px solid var(--border);
             transition: background var(--transition);
         }
-        .id-row:hover { background: rgba(253, 242, 245, 0.8); }
+        .id-row:hover {
+            background: rgba(253, 242, 245, 0.8);
+        }
         .id-checkbox {
             display: none;
             width: 18px;
@@ -382,7 +439,9 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .batch-mode .id-checkbox { display: inline-block; }
+        .batch-mode .id-checkbox {
+            display: inline-block;
+        }
         .id-number {
             font-family: 'Courier New', monospace;
             font-size: clamp(13px, 1vw, 15px);
@@ -399,6 +458,7 @@
             align-items: center;
             flex-shrink: 0;
         }
+        /* 复制按钮 */
         .btn-copy-id {
             background: var(--primary);
             border: none;
@@ -415,9 +475,41 @@
             justify-content: center;
             white-space: nowrap;
         }
-        .btn-copy-id:hover { background: var(--primary-dark); transform: scale(1.03); }
-        .btn-copy-id:active { transform: scale(0.92); }
-        .btn-copy-id.copied { background: #8cb8a8; }
+        .btn-copy-id:hover {
+            background: var(--primary-dark);
+            transform: scale(1.03);
+        }
+        .btn-copy-id:active {
+            transform: scale(0.92);
+        }
+        .btn-copy-id.copied {
+            background: #8cb8a8;
+        }
+        /* 试听按钮 */
+        .btn-play {
+            background: #6ec6a0;
+            border: none;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: clamp(11px, 0.9vw, 13px);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .btn-play:hover {
+            background: #56b08a;
+            transform: scale(1.03);
+        }
+        .btn-play:active {
+            transform: scale(0.92);
+        }
+        /* 删除/隔离按钮 */
         .btn-delete-id {
             background: transparent;
             border: none;
@@ -436,7 +528,9 @@
             background: rgba(232, 116, 122, 0.12);
             padding: 0 10px;
         }
-        .btn-delete-id:active { transform: scale(0.85); }
+        .btn-delete-id:active {
+            transform: scale(0.85);
+        }
 
         /* ===== 批量操作栏 ===== */
         .batch-bar {
@@ -452,12 +546,16 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow);
         }
-        .batch-bar.show { display: flex; }
+        .batch-bar.show {
+            display: flex;
+        }
         .batch-bar .info {
             font-size: 14px;
             color: var(--text-light);
         }
-        .batch-bar .info strong { color: var(--text); }
+        .batch-bar .info strong {
+            color: var(--text);
+        }
         .batch-bar .actions {
             display: flex;
             gap: 8px;
@@ -494,7 +592,7 @@
             background: linear-gradient(145deg, #e6c9cf, #dbb5bd);
         }
 
-        /* ===== 弹窗 ===== */
+        /* ===== 弹窗（通用） ===== */
         .modal {
             display: none;
             position: fixed;
@@ -506,7 +604,9 @@
             padding: 16px;
             backdrop-filter: blur(4px);
         }
-        .modal.show { display: flex; }
+        .modal.show {
+            display: flex;
+        }
         .modal-content {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -521,8 +621,14 @@
             border: 1px solid var(--border);
         }
         @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
         .modal-content h2 {
             font-size: clamp(18px, 2vw, 22px);
@@ -553,12 +659,27 @@
             min-height: 42px;
             font-weight: 500;
         }
-        .modal-actions .btn-confirm { background: var(--primary); color: #fff; }
-        .modal-actions .btn-confirm:hover { background: var(--primary-dark); }
-        .modal-actions .btn-cancel { background: var(--border); color: var(--text); }
-        .modal-actions .btn-cancel:hover { background: #e6c9cf; }
-        .modal-actions .btn-danger { background: #e8747a; color: #fff; }
-        .modal-actions .btn-danger:hover { background: #d45c62; }
+        .modal-actions .btn-confirm {
+            background: var(--primary);
+            color: #fff;
+        }
+        .modal-actions .btn-confirm:hover {
+            background: var(--primary-dark);
+        }
+        .modal-actions .btn-cancel {
+            background: var(--border);
+            color: var(--text);
+        }
+        .modal-actions .btn-cancel:hover {
+            background: #e6c9cf;
+        }
+        .modal-actions .btn-danger {
+            background: #e8747a;
+            color: #fff;
+        }
+        .modal-actions .btn-danger:hover {
+            background: #d45c62;
+        }
 
         /* ---- 鸣谢弹窗（暖金色） ---- */
         .thanks-modal .modal-content {
@@ -579,7 +700,9 @@
             margin-bottom: 16px;
             opacity: 0.9;
         }
-        .thanks-category { margin-bottom: 6px; }
+        .thanks-category {
+            margin-bottom: 6px;
+        }
         .thanks-category .cat-title {
             font-weight: 700;
             color: #7a4a5a;
@@ -611,7 +734,7 @@
             font-size: 0.95em;
         }
         .thanks-footer {
-            margin-top: 16px;
+            margin-top: 6px;
             padding-top: 12px;
             border-top: 1px solid var(--gold-light);
             text-align: center;
@@ -639,8 +762,10 @@
             padding: 20px 0;
         }
 
-        /* ---- 密码输入框 ---- */
-        .password-modal .modal-content { max-width: 400px; }
+        /* ---- 密码弹窗 ---- */
+        .password-modal .modal-content {
+            max-width: 400px;
+        }
         .password-modal input[type="password"] {
             width: 100%;
             padding: 12px 16px;
@@ -657,7 +782,9 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
         }
-        .password-modal input[type="password"]::placeholder { color: var(--text-muted); }
+        .password-modal input[type="password"]::placeholder {
+            color: var(--text-muted);
+        }
         .password-modal .error {
             color: #d45c62;
             font-size: 14px;
@@ -685,10 +812,14 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.15);
         }
-        .import-modal .modal-content textarea::placeholder { color: var(--text-muted); }
+        .import-modal .modal-content textarea::placeholder {
+            color: var(--text-muted);
+        }
 
         /* ---- 隔离区弹窗 ---- */
-        .quarantine-modal .modal-content { max-width: 800px; }
+        .quarantine-modal .modal-content {
+            max-width: 800px;
+        }
         .quarantine-search-box {
             display: flex;
             gap: 10px;
@@ -723,12 +854,16 @@
             margin: 8px 0 12px 0;
             box-shadow: var(--shadow);
         }
-        .quarantine-batch-bar.show { display: flex; }
+        .quarantine-batch-bar.show {
+            display: flex;
+        }
         .quarantine-batch-bar .info {
             font-size: 14px;
             color: var(--text-light);
         }
-        .quarantine-batch-bar .info strong { color: var(--text); }
+        .quarantine-batch-bar .info strong {
+            color: var(--text);
+        }
         .quarantine-batch-bar .actions {
             display: flex;
             gap: 8px;
@@ -820,7 +955,9 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .quarantine-batch-mode .quarantine-checkbox { display: inline-block; }
+        .quarantine-batch-mode .quarantine-checkbox {
+            display: inline-block;
+        }
         .quarantine-empty {
             color: var(--text-muted);
             text-align: center;
@@ -843,14 +980,31 @@
             transition: all var(--transition);
             white-space: nowrap;
         }
-        .quarantine-footer-actions .btn-restore-all { background: #22c55e; color: #fff; }
-        .quarantine-footer-actions .btn-restore-all:hover { background: #16a34a; transform: scale(1.02); }
-        .quarantine-footer-actions .btn-export { background: #3b82f6; color: #fff; }
-        .quarantine-footer-actions .btn-export:hover { background: #2563eb; transform: scale(1.02); }
-        .quarantine-footer-actions .btn-close { background: var(--border); color: var(--text); }
-        .quarantine-footer-actions .btn-close:hover { background: #e6c9cf; }
+        .quarantine-footer-actions .btn-restore-all {
+            background: #22c55e;
+            color: #fff;
+        }
+        .quarantine-footer-actions .btn-restore-all:hover {
+            background: #16a34a;
+            transform: scale(1.02);
+        }
+        .quarantine-footer-actions .btn-export {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .quarantine-footer-actions .btn-export:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+        .quarantine-footer-actions .btn-close {
+            background: var(--border);
+            color: var(--text);
+        }
+        .quarantine-footer-actions .btn-close:hover {
+            background: #e6c9cf;
+        }
 
-        /* ===== Toast ===== */
+        /* ===== Toast 提示 ===== */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -870,125 +1024,531 @@
             max-width: 92%;
             font-weight: 500;
         }
-        .toast.show { opacity: 1; }
+        .toast.show {
+            opacity: 1;
+        }
 
         /* ===== 权限控制 ===== */
-        .admin-only { display: none !important; }
-        .mode-manage .admin-only { display: inline-flex !important; }
-        .mode-readonly .admin-only { display: none !important; }
-        .batch-mode .id-checkbox { display: inline-block !important; }
-        .quarantine-batch-mode .quarantine-checkbox { display: inline-block !important; }
+        .admin-only {
+            display: none !important;
+        }
+        .mode-manage .admin-only {
+            display: inline-flex !important;
+        }
+        .mode-readonly .admin-only {
+            display: none !important;
+        }
+        .batch-mode .id-checkbox {
+            display: inline-block !important;
+        }
+        .quarantine-batch-mode .quarantine-checkbox {
+            display: inline-block !important;
+        }
 
         /* ===== 响应式适配 ===== */
         @media (max-width: 400px) {
-            body { padding: 6px; }
-            .header { padding: 12px 14px; }
-            .header h1 { font-size: 17px; }
-            .header h1 small { font-size: 10px; }
-            .header-nav { padding: 3px 4px; gap: 2px; }
-            .nav-btn { font-size: 10px; padding: 3px 6px; height: 24px; }
-            .nav-divider, .nav-divider-gold { height: 14px; margin: 0 1px; }
-            .search-box input { height: 40px; font-size: 15px; padding: 8px 14px; min-width: 120px; }
-            .filter-tabs button, .btn-multi { height: 32px; font-size: 11px; padding: 4px 10px; }
-            .song-group { padding: 10px 12px; }
-            .group-name { font-size: 15px; }
-            .id-number { font-size: 12px; min-width: 60px; }
-            .btn-copy-id { font-size: 11px; padding: 2px 10px; height: 26px; }
-            .btn-delete-id { font-size: 14px; height: 26px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 10px; padding: 2px 10px; height: 28px;
+            body {
+                padding: 6px;
             }
-            .modal-content { padding: 16px; }
-            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
-            .toast { font-size: 12px; padding: 8px 16px; bottom: 16px; }
-            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
-            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
-            .import-modal .modal-content textarea { min-height: 200px; font-size: 14px; padding: 10px 14px; }
-            .quarantine-search-box input { height: 30px; font-size: 12px; padding: 6px 10px; }
-            .quarantine-footer-actions button { font-size: 11px; padding: 3px 10px; }
+            .header {
+                padding: 12px 14px;
+            }
+            .header h1 {
+                font-size: 17px;
+            }
+            .header h1 small {
+                font-size: 10px;
+            }
+            .header-nav {
+                padding: 3px 4px;
+                gap: 2px;
+            }
+            .nav-btn {
+                font-size: 10px;
+                padding: 3px 6px;
+                height: 24px;
+            }
+            .nav-divider,
+            .nav-divider-gold {
+                height: 14px;
+                margin: 0 1px;
+            }
+            .search-box input {
+                height: 40px;
+                font-size: 15px;
+                padding: 8px 14px;
+                min-width: 120px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 32px;
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .song-group {
+                padding: 10px 12px;
+            }
+            .group-name {
+                font-size: 15px;
+            }
+            .id-number {
+                font-size: 12px;
+                min-width: 60px;
+            }
+            .btn-copy-id,
+            .btn-play {
+                font-size: 11px;
+                padding: 2px 10px;
+                height: 26px;
+            }
+            .btn-delete-id {
+                font-size: 14px;
+                height: 26px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 10px;
+                padding: 2px 10px;
+                height: 28px;
+            }
+            .modal-content {
+                padding: 16px;
+            }
+            .modal-actions button {
+                min-height: 38px;
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                bottom: 16px;
+            }
+            .batch-bar,
+            .quarantine-batch-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .batch-bar .actions,
+            .quarantine-batch-bar .actions {
+                justify-content: flex-end;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 200px;
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            .quarantine-search-box input {
+                height: 30px;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear { padding: 4px 12px; font-size: 11px; }
-            .thanks-modal .modal-content { max-width: 95%; padding: 16px; }
+            .quarantine-batch-bar .actions .btn-batch-clear {
+                padding: 4px 12px;
+                font-size: 11px;
+            }
+            .thanks-modal .modal-content {
+                max-width: 95%;
+                padding: 16px;
+            }
+            #riskModal .modal-content {
+                max-width: 95%;
+                padding: 14px;
+            }
+            #riskModal .risk-body {
+                max-height: 50vh;
+                font-size: 13px;
+            }
         }
         @media (max-width: 640px) {
-            body { padding: 8px; }
-            .header { padding: 14px 16px; }
-            .header h1 { font-size: 19px; text-align: center; }
-            .header-top { flex-direction: column; align-items: stretch; gap: 6px; }
-            .header-stats { justify-content: center; gap: 6px 10px; }
-            .header-nav-wrapper { justify-content: center; margin-left: 0; flex-wrap: wrap; gap: 6px; }
-            .header-nav { align-self: center; padding: 4px 8px; flex-wrap: wrap; justify-content: center; gap: 2px; }
-            .nav-btn { font-size: 11px; padding: 4px 8px; height: 26px; min-width: 50px; }
-            .nav-divider, .nav-divider-gold { height: 14px; margin: 0 1px; }
-            .header-actions { justify-content: center; }
-            .btn-group { justify-content: center; }
-            .search-box input { height: 42px; font-size: 15px; padding: 8px 16px; }
-            .filter-tabs button, .btn-multi { height: 34px; font-size: 12px; padding: 4px 12px; }
-            .song-group { padding: 10px 14px; }
-            .group-name { font-size: 16px; }
-            .id-number { font-size: 13px; }
-            .btn-copy-id { font-size: 12px; padding: 2px 12px; height: 28px; }
-            .btn-delete-id { font-size: 15px; height: 28px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 11px; padding: 3px 12px; height: 30px;
+            body {
+                padding: 8px;
             }
-            .modal-content { padding: 18px; }
-            .modal-actions button { min-height: 38px; font-size: 14px; padding: 6px 16px; }
-            .toast { font-size: 13px; padding: 8px 18px; bottom: 20px; }
-            .batch-bar, .quarantine-batch-bar { flex-direction: column; align-items: stretch; }
-            .batch-bar .actions, .quarantine-batch-bar .actions { justify-content: flex-end; }
-            .import-modal .modal-content textarea { min-height: 220px; font-size: 15px; }
-            .quarantine-search-box input { height: 34px; font-size: 13px; }
-            .quarantine-footer-actions { justify-content: center; }
-            .quarantine-footer-actions button { font-size: 12px; padding: 4px 12px; }
+            .header {
+                padding: 14px 16px;
+            }
+            .header h1 {
+                font-size: 19px;
+                text-align: center;
+            }
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .header-stats {
+                justify-content: center;
+                gap: 6px 10px;
+            }
+            .header-nav-wrapper {
+                justify-content: center;
+                margin-left: 0;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .header-nav {
+                align-self: center;
+                padding: 4px 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2px;
+            }
+            .nav-btn {
+                font-size: 11px;
+                padding: 4px 8px;
+                height: 26px;
+                min-width: 50px;
+            }
+            .nav-divider,
+            .nav-divider-gold {
+                height: 14px;
+                margin: 0 1px;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .btn-group {
+                justify-content: center;
+            }
+            .search-box input {
+                height: 42px;
+                font-size: 15px;
+                padding: 8px 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 34px;
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            .song-group {
+                padding: 10px 14px;
+            }
+            .group-name {
+                font-size: 16px;
+            }
+            .id-number {
+                font-size: 13px;
+            }
+            .btn-copy-id,
+            .btn-play {
+                font-size: 12px;
+                padding: 2px 12px;
+                height: 28px;
+            }
+            .btn-delete-id {
+                font-size: 15px;
+                height: 28px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 11px;
+                padding: 3px 12px;
+                height: 30px;
+            }
+            .modal-content {
+                padding: 18px;
+            }
+            .modal-actions button {
+                min-height: 38px;
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .toast {
+                font-size: 13px;
+                padding: 8px 18px;
+                bottom: 20px;
+            }
+            .batch-bar,
+            .quarantine-batch-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .batch-bar .actions,
+            .quarantine-batch-bar .actions {
+                justify-content: flex-end;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 220px;
+                font-size: 15px;
+            }
+            .quarantine-search-box input {
+                height: 34px;
+                font-size: 13px;
+            }
+            .quarantine-footer-actions {
+                justify-content: center;
+            }
+            .quarantine-footer-actions button {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear { padding: 5px 14px; font-size: 12px; }
-            .thanks-modal .modal-content { max-width: 95%; padding: 18px; }
+            .quarantine-batch-bar .actions .btn-batch-clear {
+                padding: 5px 14px;
+                font-size: 12px;
+            }
+            .thanks-modal .modal-content {
+                max-width: 95%;
+                padding: 18px;
+            }
+            #riskModal .modal-content {
+                max-width: 95%;
+                padding: 16px;
+            }
+            #riskModal .risk-body {
+                max-height: 55vh;
+                font-size: 13px;
+            }
         }
         @media (min-width: 641px) and (max-width: 1024px) {
-            .header h1 { font-size: 22px; }
-            .header-nav { padding: 4px 6px; }
-            .nav-btn { font-size: 13px; padding: 6px 16px; height: 32px; }
-            .search-box input { height: 46px; }
-            .filter-tabs button, .btn-multi { height: 38px; }
-            .song-group { padding: 14px 18px; }
-            .id-number { font-size: 14px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 12px; padding: 4px 14px; height: 32px;
+            .header h1 {
+                font-size: 22px;
             }
-            .quarantine-footer-actions button { font-size: 12px; padding: 4px 14px; }
+            .header-nav {
+                padding: 4px 6px;
+            }
+            .nav-btn {
+                font-size: 13px;
+                padding: 6px 16px;
+                height: 32px;
+            }
+            .search-box input {
+                height: 46px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 38px;
+            }
+            .song-group {
+                padding: 14px 18px;
+            }
+            .id-number {
+                font-size: 14px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 12px;
+                padding: 4px 14px;
+                height: 32px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 12px;
+                padding: 4px 14px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear { padding: 6px 16px; font-size: 12px; }
+            .quarantine-batch-bar .actions .btn-batch-clear {
+                padding: 6px 16px;
+                font-size: 12px;
+            }
+            #riskModal .modal-content {
+                max-width: 90%;
+            }
+            #riskModal .risk-body {
+                max-height: 60vh;
+            }
         }
         @media (min-width: 1025px) {
-            .header h1 { font-size: 24px; }
-            .header-nav { padding: 4px 8px; }
-            .nav-btn { font-size: 14px; padding: 6px 20px; height: 34px; }
-            .search-box input { height: 48px; font-size: 16px; }
-            .filter-tabs button, .btn-multi { height: 40px; font-size: 13px; }
-            .song-group { padding: 16px 20px; }
-            .id-number { font-size: 15px; }
-            .btn-copy-id { font-size: 13px; padding: 2px 16px; height: 30px; }
-            .btn-delete-id { font-size: 16px; height: 30px; }
-            .btn-group .btn-import, .btn-group .btn-danger, .btn-group .btn-success,
-            .btn-group .btn-quarantine, .btn-group .btn-batch {
-                font-size: 13px; padding: 4px 16px; height: 34px;
+            .header h1 {
+                font-size: 24px;
             }
-            .import-modal .modal-content textarea { min-height: 300px; }
-            .quarantine-footer-actions button { font-size: 13px; padding: 6px 18px; }
+            .header-nav {
+                padding: 4px 8px;
+            }
+            .nav-btn {
+                font-size: 14px;
+                padding: 6px 20px;
+                height: 34px;
+            }
+            .search-box input {
+                height: 48px;
+                font-size: 16px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 40px;
+                font-size: 13px;
+            }
+            .song-group {
+                padding: 16px 20px;
+            }
+            .id-number {
+                font-size: 15px;
+            }
+            .btn-copy-id,
+            .btn-play {
+                font-size: 13px;
+                padding: 2px 16px;
+                height: 30px;
+            }
+            .btn-delete-id {
+                font-size: 16px;
+                height: 30px;
+            }
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                font-size: 13px;
+                padding: 4px 16px;
+                height: 34px;
+            }
+            .import-modal .modal-content textarea {
+                min-height: 300px;
+            }
+            .quarantine-footer-actions button {
+                font-size: 13px;
+                padding: 6px 18px;
+            }
             .batch-bar .actions .btn-batch-delete,
             .batch-bar .actions .btn-batch-clear,
             .quarantine-batch-bar .actions .btn-batch-release,
-            .quarantine-batch-bar .actions .btn-batch-clear { padding: 6px 20px; font-size: 13px; }
+            .quarantine-batch-bar .actions .btn-batch-clear {
+                padding: 6px 20px;
+                font-size: 13px;
+            }
+            #riskModal .risk-body {
+                max-height: 65vh;
+            }
+        }
+
+        /* ===== 风险告知弹窗 ===== */
+        #riskModal .modal-content {
+            max-width: 700px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px 16px;
+            background: var(--bg-card);
+            box-shadow: var(--shadow-hover);
+        }
+        /* 标题 */
+        #riskModal .modal-content h2 {
+            font-size: clamp(20px, 2vw, 24px);
+            font-weight: 700;
+            color: var(--danger);
+            margin: 0 0 2px 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #riskModal .modal-content h2::before {
+            content: "⚠️";
+            font-size: 1.1em;
+        }
+        /* 警示条 */
+        #riskModal .sub-warning {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--danger);
+            background: var(--danger-bg);
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 6px;
+            border: 1px solid var(--danger-light);
+        }
+        /* 跳转提示 */
+        #riskModal .redirect-notice {
+            background: var(--danger-bg);
+            border-left: 4px solid var(--danger);
+            padding: 8px 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: clamp(15px, 1.2vw, 17px);
+            color: var(--danger);
+            border-radius: 0 6px 6px 0;
+        }
+        /* 滚动内容区 */
+        #riskModal .risk-body {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 6px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-light);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #riskModal .risk-body::-webkit-scrollbar {
+            width: 5px;
+        }
+        #riskModal .risk-body::-webkit-scrollbar-thumb {
+            background: var(--danger-light);
+            border-radius: 4px;
+        }
+        #riskModal .risk-body::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 4px;
+        }
+        /* 章节标题 */
+        #riskModal .risk-body .section-title {
+            display: block;
+            font-weight: 700;
+            color: var(--danger);
+            margin-top: 8px;
+            margin-bottom: 0px;
+            font-size: 1.02em;
+        }
+        #riskModal .risk-body .section-title:first-of-type {
+            margin-top: 0;
+        }
+        /* 底部按钮 */
+        #riskModal .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        #riskModal .modal-actions .btn-confirm {
+            background: var(--danger);
+            color: #fff;
+            font-weight: 600;
+            padding: 6px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        #riskModal .modal-actions .btn-confirm:hover {
+            background: #a93226;
+            transform: scale(1.02);
+        }
+        #riskModal .modal-actions .btn-cancel {
+            background: var(--border);
+            color: var(--text);
+            font-weight: 500;
+            padding: 6px 24px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        #riskModal .modal-actions .btn-cancel:hover {
+            background: #dbb5bd;
         }
     </style>
 </head>
@@ -1101,6 +1661,46 @@
         </div>
     </div>
 
+    <!-- ===== 风险告知弹窗 ===== -->
+    <div class="modal" id="riskModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>法律与平台风险告知</h2>
+            <div class="sub-warning">⚠️ 请务必仔细阅读以下全部内容</div>
+            <div class="redirect-notice">即将跳转至 Roblox 官方音乐网站</div>
+            <div class="risk-body" id="riskBody">
+                <span class="section-title">【中华人民共和国法律】</span>
+根据《中华人民共和国著作权法》第五十二条、第五十三条：
+• 未经著作权人许可，复制、发行、表演、放映、广播、汇编、通过信息网络向公众传播其作品的，应当根据情况，承担停止侵害、消除影响、赔礼道歉、赔偿损失等民事责任。
+• 侵权行为同时损害公共利益的，主管著作权的部门可责令停止侵权行为，予以警告，没收违法所得，没收、无害化销毁处理侵权复制品以及主要用于制作侵权复制品的材料、工具、设备等；违法经营额五万元以上的，可以并处违法经营额一倍以上五倍以下的罚款；没有违法经营额、违法经营额难以计算或者不足五万元的，可以并处二十五万元以下的罚款。
+• 构成犯罪的，依法追究刑事责任。
+
+                <span class="section-title">【司法实践参考】</span>
+• 未经许可使用他人音乐作品，即使仅使用片段，只要该部分具有独创性，即构成侵权。
+• 使用第三方平台提供的音源，使用者仍需取得著作权人授权，不能当然免责。
+• 吉林省长春市二道区人民检察院办理的个人网络音乐侵犯著作权案中，被告人未经许可通过直播传播他人音乐作品获利近300万元，被判处有期徒刑三年，缓刑三年，并处罚金15万元。
+
+                <span class="section-title">【网易云音乐 / QQ音乐 / 汽水音乐 等音乐软件风险告知】</span>
+• 上述平台提供的试听、下载、会员服务，其授权范围严格限定于「平台内用户个人收听」，不包含「第三方网站嵌入播放」或「向公众传播」的授权。
+• 未经许可将上述平台的音乐作品嵌入第三方工具（如本工具），构成对著作权人「信息网络传播权」的侵犯。
+• 使用平台的「外链播放器」功能，其授权范围仅限于个人社交分享，不包含商业工具或辅助工具的嵌入使用。
+• 音乐平台用户协议均明确规定：用户仅可在平台内个人使用，不得将平台内容用于任何商业目的或第三方平台传播。
+
+                <span class="section-title">【Roblox 平台政策与风险】</span>
+• Roblox 曾因未经授权使用音乐被美国国家音乐出版商协会（NMPA）起诉，索赔至少2亿美元。
+• Roblox 已与 APM Music 签署授权协议，开发者可在每个体验中使用最多250首 APM 曲目。
+• 上传受版权保护的材料可能被 Roblox 自动检测并删除。
+
+                <span class="section-title">【最终提醒】</span>
+                本工具仅提供 Roblox 官方页面跳转链接，不存储、不传播任何音频文件。
+
+                <div class="modal-actions" style="margin-top:6px;">
+                    <button class="btn-cancel" id="riskCancelBtn">取消</button>
+                    <button class="btn-confirm" id="riskConfirmBtn">✅ 确认跳转</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== 鸣谢名单弹窗 ===== -->
     <div class="modal thanks-modal" id="thanksModal" role="dialog" aria-modal="true">
         <div class="modal-content">
@@ -1153,16 +1753,18 @@
 
     <script>
         /**
-         * ===== 配置区（可修改） =====
+         * ============================================================
+         * 配置区（可修改）
+         * ============================================================
          */
-        const USE_EXTERNAL_JSON = true;                      // 是否从外部加载主数据
-        const EXTERNAL_JSON_URL = 'roblox_music.json';       // 主数据文件名
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true;          // 是否自动合并管理员隔离区
+        const USE_EXTERNAL_JSON = true; // 是否从外部加载主数据
+        const EXTERNAL_JSON_URL = 'roblox_music.json';
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // 是否自动合并外部管理员隔离区
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const ADMIN_PASSWORD = 'HuTinJianZW';                // 开发者密码
-        const THANKS_JSON_URL = 'roblox_music_thanks.json';  // 鸣谢名单文件名
+        const ADMIN_PASSWORD = 'HuTinJianZW'; // 开发者密码
+        const THANKS_JSON_URL = 'roblox_music_thanks.json';
 
-        // 音效关键词列表（可自行增删，每次刷新会自动对已有数据生效）
+        // 音效关键词列表（可自行增删）
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1170,23 +1772,28 @@
         ];
 
         /**
-         * ===== 全局变量 =====
+         * ============================================================
+         * 全局变量
+         * ============================================================
          */
-        let songDatabase = [];
-        let quarantineBinGuest = [];
-        let quarantineBinAdmin = [];
-        let isAdmin = false;
-        let batchMode = false;
-        let selectedIds = new Set();
-        let quarantineBatchMode = false;
-        let selectedQuarantineIds = new Set();
-        let currentCategory = 'all';
-        let currentKeyword = '';
-        let showMultiOnly = false;
+        let songDatabase = []; // 主列表数据
+        let quarantineBinGuest = []; // 游客隔离区
+        let quarantineBinAdmin = []; // 管理员隔离区
+        let isAdmin = false; // 是否开发者模式
+        let batchMode = false; // 批量模式开关
+        let selectedIds = new Set(); // 批量选中的ID
+        let quarantineBatchMode = false; // 隔离区批量模式
+        let selectedQuarantineIds = new Set(); // 隔离区选中ID
+        let currentCategory = 'all'; // 当前分类筛选
+        let currentKeyword = ''; // 搜索关键词
+        let showMultiOnly = false; // 只显示多ID组
         let toastTimer = null;
+        let pendingRedirectId = null; // 待跳转的ID（风险弹窗用）
 
         /**
-         * ===== DOM 引用 =====
+         * ============================================================
+         * DOM 引用
+         * ============================================================
          */
         const $ = (id) => document.getElementById(id);
         const dom = {
@@ -1244,10 +1851,16 @@
             thanksModal: $('thanksModal'),
             thanksListContainer: $('thanksListContainer'),
             closeThanksBtn: $('closeThanksBtn'),
+            riskModal: $('riskModal'),
+            riskConfirmBtn: $('riskConfirmBtn'),
+            riskCancelBtn: $('riskCancelBtn'),
+            riskBody: $('riskBody'),
         };
 
         /**
-         * ===== 辅助函数 =====
+         * ============================================================
+         * 辅助函数
+         * ============================================================
          */
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -1294,7 +1907,9 @@
         }
 
         /**
-         * ===== 确认对话框 =====
+         * ============================================================
+         * 确认对话框（Promise 封装）
+         * ============================================================
          */
         function showConfirm(title, message) {
             return new Promise((resolve) => {
@@ -1330,7 +1945,50 @@
         }
 
         /**
-         * ===== 数据保存 =====
+         * ============================================================
+         * 试听跳转（含风险弹窗）
+         * ============================================================
+         */
+        function showRiskModal(id) {
+            // 开发者模式直接跳转，无弹窗
+            if (isAdmin) {
+                window.open(`https://www.roblox.com/library/${id}/`, '_blank');
+                return;
+            }
+            // 游客模式：显示风险弹窗
+            pendingRedirectId = id;
+            dom.riskModal.classList.add('show');
+            // 每次打开都重置滚动到顶部，强制用户滚动到底部才能看到按钮
+            dom.riskBody.scrollTop = 0;
+        }
+
+        // 确认跳转
+        dom.riskConfirmBtn.addEventListener('click', function() {
+            if (pendingRedirectId) {
+                window.open(`https://www.roblox.com/library/${pendingRedirectId}/`, '_blank');
+                pendingRedirectId = null;
+            }
+            dom.riskModal.classList.remove('show');
+        });
+
+        // 取消跳转
+        dom.riskCancelBtn.addEventListener('click', function() {
+            pendingRedirectId = null;
+            dom.riskModal.classList.remove('show');
+        });
+
+        // 点击外部关闭弹窗
+        dom.riskModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                pendingRedirectId = null;
+                this.classList.remove('show');
+            }
+        });
+
+        /**
+         * ============================================================
+         * 数据持久化（localStorage）
+         * ============================================================
          */
         function saveData() {
             localStorage.setItem('songDB', JSON.stringify(songDatabase));
@@ -1339,7 +1997,9 @@
         }
 
         /**
-         * ===== 数据加载 =====
+         * ============================================================
+         * 数据加载（主数据 + 隔离区）
+         * ============================================================
          */
         function loadData() {
             // 读取本地隔离区
@@ -1370,13 +2030,12 @@
                             .filter(i => !filterIds.has(i.id))
                             .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
 
-                        // 🆕 自动音效分类（无版本号，每次加载都检查）
+                        // 自动音效分类（每次加载执行）
                         if (songDatabase.length > 0) {
                             let updated = 0;
                             songDatabase.forEach(item => {
                                 const lower = item.name.toLowerCase();
                                 if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
-                                    // 只更新当前不是“搞笑音效”的条目，保护手动分类
                                     if (item.category !== '搞笑音效') {
                                         item.category = '搞笑音效';
                                         updated++;
@@ -1384,7 +2043,7 @@
                                 }
                             });
                             if (updated > 0) {
-                                saveData(); // 保存更新后的分类
+                                saveData();
                                 console.log(`✅ 自动分类完成，${updated} 个ID归入“搞笑音效”`);
                             }
                         }
@@ -1453,7 +2112,9 @@
         }
 
         /**
-         * ===== 模式切换 =====
+         * ============================================================
+         * 模式切换（游客/开发者）
+         * ============================================================
          */
         function loadMode() {
             isAdmin = localStorage.getItem('adminMode') === 'true';
@@ -1519,7 +2180,9 @@
         }
 
         /**
-         * ===== 主列表批量操作 =====
+         * ============================================================
+         * 主列表批量操作
+         * ============================================================
          */
         function toggleBatchMode(forceState) {
             const newState = (forceState !== undefined) ? forceState : !batchMode;
@@ -1589,7 +2252,9 @@
         }
 
         /**
-         * ===== 单个隔离 =====
+         * ============================================================
+         * 单个隔离（点击 ✕ 按钮）
+         * ============================================================
          */
         async function moveToQuarantine(name, id) {
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
@@ -1614,7 +2279,9 @@
         }
 
         /**
-         * ===== 隔离区操作 =====
+         * ============================================================
+         * 隔离区操作
+         * ============================================================
          */
         function toggleQuarantineBatchMode(forceState) {
             const newState = (forceState !== undefined) ? forceState : !quarantineBatchMode;
@@ -1852,7 +2519,9 @@
         }
 
         /**
-         * ===== 鸣谢名单 =====
+         * ============================================================
+         * 鸣谢名单（外部JSON + 时间戳自动刷新）
+         * ============================================================
          */
         function loadThanksList() {
             const container = dom.thanksListContainer;
@@ -1904,7 +2573,9 @@
         }
 
         /**
-         * ===== 导入主列表（解析粘贴文本） =====
+         * ============================================================
+         * 导入主列表（解析粘贴文本）
+         * ============================================================
          */
         function parseRawText(text) {
             const lines = text.split(/\r?\n/);
@@ -1937,12 +2608,13 @@
                     let category = '中文流行';
                     const lower = name.toLowerCase();
 
-                    // 音效优先判断
                     if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
                         category = '搞笑音效';
-                    } else if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj')) {
+                    } else if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes(
+                            'dj')) {
                         category = 'Phonk/DJ';
-                    } else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes('古筝') ||
+                    } else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes(
+                            '古筝') ||
                         lower.includes('二胡') || lower.includes('箫') || lower.includes('笛') || lower.includes('琴') ||
                         lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶')) {
                         category = '古风国风';
@@ -2006,7 +2678,9 @@
         }
 
         /**
-         * ===== 开发者操作 =====
+         * ============================================================
+         * 开发者操作（清空、导出主列表）
+         * ============================================================
          */
         async function clearAllData() {
             if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
@@ -2041,7 +2715,9 @@
         }
 
         /**
-         * ===== 主渲染 =====
+         * ============================================================
+         * 主渲染引擎
+         * ============================================================
          */
         function renderAll() {
             const uniqueNames = new Set(songDatabase.map(i => i.name));
@@ -2053,7 +2729,7 @@
             let multiCount = Object.values(nameCountMap).filter(c => c > 1).length;
             dom.multiGroup.textContent = multiCount;
 
-            // 生成分类按钮
+            // 生成分类标签
             const tabsContainer = dom.categoryTabs;
             while (tabsContainer.children.length > 1) tabsContainer.removeChild(tabsContainer.lastChild);
             const categories = new Set(songDatabase.map(i => i.category));
@@ -2065,7 +2741,7 @@
                 tabsContainer.appendChild(btn);
             });
 
-            // 分类切换
+            // 分类切换事件
             const allBtns = tabsContainer.querySelectorAll('button');
             allBtns.forEach(btn => {
                 btn.onclick = function() {
@@ -2090,11 +2766,13 @@
                 else b.classList.remove('active');
             });
 
+            // 搜索输入
             dom.searchInput.oninput = function() {
                 currentKeyword = this.value;
                 renderList();
             };
 
+            // 多ID切换
             dom.multiToggleBtn.onclick = function() {
                 showMultiOnly = !showMultiOnly;
                 this.classList.toggle('active');
@@ -2109,6 +2787,9 @@
             renderList();
         }
 
+        /**
+         * 渲染主列表（分组展示）
+         */
         function renderList() {
             const keyword = currentKeyword.trim().toLowerCase();
 
@@ -2166,6 +2847,7 @@
                                 <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
                                 <span class="id-number">${escapeHtml(id)}</span>
                                 <div class="id-actions">
+                                    <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
                                     <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
                                     <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
                                 </div>
@@ -2188,17 +2870,27 @@
 
             container.innerHTML = html;
 
+            // 事件委托：复制、试听、隔离
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
 
-                if (target.classList.contains('btn-copy-id')) {
+                // 试听（含风险弹窗）
+                if (target.classList.contains('btn-play')) {
                     e.stopPropagation();
-                    copyToClipboard(target.dataset.id, target);
-                    showToast('✅ 已复制ID，可搜索歌名查看所有版本');
+                    showRiskModal(target.dataset.id);
                     return;
                 }
 
+                // 复制
+                if (target.classList.contains('btn-copy-id')) {
+                    e.stopPropagation();
+                    copyToClipboard(target.dataset.id, target);
+                    showToast('✅ 已复制ID');
+                    return;
+                }
+
+                // 隔离
                 if (target.classList.contains('btn-delete-id')) {
                     e.stopPropagation();
                     moveToQuarantine(target.dataset.name, target.dataset.id);
@@ -2206,6 +2898,7 @@
                 }
             };
 
+            // 复选框
             container.querySelectorAll('.id-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
@@ -2225,7 +2918,9 @@
         }
 
         /**
-         * ===== 复制功能 =====
+         * ============================================================
+         * 复制功能
+         * ============================================================
          */
         function copyToClipboard(text, btn) {
             if (navigator.clipboard?.writeText) {
@@ -2264,14 +2959,18 @@
         }
 
         /**
-         * ===== 初始化 =====
+         * ============================================================
+         * 初始化
+         * ============================================================
          */
         document.addEventListener('DOMContentLoaded', function() {
             loadMode();
             loadData();
 
+            // 双击标题切换模式
             dom.mainTitle.addEventListener('dblclick', toggleAdminMode);
 
+            // ---- 导入主列表 ----
             dom.openImportBtn.addEventListener('click', function() {
                 if (!isAdmin) { showToast('⚠️ 仅开发者可导入'); return; }
                 dom.importModal.classList.add('show');
@@ -2289,9 +2988,12 @@
                 importData(raw);
             });
 
+            // ---- 导出主列表 ----
             dom.exportBtn.addEventListener('click', exportData);
+            // ---- 清空列表 ----
             dom.clearAllBtn.addEventListener('click', clearAllData);
 
+            // ---- 隔离区 ----
             dom.openQuarantineBtn.addEventListener('click', function() {
                 updateQuarantineTitle();
                 dom.quarantineModal.classList.add('show');
@@ -2317,12 +3019,14 @@
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
 
+            // ---- 主列表批量 ----
             dom.batchToggle.addEventListener('click', function() {
                 toggleBatchMode();
             });
             dom.batchClear.addEventListener('click', clearSelected);
             dom.batchDelete.addEventListener('click', batchDelete);
 
+            // ---- 密码弹窗 ----
             dom.cancelPassword.addEventListener('click', function() {
                 dom.passwordModal.classList.remove('show');
                 dom.passwordError.style.display = 'none';
@@ -2340,10 +3044,12 @@
                 }
             });
 
+            // 导入弹窗外部关闭
             dom.importModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
             });
 
+            // ---- 鸣谢名单 ----
             dom.thanksBtn.addEventListener('click', function() {
                 dom.thanksModal.classList.add('show');
                 loadThanksList();
