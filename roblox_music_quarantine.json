@@ -313,5 +313,138 @@
     "category": "英文热门",
     "lineIndex": 72,
     "quarantinedAt": "2026-08-25 09:37"
+  },
+  {
+    "id": "115491075459410",
+    "name": "张雪峰老师",
+    "category": "中文流行",
+    "lineIndex": 78,
+    "quarantinedAt": "2026-08-27 11:45"
+  },
+  {
+    "id": "104718892355507",
+    "name": "你的表演像我奶奶烤糊的苹果",
+    "category": "中文流行",
+    "lineIndex": 66,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "78963341533467",
+    "name": "京  落泪  我",
+    "category": "中文流行",
+    "lineIndex": 91,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134612611609536",
+    "name": "我本将心向明月",
+    "category": "中文流行",
+    "lineIndex": 134,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "125410776294483",
+    "name": "我本将心向明月",
+    "category": "中文流行",
+    "lineIndex": 297,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "116502840426811",
+    "name": "给我一首歌的时间",
+    "category": "中文流行",
+    "lineIndex": 309,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "96480447720009",
+    "name": "爱我还是他",
+    "category": "中文流行",
+    "lineIndex": 332,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "35361569113971",
+    "name": "可惜我是水瓶座",
+    "category": "中文流行",
+    "lineIndex": 399,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134222147734771",
+    "name": "南风知我意",
+    "category": "中文流行",
+    "lineIndex": 1029,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134012347713661",
+    "name": "山河故我",
+    "category": "中文流行",
+    "lineIndex": 1030,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "129212347714991",
+    "name": "明天你是否依然爱我",
+    "category": "中文流行",
+    "lineIndex": 1054,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "128812247715111",
+    "name": "突然的自我",
+    "category": "中文流行",
+    "lineIndex": 1056,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "127422447736661",
+    "name": "别怕我伤心",
+    "category": "中文流行",
+    "lineIndex": 1063,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "121212347717221",
+    "name": "如果你是我的传说",
+    "category": "中文流行",
+    "lineIndex": 1094,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181200",
+    "name": "给我一首歌的时间 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1225,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181231",
+    "name": "南风知我意 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1256,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181232",
+    "name": "山河故我 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1257,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181249",
+    "name": "突然的自我 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1274,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141400223344154",
+    "name": "可惜我是水瓶座 DJ",
+    "category": "Phonk/DJ",
+    "lineIndex": 1453,
+    "quarantinedAt": "2026-08-27 11:50"
   }
 ]

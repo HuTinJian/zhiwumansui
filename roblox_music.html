@@ -159,7 +159,7 @@
             margin: 0 2px;
             flex-shrink: 0;
         }
-        .admin-hint { display: none !important; }
+        .admin-hint { display: none !important; } /* 隐藏“双击标题”提示 */
 
         .header-actions {
             margin-top: 12px;
@@ -1155,12 +1155,19 @@
         /**
          * ===== 配置区（可修改） =====
          */
-        const USE_EXTERNAL_JSON = true; // true=从外部加载，false=空数据
-        const EXTERNAL_JSON_URL = 'roblox_music.json';
-        const USE_EXTERNAL_QUARANTINE_ADMIN = true; // true=自动合并外部隔离区
+        const USE_EXTERNAL_JSON = true;                      // 是否从外部加载主数据
+        const EXTERNAL_JSON_URL = 'roblox_music.json';       // 主数据文件名
+        const USE_EXTERNAL_QUARANTINE_ADMIN = true;          // 是否自动合并管理员隔离区
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
-        const ADMIN_PASSWORD = 'HuTinJianZW'; // 开发者密码
-        const THANKS_JSON_URL = 'roblox_music_thanks.json';
+        const ADMIN_PASSWORD = 'HuTinJianZW';                // 开发者密码
+        const THANKS_JSON_URL = 'roblox_music_thanks.json';  // 鸣谢名单文件名
+
+        // 音效关键词列表（可自行增删，每次刷新会自动对已有数据生效）
+        const SOUND_KEYWORDS = [
+            '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
+            '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
+            '啊', '哦', '嗯', '欸', '喂', '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
+        ];
 
         /**
          * ===== 全局变量 =====
@@ -1362,6 +1369,26 @@
                         songDatabase = data
                             .filter(i => !filterIds.has(i.id))
                             .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
+
+                        // 🆕 自动音效分类（无版本号，每次加载都检查）
+                        if (songDatabase.length > 0) {
+                            let updated = 0;
+                            songDatabase.forEach(item => {
+                                const lower = item.name.toLowerCase();
+                                if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
+                                    // 只更新当前不是“搞笑音效”的条目，保护手动分类
+                                    if (item.category !== '搞笑音效') {
+                                        item.category = '搞笑音效';
+                                        updated++;
+                                    }
+                                }
+                            });
+                            if (updated > 0) {
+                                saveData(); // 保存更新后的分类
+                                console.log(`✅ 自动分类完成，${updated} 个ID归入“搞笑音效”`);
+                            }
+                        }
+
                         saveData();
                         console.log(`✅ 主数据加载成功，共 ${songDatabase.length} 个ID`);
                         loadExternalAdminQuarantine();
@@ -1909,20 +1936,21 @@
                     if (result.some(r => r.id === id)) return;
                     let category = '中文流行';
                     const lower = name.toLowerCase();
-                    if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj'))
-                        category = 'Phonk/DJ';
-                    else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes(
-                            '古筝') ||
-                        lower.includes('二胡') || lower.includes('箫') || lower.includes('笛') || lower.includes('琴') ||
-                        lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶'))
-                        category = '古风国风';
-                    else if (lower.includes('搞笑') || lower.includes('音效') || lower.includes('惨叫') || lower.includes(
-                            '笑声') ||
-                        lower.includes('魔性') || lower.includes('鬼畜') || lower.includes('沙雕') || lower.includes('梗'))
+
+                    // 音效优先判断
+                    if (SOUND_KEYWORDS.some(k => lower.includes(k))) {
                         category = '搞笑音效';
-                    else if (lower.includes('周杰伦') || lower.includes('杰伦')) category = '周杰伦';
-                    else if (lower.includes('英文') || /[a-zA-Z]/.test(name) && !lower.includes('中文'))
+                    } else if (lower.includes('phonk') || lower.includes('drift') || lower.includes('卡点') || lower.includes('dj')) {
+                        category = 'Phonk/DJ';
+                    } else if (lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') || lower.includes('古筝') ||
+                        lower.includes('二胡') || lower.includes('箫') || lower.includes('笛') || lower.includes('琴') ||
+                        lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶')) {
+                        category = '古风国风';
+                    } else if (lower.includes('周杰伦') || lower.includes('杰伦')) {
+                        category = '周杰伦';
+                    } else if (lower.includes('英文') || /[a-zA-Z]/.test(name) && !lower.includes('中文')) {
                         category = '英文热门';
+                    }
 
                     result.push({
                         id: id,
@@ -2160,7 +2188,6 @@
 
             container.innerHTML = html;
 
-            // 点击复制/隔离
             container.onclick = function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -2179,7 +2206,6 @@
                 }
             };
 
-            // 复选框
             container.querySelectorAll('.id-checkbox').forEach(cb => {
                 cb.onchange = function() {
                     const id = this.dataset.id;
