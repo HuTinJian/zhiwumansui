@@ -580,6 +580,43 @@
         .modal-actions .btn-danger { background:#e8747a; color:#fff; }
         .modal-actions .btn-danger:hover { background:#d45c62; }
 
+        /* ===== 游客提示弹窗 ===== */
+        #reminderModal .modal-content {
+            max-width:520px;
+        }
+        #reminderModal .reminder-body {
+            font-size:15px;
+            line-height:1.8;
+            color:var(--text-light);
+            margin:12px 0 16px 0;
+        }
+        #reminderModal .reminder-body .highlight {
+            color:var(--primary-dark);
+            font-weight:600;
+        }
+        #reminderModal .btn-reminder-confirm {
+            background:var(--primary);
+            color:#fff;
+            border:none;
+            padding:8px 28px;
+            border-radius:40px;
+            font-size:clamp(14px,1vw,16px);
+            cursor:pointer;
+            transition:all var(--transition);
+            min-height:42px;
+            font-weight:500;
+            opacity:0.6;
+            pointer-events:none;
+        }
+        #reminderModal .btn-reminder-confirm.active {
+            opacity:1;
+            pointer-events:auto;
+        }
+        #reminderModal .btn-reminder-confirm:hover.active {
+            background:var(--primary-dark);
+            transform:scale(1.02);
+        }
+
         /* ===== 鸣谢弹窗 ===== */
         .thanks-modal .modal-content {
             border-color:var(--gold);
@@ -989,8 +1026,15 @@
             border-radius:40px;
             cursor:pointer;
             transition:all var(--transition);
+            min-height:42px;
+            opacity:0.6;
+            pointer-events:none;
         }
-        #riskModal .modal-actions .btn-confirm:hover {
+        #riskModal .modal-actions .btn-confirm.active {
+            opacity:1;
+            pointer-events:auto;
+        }
+        #riskModal .modal-actions .btn-confirm:hover.active {
             background:#a93226;
             transform:scale(1.02);
         }
@@ -1003,9 +1047,31 @@
             border-radius:40px;
             cursor:pointer;
             transition:all var(--transition);
+            min-height:42px;
         }
         #riskModal .modal-actions .btn-cancel:hover {
             background:#dbb5bd;
+        }
+        #riskModal .btn-risk-dismiss {
+            background:transparent;
+            color:var(--text-muted);
+            border:1px solid var(--border);
+            font-size:13px;
+            padding:4px 16px;
+            border-radius:40px;
+            cursor:pointer;
+            transition:all var(--transition);
+            min-height:32px;
+            opacity:0.6;
+            pointer-events:none;
+        }
+        #riskModal .btn-risk-dismiss.active {
+            opacity:1;
+            pointer-events:auto;
+        }
+        #riskModal .btn-risk-dismiss:hover.active {
+            background:rgba(0,0,0,0.04);
+            border-color:var(--text-muted);
         }
 
         /* ===== 更新弹窗 ===== */
@@ -1141,6 +1207,8 @@
             #riskModal .modal-content { max-width:95%; padding:14px; }
             #riskModal .risk-body { max-height:45vh; font-size:13px; }
             #updateModal .modal-content { max-width:95%; padding:0; }
+            #riskModal .modal-actions { flex-wrap:wrap; gap:8px; }
+            #riskModal .btn-risk-dismiss { font-size:12px; padding:3px 12px; }
         }
         @media (max-width:640px) {
             body { padding:8px; }
@@ -1182,6 +1250,8 @@
             #riskModal .modal-content { max-width:95%; padding:16px; }
             #riskModal .risk-body { max-height:50vh; font-size:13px; }
             #updateModal .modal-content { max-width:95%; padding:0; }
+            #riskModal .modal-actions { flex-wrap:wrap; gap:8px; justify-content:center; }
+            #riskModal .btn-risk-dismiss { font-size:12px; padding:3px 14px; }
         }
         @media (min-width:641px) and (max-width:1024px) {
             .header h1 { font-size:22px; }
@@ -1253,8 +1323,8 @@
                     <button class="btn-import admin-only" id="openImportBtn">📥 导入</button>
                     <button class="btn-success admin-only" id="exportBtn">💾 导出</button>
                     <button class="btn-danger admin-only" id="clearAllBtn">🧹 清空</button>
-                    <button class="btn-quarantine admin-only" id="openQuarantineBtn">⛔ 隔离区（开发者）</button>
-                    <button class="btn-batch admin-only" id="batchToggleBtn">📦 批量隔离</button>
+                    <button class="btn-quarantine" id="openQuarantineBtn">⛔ 隔离区（游客）</button>
+                    <button class="btn-batch" id="batchToggleBtn">📦 批量隔离</button>
                 </div>
             </div>
         </header>
@@ -1316,7 +1386,7 @@
     <!-- ===== 隔离区弹窗 ===== -->
     <div class="modal quarantine-modal" id="quarantineModal" role="dialog" aria-modal="true">
         <div class="modal-content">
-            <h2 id="quarantineModalTitle">⛔ 隔离区（开发者）</h2>
+            <h2 id="quarantineModalTitle">⛔ 隔离区（游客）</h2>
             <div class="quarantine-search-box">
                 <input type="text" id="quarantineSearchInput" placeholder="🔍 搜索隔离区（歌名或ID）...">
             </div>
@@ -1370,7 +1440,8 @@
 
                 <div class="modal-actions" style="margin-top:6px;">
                     <button class="btn-cancel" id="riskCancelBtn">取消</button>
-                    <button class="btn-confirm" id="riskConfirmBtn">✅ 确认跳转</button>
+                    <button class="btn-confirm" id="riskConfirmBtn" disabled>确认跳转 (10s)</button>
+                    <button class="btn-risk-dismiss" id="riskDismissBtn" disabled>以后不再弹出 (10s)</button>
                 </div>
             </div>
         </div>
@@ -1384,19 +1455,22 @@
                 <h2>
                     版本更新
                     <span class="update-version" id="updateVersionDisplay"></span>
-                    <span class="update-time">📅 2026.9.5 9:50</span>
+                    <span class="update-time">📅 2026.9.6 7:47</span>
                 </h2>
             </div>
             <div class="update-body" id="updateBody">
-                <div class="update-item">• 权限优化 —— 游客模式不再显示“隔离区”、“批量隔离”及“删除”按钮，仅开发者模式可用，界面更纯净</div>
-                <div class="update-item">• 权限增强 —— 隔离区相关功能严格限制为开发者专属，防止游客误操作</div>
-                <div class="update-item">• 代码整洁 —— 移除冗余注释，调整变量命名，提升可读性</div>
-                <div class="update-item">• 安全加固 —— 统一使用 SHA-512 哈希验证，密码存储更可靠</div>
+                <div class="update-item">• 功能恢复 —— 游客模式重新开放“删除”及“批量隔离”按钮，操作更灵活</div>
+                <div class="update-item">• 反馈引导 —— 游客点击隔离功能时，弹出提示窗口，引导通过反馈联系开发者</div>
+                <div class="update-item">• 体验优化 —— 试听风险告知新增“以后不再弹出”选项，避免重复阅读</div>
+                <div class="update-item">• 交互增强 —— 游客操作增加 5 秒倒计时确认，防止误触</div>
+                <div class="update-item">• 试听弹窗优化 —— 首次阅读后，再次弹出时无需等待 10 秒，提升使用流畅度</div>
+                <div class="update-item">• 版本更新机制 —— 每次更新后重置提示状态，确保用户知悉最新内容</div>
+                <div class="update-item">• 界面优化 —— 调整部分按钮样式，提升视觉一致性</div>
             </div>
             <div class="update-footer">
                 <div class="update-thanks">感谢您的使用！ ❤️</div>
                 <div class="update-contact">📢 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
-                <button class="btn-update-confirm" id="updateConfirmBtn">我知道了</button>
+                <button class="btn-update-confirm" id="updateConfirmBtn">我已知晓</button>
             </div>
         </div>
     </div>
@@ -1427,7 +1501,27 @@
             <p id="confirmMessage">确定要继续吗？</p>
             <div class="modal-actions">
                 <button class="btn-cancel" id="confirmCancel">取消</button>
-                <button class="btn-confirm" id="confirmOk">确定</button>
+                <button class="btn-confirm" id="confirmOk">我已知晓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 游客提示弹窗 ===== -->
+    <div class="modal" id="reminderModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>💡 提示</h2>
+            <div class="reminder-body">
+                <p>💡 您正在尝试标记可能有问题或无效的 Roblox ID。</p>
+                <p>您可以通过以下两种方式把问题 ID 告诉我们：</p>
+                <p>① 点击页面右上角的“📩 反馈”按钮，直接提交。</p>
+                <p>② 联系开发者：<br>
+                &nbsp;&nbsp;&nbsp;📧 邮箱：2560803486@qq.com<br>
+                &nbsp;&nbsp;&nbsp;💬 QQ：2560803486</p>
+                <p>每一条反馈我们都会认真查看。</p>
+                <p>感谢你的用心，让这里变得更好。❤️</p>
+            </div>
+            <div class="modal-actions" style="justify-content:center;">
+                <button class="btn-reminder-confirm" id="reminderConfirmBtn" disabled>请等待 5 秒...</button>
             </div>
         </div>
     </div>
@@ -1446,7 +1540,7 @@
                 © <span id="copyrightYear">2026</span> 织雾满穗 · 用知识照亮世界
             </p>
             <div class="modal-actions">
-                <button class="btn-confirm" id="contactOkBtn">我知道了</button>
+                <button class="btn-confirm" id="contactOkBtn">我已知晓</button>
             </div>
         </div>
     </div>
@@ -1459,9 +1553,8 @@
         const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.0.5';  // 版本号升级
+        const UPDATE_VERSION = 'v1.2.0';
 
-        // 音效关键词
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1528,10 +1621,13 @@
             riskModal: $('riskModal'),
             riskConfirmBtn: $('riskConfirmBtn'),
             riskCancelBtn: $('riskCancelBtn'),
+            riskDismissBtn: $('riskDismissBtn'),
             riskBody: $('riskBody'),
             updateModal: $('updateModal'),
             updateConfirmBtn: $('updateConfirmBtn'),
             updateVersionDisplay: $('updateVersionDisplay'),
+            reminderModal: $('reminderModal'),
+            reminderConfirmBtn: $('reminderConfirmBtn'),
         };
 
         // ===== 数据状态 =====
@@ -1593,7 +1689,7 @@
                 String(d.getHours()).padStart(2, '0') + ':' +
                 String(d.getMinutes()).padStart(2, '0');
         }
-        
+
         async function hashPassword(input) {
             const encoder = new TextEncoder();
             const data = encoder.encode(input);
@@ -1612,7 +1708,6 @@
             }
         }
 
-        // ===== 缓存键校验 =====
         async function _verifyCacheKey(input) {
             try {
                 const inputHash = await hashPassword(input);
@@ -1658,18 +1753,66 @@
             };
         }
 
+        // ===== 倒计时工具 =====
+        function startCountdown(btn, duration, onComplete) {
+            let remaining = duration;
+            btn.disabled = true;
+            btn.classList.remove('active');
+            const originalText = btn.textContent.replace(/\s*\(\d+s\)$/, '').trim();
+            const updateBtn = () => {
+                if (remaining > 0) {
+                    btn.textContent = `${originalText} (${remaining}s)`;
+                    remaining--;
+                    setTimeout(updateBtn, 1000);
+                } else {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    btn.classList.add('active');
+                    if (onComplete) onComplete();
+                }
+            };
+            updateBtn();
+            return () => {
+                btn.disabled = false;
+                btn.classList.add('active');
+                btn.textContent = originalText;
+            };
+        }
+
         // ===== 风险告知弹窗 =====
         function showRiskModal(id) {
-            if (isAdmin) {
+            if (localStorage.getItem('riskAcknowledged') === 'true') {
                 window.open(`https://www.roblox.com/library/${id}/`, '_blank');
                 return;
             }
             pendingRedirectId = id;
             dom.riskModal.classList.add('show');
             dom.riskBody.scrollTop = 0;
+            const confirmBtn = dom.riskConfirmBtn;
+            const dismissBtn = dom.riskDismissBtn;
+
+            if (localStorage.getItem('riskCountdownSkipped') === 'true') {
+                confirmBtn.disabled = false;
+                confirmBtn.classList.add('active');
+                confirmBtn.textContent = '确认跳转';
+                dismissBtn.disabled = false;
+                dismissBtn.classList.add('active');
+                dismissBtn.textContent = '以后不再弹出';
+            } else {
+                confirmBtn.disabled = true;
+                confirmBtn.classList.remove('active');
+                confirmBtn.textContent = '确认跳转 (10s)';
+                dismissBtn.disabled = true;
+                dismissBtn.classList.remove('active');
+                dismissBtn.textContent = '以后不再弹出 (10s)';
+                startCountdown(confirmBtn, 10);
+                startCountdown(dismissBtn, 10);
+            }
         }
 
-        dom.riskConfirmBtn.addEventListener('click', () => {
+        dom.riskConfirmBtn.addEventListener('click', function() {
+            if (this.disabled) return;
+            localStorage.setItem('riskCountdownSkipped', 'true');
             if (pendingRedirectId) {
                 window.open(`https://www.roblox.com/library/${pendingRedirectId}/`, '_blank');
                 pendingRedirectId = null;
@@ -1677,9 +1820,28 @@
             dom.riskModal.classList.remove('show');
         });
 
-        dom.riskCancelBtn.addEventListener('click', () => {
+        dom.riskCancelBtn.addEventListener('click', function() {
             pendingRedirectId = null;
             dom.riskModal.classList.remove('show');
+        });
+
+        dom.riskDismissBtn.addEventListener('click', function() {
+            if (this.disabled) return;
+            showConfirm(
+                '⚠️ 确认操作',
+                '您确定要启用“以后不再弹出”吗？\n\n启用后，试听风险告知弹窗将不再出现，\n直到下一次版本更新。\n\n届时您将重新看到完整的风险告知内容。\n\n是否确认？'
+            ).then(confirmed => {
+                if (confirmed) {
+                    localStorage.setItem('riskAcknowledged', 'true');
+                    localStorage.removeItem('riskCountdownSkipped');
+                    if (pendingRedirectId) {
+                        window.open(`https://www.roblox.com/library/${pendingRedirectId}/`, '_blank');
+                        pendingRedirectId = null;
+                    }
+                    dom.riskModal.classList.remove('show');
+                    showToast('✅ 已启用“以后不再弹出”，下次版本更新前将不再显示风险告知');
+                }
+            });
         });
 
         dom.riskModal.addEventListener('click', e => {
@@ -1688,6 +1850,45 @@
                 dom.riskModal.classList.remove('show');
             }
         });
+
+        // ===== 游客提示弹窗（倒计时5秒） =====
+        function showReminderModal(callback) {
+            if (localStorage.getItem('guestReminderShown') === 'true') {
+                if (callback) callback();
+                return;
+            }
+            const modal = dom.reminderModal;
+            const btn = dom.reminderConfirmBtn;
+            modal.classList.add('show');
+            btn.disabled = true;
+            btn.classList.remove('active');
+            btn.textContent = '请等待 5 秒...';
+            let remaining = 5;
+            const updateBtn = () => {
+                if (remaining > 0) {
+                    btn.textContent = `请等待 ${remaining} 秒...`;
+                    remaining--;
+                    setTimeout(updateBtn, 1000);
+                } else {
+                    btn.textContent = '我已知晓';
+                    btn.disabled = false;
+                    btn.classList.add('active');
+                }
+            };
+            updateBtn();
+            btn.onclick = function() {
+                if (this.disabled) return;
+                modal.classList.remove('show');
+                localStorage.setItem('guestReminderShown', 'true');
+                btn.classList.remove('active');
+                btn.disabled = true;
+                btn.textContent = '请等待 5 秒...';
+                if (callback) callback();
+            };
+            modal.onclick = function(e) {
+                if (e.target === modal) return;
+            };
+        }
 
         // ===== 数据持久化 =====
         function saveData() {
@@ -1728,7 +1929,6 @@
                         .filter(i => !filterIds.has(i.id))
                         .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
 
-                    // 自动分类音效
                     if (songDatabase.length > 0) {
                         let updated = 0;
                         songDatabase.forEach(item => {
@@ -1901,13 +2101,47 @@
             document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
         }
 
+        // 批量隔离按钮点击事件
+        dom.batchToggle.addEventListener('click', function() {
+            if (isAdmin) {
+                toggleBatchMode();
+            } else {
+                if (selectedIds.size === 0) {
+                    showToast('⚠️ 请先选择要标记的 ID');
+                    return;
+                }
+                showReminderModal(); // 仅提示，实际隔离在批量删除中执行
+            }
+        });
+
+        // 批量删除（隔离选中）按钮点击事件
+        dom.batchDelete.addEventListener('click', function() {
+            if (selectedIds.size === 0) {
+                showToast('⚠️ 请先选择要标记的 ID');
+                return;
+            }
+            if (isAdmin) {
+                batchDelete();
+            } else {
+                if (localStorage.getItem('guestReminderShown') === 'true') {
+                    batchDelete();
+                } else {
+                    showReminderModal(() => {
+                        batchDelete();
+                    });
+                }
+            }
+        });
+
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
-            const confirmed = await showConfirm('批量隔离',
-                `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
-            );
-            if (!confirmed) return;
-
+            // 开发者弹确认，游客直接执行
+            if (isAdmin) {
+                const confirmed = await showConfirm('批量隔离',
+                    `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
+                );
+                if (!confirmed) return;
+            }
             const target = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
             const toDelete = [];
             const newDb = [];
@@ -1930,15 +2164,18 @@
             updateSelectedCount();
         }
 
-        async function moveToQuarantine(name, id) {
-            if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
+        // 单条隔离函数（游客直接执行，开发者弹确认）
+        async function moveToQuarantine(name, id, skipConfirm = false) {
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
             if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
             const item = songDatabase[idx];
-            const confirmed = await showConfirm('隔离',
-                `确定将 ID ${id}（歌名：${name}）移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
-            );
-            if (!confirmed) return;
+
+            if (isAdmin && !skipConfirm) {
+                const confirmed = await showConfirm('隔离',
+                    `确定将 ID ${id}（歌名：${name}）移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
+                );
+                if (!confirmed) return;
+            }
 
             songDatabase.splice(idx, 1);
             const target = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
@@ -2442,7 +2679,7 @@
                             <div class="id-actions">
                                 <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
                                 <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
-                                <button class="btn-delete-id admin-only" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                                <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
                             </div>
                         </div>
                     `;
@@ -2480,7 +2717,19 @@
                 }
                 if (target.classList.contains('btn-delete-id')) {
                     e.stopPropagation();
-                    moveToQuarantine(target.dataset.name, target.dataset.id);
+                    const name = target.dataset.name;
+                    const id = target.dataset.id;
+                    if (isAdmin) {
+                        moveToQuarantine(name, id);
+                    } else {
+                        if (localStorage.getItem('guestReminderShown') === 'true') {
+                            moveToQuarantine(name, id, true);
+                        } else {
+                            showReminderModal(() => {
+                                moveToQuarantine(name, id, true);
+                            });
+                        }
+                    }
                     return;
                 }
             };
@@ -2537,7 +2786,11 @@
         // ===== 版本更新检测 =====
         function checkUpdate() {
             dom.updateVersionDisplay.textContent = UPDATE_VERSION;
-            if (localStorage.getItem('updateVersion') !== UPDATE_VERSION) {
+            const storedVersion = localStorage.getItem('updateVersion');
+            if (storedVersion !== UPDATE_VERSION) {
+                localStorage.removeItem('riskAcknowledged');
+                localStorage.removeItem('riskCountdownSkipped');
+                localStorage.removeItem('guestReminderShown');
                 dom.updateModal.classList.add('show');
                 localStorage.setItem('updateVersion', UPDATE_VERSION);
             }
@@ -2594,10 +2847,6 @@
             dom.quarantineBatchRelease.addEventListener('click', batchReleaseFromQuarantine);
             dom.restoreAllBtn.addEventListener('click', restoreAllFromQuarantine);
             dom.exportQuarantine.addEventListener('click', exportQuarantine);
-
-            dom.batchToggle.addEventListener('click', () => toggleBatchMode());
-            dom.batchClear.addEventListener('click', clearSelected);
-            dom.batchDelete.addEventListener('click', batchDelete);
 
             dom.importModal.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
