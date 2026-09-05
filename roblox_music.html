@@ -1253,8 +1253,8 @@
                     <button class="btn-import admin-only" id="openImportBtn">📥 导入</button>
                     <button class="btn-success admin-only" id="exportBtn">💾 导出</button>
                     <button class="btn-danger admin-only" id="clearAllBtn">🧹 清空</button>
-                    <button class="btn-quarantine" id="openQuarantineBtn">⛔ 隔离区（游客）</button>
-                    <button class="btn-batch" id="batchToggleBtn">📦 批量隔离</button>
+                    <button class="btn-quarantine admin-only" id="openQuarantineBtn">⛔ 隔离区（开发者）</button>
+                    <button class="btn-batch admin-only" id="batchToggleBtn">📦 批量隔离</button>
                 </div>
             </div>
         </header>
@@ -1316,7 +1316,7 @@
     <!-- ===== 隔离区弹窗 ===== -->
     <div class="modal quarantine-modal" id="quarantineModal" role="dialog" aria-modal="true">
         <div class="modal-content">
-            <h2 id="quarantineModalTitle">⛔ 隔离区（游客）</h2>
+            <h2 id="quarantineModalTitle">⛔ 隔离区（开发者）</h2>
             <div class="quarantine-search-box">
                 <input type="text" id="quarantineSearchInput" placeholder="🔍 搜索隔离区（歌名或ID）...">
             </div>
@@ -1384,20 +1384,18 @@
                 <h2>
                     版本更新
                     <span class="update-version" id="updateVersionDisplay"></span>
-                    <span class="update-time">📅 2026.8.27 18:06</span>
+                    <span class="update-time">📅 2026.9.5 9:50</span>
                 </h2>
             </div>
             <div class="update-body" id="updateBody">
-                <div class="update-item">•新增「试听」功能，点击 🔗 试听 按钮可跳转至 Roblox 官方页面试听音乐。</div>
-                <div class="update-item">•新增法律与平台风险告知弹窗，每次试听前必须阅读并滚动到底部确认。</div>
-                <div class="update-item">•新增更新弹窗，版本更新后自动提示新内容。</div>
-                <div class="update-item">•优化界面样式，更清爽护眼。</div>
-                <div class="update-item">•修复音效自动分类问题，扩充了音效关键词。</div>
-                <div class="update-item">•隔离区去重逻辑完善。</div>
+                <div class="update-item">• 权限优化 —— 游客模式不再显示“隔离区”、“批量隔离”及“删除”按钮，仅开发者模式可用，界面更纯净</div>
+                <div class="update-item">• 权限增强 —— 隔离区相关功能严格限制为开发者专属，防止游客误操作</div>
+                <div class="update-item">• 代码整洁 —— 移除冗余注释，调整变量命名，提升可读性</div>
+                <div class="update-item">• 安全加固 —— 统一使用 SHA-512 哈希验证，密码存储更可靠</div>
             </div>
             <div class="update-footer">
                 <div class="update-thanks">感谢您的使用！ ❤️</div>
-                <div class="update-contact">📱 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
+                <div class="update-contact">📢 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
                 <button class="btn-update-confirm" id="updateConfirmBtn">我知道了</button>
             </div>
         </div>
@@ -1413,7 +1411,7 @@
             </div>
             <div class="thanks-footer">
                 <div>如果有没有写到的UP主/反馈者，请联系我 ❤️</div>
-                <div class="contact">📱 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
+                <div class="contact">📢 哔哩哔哩 / 抖音 / 快手：<span class="highlight">织雾满穗</span></div>
                 <div class="closing">每一份分享都值得被铭记，每一次整理都值得被感谢。</div>
             </div>
             <div class="modal-actions" style="justify-content:center; margin-top:12px;">
@@ -1461,9 +1459,9 @@
         const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.0.3';
+        const UPDATE_VERSION = 'v1.0.5';  // 版本号升级
 
-        // 音效关键词（用于自动分类）
+        // 音效关键词
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1614,7 +1612,7 @@
             }
         }
 
-        // ===== 缓存键校验（保留原有逻辑） =====
+        // ===== 缓存键校验 =====
         async function _verifyCacheKey(input) {
             try {
                 const inputHash = await hashPassword(input);
@@ -1933,6 +1931,7 @@
         }
 
         async function moveToQuarantine(name, id) {
+            if (!isAdmin) { showToast('⚠️ 仅开发者可操作'); return; }
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
             if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
             const item = songDatabase[idx];
@@ -2443,7 +2442,7 @@
                             <div class="id-actions">
                                 <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
                                 <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
-                                <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                                <button class="btn-delete-id admin-only" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
                             </div>
                         </div>
                     `;
