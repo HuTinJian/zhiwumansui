@@ -1171,7 +1171,7 @@
             box-shadow:0 8px 24px rgba(220,107,130,0.4);
         }
 
-        /* ===== 响应式 ===== */
+        /* ===== 响应式增强 ===== */
         @media (max-width:400px) {
             body { padding:6px; }
             .header { padding:12px 14px; }
@@ -1294,6 +1294,38 @@
             .quarantine-batch-bar .actions .btn-batch-release,
             .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 20px; font-size:13px; }
             #riskModal .risk-body { max-height:60vh; }
+        }
+        /* 新增：小屏触摸优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn-group .btn-import,
+            .btn-group .btn-danger,
+            .btn-group .btn-success,
+            .btn-group .btn-quarantine,
+            .btn-group .btn-batch {
+                padding: 8px 16px;
+                height: 40px;
+                font-size: 14px;
+            }
+            .filter-tabs button,
+            .btn-multi {
+                height: 44px;
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+            .search-box input {
+                height: 48px;
+                font-size: 16px;
+            }
+            .btn-copy-id, .btn-play {
+                height: 34px;
+                font-size: 14px;
+                padding: 4px 14px;
+            }
+            .btn-delete-id {
+                height: 34px;
+                font-size: 18px;
+                padding: 0 8px;
+            }
         }
     </style>
 </head>
@@ -1455,7 +1487,7 @@
                 <h2>
                     版本更新
                     <span class="update-version" id="updateVersionDisplay"></span>
-                    <span class="update-time">📅 2026.9.6 7:47</span>
+                    <span class="update-time">📅 2026.9.6 8:01</span>
                 </h2>
             </div>
             <div class="update-body" id="updateBody">
@@ -1465,6 +1497,7 @@
                 <div class="update-item">• 交互增强 —— 游客操作增加 5 秒倒计时确认，防止误触</div>
                 <div class="update-item">• 试听弹窗优化 —— 首次阅读后，再次弹出时无需等待 10 秒，提升使用流畅度</div>
                 <div class="update-item">• 版本更新机制 —— 每次更新后重置提示状态，确保用户知悉最新内容</div>
+                <div class="update-item">• 性能优化 —— 搜索输入防抖、渲染异步化，提升交互响应速度（INP 改善）</div>
                 <div class="update-item">• 界面优化 —— 调整部分按钮样式，提升视觉一致性</div>
             </div>
             <div class="update-footer">
@@ -1553,8 +1586,9 @@
         const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.2.0';
+        const UPDATE_VERSION = 'v1.2.1';
 
+        // 音效关键词
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1851,7 +1885,7 @@
             }
         });
 
-        // ===== 游客提示弹窗（倒计时5秒） =====
+        // ===== 游客提示弹窗 =====
         function showReminderModal(callback) {
             if (localStorage.getItem('guestReminderShown') === 'true') {
                 if (callback) callback();
@@ -1887,6 +1921,15 @@
             };
             modal.onclick = function(e) {
                 if (e.target === modal) return;
+            };
+        }
+
+        // ===== 防抖函数 =====
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
 
@@ -2110,7 +2153,7 @@
                     showToast('⚠️ 请先选择要标记的 ID');
                     return;
                 }
-                showReminderModal(); // 仅提示，实际隔离在批量删除中执行
+                showReminderModal();
             }
         });
 
@@ -2135,7 +2178,6 @@
 
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
-            // 开发者弹确认，游客直接执行
             if (isAdmin) {
                 const confirmed = await showConfirm('批量隔离',
                     `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
@@ -2164,7 +2206,6 @@
             updateSelectedCount();
         }
 
-        // 单条隔离函数（游客直接执行，开发者弹确认）
         async function moveToQuarantine(name, id, skipConfirm = false) {
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
             if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
@@ -2564,6 +2605,8 @@
         }
 
         // ===== 渲染主列表 =====
+        let renderPending = false;
+
         function renderAll() {
             const uniqueNames = new Set(songDatabase.map(i => i.name));
             dom.totalGroup.textContent = uniqueNames.size;
@@ -2607,11 +2650,7 @@
                 b.classList.toggle('active', b.dataset.cat === currentCategory);
             }
 
-            dom.searchInput.oninput = function() {
-                currentKeyword = this.value;
-                renderList();
-            };
-
+            // 搜索输入防抖（已在下文绑定）
             dom.multiToggleBtn.onclick = function() {
                 showMultiOnly = !showMultiOnly;
                 this.classList.toggle('active');
@@ -2627,98 +2666,120 @@
         }
 
         function renderList() {
-            const keyword = currentKeyword.trim().toLowerCase();
+            if (renderPending) return;
+            renderPending = true;
+            requestAnimationFrame(() => {
+                renderPending = false;
+                const keyword = currentKeyword.trim().toLowerCase();
 
-            const filtered = songDatabase.filter(item => {
-                const catMatch = currentCategory === 'all' || item.category === currentCategory;
-                const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
-                return catMatch && kwMatch;
-            });
+                const filtered = songDatabase.filter(item => {
+                    const catMatch = currentCategory === 'all' || item.category === currentCategory;
+                    const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
+                    return catMatch && kwMatch;
+                });
 
-            const groupMap = {};
-            for (const item of filtered) {
-                if (!groupMap[item.name]) {
-                    groupMap[item.name] = { name: item.name, ids: [], categories: new Set(), firstLine: Infinity };
+                const groupMap = {};
+                for (const item of filtered) {
+                    if (!groupMap[item.name]) {
+                        groupMap[item.name] = { name: item.name, ids: [], categories: new Set(), firstLine: Infinity };
+                    }
+                    groupMap[item.name].ids.push(item.id);
+                    groupMap[item.name].categories.add(item.category);
+                    if (item.lineIndex < groupMap[item.name].firstLine) {
+                        groupMap[item.name].firstLine = item.lineIndex;
+                    }
                 }
-                groupMap[item.name].ids.push(item.id);
-                groupMap[item.name].categories.add(item.category);
-                if (item.lineIndex < groupMap[item.name].firstLine) {
-                    groupMap[item.name].firstLine = item.lineIndex;
+
+                let groups = Object.values(groupMap);
+                groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+                if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
+
+                const container = dom.songContainer;
+                if (groups.length === 0) {
+                    container.innerHTML = '';
+                    dom.emptyState.style.display = 'block';
+                    return;
                 }
-            }
+                dom.emptyState.style.display = 'none';
 
-            let groups = Object.values(groupMap);
-            groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
-            if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
+                let html = '';
+                for (const group of groups) {
+                    group.ids.sort((a, b) => Number(a) - Number(b));
+                    const catStr = [...group.categories].join(' / ');
+                    const safeName = escapeHtml(group.name);
+                    const isMulti = group.ids.length > 1;
 
-            const container = dom.songContainer;
-            if (groups.length === 0) {
-                container.innerHTML = '';
-                dom.emptyState.style.display = 'block';
-                return;
-            }
-            dom.emptyState.style.display = 'none';
+                    let nameHtml = safeName;
+                    if (isMulti) nameHtml += ` <span class="badge-multi">多ID</span>`;
 
-            let html = '';
-            for (const group of groups) {
-                group.ids.sort((a, b) => Number(a) - Number(b));
-                const catStr = [...group.categories].join(' / ');
-                const safeName = escapeHtml(group.name);
-                const isMulti = group.ids.length > 1;
-
-                let nameHtml = safeName;
-                if (isMulti) nameHtml += ` <span class="badge-multi">多ID</span>`;
-
-                let rowsHtml = '';
-                for (const id of group.ids) {
-                    const checked = selectedIds.has(id) ? 'checked' : '';
-                    rowsHtml += `
-                        <div class="id-row">
-                            <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
-                            <span class="id-number">${escapeHtml(id)}</span>
-                            <div class="id-actions">
-                                <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
-                                <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
-                                <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                    let rowsHtml = '';
+                    for (const id of group.ids) {
+                        const checked = selectedIds.has(id) ? 'checked' : '';
+                        rowsHtml += `
+                            <div class="id-row">
+                                <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
+                                <span class="id-number">${escapeHtml(id)}</span>
+                                <div class="id-actions">
+                                    <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
+                                    <button class="btn-copy-id" data-id="${escapeHtml(id)}">📋 复制</button>
+                                    <button class="btn-delete-id" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                                </div>
                             </div>
+                        `;
+                    }
+
+                    html += `
+                        <div class="song-group" data-group-name="${safeName}">
+                            <div class="group-header">
+                                <div class="group-name">${nameHtml}</div>
+                                <div class="group-right">
+                                    <span class="group-category">${escapeHtml(catStr)}</span>
+                                </div>
+                            </div>
+                            <div class="id-list">${rowsHtml}</div>
                         </div>
                     `;
                 }
 
-                html += `
-                    <div class="song-group" data-group-name="${safeName}">
-                        <div class="group-header">
-                            <div class="group-name">${nameHtml}</div>
-                            <div class="group-right">
-                                <span class="group-category">${escapeHtml(catStr)}</span>
-                            </div>
-                        </div>
-                        <div class="id-list">${rowsHtml}</div>
-                    </div>
-                `;
+                container.innerHTML = html;
+
+                // 事件委托：使用已有的 container.onclick（在外部定义）
+                // 更新 checkbox 状态
+                for (const cb of container.querySelectorAll('.id-checkbox')) {
+                    cb.onchange = function() {
+                        const id = this.dataset.id;
+                        if (this.checked) selectedIds.add(id);
+                        else selectedIds.delete(id);
+                        updateSelectedCount();
+                    };
+                    if (selectedIds.has(cb.dataset.id)) cb.checked = true;
+                }
+                updateSelectedCount();
+            });
+        }
+
+        // ===== 事件委托（统一处理按钮点击） =====
+        dom.songContainer.addEventListener('click', function(e) {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            if (target.classList.contains('btn-play')) {
+                e.stopPropagation();
+                showRiskModal(target.dataset.id);
+                return;
             }
-
-            container.innerHTML = html;
-
-            container.onclick = function(e) {
-                const target = e.target.closest('button');
-                if (!target) return;
-
-                if (target.classList.contains('btn-play')) {
-                    e.stopPropagation();
-                    showRiskModal(target.dataset.id);
-                    return;
-                }
-                if (target.classList.contains('btn-copy-id')) {
-                    e.stopPropagation();
-                    copyToClipboard(target.dataset.id, target);
-                    showToast('✅ 已复制ID');
-                    return;
-                }
-                if (target.classList.contains('btn-delete-id')) {
-                    e.stopPropagation();
-                    const name = target.dataset.name;
-                    const id = target.dataset.id;
+            if (target.classList.contains('btn-copy-id')) {
+                e.stopPropagation();
+                copyToClipboard(target.dataset.id, target);
+                showToast('✅ 已复制ID');
+                return;
+            }
+            if (target.classList.contains('btn-delete-id')) {
+                e.stopPropagation();
+                const name = target.dataset.name;
+                const id = target.dataset.id;
+                // 使用 setTimeout 避免阻塞点击
+                setTimeout(() => {
                     if (isAdmin) {
                         moveToQuarantine(name, id);
                     } else {
@@ -2730,22 +2791,10 @@
                             });
                         }
                     }
-                    return;
-                }
-            };
-
-            for (const cb of container.querySelectorAll('.id-checkbox')) {
-                cb.onchange = function() {
-                    const id = this.dataset.id;
-                    if (this.checked) selectedIds.add(id);
-                    else selectedIds.delete(id);
-                    updateSelectedCount();
-                };
-                if (selectedIds.has(cb.dataset.id)) cb.checked = true;
+                }, 0);
+                return;
             }
-
-            updateSelectedCount();
-        }
+        });
 
         // ===== 复制功能 =====
         function copyToClipboard(text, btn) {
@@ -2782,6 +2831,17 @@
                 btn.classList.remove('copied');
             }, 1500);
         }
+
+        // ===== 搜索输入防抖 =====
+        dom.searchInput.addEventListener('input', debounce(function() {
+            currentKeyword = this.value;
+            renderList();
+        }, 300));
+
+        // 移除原有的 oninput 绑定（若有）
+        // 注意：原代码中可能有 dom.searchInput.oninput = function() {...}，需确保被覆盖或删除
+        // 此处我们已用 addEventListener 绑定防抖版本，原 oninput 不会被覆盖（但为保险，可置空）
+        dom.searchInput.oninput = null;
 
         // ===== 版本更新检测 =====
         function checkUpdate() {
