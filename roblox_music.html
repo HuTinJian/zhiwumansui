@@ -1295,7 +1295,7 @@
             .quarantine-batch-bar .actions .btn-batch-clear { padding:6px 20px; font-size:13px; }
             #riskModal .risk-body { max-height:60vh; }
         }
-        /* 新增：小屏触摸优化 */
+        /* 小屏触摸优化 */
         @media (hover: none) and (pointer: coarse) {
             .btn-group .btn-import,
             .btn-group .btn-danger,
@@ -1487,20 +1487,12 @@
                 <h2>
                     版本更新
                     <span class="update-version" id="updateVersionDisplay"></span>
-                    <span class="update-time">📅 2026.9.6 8:20</span>
+                    <span class="update-time">📅 2026.9.6 12:11</span>
                 </h2>
             </div>
             <div class="update-body" id="updateBody">
-                <div class="update-item">• 功能恢复 —— 游客模式重新开放“删除”及“批量隔离”按钮，操作更灵活</div>
-                <div class="update-item">• 反馈引导 —— 游客点击隔离功能时，弹出提示窗口，引导通过反馈联系开发者</div>
-                <div class="update-item">• 体验优化 —— 试听风险告知新增“以后不再弹出”选项，避免重复阅读</div>
-                <div class="update-item">• 交互增强 —— 游客操作增加 5 秒倒计时确认，防止误触</div>
-                <div class="update-item">• 试听弹窗优化 —— 首次阅读后，再次弹出时无需等待 10 秒，提升使用流畅度</div>
-                <div class="update-item">• 版本更新机制 —— 每次更新后重置提示状态，确保用户知悉最新内容</div>
-                <div class="update-item">• 性能优化 —— 搜索输入防抖、渲染异步化，提升交互响应速度（INP 改善）</div>
-                <div class="update-item">• 界面优化 —— 调整部分按钮样式，提升视觉一致性</div>
-                <div class="update-item">• 隔离确认统一 —— 游客模式现在也会弹出确认对话框，防止误操作，且文案根据模式动态显示</div>
-                <div class="update-item">• 修复 —— 批量模式“取消选择”按钮现在能正确清除所有选中状态</div>
+                <div class="update-item">• 开发者模式恢复更新弹窗显示，其他弹窗（试听风险、操作确认等）继续跳过</div>
+                <div class="update-item">• 游客模式所有弹窗正常显示</div>
             </div>
             <div class="update-footer">
                 <div class="update-thanks">感谢您的使用！ ❤️</div>
@@ -1588,9 +1580,8 @@
         const USE_EXTERNAL_QUARANTINE_ADMIN = true;
         const EXTERNAL_QUARANTINE_ADMIN_URL = 'roblox_music_quarantine.json';
         const THANKS_JSON_URL = 'roblox_music_thanks.json';
-        const UPDATE_VERSION = 'v1.2.2';
+        const UPDATE_VERSION = 'v1.3.2';
 
-        // 音效关键词
         const SOUND_KEYWORDS = [
             '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
             '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
@@ -1754,8 +1745,9 @@
             }
         }
 
-        // ===== 确认对话框 =====
+        // ===== 确认对话框（开发者跳过） =====
         function showConfirm(title, message) {
+            if (isAdmin) return Promise.resolve(true);
             return new Promise(resolve => {
                 const modal = dom.confirmModal;
                 dom.confirmTitle.textContent = title;
@@ -1815,8 +1807,12 @@
             };
         }
 
-        // ===== 风险告知弹窗 =====
+        // ===== 风险告知弹窗（开发者直接跳转） =====
         function showRiskModal(id) {
+            if (isAdmin) {
+                window.open(`https://www.roblox.com/library/${id}/`, '_blank');
+                return;
+            }
             if (localStorage.getItem('riskAcknowledged') === 'true') {
                 window.open(`https://www.roblox.com/library/${id}/`, '_blank');
                 return;
@@ -2143,7 +2139,6 @@
         function clearSelected() {
             selectedIds.clear();
             updateSelectedCount();
-            // 取消所有复选框的选中状态
             document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
         }
 
@@ -2153,10 +2148,8 @@
                 toggleBatchMode();
             } else {
                 if (selectedIds.size === 0) {
-                    // 游客首次进入批量模式时，若没有选中任何 ID，仅切换模式（不报错）
                     toggleBatchMode();
                 } else {
-                    // 已有选中，直接切换模式（原有逻辑）
                     toggleBatchMode();
                 }
             }
@@ -2168,16 +2161,13 @@
                 showToast('⚠️ 请先选择要标记的 ID');
                 return;
             }
-            // 游客和开发者都执行 batchDelete（内部包含确认弹窗）
             batchDelete();
         });
 
         async function batchDelete() {
             if (selectedIds.size === 0) { showToast('⚠️ 请先选择要隔离的ID'); return; }
-            // 统一弹确认窗，文案根据模式显示
-            const modeName = getModeName();
             const confirmed = await showConfirm('批量隔离',
-                `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${modeName}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
+                `确定将选中的 ${selectedIds.size} 个ID移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过这些ID。`
             );
             if (!confirmed) return;
 
@@ -2196,7 +2186,7 @@
             songDatabase = newDb;
             selectedIds.clear();
             saveData();
-            showToast(`🗑️ 已移入隔离区 ${toDelete.length} 个ID（${modeName}模式）`);
+            showToast(`🗑️ 已移入隔离区 ${toDelete.length} 个ID（${getModeName()}模式）`);
             if (batchMode) toggleBatchMode(false);
             renderAll();
             if (dom.quarantineModal.classList.contains('show')) renderQuarantineList();
@@ -2207,10 +2197,8 @@
             const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
             if (idx === -1) { showToast('⚠️ 未找到该ID'); return; }
             const item = songDatabase[idx];
-            // 统一弹确认窗，文案根据模式显示
-            const modeName = getModeName();
             const confirmed = await showConfirm('隔离',
-                `确定将 ID ${id}（歌名：${name}）移入隔离区（${modeName}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
+                `确定将 ID ${id}（歌名：${name}）移入隔离区（${getModeName()}）吗？\n移入隔离区后，下次导入时将自动跳过该ID。`
             );
             if (!confirmed) return;
 
@@ -2218,7 +2206,7 @@
             const target = isAdmin ? quarantineBinAdmin : quarantineBinGuest;
             target.push({ ...item, quarantinedAt: getNowStr() });
             saveData();
-            showToast(`⛔ ID ${id} 已移入隔离区（${modeName}模式）`);
+            showToast(`⛔ ID ${id} 已移入隔离区（${getModeName()}模式）`);
             renderAll();
             if (dom.quarantineModal.classList.contains('show')) renderQuarantineList();
         }
@@ -2738,7 +2726,6 @@
 
                 container.innerHTML = html;
 
-                // 更新 checkbox 状态
                 for (const cb of container.querySelectorAll('.id-checkbox')) {
                     cb.onchange = function() {
                         const id = this.dataset.id;
@@ -2752,7 +2739,7 @@
             });
         }
 
-        // ===== 事件委托（统一处理按钮点击） =====
+        // ===== 事件委托 =====
         dom.songContainer.addEventListener('click', function(e) {
             const target = e.target.closest('button');
             if (!target) return;
@@ -2772,7 +2759,6 @@
                 e.stopPropagation();
                 const name = target.dataset.name;
                 const id = target.dataset.id;
-                // 游客和开发者统一调用 moveToQuarantine（内部含确认）
                 setTimeout(() => {
                     moveToQuarantine(name, id);
                 }, 0);
@@ -2821,21 +2807,19 @@
             currentKeyword = this.value;
             renderList();
         }, 300));
-        dom.searchInput.oninput = null; // 清除旧绑定
+        dom.searchInput.oninput = null;
 
         // ===== 取消选择按钮 =====
         dom.batchClear.addEventListener('click', function() {
             clearSelected();
         });
 
-        // ===== 版本更新检测 =====
+        // ===== 版本更新检测（开发者显示弹窗） =====
         function checkUpdate() {
             dom.updateVersionDisplay.textContent = UPDATE_VERSION;
             const storedVersion = localStorage.getItem('updateVersion');
             if (storedVersion !== UPDATE_VERSION) {
-                localStorage.removeItem('riskAcknowledged');
-                localStorage.removeItem('riskCountdownSkipped');
-                localStorage.removeItem('guestReminderShown');
+                // 开发者模式也显示更新弹窗
                 dom.updateModal.classList.add('show');
                 localStorage.setItem('updateVersion', UPDATE_VERSION);
             }
