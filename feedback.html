@@ -16,6 +16,7 @@
       width: 100%;
     }
 
+    /* 反馈卡片 */
     .feedback-card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -24,8 +25,8 @@
       width: 100%;
       max-width: 600px;
       border-left: 5px solid var(--primary);
-      animation: cardRise 0.8s var(--ease-bounce) both;
-      transform-origin: center;
+      animation: cardRise 0.55s var(--ease-bounce) both;
+      will-change: transform;
     }
 
     .feedback-card h2 {
@@ -33,16 +34,19 @@
       font-weight: 700;
       margin-bottom: 6px;
       color: var(--primary);
+      animation: fadeInUp 0.4s var(--ease-soft) 0.15s both;
     }
 
     .feedback-card .desc {
       color: var(--text-light);
       font-size: 0.95rem;
       margin-bottom: 22px;
+      animation: fadeInUp 0.4s var(--ease-soft) 0.2s both;
     }
 
     .form-group { margin-bottom: 16px; }
 
+    /* 自定义下拉 */
     .select-wrapper {
       position: relative;
       margin-top: 4px;
@@ -54,7 +58,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       background: #fdf8fa;
-      color: var(--text);
+      color: var(--text-muted);
       font-size: 0.95rem;
       font-family: var(--font);
       font-weight: 500;
@@ -63,7 +67,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: border-color 0.3s var(--ease-soft), background 0.3s var(--ease-soft), transform 0.35s var(--ease-bounce);
+      transition: border-color 0.3s var(--ease-soft), background 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
+    }
+
+    .select-trigger.selected {
+      color: var(--text);
     }
 
     .select-trigger:hover {
@@ -85,7 +93,7 @@
     .select-trigger .arrow {
       color: var(--primary);
       font-size: 0.9rem;
-      transition: transform 0.4s var(--ease-bounce);
+      transition: transform 0.35s var(--ease-bounce);
     }
 
     .select-trigger.open .arrow {
@@ -105,12 +113,12 @@
       max-height: 0;
       opacity: 0;
       pointer-events: none;
-      transition: max-height 0.4s var(--ease-bounce), opacity 0.25s var(--ease-soft);
+      transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 10;
     }
 
     .select-dropdown.open {
-      max-height: 300px;
+      max-height: 400px;
       opacity: 1;
       pointer-events: auto;
     }
@@ -120,7 +128,7 @@
       font-size: 0.95rem;
       color: var(--text);
       cursor: pointer;
-      transition: background 0.2s var(--ease-soft), padding-left 0.3s var(--ease-bounce), transform 0.15s var(--ease-soft);
+      transition: background 0.2s var(--ease-soft), padding-left 0.25s var(--ease-bounce), transform 0.15s var(--ease-soft);
     }
 
     .select-option:hover {
@@ -145,36 +153,88 @@
       font-weight: 700;
     }
 
-    .thanks-group {
+    /* 自定义圆形复选框 */
+    .checkbox-list {
       display: none;
-      align-items: center;
+      flex-direction: column;
       gap: 10px;
-      padding: 12px 16px;
+      padding: 14px 16px;
       background: var(--gold-bg);
       border: 1px solid var(--gold-light);
       border-radius: var(--radius-sm);
       margin-top: 4px;
     }
 
-    .thanks-group.show {
+    .checkbox-list.show {
       display: flex;
-      animation: popIn 0.5s var(--ease-bounce) both;
+      animation: checkboxSlide 0.35s var(--ease-bounce) both;
     }
 
-    .thanks-group input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--gold);
+    .custom-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       cursor: pointer;
-      flex-shrink: 0;
+      user-select: none;
+      padding: 4px 0;
     }
 
-    .thanks-group label {
+    .custom-checkbox input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .custom-checkbox .box {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--primary-light);
+      border-radius: 50%;
+      background: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s var(--ease-bounce);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .custom-checkbox .box::after {
+      content: '';
+      width: 6px;
+      height: 11px;
+      border-right: 2.5px solid #fff;
+      border-bottom: 2.5px solid #fff;
+      transform: rotate(45deg) scale(0);
+      margin-top: -3px;
+      transition: transform 0.3s var(--ease-bounce);
+    }
+
+    .custom-checkbox:hover .box {
+      transform: scale(1.08);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.2);
+    }
+
+    .custom-checkbox:active .box {
+      transform: scale(0.92);
+    }
+
+    .custom-checkbox input:checked + .box {
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+    }
+
+    .custom-checkbox input:checked + .box::after {
+      transform: rotate(45deg) scale(1);
+    }
+
+    .custom-checkbox .label-text {
       font-size: 0.9rem;
       color: var(--text);
-      cursor: pointer;
-      margin: 0;
       font-weight: 500;
+      line-height: 1.4;
     }
 
     .btn-submit {
@@ -197,7 +257,7 @@
       text-decoration: none;
       font-weight: 500;
       font-size: 0.9rem;
-      transition: color 0.25s var(--ease-soft), transform 0.35s var(--ease-bounce);
+      transition: color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce);
     }
 
     .back-link:hover {
@@ -210,6 +270,7 @@
       transition: transform 0.1s var(--ease-soft);
     }
 
+    /* 感谢信息 */
     .success-message {
       display: none;
       text-align: center;
@@ -222,28 +283,41 @@
       font-size: 4rem;
       margin-bottom: 16px;
       display: inline-block;
-      animation: successBounce 1s var(--ease-bounce) both;
+      animation: successBounce 0.9s var(--ease-bounce) both;
     }
 
     .success-message h2 {
       font-size: 1.6rem;
       color: var(--primary);
       margin-bottom: 8px;
-      animation: fadeInUp 0.6s var(--ease-soft) 0.2s both;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.15s both;
     }
 
     .success-message p {
       color: var(--text-light);
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       font-size: 1rem;
-      animation: fadeInUp 0.6s var(--ease-soft) 0.35s both;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.25s both;
+    }
+
+    .success-message .extra-info {
+      font-size: 0.9rem;
+      color: var(--gold);
+      background: var(--gold-bg);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      margin: 12px auto 20px;
+      max-width: 400px;
+      border: 1px solid var(--gold-light);
+      animation: fadeInUp 0.5s var(--ease-soft) 0.4s both;
     }
 
     .success-message .btn {
       padding: 12px 28px;
-      animation: popIn 0.5s var(--ease-bounce) 0.5s both;
+      animation: popIn 0.45s var(--ease-bounce) 0.5s both;
     }
 
+    /* 开发者与支持者 */
     .credits-section {
       display: flex;
       justify-content: center;
@@ -263,15 +337,17 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      transition: transform 0.45s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
       border: 2px solid transparent;
       min-width: 220px;
-      animation: cardRise 0.7s var(--ease-bounce) 0.6s both;
-      transform-origin: center;
+      animation: cardRise 0.55s var(--ease-bounce) 0.4s both;
+      will-change: transform;
     }
 
+    .credits-card:nth-child(2) { animation-delay: 0.5s; }
+
     .credits-card:hover {
-      border-color: rgba(220, 107, 130, 0.25);
+      border-color: rgba(220, 107, 130, 0.3);
       box-shadow: var(--shadow-hover);
       transform: translateY(-5px) rotate(-2deg) scale(1.03);
     }
@@ -295,7 +371,7 @@
       object-fit: cover;
       flex-shrink: 0;
       border-radius: 50%;
-      transition: transform 0.45s var(--ease-bounce);
+      transition: transform 0.35s var(--ease-bounce);
     }
 
     .credits-info {
@@ -323,30 +399,37 @@
       color: var(--text-light);
     }
 
+    /* ========== 动画 ========== */
     @keyframes cardRise {
-      0% { opacity: 0; transform: translateY(30px) scale(0.9); }
-      60% { opacity: 1; transform: translateY(-6px) scale(1.02); }
-      100% { transform: translateY(0) scale(1); }
+      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes checkboxSlide {
+      0% { opacity: 0; transform: translateY(-6px); }
+      60% { opacity: 1; transform: translateY(2px); }
+      100% { transform: translateY(0); }
     }
 
     @keyframes popIn {
       0% { opacity: 0; transform: scale(0.5); }
-      70% { transform: scale(1.1); }
+      70% { transform: scale(1.08); }
       100% { opacity: 1; transform: scale(1); }
     }
 
     @keyframes successBounce {
-      0% { opacity: 0; transform: scale(0.3) rotate(-30deg); }
-      50% { opacity: 1; transform: scale(1.2) rotate(10deg); }
-      70% { transform: scale(0.95) rotate(-5deg); }
+      0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+      50% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+      70% { transform: scale(0.97) rotate(-4deg); }
       100% { transform: scale(1) rotate(0); }
     }
 
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* 响应式 */
     @media (max-width: 768px) {
       .main-content { padding: 20px 16px 0; }
       .feedback-card { padding: 22px 20px; }
@@ -364,6 +447,15 @@
       .feedback-card h2 { font-size: 1.2rem; }
       .credits-card { padding: 16px; }
       .credits-icon { width: 40px; height: 40px; }
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -387,21 +479,29 @@
             <label>反馈类型</label>
             <div class="select-wrapper" id="selectWrapper">
               <button type="button" class="select-trigger" id="selectTrigger">
-                <span id="selectedType">主页</span>
+                <span id="selectedType">请选择反馈类型</span>
                 <span class="arrow">▾</span>
               </button>
               <div class="select-dropdown" id="selectDropdown">
-                <div class="select-option active" data-value="主页">主页</div>
+                <div class="select-option" data-value="主页">主页</div>
                 <div class="select-option" data-value="反馈页">反馈页</div>
-                <div class="select-option" data-value="卡片一">卡片一</div>
+                <div class="select-option" data-value="卡片1">卡片1 —— Roblox ID 宝库</div>
                 <div class="select-option" data-value="其他">其他</div>
               </div>
             </div>
           </div>
 
-          <div class="thanks-group" id="thanksGroup">
-            <input type="checkbox" id="wantThanks">
-            <label for="wantThanks">愿意加入鸣谢名单</label>
+          <div class="checkbox-list" id="extraOptions">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="wantThanks">
+              <span class="box"></span>
+              <span class="label-text">加入鸣谢名单</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="uploadQuarantine">
+              <span class="box"></span>
+              <span class="label-text">上传隔离区ID</span>
+            </label>
           </div>
 
           <div class="form-group">
@@ -431,6 +531,7 @@
         <div class="success-icon">🎉</div>
         <h2>提交成功！</h2>
         <p>感谢你的反馈，我们会认真查看每一条建议</p>
+        <div class="extra-info" id="extraInfo" style="display:none;"></div>
         <a href="index.html" class="btn btn-primary">🏠 返回首页</a>
       </div>
     </div>
@@ -462,22 +563,22 @@
   <script src="js/common.js"></script>
 
   <script>
-    /* ---------- 版本更新检查 ---------- */
     checkPageUpdate('feedback');
 
-    /* ---------- DOM ---------- */
     const selectWrapper = document.getElementById('selectWrapper');
     const selectTrigger = document.getElementById('selectTrigger');
     const selectDropdown = document.getElementById('selectDropdown');
     const selectedTypeEl = document.getElementById('selectedType');
-    const thanksGroup = document.getElementById('thanksGroup');
+    const extraOptions = document.getElementById('extraOptions');
     const wantThanks = document.getElementById('wantThanks');
+    const uploadQuarantine = document.getElementById('uploadQuarantine');
     const form = document.getElementById('feedbackForm');
     const submitBtn = document.getElementById('submitBtn');
     const formContainer = document.getElementById('formContainer');
     const successMessage = document.getElementById('successMessage');
+    const extraInfo = document.getElementById('extraInfo');
 
-    let currentType = '主页';
+    let currentType = '';
 
     selectTrigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -497,16 +598,18 @@
         selectDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
         opt.classList.add('active');
         currentType = opt.dataset.value;
-        selectedTypeEl.textContent = currentType;
+        selectedTypeEl.textContent = opt.textContent;
+        selectTrigger.classList.add('selected');
 
         selectTrigger.classList.remove('open');
         selectDropdown.classList.remove('open');
 
-        if (currentType === '卡片一') {
-          thanksGroup.classList.add('show');
+        if (currentType === '卡片1') {
+          extraOptions.classList.add('show');
         } else {
-          thanksGroup.classList.remove('show');
+          extraOptions.classList.remove('show');
           wantThanks.checked = false;
+          uploadQuarantine.checked = false;
         }
       });
     });
@@ -516,6 +619,25 @@
       return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(email);
     }
 
+    function getGuestQuarantine() {
+      try {
+        const raw = localStorage.getItem('roblox_quarantine_guest');
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr
+          .filter(i => i && i.id)
+          .map(i => ({
+            id: String(i.id),
+            name: String(i.name || '未知歌名').slice(0, 100),
+            category: String(i.category || '未分类').slice(0, 30)
+          }))
+          .slice(0, 500);
+      } catch {
+        return [];
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -523,9 +645,24 @@
       const email = document.getElementById('feedbackEmail').value.trim();
       const message = document.getElementById('feedbackMessage').value.trim();
 
+      if (!currentType) {
+        showToast('请选择反馈类型');
+        return;
+      }
       if (!name) { showToast('请填写你的称呼'); return; }
       if (!message) { showToast('请填写反馈内容'); return; }
       if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); return; }
+
+      let quarantineIds = [];
+      const willUpload = currentType === '卡片1' && uploadQuarantine.checked;
+      if (willUpload) {
+        quarantineIds = getGuestQuarantine();
+        if (quarantineIds.length === 0) {
+          showToast('你的隔离区是空的，无法上传');
+          uploadQuarantine.checked = false;
+          return;
+        }
+      }
 
       submitBtn.disabled = true;
       submitBtn.textContent = '提交中...';
@@ -539,7 +676,9 @@
             name,
             email,
             message,
-            wantThanks: currentType === '卡片一' && wantThanks.checked ? 1 : 0
+            wantThanks: currentType === '卡片1' && wantThanks.checked ? 1 : 0,
+            uploadQuarantine: willUpload ? 1 : 0,
+            quarantineIds
           })
         });
 
@@ -548,6 +687,11 @@
         if (data.ok) {
           formContainer.style.display = 'none';
           successMessage.classList.add('show');
+
+          if (willUpload && quarantineIds.length > 0) {
+            extraInfo.textContent = `📦 已上传 ${quarantineIds.length} 个隔离区 ID，感谢你的贡献！`;
+            extraInfo.style.display = 'block';
+          }
         } else {
           showToast('提交失败，请稍后重试');
           submitBtn.disabled = false;

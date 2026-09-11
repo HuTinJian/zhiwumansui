@@ -14,6 +14,7 @@
       padding: 40px 20px 60px;
     }
 
+    /* ========== 搜索区域 ========== */
     .search-section {
       text-align: center;
       margin-bottom: 48px;
@@ -31,8 +32,9 @@
       cursor: pointer;
       user-select: none;
       display: inline-block;
-      transition: transform 0.4s var(--ease-bounce);
-      animation: titlePop 0.9s var(--ease-bounce) both;
+      transition: transform 0.3s var(--ease-bounce);
+      animation: titlePop 0.6s var(--ease-bounce) both;
+      will-change: transform;
     }
 
     .search-section h1:hover {
@@ -47,7 +49,7 @@
       color: var(--text-light);
       font-size: 1.05rem;
       margin-bottom: 28px;
-      animation: fadeInUp 0.7s var(--ease-soft) 0.15s both;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.1s both;
     }
 
     .search-box {
@@ -60,8 +62,8 @@
       box-shadow: 0 4px 20px rgba(220, 107, 130, 0.1);
       padding: 6px 6px 6px 20px;
       border: 2px solid transparent;
-      transition: border-color 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), transform 0.4s var(--ease-bounce);
-      animation: boxPop 0.8s var(--ease-bounce) 0.3s both;
+      transition: border-color 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
+      animation: boxPop 0.5s var(--ease-bounce) 0.2s both;
     }
 
     .search-box:focus-within {
@@ -101,7 +103,7 @@
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.35s var(--ease-bounce), background 0.25s var(--ease-soft);
+      transition: transform 0.3s var(--ease-bounce), background 0.25s var(--ease-soft);
       font-family: var(--font);
       white-space: nowrap;
     }
@@ -126,9 +128,10 @@
 
     .no-results.show {
       display: block;
-      animation: popIn 0.5s var(--ease-bounce) both;
+      animation: popIn 0.4s var(--ease-bounce) both;
     }
 
+    /* ========== 卡片区 ========== */
     .content-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -141,18 +144,22 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 24px;
-      transition: transform 0.45s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
       cursor: pointer;
       border: 2px solid transparent;
       position: relative;
       overflow: hidden;
-      animation: cardRise 0.7s var(--ease-bounce) both;
-      transform-origin: center;
+      animation: cardRise 0.55s var(--ease-bounce) both;
+      will-change: transform;
     }
 
-    .card:nth-child(1) { animation-delay: 0.4s; }
-    .card:nth-child(2) { animation-delay: 0.5s; }
-    .card:nth-child(3) { animation-delay: 0.6s; }
+    /* 依次入场 */
+    .card:nth-child(1) { animation-delay: 0.25s; }
+    .card:nth-child(2) { animation-delay: 0.35s; }
+    .card:nth-child(3) { animation-delay: 0.45s; }
+    .card:nth-child(4) { animation-delay: 0.55s; }
+    .card:nth-child(5) { animation-delay: 0.65s; }
+    .card:nth-child(6) { animation-delay: 0.75s; }
 
     .card::before {
       content: '';
@@ -169,7 +176,7 @@
     .card:hover {
       box-shadow: var(--shadow-hover);
       transform: translateY(-6px) rotate(-1.5deg) scale(1.02);
-      border-color: rgba(220, 107, 130, 0.25);
+      border-color: rgba(220, 107, 130, 0.3);
     }
 
     .card:hover::before {
@@ -183,11 +190,6 @@
     .card:active {
       transform: translateY(2px) rotate(0) scale(0.96);
       transition: transform 0.12s var(--ease-soft);
-      box-shadow: 0 2px 10px rgba(220, 107, 130, 0.15);
-    }
-
-    .card:active .card-tag {
-      transform: scale(1);
     }
 
     .card .card-tag {
@@ -200,7 +202,7 @@
       margin-bottom: 12px;
       background: #fde8ef;
       color: var(--primary);
-      transition: transform 0.4s var(--ease-bounce);
+      transition: transform 0.3s var(--ease-bounce);
     }
 
     .card:hover .card-tag {
@@ -242,6 +244,7 @@
       font-weight: 600;
     }
 
+    /* ========== 开发者与支持者 ========== */
     .credits-section {
       display: flex;
       justify-content: center;
@@ -260,15 +263,17 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      transition: transform 0.45s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
       border: 2px solid transparent;
       min-width: 220px;
-      animation: cardRise 0.7s var(--ease-bounce) 1s both;
-      transform-origin: center;
+      animation: cardRise 0.55s var(--ease-bounce) 0.75s both;
+      will-change: transform;
     }
 
+    .credits-card:nth-child(2) { animation-delay: 0.85s; }
+
     .credits-card:hover {
-      border-color: rgba(220, 107, 130, 0.25);
+      border-color: rgba(220, 107, 130, 0.3);
       box-shadow: var(--shadow-hover);
       transform: translateY(-5px) rotate(-2deg) scale(1.03);
     }
@@ -292,7 +297,7 @@
       object-fit: cover;
       flex-shrink: 0;
       border-radius: 50%;
-      transition: transform 0.45s var(--ease-bounce);
+      transition: transform 0.35s var(--ease-bounce);
     }
 
     .credits-info {
@@ -320,35 +325,36 @@
       color: var(--text-light);
     }
 
+    /* ========== 动画 ========== */
     @keyframes titlePop {
-      0% { opacity: 0; transform: scale(0.6) translateY(-20px); }
-      60% { opacity: 1; transform: scale(1.08) translateY(4px); }
+      0% { opacity: 0; transform: scale(0.7) translateY(-12px); }
+      60% { opacity: 1; transform: scale(1.05) translateY(2px); }
       100% { transform: scale(1) translateY(0); }
     }
 
     @keyframes boxPop {
-      0% { opacity: 0; transform: scale(0.7); }
-      60% { opacity: 1; transform: scale(1.04); }
+      0% { opacity: 0; transform: scale(0.85); }
+      60% { opacity: 1; transform: scale(1.02); }
       100% { transform: scale(1); }
     }
 
     @keyframes cardRise {
-      0% { opacity: 0; transform: translateY(30px) scale(0.9); }
-      60% { opacity: 1; transform: translateY(-6px) scale(1.02); }
-      100% { transform: translateY(0) scale(1); }
+      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes popIn {
       0% { opacity: 0; transform: scale(0.5); }
-      70% { transform: scale(1.1); }
+      70% { transform: scale(1.08); }
       100% { opacity: 1; transform: scale(1); }
     }
 
+    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .container { padding: 24px 16px 40px; }
       .search-section h1 { font-size: 1.8rem; }
@@ -377,6 +383,15 @@
       .card h3 { font-size: 1.05rem; }
       .credits-card { padding: 16px; }
       .credits-icon { width: 40px; height: 40px; }
+    }
+
+    /* 尊重用户的减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -443,13 +458,9 @@
   <script src="js/common.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    /* ---------- 后台入口：连点标题 3 次 ---------- */
     setupAdminEntry('mainTitle');
-
-    /* ---------- 版本更新检查 ---------- */
     checkPageUpdate('index');
 
-    /* ---------- 搜索 ---------- */
     const cards = document.querySelectorAll('.card');
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
