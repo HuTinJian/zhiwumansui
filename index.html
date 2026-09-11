@@ -14,7 +14,6 @@
       padding: 40px 20px 60px;
     }
 
-    /* ========== 搜索区域 ========== */
     .search-section {
       text-align: center;
       margin-bottom: 48px;
@@ -130,7 +129,6 @@
       animation: popIn 0.5s var(--ease-bounce) both;
     }
 
-    /* ========== 内容卡片 ========== */
     .content-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -155,9 +153,6 @@
     .card:nth-child(1) { animation-delay: 0.4s; }
     .card:nth-child(2) { animation-delay: 0.5s; }
     .card:nth-child(3) { animation-delay: 0.6s; }
-    .card:nth-child(4) { animation-delay: 0.7s; }
-    .card:nth-child(5) { animation-delay: 0.8s; }
-    .card:nth-child(6) { animation-delay: 0.9s; }
 
     .card::before {
       content: '';
@@ -185,7 +180,6 @@
       transform: translateY(-6px) rotate(1.5deg) scale(1.02);
     }
 
-    /* 点击：下压回正 */
     .card:active {
       transform: translateY(2px) rotate(0) scale(0.96);
       transition: transform 0.12s var(--ease-soft);
@@ -248,7 +242,6 @@
       font-weight: 600;
     }
 
-    /* ========== 开发者与支持者 ========== */
     .credits-section {
       display: flex;
       justify-content: center;
@@ -327,7 +320,6 @@
       color: var(--text-light);
     }
 
-    /* ========== 动画 ========== */
     @keyframes titlePop {
       0% { opacity: 0; transform: scale(0.6) translateY(-20px); }
       60% { opacity: 1; transform: scale(1.08) translateY(4px); }
@@ -357,7 +349,6 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .container { padding: 24px 16px 40px; }
       .search-section h1 { font-size: 1.8rem; }
@@ -452,8 +443,13 @@
   <script src="js/common.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    /* ---------- 后台入口：连点标题 3 次 ---------- */
     setupAdminEntry('mainTitle');
 
+    /* ---------- 版本更新检查 ---------- */
+    checkPageUpdate('index');
+
+    /* ---------- 搜索 ---------- */
     const cards = document.querySelectorAll('.card');
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');

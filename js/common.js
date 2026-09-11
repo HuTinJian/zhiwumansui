@@ -1,11 +1,7 @@
 /* ============================================================
    织雾满穗 · 共享工具
-   所有页面共用：Toast、弹窗、复制、防抖
    ============================================================ */
 
-/**
- * 显示 Toast 短提示
- */
 function showToast(msg, duration = 2500) {
   let el = document.getElementById('globalToast');
   if (!el) {
@@ -20,9 +16,6 @@ function showToast(msg, duration = 2500) {
   el._timer = setTimeout(() => el.classList.remove('show'), duration);
 }
 
-/**
- * 打开弹窗
- */
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
@@ -30,21 +23,15 @@ function openModal(id) {
   modal.classList.remove('closing');
 }
 
-/**
- * 关闭弹窗（带退出动画）
- */
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add('closing');
   setTimeout(() => {
     modal.classList.remove('show', 'closing');
-  }, 250);
+  }, 220);
 }
 
-/**
- * 复制文本到剪贴板
- */
 async function copyText(text) {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -64,9 +51,6 @@ async function copyText(text) {
   }
 }
 
-/**
- * 防抖函数
- */
 function debounce(fn, wait = 300) {
   let timer;
   return function (...args) {
@@ -75,18 +59,12 @@ function debounce(fn, wait = 300) {
   };
 }
 
-/**
- * 转义 HTML，防止 XSS
- */
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text ?? '';
   return div.innerHTML;
 }
 
-/**
- * 显示顶部提示条（3 秒自动消失）
- */
 function showNotice(msg) {
   let el = document.getElementById('globalNotice');
   if (!el) {
@@ -101,9 +79,6 @@ function showNotice(msg) {
   el._timer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-/**
- * 确认弹窗（返回 Promise<boolean>）
- */
 function showConfirm(title, message) {
   return new Promise(resolve => {
     let modal = document.getElementById('globalConfirm');
@@ -127,15 +102,80 @@ function showConfirm(title, message) {
     document.getElementById('gcMessage').textContent = message;
     openModal('globalConfirm');
 
-    const ok = () => {
-      closeModal('globalConfirm');
-      resolve(true);
-    };
-    const cancel = () => {
-      closeModal('globalConfirm');
-      resolve(false);
-    };
+    const ok = () => { closeModal('globalConfirm'); resolve(true); };
+    const cancel = () => { closeModal('globalConfirm'); resolve(false); };
     document.getElementById('gcOk').onclick = ok;
     document.getElementById('gcCancel').onclick = cancel;
   });
+}
+
+/**
+ * 从后端获取版本信息并检查更新
+ * @param {string} pageKey - 页面标识（index / feedback / roblox）
+ * @param {Object} [options]
+ * @param {Function} [options.onNewVersion] - 检测到新版本时的回调
+ */
+async function checkPageUpdate(pageKey, options = {}) {
+  const storageKey = `pageVersion_${pageKey}`;
+
+  let version, date, updates;
+
+  try {
+    const res = await fetch(`/api/updates?page=${pageKey}&t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok || !data.data) return;
+    version = data.data.version;
+    date = data.data.date;
+    updates = data.data.updates;
+  } catch (e) {
+    return;
+  }
+
+  const stored = localStorage.getItem(storageKey);
+  if (stored === version) return;
+
+  /* 新版本：执行回调 */
+  if (typeof options.onNewVersion === 'function') {
+    options.onNewVersion();
+  }
+
+  /* 弹更新弹窗 */
+  const modalId = 'updateModal';
+  let modal = document.getElementById(modalId);
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'modal update-modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="update-header">
+          <h2>
+            🎉 版本更新
+            <span class="update-version" id="updateVersion"></span>
+          </h2>
+          <span class="update-date" id="updateDate"></span>
+        </div>
+        <div class="update-body" id="updateBody"></div>
+        <div class="update-footer">
+          <div class="update-thanks">感谢你的使用 ❤️</div>
+          <button class="btn btn-primary" id="updateOkBtn">我已知晓</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  document.getElementById('updateVersion').textContent = version;
+  document.getElementById('updateDate').textContent = '📅 ' + date;
+  document.getElementById('updateBody').innerHTML = updates
+    .map(t => `<div class="update-item">• ${escapeHtml(t)}</div>`)
+    .join('');
+
+  openModal(modalId);
+
+  document.getElementById('updateOkBtn').onclick = () => {
+    localStorage.setItem(storageKey, version);
+    closeModal(modalId);
+  };
 }

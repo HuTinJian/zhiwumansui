@@ -1,0 +1,618 @@
+[
+  {
+    "id": "141300112233401",
+    "name": "嘿嘿嘿魔性笑声",
+    "category": "搞笑音效",
+    "lineIndex": 1299,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233402",
+    "name": "哎哟喂音效",
+    "category": "搞笑音效",
+    "lineIndex": 1300,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233403",
+    "name": "离谱音效",
+    "category": "搞笑音效",
+    "lineIndex": 1301,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233405",
+    "name": "搞怪惨叫 2",
+    "category": "搞笑音效",
+    "lineIndex": 1303,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233408",
+    "name": "坏笑音效",
+    "category": "搞笑音效",
+    "lineIndex": 1306,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233409",
+    "name": "嘚嘚嘚魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1307,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233410",
+    "name": "当当当警告音效",
+    "category": "搞笑音效",
+    "lineIndex": 1308,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233415",
+    "name": "爆炸音效",
+    "category": "搞笑音效",
+    "lineIndex": 1313,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233426",
+    "name": "搞笑进行曲",
+    "category": "搞笑音效",
+    "lineIndex": 1324,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233427",
+    "name": "鬼畜咚咚锵",
+    "category": "搞笑音效",
+    "lineIndex": 1325,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233434",
+    "name": "叮叮当当魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1332,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233438",
+    "name": "坏主意音效",
+    "category": "搞笑音效",
+    "lineIndex": 1336,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233441",
+    "name": "搞笑惨叫",
+    "category": "搞笑音效",
+    "lineIndex": 1339,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233449",
+    "name": "鬼畜哒哒哒",
+    "category": "搞笑音效",
+    "lineIndex": 1347,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233454",
+    "name": "冲呀音效",
+    "category": "搞笑音效",
+    "lineIndex": 1352,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233456",
+    "name": "被打音效",
+    "category": "搞笑音效",
+    "lineIndex": 1354,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233461",
+    "name": "鬼畜叮叮",
+    "category": "搞笑音效",
+    "lineIndex": 1359,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233479",
+    "name": "鬼畜蹦迪",
+    "category": "搞笑音效",
+    "lineIndex": 1377,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233485",
+    "name": "鬼畜咚咚",
+    "category": "搞笑音效",
+    "lineIndex": 1383,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233488",
+    "name": "搞笑咚咚",
+    "category": "搞笑音效",
+    "lineIndex": 1386,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233494",
+    "name": "哈哈哈哈魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1392,
+    "quarantinedAt": "2026-08-25 09:28"
+  },
+  {
+    "id": "141300112233404",
+    "name": "震惊音效",
+    "category": "搞笑音效",
+    "lineIndex": 1302,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233414",
+    "name": "起飞音效",
+    "category": "搞笑音效",
+    "lineIndex": 1312,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233417",
+    "name": "魔性喔喔喔",
+    "category": "搞笑音效",
+    "lineIndex": 1315,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233418",
+    "name": "哇哦魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1316,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233420",
+    "name": "完蛋音效",
+    "category": "搞笑音效",
+    "lineIndex": 1318,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233430",
+    "name": "沙雕出场音乐",
+    "category": "搞笑音效",
+    "lineIndex": 1328,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233432",
+    "name": "呜哇魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1330,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233437",
+    "name": "懵圈音效",
+    "category": "搞笑音效",
+    "lineIndex": 1335,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233443",
+    "name": "魔性蹦蹦",
+    "category": "搞笑音效",
+    "lineIndex": 1341,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233452",
+    "name": "魔性嗷呜",
+    "category": "搞笑音效",
+    "lineIndex": 1350,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233457",
+    "name": "眩晕音效",
+    "category": "搞笑音效",
+    "lineIndex": 1355,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233460",
+    "name": "魔性摇摆曲",
+    "category": "搞笑音效",
+    "lineIndex": 1358,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233477",
+    "name": "沙雕蹦迪",
+    "category": "搞笑音效",
+    "lineIndex": 1375,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233478",
+    "name": "魔性蹦迪 2",
+    "category": "搞笑音效",
+    "lineIndex": 1376,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233484",
+    "name": "魔性咚咚",
+    "category": "搞笑音效",
+    "lineIndex": 1382,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141300112233499",
+    "name": "哦哦哦哦魔性",
+    "category": "搞笑音效",
+    "lineIndex": 1397,
+    "quarantinedAt": "2026-08-25 09:31"
+  },
+  {
+    "id": "141600224466156",
+    "name": "汴京琴辞",
+    "category": "古风国风",
+    "lineIndex": 1857,
+    "quarantinedAt": "2026-08-25 09:33"
+  },
+  {
+    "id": "141600224466335",
+    "name": "别临安箫赋",
+    "category": "古风国风",
+    "lineIndex": 2036,
+    "quarantinedAt": "2026-08-25 09:33"
+  },
+  {
+    "id": "138812347712231",
+    "name": "阿婆说",
+    "category": "中文流行",
+    "lineIndex": 1006,
+    "quarantinedAt": "2026-08-25 09:34"
+  },
+  {
+    "id": "141300112233495",
+    "name": "啊哈啊哈",
+    "category": "中文流行",
+    "lineIndex": 1393,
+    "quarantinedAt": "2026-08-25 09:34"
+  },
+  {
+    "id": "141300112233445",
+    "name": "啊哈哈哈哈",
+    "category": "中文流行",
+    "lineIndex": 1343,
+    "quarantinedAt": "2026-08-25 09:34"
+  },
+  {
+    "id": "141300112233431",
+    "name": "啊哦搞怪",
+    "category": "中文流行",
+    "lineIndex": 1329,
+    "quarantinedAt": "2026-08-25 09:34"
+  },
+  {
+    "id": "141300112233496",
+    "name": "哎哟哎哟",
+    "category": "中文流行",
+    "lineIndex": 1394,
+    "quarantinedAt": "2026-08-25 09:35"
+  },
+  {
+    "id": "140469228291982",
+    "name": "方块故事国王音乐 ID",
+    "category": "英文热门",
+    "lineIndex": 72,
+    "quarantinedAt": "2026-08-25 09:37"
+  },
+  {
+    "id": "115491075459410",
+    "name": "张雪峰老师",
+    "category": "中文流行",
+    "lineIndex": 78,
+    "quarantinedAt": "2026-08-27 11:45"
+  },
+  {
+    "id": "104718892355507",
+    "name": "你的表演像我奶奶烤糊的苹果",
+    "category": "中文流行",
+    "lineIndex": 66,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "78963341533467",
+    "name": "京  落泪  我",
+    "category": "中文流行",
+    "lineIndex": 91,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134612611609536",
+    "name": "我本将心向明月",
+    "category": "中文流行",
+    "lineIndex": 134,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "125410776294483",
+    "name": "我本将心向明月",
+    "category": "中文流行",
+    "lineIndex": 297,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "116502840426811",
+    "name": "给我一首歌的时间",
+    "category": "中文流行",
+    "lineIndex": 309,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "96480447720009",
+    "name": "爱我还是他",
+    "category": "中文流行",
+    "lineIndex": 332,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "35361569113971",
+    "name": "可惜我是水瓶座",
+    "category": "中文流行",
+    "lineIndex": 399,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134222147734771",
+    "name": "南风知我意",
+    "category": "中文流行",
+    "lineIndex": 1029,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "134012347713661",
+    "name": "山河故我",
+    "category": "中文流行",
+    "lineIndex": 1030,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "129212347714991",
+    "name": "明天你是否依然爱我",
+    "category": "中文流行",
+    "lineIndex": 1054,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "128812247715111",
+    "name": "突然的自我",
+    "category": "中文流行",
+    "lineIndex": 1056,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "127422447736661",
+    "name": "别怕我伤心",
+    "category": "中文流行",
+    "lineIndex": 1063,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "121212347717221",
+    "name": "如果你是我的传说",
+    "category": "中文流行",
+    "lineIndex": 1094,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181200",
+    "name": "给我一首歌的时间 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1225,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181231",
+    "name": "南风知我意 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1256,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181232",
+    "name": "山河故我 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1257,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141247306181249",
+    "name": "突然的自我 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1274,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141400223344154",
+    "name": "可惜我是水瓶座 DJ",
+    "category": "Phonk/DJ",
+    "lineIndex": 1453,
+    "quarantinedAt": "2026-08-27 11:50"
+  },
+  {
+    "id": "141500113355104",
+    "name": "爱人啊",
+    "category": "搞笑音效",
+    "lineIndex": 1504,
+    "quarantinedAt": "2026-08-27 12:40"
+  },
+  {
+    "id": "141300112233453",
+    "name": "嘿嘿搞怪笑",
+    "category": "搞笑音效",
+    "lineIndex": 1351,
+    "quarantinedAt": "2026-08-27 12:41"
+  },
+  {
+    "id": "125190628579614",
+    "name": "我拿你去喂狗",
+    "category": "搞笑音效",
+    "lineIndex": 131,
+    "quarantinedAt": "2026-08-27 12:42"
+  },
+  {
+    "id": "141300112233419",
+    "name": "嘿嘿哈哈",
+    "category": "搞笑音效",
+    "lineIndex": 1317,
+    "quarantinedAt": "2026-08-27 12:42"
+  },
+  {
+    "id": "141300112233435",
+    "name": "嘿嘿哟",
+    "category": "搞笑音效",
+    "lineIndex": 1333,
+    "quarantinedAt": "2026-08-27 12:42"
+  },
+  {
+    "id": "141300112233491",
+    "name": "哇哦哇哦",
+    "category": "搞笑音效",
+    "lineIndex": 1389,
+    "quarantinedAt": "2026-08-27 12:42"
+  },
+  {
+    "id": "141300112233493",
+    "name": "嘿嘿嘿嘿",
+    "category": "搞笑音效",
+    "lineIndex": 1391,
+    "quarantinedAt": "2026-08-27 12:42"
+  },
+  {
+    "id": "114642311040913",
+    "name": "我落泪情绪零碎",
+    "category": "中文流行",
+    "lineIndex": 311,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "97602014400466",
+    "name": "我知道",
+    "category": "中文流行",
+    "lineIndex": 330,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "135022347734551",
+    "name": "知我",
+    "category": "中文流行",
+    "lineIndex": 1025,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "132012247714221",
+    "name": "我的心太乱",
+    "category": "中文流行",
+    "lineIndex": 1040,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "125822447737111",
+    "name": "我怀念的",
+    "category": "中文流行",
+    "lineIndex": 1071,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "124812447716221",
+    "name": "我不难过",
+    "category": "中文流行",
+    "lineIndex": 1076,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "141247306181227",
+    "name": "知我 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1252,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "141247306181257",
+    "name": "我怀念的 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1282,
+    "quarantinedAt": "2026-08-27 12:54"
+  },
+  {
+    "id": "98721144426027",
+    "name": "海屿你",
+    "category": "中文流行",
+    "lineIndex": 329,
+    "quarantinedAt": "2026-08-27 12:58"
+  },
+  {
+    "id": "99442270042010",
+    "name": "好想再爱你 DJ",
+    "category": "Phonk/DJ",
+    "lineIndex": 328,
+    "quarantinedAt": "2026-08-27 12:58"
+  },
+  {
+    "id": "68960368027771",
+    "name": "哪里都是你",
+    "category": "中文流行",
+    "lineIndex": 369,
+    "quarantinedAt": "2026-08-27 12:58"
+  },
+  {
+    "id": "141500113355107",
+    "name": "哪里都是你",
+    "category": "中文流行",
+    "lineIndex": 1507,
+    "quarantinedAt": "2026-08-27 12:59"
+  },
+  {
+    "id": "141400223344125",
+    "name": "哪里都是你 DJ",
+    "category": "Phonk/DJ",
+    "lineIndex": 1424,
+    "quarantinedAt": "2026-08-27 12:59"
+  },
+  {
+    "id": "70395318790170",
+    "name": "爱错",
+    "category": "中文流行",
+    "lineIndex": 9,
+    "quarantinedAt": "2026-08-27 15:11"
+  },
+  {
+    "id": "87434869764368",
+    "name": "牵丝戏",
+    "category": "古风国风",
+    "lineIndex": 114,
+    "quarantinedAt": "2026-08-27 15:15"
+  },
+  {
+    "id": "111421480667728",
+    "name": "牵丝戏",
+    "category": "古风国风",
+    "lineIndex": 315,
+    "quarantinedAt": "2026-08-27 15:16"
+  },
+  {
+    "id": "141247306181182",
+    "name": "牵丝戏 Phonk",
+    "category": "Phonk/DJ",
+    "lineIndex": 1207,
+    "quarantinedAt": "2026-08-27 15:16"
+  }
+]

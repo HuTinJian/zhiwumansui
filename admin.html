@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>后台管理 - 织雾满穗</title>
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .admin-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    .admin-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+
+    .admin-topbar h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .admin-topbar .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.1s both;
+    }
+
+    .tab {
+      padding: 10px 22px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      color: var(--text-light);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.35s var(--ease-bounce), border-color 0.25s var(--ease-soft);
+    }
+
+    .tab:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .tab:active {
+      transform: scale(0.95);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
+    }
+
+    .panel {
+      display: none;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .panel-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel-card h2 .count {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 3px 12px;
+      border-radius: 20px;
+    }
+
+    .list-item {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      transition: border-color 0.3s var(--ease-soft), transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft);
+      background: #fdf8fa;
+    }
+
+    .list-item:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 107, 130, 0.1);
+    }
+
+    .list-item .row1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .list-item .name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .list-item .type-tag {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: #fde8ef;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .list-item .type-tag.gold {
+      background: var(--gold-bg);
+      color: var(--gold);
+    }
+
+    .list-item .meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .list-item .message {
+      color: var(--text-light);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 10px;
+    }
+
+    .list-item .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .list-item .actions button {
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.25s var(--ease-soft), transform 0.35s var(--ease-bounce);
+    }
+
+    .list-item .actions .btn-approve {
+      background: var(--gold);
+      color: #fff;
+    }
+
+    .list-item .actions .btn-approve:hover {
+      background: #b8894f;
+      transform: translateY(-2px);
+    }
+
+    .list-item .actions .btn-delete {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .list-item .actions .btn-delete:hover {
+      background: #a93226;
+      transform: translateY(-2px);
+    }
+
+    .list-item .actions button:active {
+      transform: scale(0.92);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #fde8ef, #f8d0db);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      text-align: center;
+      transition: transform 0.4s var(--ease-bounce);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px) rotate(-1deg);
+    }
+
+    .stat-card .num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* 版本管理专属 */
+    .update-edit-item {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      background: #fdf8fa;
+      transition: border-color 0.3s var(--ease-soft);
+    }
+
+    .update-edit-item:hover {
+      border-color: var(--primary-light);
+    }
+
+    .update-edit-item .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .update-edit-item .head .page-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .update-edit-item .head .version-tag {
+      font-size: 0.75rem;
+      padding: 3px 12px;
+      border-radius: 20px;
+      background: #fde8ef;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .update-edit-item .head .date-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .update-edit-item .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .update-edit-item .field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    .update-edit-item .field input,
+    .update-edit-item .field textarea {
+      padding: 9px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+    }
+
+    .update-edit-item .field input:focus,
+    .update-edit-item .field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+
+    .update-edit-item .field textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    .update-edit-item .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .update-edit-item .actions button {
+      padding: 8px 22px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), transform 0.35s var(--ease-bounce);
+    }
+
+    .update-edit-item .actions .btn-save {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .update-edit-item .actions .btn-save:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .update-edit-item .actions .btn-save:active {
+      transform: scale(0.93);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .admin-container { padding: 16px 12px 40px; }
+      .admin-topbar h1 { font-size: 1.3rem; }
+      .admin-topbar { flex-direction: column; align-items: stretch; }
+      .admin-topbar .actions { justify-content: center; }
+      .tab { padding: 8px 16px; font-size: 0.85rem; }
+      .panel-card { padding: 18px; }
+      .panel-card h2 { font-size: 1.05rem; }
+      .list-item { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 首页</a></li>
+      <li><a href="admin.html" class="active">⚙️ 后台</a></li>
+    </ul>
+  </nav>
+
+  <div class="admin-container">
+
+    <div class="admin-topbar">
+      <h1>⚙️ 后台管理</h1>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="location.href='index.html'">返回主页</button>
+        <button class="btn btn-danger" id="logoutBtn">退出登录</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
+      <button class="tab" data-panel="panel-roblox">🎵 Roblox 数据</button>
+      <button class="tab" data-panel="panel-thanks">❤️ 鸣谢管理</button>
+      <button class="tab" data-panel="panel-updates">📝 版本管理</button>
+    </div>
+
+    <!-- 反馈管理 -->
+    <div class="panel active" id="panel-feedback">
+      <div class="panel-card">
+        <h2>
+          所有反馈
+          <span class="count" id="feedbackCount">0</span>
+        </h2>
+        <div id="feedbackList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roblox 数据 -->
+    <div class="panel" id="panel-roblox">
+      <div class="panel-card">
+        <h2>📊 数据统计</h2>
+        <div class="stat-grid" id="robloxStats">
+          <div class="stat-card">
+            <div class="num" id="statTotal">-</div>
+            <div class="label">总 ID 数</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statGroup">-</div>
+            <div class="label">歌曲组数</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statQuarantine">-</div>
+            <div class="label">开发者隔离区</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h2>
+          ⛔ 开发者隔离区
+          <span class="count" id="quarantineCount">0</span>
+        </h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+          以下为全局共享的开发者隔离区，来自 <code>data/roblox_music_quarantine.json</code>
+        </p>
+        <div id="quarantineList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 鸣谢管理 -->
+    <div class="panel" id="panel-thanks">
+      <div class="panel-card">
+        <h2>
+          ❤️ 鸣谢名单
+          <span class="count" id="thanksCount">0</span>
+        </h2>
+        <div id="thanksList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 版本管理 -->
+    <div class="panel" id="panel-updates">
+      <div class="panel-card">
+        <h2>📝 版本管理</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+          修改版本号后，用户下次打开该页面会看到更新弹窗。日期会自动设为今天。
+        </p>
+        <div id="updatesList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -224,33 +224,21 @@ body {
   flex-direction: column;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border);
-  animation: modalIn var(--transition-soft) both;
+  animation: modalIn 0.25s var(--ease-soft) both;
 }
 
 .modal.show.closing .modal-content {
-  animation: modalOut 0.25s var(--ease-soft) both;
+  animation: modalOut 0.2s var(--ease-soft) both;
 }
 
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes modalOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(16px) scale(0.97);
-  }
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.98); }
 }
 
 .modal-content h2 {
@@ -376,6 +364,94 @@ body {
   margin-top: 20px;
 }
 
+/* ========== 更新弹窗 ========== */
+.update-modal .modal-content {
+  max-width: 560px;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+}
+
+.update-modal .update-header {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  padding: 18px 28px 16px;
+  color: #fff;
+}
+
+.update-modal .update-header h2 {
+  color: #fff;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.update-modal .update-version {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.update-modal .update-date {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4px;
+}
+
+.update-modal .update-body {
+  padding: 18px 28px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.update-modal .update-item {
+  padding: 7px 0;
+  font-size: 0.92rem;
+  color: var(--text-light);
+  line-height: 1.7;
+  border-bottom: 1px solid var(--border);
+}
+
+.update-modal .update-item:last-child {
+  border-bottom: none;
+}
+
+.update-modal .update-footer {
+  padding: 14px 28px 20px;
+  text-align: center;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.update-modal .update-thanks {
+  font-size: 0.88rem;
+  color: var(--text-light);
+  margin-bottom: 12px;
+}
+
+.update-modal .update-body::-webkit-scrollbar {
+  width: 6px;
+}
+.update-modal .update-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.update-modal .update-body::-webkit-scrollbar-thumb {
+  background: rgba(220, 107, 130, 0.25);
+  border-radius: 10px;
+}
+.update-modal .update-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
+}
+
 /* ========== 响应式 ========== */
 @media (max-width: 768px) {
   .navbar {
@@ -395,6 +471,12 @@ body {
   .btn {
     padding: 10px 20px;
     font-size: 0.9rem;
+  }
+  .update-modal .update-header,
+  .update-modal .update-body,
+  .update-modal .update-footer {
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }
 

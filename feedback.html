@@ -43,7 +43,6 @@
 
     .form-group { margin-bottom: 16px; }
 
-    /* ---------- 自定义下拉 ---------- */
     .select-wrapper {
       position: relative;
       margin-top: 4px;
@@ -146,7 +145,6 @@
       font-weight: 700;
     }
 
-    /* ---------- 鸣谢选项 ---------- */
     .thanks-group {
       display: none;
       align-items: center;
@@ -179,7 +177,6 @@
       font-weight: 500;
     }
 
-    /* ---------- 按钮 ---------- */
     .btn-submit {
       width: 100%;
       margin-top: 8px;
@@ -213,7 +210,6 @@
       transition: transform 0.1s var(--ease-soft);
     }
 
-    /* ---------- 感谢信息 ---------- */
     .success-message {
       display: none;
       text-align: center;
@@ -248,7 +244,6 @@
       animation: popIn 0.5s var(--ease-bounce) 0.5s both;
     }
 
-    /* ---------- 开发者与支持者 ---------- */
     .credits-section {
       display: flex;
       justify-content: center;
@@ -328,7 +323,6 @@
       color: var(--text-light);
     }
 
-    /* ---------- 动画 ---------- */
     @keyframes cardRise {
       0% { opacity: 0; transform: translateY(30px) scale(0.9); }
       60% { opacity: 1; transform: translateY(-6px) scale(1.02); }
@@ -353,7 +347,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ---------- 响应式 ---------- */
     @media (max-width: 768px) {
       .main-content { padding: 20px 16px 0; }
       .feedback-card { padding: 22px 20px; }
@@ -469,6 +462,10 @@
   <script src="js/common.js"></script>
 
   <script>
+    /* ---------- 版本更新检查 ---------- */
+    checkPageUpdate('feedback');
+
+    /* ---------- DOM ---------- */
     const selectWrapper = document.getElementById('selectWrapper');
     const selectTrigger = document.getElementById('selectTrigger');
     const selectDropdown = document.getElementById('selectDropdown');
