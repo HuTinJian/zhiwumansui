@@ -1,11 +1,9 @@
 /* ============================================================
    POST /api/feedback
-   接收反馈 → 存入 D1 数据库
+   接收反馈 → 存入 D1
+   新增：支持上传隔离区ID
    ============================================================ */
 
-/**
- * JSON 响应工具
- */
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -13,10 +11,7 @@ function json(data, status = 200) {
   });
 }
 
-/**
- * 校验反馈类型
- */
-const VALID_TYPES = ['主页', '反馈页', '卡片一', '其他'];
+const VALID_TYPES = ['主页', '反馈页', '卡片1', '其他'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -29,6 +24,8 @@ export async function onRequestPost(context) {
     const email = String(body.email || '').trim();
     const message = String(body.message || '').trim();
     const wantThanks = body.wantThanks === 1 ? 1 : 0;
+    const uploadQuarantine = body.uploadQuarantine === 1 ? 1 : 0;
+    const quarantineIds = Array.isArray(body.quarantineIds) ? body.quarantineIds : [];
 
     /* 类型校验 */
     if (!VALID_TYPES.includes(type)) {
@@ -43,7 +40,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'invalid message' }, 400);
     }
 
-    /* 邮箱选填，填了就要格式正确 */
+    /* 邮箱选填 */
     if (email) {
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
       if (!emailPattern.test(email) || email.length > 100) {
@@ -51,14 +48,28 @@ export async function onRequestPost(context) {
       }
     }
 
-    /* 只有"卡片一"类型才允许 wantThanks=1 */
-    const finalWantThanks = (type === '卡片一') ? wantThanks : 0;
+    /* 只有"卡片1"类型才允许这两个附加选项 */
+    const finalWantThanks = (type === '卡片1') ? wantThanks : 0;
+    const finalUploadQuarantine = (type === '卡片1') ? uploadQuarantine : 0;
 
-    /* 写入 D1 */
+    /* 隔离区ID：只在允许的时候保留，最多 500 个 */
+    let quarantineJson = null;
+    if (finalUploadQuarantine === 1 && quarantineIds.length > 0) {
+      const cleaned = quarantineIds
+        .slice(0, 500)
+        .map(i => ({
+          id: String(i.id || '').slice(0, 30),
+          name: String(i.name || '').slice(0, 100),
+          category: String(i.category || '').slice(0, 30)
+        }))
+        .filter(i => i.id);
+      quarantineJson = JSON.stringify(cleaned);
+    }
+
     await env.DB.prepare(
-      `INSERT INTO feedback (type, name, email, message, want_thanks, status)
-       VALUES (?, ?, ?, ?, ?, 'pending')`
-    ).bind(type, name, email || null, message, finalWantThanks).run();
+      `INSERT INTO feedback (type, name, email, message, want_thanks, upload_quarantine, quarantine_ids, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`
+    ).bind(type, name, email || null, message, finalWantThanks, finalUploadQuarantine, quarantineJson).run();
 
     return json({ ok: true });
   } catch (err) {

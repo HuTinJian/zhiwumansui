@@ -1,6 +1,7 @@
 /* ============================================================
    GET /api/feedback/list
    获取所有反馈（需认证）
+   新增：返回 upload_quarantine 和 quarantine_ids
    ============================================================ */
 
 function json(data, status = 200) {
@@ -34,12 +35,33 @@ export async function onRequestGet(context) {
 
   try {
     const result = await env.DB.prepare(
-      `SELECT id, type, name, email, message, want_thanks, status, created_at
+      `SELECT id, type, name, email, message,
+              want_thanks, upload_quarantine, quarantine_ids,
+              status, created_at
        FROM feedback
        ORDER BY id DESC`
     ).all();
 
-    return json(result.results || []);
+    const list = (result.results || []).map(r => {
+      let quarantineIds = [];
+      if (r.quarantine_ids) {
+        try { quarantineIds = JSON.parse(r.quarantine_ids); } catch {}
+      }
+      return {
+        id: r.id,
+        type: r.type,
+        name: r.name,
+        email: r.email || '',
+        message: r.message,
+        want_thanks: r.want_thanks || 0,
+        upload_quarantine: r.upload_quarantine || 0,
+        quarantine_ids: quarantineIds,
+        status: r.status || 'pending',
+        created_at: r.created_at
+      };
+    });
+
+    return json(list);
   } catch (err) {
     return json([], 200);
   }
