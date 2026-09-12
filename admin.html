@@ -8,12 +8,14 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
+    /* ========== 后台主容器 ========== */
     .admin-container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 24px 20px 60px;
     }
 
+    /* ========== 顶部工具条 ========== */
     .admin-topbar {
       display: flex;
       align-items: center;
@@ -36,6 +38,7 @@
       flex-wrap: wrap;
     }
 
+    /* ========== 标签页 ========== */
     .tabs {
       display: flex;
       gap: 8px;
@@ -74,6 +77,7 @@
       box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
     }
 
+    /* ========== 面板 ========== */
     .panel {
       display: none;
     }
@@ -123,6 +127,7 @@
       padding: 6px 16px;
     }
 
+    /* ========== 列表项 ========== */
     .list-item {
       padding: 16px;
       border: 1px solid var(--border);
@@ -234,6 +239,7 @@
       transition: transform 0.1s var(--ease-soft);
     }
 
+    /* ========== 反馈隔离区展开 ========== */
     .fb-quarantine {
       display: none;
       margin-top: 12px;
@@ -335,6 +341,7 @@
       background: rgba(220, 107, 130, 0.05);
     }
 
+    /* 圆形复选框 */
     .fb-q-item input[type="checkbox"] {
       width: 20px;
       height: 20px;
@@ -398,6 +405,7 @@
       flex-shrink: 0;
     }
 
+    /* ========== 统计卡片 ========== */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -430,6 +438,7 @@
       margin-top: 4px;
     }
 
+    /* ========== 加载/空状态 ========== */
     .loading {
       text-align: center;
       padding: 30px;
@@ -444,6 +453,7 @@
       font-size: 0.95rem;
     }
 
+    /* ========== 版本管理 ========== */
     .update-edit-item {
       padding: 18px;
       border: 1px solid var(--border);
@@ -564,7 +574,7 @@
       border: none;
       border-radius: var(--radius-pill);
       cursor: pointer;
-      margin-right: auto;  /* 推到左侧 */
+      margin-right: auto;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
 
@@ -577,6 +587,7 @@
       transform: scale(0.93);
     }
 
+    /* ========== 导入隔离区弹窗 ========== */
     #importQuarantineModal .modal-content {
       max-width: 680px;
     }
@@ -620,10 +631,12 @@
       font-weight: 600;
     }
 
+    /* ========== 添加鸣谢弹窗 ========== */
     #addThanksModal .modal-content {
       max-width: 520px;
     }
 
+    /* ========== 自定义下拉选择器 ========== */
     .select-wrapper {
       position: relative;
       margin-top: 4px;
@@ -730,6 +743,7 @@
       font-weight: 700;
     }
 
+    /* 滚动条美化 */
     .fb-quarantine .q-list::-webkit-scrollbar {
       width: 6px;
     }
@@ -745,11 +759,13 @@
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
+    /* ========== 动画 ========== */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .admin-container { padding: 16px 12px 40px; }
       .admin-topbar h1 { font-size: 1.3rem; }
@@ -768,6 +784,7 @@
 </head>
 <body>
 
+  <!-- ==================== 导航栏 ==================== -->
   <nav class="navbar">
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
@@ -775,8 +792,10 @@
     </ul>
   </nav>
 
+  <!-- ==================== 后台主容器 ==================== -->
   <div class="admin-container">
 
+    <!-- 顶部工具条 -->
     <div class="admin-topbar">
       <h1>⚙️ 后台管理</h1>
       <div class="actions">
@@ -785,6 +804,7 @@
       </div>
     </div>
 
+    <!-- 标签页 -->
     <div class="tabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-roblox">🎵 Roblox 数据</button>
@@ -792,6 +812,7 @@
       <button class="tab" data-panel="panel-updates">📝 版本管理</button>
     </div>
 
+    <!-- 反馈管理 -->
     <div class="panel active" id="panel-feedback">
       <div class="panel-card">
         <h2>
@@ -804,6 +825,7 @@
       </div>
     </div>
 
+    <!-- Roblox 数据 -->
     <div class="panel" id="panel-roblox">
       <div class="panel-card">
         <h2>📊 数据统计</h2>
@@ -837,6 +859,7 @@
       </div>
     </div>
 
+    <!-- 鸣谢管理 -->
     <div class="panel" id="panel-thanks">
       <div class="panel-card">
         <h2>
@@ -852,6 +875,7 @@
       </div>
     </div>
 
+    <!-- 版本管理 -->
     <div class="panel" id="panel-updates">
       <div class="panel-card">
         <h2>📝 版本管理</h2>
@@ -866,10 +890,12 @@
 
   </div>
 
+  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
+  <!-- ==================== 导入隔离区弹窗 ==================== -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
       <h2>📥 导入隔离区</h2>
@@ -886,6 +912,7 @@
     </div>
   </div>
 
+  <!-- ==================== 添加鸣谢弹窗 ==================== -->
   <div class="modal" id="addThanksModal">
     <div class="modal-content">
       <h2>➕ 添加鸣谢</h2>

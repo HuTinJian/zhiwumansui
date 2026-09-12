@@ -1,11 +1,9 @@
 /* ============================================================
-   织雾满穗 · 身份验证（前端）
+   织雾满穗 · 身份验证
+   登录状态检查、密码提交、后台入口
    ============================================================ */
 
-/**
- * 检查当前会话是否已登录
- * @returns {Promise<boolean>}
- */
+/* 检查当前是否已登录 */
 async function isLoggedIn() {
   try {
     const res = await fetch('/api/auth/check', {
@@ -20,11 +18,7 @@ async function isLoggedIn() {
   }
 }
 
-/**
- * 提交凭证到后端
- * @param {string} password
- * @returns {Promise<boolean>}
- */
+/* 提交密码到后端 */
 async function submitPassword(password) {
   try {
     const res = await fetch('/api/auth/login', {
@@ -41,9 +35,7 @@ async function submitPassword(password) {
   }
 }
 
-/**
- * 退出登录
- */
+/* 退出登录 */
 async function logout() {
   try {
     await fetch('/api/auth/logout', {
@@ -53,11 +45,7 @@ async function logout() {
   } catch {}
 }
 
-/**
- * 动态创建验证弹窗
- * @param {string} modalId
- * @returns {HTMLElement}
- */
+/* 动态创建验证弹窗 */
 function ensureAuthModal(modalId = 'authModal') {
   let modal = document.getElementById(modalId);
   if (modal) return modal;
@@ -83,11 +71,7 @@ function ensureAuthModal(modalId = 'authModal') {
   return modal;
 }
 
-/**
- * 绑定后台入口：连点标题 3 次弹出验证框
- * @param {string} titleId - 标题元素 id
- * @param {string} redirect - 验证成功后跳转地址
- */
+/* 绑定后台入口：连点标题 3 次弹出验证框 */
 function setupAdminEntry(titleId, redirect = 'admin.html') {
   const title = document.getElementById(titleId);
   if (!title) return;
@@ -104,9 +88,8 @@ function setupAdminEntry(titleId, redirect = 'admin.html') {
     count++;
     lastTime = now;
 
-    if (count >= 2) {
+    if (count >= 3) {
       count = 0;
-      /* 已登录直接跳转 */
       if (await isLoggedIn()) {
         window.location.href = redirect;
         return;
@@ -120,7 +103,6 @@ function setupAdminEntry(titleId, redirect = 'admin.html') {
     }
   });
 
-  /* 确认按钮 */
   document.getElementById('authConfirm').addEventListener('click', async function () {
     const input = document.getElementById('authInput');
     const err = document.getElementById('authError');
@@ -138,12 +120,10 @@ function setupAdminEntry(titleId, redirect = 'admin.html') {
     }
   });
 
-  /* 取消按钮 */
   document.getElementById('authCancel').addEventListener('click', function () {
     closeModal(modalId);
   });
 
-  /* 回车确认 */
   document.getElementById('authInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -152,10 +132,7 @@ function setupAdminEntry(titleId, redirect = 'admin.html') {
   });
 }
 
-/**
- * 后台页面守卫：未登录则跳回主页
- * @returns {Promise<boolean>}
- */
+/* 后台页面守卫：未登录跳回主页 */
 async function requireAuth() {
   const ok = await isLoggedIn();
   if (!ok) {

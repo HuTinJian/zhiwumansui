@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
+    /* ========== 主容器 ========== */
     .container {
       max-width: 1000px;
       margin: 0 auto;
@@ -153,7 +154,6 @@
       will-change: transform;
     }
 
-    /* 依次入场 */
     .card:nth-child(1) { animation-delay: 0.25s; }
     .card:nth-child(2) { animation-delay: 0.35s; }
     .card:nth-child(3) { animation-delay: 0.45s; }
@@ -397,6 +397,7 @@
 </head>
 <body>
 
+  <!-- ==================== 顶部导航栏 ==================== -->
   <nav class="navbar">
     <ul class="nav-links">
       <li><a href="index.html" class="active">🏠 首页</a></li>
@@ -404,7 +405,9 @@
     </ul>
   </nav>
 
+  <!-- ==================== 主内容 ==================== -->
   <div class="container">
+    <!-- 搜索区域 -->
     <div class="search-section" id="search">
       <h1 id="mainTitle">织雾满穗</h1>
       <p class="subtitle">织梦疾追星斗近，拨云终揽霁光欣</p>
@@ -418,7 +421,9 @@
       </div>
     </div>
 
+    <!-- 内容卡片列表 -->
     <div class="content-grid" id="contentGrid">
+      <!-- 卡片 1：Roblox ID 宝库 -->
       <div class="card"
            data-title="Roblox ID 宝库"
            data-category="游戏"
@@ -432,6 +437,7 @@
     </div>
   </div>
 
+  <!-- ==================== 开发者与支持者 ==================== -->
   <div class="credits-section">
     <div class="credits-card">
       <img class="credits-icon" src="images/developer.png" alt="开发者图标">
@@ -451,6 +457,7 @@
     </div>
   </div>
 
+  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
@@ -458,9 +465,13 @@
   <script src="js/common.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    /* 后台入口：连点标题 3 次 */
     setupAdminEntry('mainTitle');
+
+    /* 版本更新检查 */
     checkPageUpdate('index');
 
+    /* 搜索 */
     const cards = document.querySelectorAll('.card');
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -541,6 +552,7 @@
       }
     });
 
+    /* 卡片点击跳转 */
     cards.forEach(card => {
       card.addEventListener('click', () => {
         const link = card.getAttribute('data-link');

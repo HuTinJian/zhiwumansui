@@ -1,6 +1,6 @@
 /* ============================================================
-   GET /api/auth/check
-   检查 Cookie 是否有效
+   织雾满穗 · 登录状态检查
+   读取 Cookie 判断是否已登录
    ============================================================ */
 
 function json(data, status = 200) {
@@ -10,9 +10,7 @@ function json(data, status = 200) {
   });
 }
 
-/**
- * 从 Cookie 头中读取指定键
- */
+/* 从 Cookie 中读取指定键 */
 function readCookie(cookieHeader, key) {
   if (!cookieHeader) return null;
   const parts = cookieHeader.split(';');

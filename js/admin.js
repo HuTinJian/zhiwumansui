@@ -1,9 +1,12 @@
 /* ============================================================
    织雾满穗 · 后台管理
+   反馈管理、Roblox 数据、鸣谢管理、版本管理
    ============================================================ */
 
+/* 缓存反馈列表，用于展开查看隔离区时定位 */
 let feedbackCache = [];
 
+/* ========== 初始化 ========== */
 (async function init() {
   const ok = await requireAuth();
   if (!ok) return;
@@ -140,6 +143,7 @@ async function loadFeedback() {
 
       const hasQ = item.upload_quarantine === 1 && Array.isArray(item.quarantine_ids) && item.quarantine_ids.length > 0;
       const qCount = hasQ ? item.quarantine_ids.length : 0;
+      const itemId = Number(item.id) || 0;
 
       el.innerHTML = `
         <div class="row1">
@@ -156,11 +160,11 @@ async function loadFeedback() {
         </div>
         <div class="message">${escapeHtml(item.message)}</div>
         <div class="actions">
-          ${hasQ ? '<button class="btn-expand" data-id="' + item.id + '">📦 展开隔离区</button>' : ''}
-          ${item.want_thanks === 1 ? '<button class="btn-approve" data-id="' + item.id + '">❤️ 加入鸣谢</button>' : ''}
-          <button class="btn-delete" data-id="' + item.id + '">🗑️ 删除</button>
+          ${hasQ ? '<button class="btn-expand" data-id="' + itemId + '">📦 展开隔离区</button>' : ''}
+          ${item.want_thanks === 1 ? '<button class="btn-approve" data-id="' + itemId + '">❤️ 加入鸣谢</button>' : ''}
+          <button class="btn-delete" data-id="${itemId}">🗑️ 删除</button>
         </div>
-        ${hasQ ? '<div class="fb-quarantine" id="fbQ-' + item.id + '"></div>' : ''}
+        ${hasQ ? '<div class="fb-quarantine" id="fbQ-' + itemId + '"></div>' : ''}
       `;
       container.appendChild(el);
     });
@@ -179,6 +183,7 @@ async function loadFeedback() {
   }
 }
 
+/* 展开/收起某条反馈的隔离区 */
 function toggleFeedbackQuarantine(feedbackId, btn) {
   const panel = document.getElementById('fbQ-' + feedbackId);
   if (!panel) return;
@@ -233,6 +238,7 @@ function toggleFeedbackQuarantine(feedbackId, btn) {
   btn.textContent = '📦 收起隔离区';
 }
 
+/* 从反馈导入选中的隔离区ID */
 async function importSelectedQuarantine(feedbackId, ids) {
   if (ids.length === 0) {
     showToast('请至少勾选一个ID');
@@ -266,6 +272,7 @@ async function importSelectedQuarantine(feedbackId, ids) {
   }
 }
 
+/* 将反馈用户加入鸣谢 */
 async function approveToThanks(feedbackId) {
   const confirmed = await showConfirm(
     '加入鸣谢',
@@ -309,7 +316,13 @@ async function approveToThanks(feedbackId) {
   }
 }
 
+/* 删除反馈 */
 async function deleteFeedback(id) {
+  if (!id || isNaN(Number(id))) {
+    showToast('⚠️ 反馈 ID 无效，无法删除');
+    return;
+  }
+
   const confirmed = await showConfirm('删除反馈', '确定要删除这条反馈吗？此操作不可撤销。');
   if (!confirmed) return;
 
@@ -318,14 +331,14 @@ async function deleteFeedback(id) {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
+      body: JSON.stringify({ id: Number(id) })
     });
     const data = await res.json();
     if (data.ok) {
-      showToast('🗑️ 已删除');
+      showToast(`🗑️ 已删除（共 ${data.deleted || 1} 条）`);
       loadFeedback();
     } else {
-      showToast('删除失败');
+      showToast('删除失败：' + (data.message || data.error || '未知'));
     }
   } catch (err) {
     showToast('网络异常');
@@ -391,6 +404,7 @@ async function loadRobloxStats() {
   }
 }
 
+/* 删除隔离区单个ID */
 async function deleteQuarantineItem(musicId) {
   const confirmed = await showConfirm(
     '移除隔离',
@@ -417,6 +431,7 @@ async function deleteQuarantineItem(musicId) {
   }
 }
 
+/* 处理导入隔离区 */
 async function handleImportQuarantine() {
   const text = document.getElementById('importQuarantineText').value.trim();
   const status = document.getElementById('importQuarantineStatus');
@@ -545,6 +560,7 @@ async function loadThanks() {
   }
 }
 
+/* 添加鸣谢 */
 async function handleAddThanks() {
   const selectedCatEl = document.getElementById('addThanksSelectedCat');
   const category = (selectedCatEl.textContent || '').trim();
@@ -581,7 +597,13 @@ async function handleAddThanks() {
   }
 }
 
+/* 删除鸣谢 */
 async function deleteThanks(id) {
+  if (!id || isNaN(Number(id))) {
+    showToast('⚠️ ID 无效，无法删除');
+    return;
+  }
+
   const confirmed = await showConfirm('删除鸣谢', '确定要从鸣谢名单中删除这个人吗？');
   if (!confirmed) return;
 
@@ -590,7 +612,7 @@ async function deleteThanks(id) {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', id })
+      body: JSON.stringify({ action: 'delete', id: Number(id) })
     });
     const data = await res.json();
     if (data.ok) {

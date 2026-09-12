@@ -1,7 +1,6 @@
 /* ============================================================
-   POST /api/feedback/import-quarantine
+   织雾满穗 · 导入反馈隔离区
    将反馈中的隔离区ID导入开发者隔离区（需认证）
-   body: { feedbackId: number, ids: ['xxx', 'yyy'] }
    ============================================================ */
 
 function json(data, status = 200) {
@@ -42,7 +41,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'missing params' }, 400);
     }
 
-    /* 读取反馈中的隔离区数据 */
+    /* 读取该反馈里的隔离区数据 */
     const row = await env.DB.prepare(
       'SELECT quarantine_ids FROM feedback WHERE id = ?'
     ).bind(feedbackId).first();
@@ -62,7 +61,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'no matching items' }, 400);
     }
 
-    /* 批量写入 */
+    /* 批量写入开发者隔离区 */
     const stmts = toImport.map(i =>
       env.DB.prepare(
         `INSERT OR IGNORE INTO quarantine_admin (music_id, name, category, source)

@@ -1,7 +1,6 @@
 /* ============================================================
-   POST /api/quarantine/delete
-   删除隔离区ID（需认证）
-   body: { id: 'xxx' }  或  { ids: ['xxx', 'yyy'] }
+   织雾满穗 · 移除隔离区
+   需认证，支持单个或多个
    ============================================================ */
 
 function json(data, status = 200) {
@@ -36,7 +35,7 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
 
-    /* 单个或多个 */
+    /* 支持单个或批量 */
     let ids = [];
     if (body.id) ids = [String(body.id)];
     if (Array.isArray(body.ids)) ids = body.ids.map(String);

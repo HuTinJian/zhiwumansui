@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
+    /* ========== 主内容 ========== */
     .main-content {
       display: flex;
       flex-direction: column;
@@ -16,7 +17,7 @@
       width: 100%;
     }
 
-    /* 反馈卡片 */
+    /* ========== 反馈卡片 ========== */
     .feedback-card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -46,7 +47,7 @@
 
     .form-group { margin-bottom: 16px; }
 
-    /* 自定义下拉 */
+    /* ========== 自定义下拉 ========== */
     .select-wrapper {
       position: relative;
       margin-top: 4px;
@@ -153,7 +154,7 @@
       font-weight: 700;
     }
 
-    /* 自定义圆形复选框 */
+    /* ========== 自定义圆形复选框 ========== */
     .checkbox-list {
       display: none;
       flex-direction: column;
@@ -237,6 +238,7 @@
       line-height: 1.4;
     }
 
+    /* ========== 提交按钮 ========== */
     .btn-submit {
       width: 100%;
       margin-top: 8px;
@@ -270,7 +272,7 @@
       transition: transform 0.1s var(--ease-soft);
     }
 
-    /* 感谢信息 */
+    /* ========== 感谢信息 ========== */
     .success-message {
       display: none;
       text-align: center;
@@ -317,7 +319,7 @@
       animation: popIn 0.45s var(--ease-bounce) 0.5s both;
     }
 
-    /* 开发者与支持者 */
+    /* ========== 开发者与支持者 ========== */
     .credits-section {
       display: flex;
       justify-content: center;
@@ -429,7 +431,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 响应式 */
+    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .main-content { padding: 20px 16px 0; }
       .feedback-card { padding: 22px 20px; }
@@ -449,7 +451,6 @@
       .credits-icon { width: 40px; height: 40px; }
     }
 
-    /* 减少动画偏好 */
     @media (prefers-reduced-motion: reduce) {
       * {
         animation-duration: 0.01ms !important;
@@ -461,6 +462,7 @@
 </head>
 <body>
 
+  <!-- ==================== 导航栏 ==================== -->
   <nav class="navbar">
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
@@ -468,13 +470,16 @@
     </ul>
   </nav>
 
+  <!-- ==================== 主内容 ==================== -->
   <div class="main-content">
     <div class="feedback-card">
+      <!-- 表单区域 -->
       <div id="formContainer">
         <h2>💬 意见反馈</h2>
         <p class="desc">我们重视你的每一个建议</p>
 
         <form id="feedbackForm">
+          <!-- 反馈类型 -->
           <div class="form-group">
             <label>反馈类型</label>
             <div class="select-wrapper" id="selectWrapper">
@@ -491,6 +496,7 @@
             </div>
           </div>
 
+          <!-- 卡片1 专属选项 -->
           <div class="checkbox-list" id="extraOptions">
             <label class="custom-checkbox">
               <input type="checkbox" id="wantThanks">
@@ -504,16 +510,19 @@
             </label>
           </div>
 
+          <!-- 称呼 -->
           <div class="form-group">
             <label for="feedbackName">你的称呼</label>
             <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40">
           </div>
 
+          <!-- 邮箱 -->
           <div class="form-group">
             <label for="feedbackEmail">你的邮箱（选填）</label>
             <input type="email" id="feedbackEmail" placeholder="如需回复可留下邮箱">
           </div>
 
+          <!-- 内容 -->
           <div class="form-group">
             <label for="feedbackMessage">反馈内容</label>
             <textarea id="feedbackMessage" placeholder="请详细描述你的建议、问题或想法..." required maxlength="1000"></textarea>
@@ -527,6 +536,7 @@
         <a href="index.html" class="back-link">← 返回首页</a>
       </div>
 
+      <!-- 感谢信息 -->
       <div class="success-message" id="successMessage">
         <div class="success-icon">🎉</div>
         <h2>提交成功！</h2>
@@ -536,6 +546,7 @@
       </div>
     </div>
 
+    <!-- 开发者与支持者 -->
     <div class="credits-section">
       <div class="credits-card">
         <img class="credits-icon" src="images/developer.png" alt="开发者图标">
@@ -556,6 +567,7 @@
     </div>
   </div>
 
+  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
@@ -563,6 +575,7 @@
   <script src="js/common.js"></script>
 
   <script>
+    /* 版本更新检查 */
     checkPageUpdate('feedback');
 
     const selectWrapper = document.getElementById('selectWrapper');
@@ -580,6 +593,7 @@
 
     let currentType = '';
 
+    /* 下拉展开/收起 */
     selectTrigger.addEventListener('click', (e) => {
       e.stopPropagation();
       selectTrigger.classList.toggle('open');
@@ -593,6 +607,7 @@
       }
     });
 
+    /* 选择类型 */
     selectDropdown.querySelectorAll('.select-option').forEach(opt => {
       opt.addEventListener('click', () => {
         selectDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
@@ -604,6 +619,7 @@
         selectTrigger.classList.remove('open');
         selectDropdown.classList.remove('open');
 
+        /* 仅"卡片1"显示附加选项 */
         if (currentType === '卡片1') {
           extraOptions.classList.add('show');
         } else {
@@ -614,11 +630,13 @@
       });
     });
 
+    /* 邮箱校验 */
     function isValidEmail(email) {
       if (!email) return true;
       return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(email);
     }
 
+    /* 读取游客隔离区 */
     function getGuestQuarantine() {
       try {
         const raw = localStorage.getItem('roblox_quarantine_guest');
@@ -638,6 +656,7 @@
       }
     }
 
+    /* 提交反馈 */
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -645,10 +664,7 @@
       const email = document.getElementById('feedbackEmail').value.trim();
       const message = document.getElementById('feedbackMessage').value.trim();
 
-      if (!currentType) {
-        showToast('请选择反馈类型');
-        return;
-      }
+      if (!currentType) { showToast('请选择反馈类型'); return; }
       if (!name) { showToast('请填写你的称呼'); return; }
       if (!message) { showToast('请填写反馈内容'); return; }
       if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); return; }

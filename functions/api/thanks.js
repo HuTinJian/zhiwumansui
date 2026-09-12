@@ -1,15 +1,9 @@
 /* ============================================================
-   GET  /api/thanks        获取鸣谢名单（公开）
-   POST /api/thanks        管理操作（需认证）
-     body.action:
-       add    添加鸣谢
-       delete 删除鸣谢
-       update 修改鸣谢
+   织雾满穗 · 鸣谢名单
+   GET  公开获取鸣谢列表
+   POST 管理操作（需认证）：add / delete / update
    ============================================================ */
 
-/**
- * JSON 响应工具
- */
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -17,9 +11,6 @@ function json(data, status = 200) {
   });
 }
 
-/**
- * 从 Cookie 头中读取指定键
- */
 function readCookie(cookieHeader, key) {
   if (!cookieHeader) return null;
   const parts = cookieHeader.split(';');
@@ -30,23 +21,12 @@ function readCookie(cookieHeader, key) {
   return null;
 }
 
-/**
- * 验证登录态
- */
 function checkAuth(request, env) {
-  const cookieHeader = request.headers.get('Cookie');
-  const token = readCookie(cookieHeader, 'zm_auth');
+  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
   return token && token === env.AUTH_TOKEN;
 }
 
-/* ============================================================
-   GET：公开获取鸣谢名单
-   返回格式：
-   [
-     { category: '类别名', people: [{ id, name, platform, message }] },
-     ...
-   ]
-   ============================================================ */
+/* ---------- GET：公开获取鸣谢名单 ---------- */
 export async function onRequestGet(context) {
   const { env } = context;
 
@@ -83,13 +63,10 @@ export async function onRequestGet(context) {
   }
 }
 
-/* ============================================================
-   POST：管理操作（需认证）
-   ============================================================ */
+/* ---------- POST：管理操作（需认证） ---------- */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  /* 认证 */
   if (!checkAuth(request, env)) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
@@ -98,7 +75,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const action = String(body.action || '').trim();
 
-    /* ---------- 添加 ---------- */
+    /* 添加 */
     if (action === 'add') {
       const category = String(body.category || '').trim();
       const name = String(body.name || '').trim();
@@ -121,7 +98,7 @@ export async function onRequestPost(context) {
       return json({ ok: true, id: result.meta.last_row_id });
     }
 
-    /* ---------- 删除 ---------- */
+    /* 删除 */
     if (action === 'delete') {
       const id = Number(body.id);
       if (!id) {
@@ -131,7 +108,7 @@ export async function onRequestPost(context) {
       return json({ ok: true });
     }
 
-    /* ---------- 修改 ---------- */
+    /* 修改 */
     if (action === 'update') {
       const id = Number(body.id);
       const category = String(body.category || '').trim();

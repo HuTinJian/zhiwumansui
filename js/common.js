@@ -1,7 +1,9 @@
 /* ============================================================
    织雾满穗 · 共享工具
+   所有页面共用：Toast、弹窗、复制、防抖、版本检查
    ============================================================ */
 
+/* 显示 Toast 短提示 */
 function showToast(msg, duration = 2500) {
   let el = document.getElementById('globalToast');
   if (!el) {
@@ -16,35 +18,30 @@ function showToast(msg, duration = 2500) {
   el._timer = setTimeout(() => el.classList.remove('show'), duration);
 }
 
-/**
- * 打开弹窗（同时锁住页面滚动）
- */
+/* 打开弹窗（同时锁住页面滚动） */
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add('show');
   modal.classList.remove('closing');
-  /* 锁住 body 滚动 */
   document.body.classList.add('modal-open');
 }
 
-/**
- * 关闭弹窗（带退出动画）
- * 关闭后如果还有弹窗，保持滚动锁定
- */
+/* 关闭弹窗（带退出动画） */
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add('closing');
   setTimeout(() => {
     modal.classList.remove('show', 'closing');
-    /* 检查是否还有弹窗开着 */
+    /* 如果还有其他弹窗，保持滚动锁定 */
     if (!document.querySelector('.modal.show')) {
       document.body.classList.remove('modal-open');
     }
   }, 220);
 }
 
+/* 复制文本到剪贴板 */
 async function copyText(text) {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -64,6 +61,7 @@ async function copyText(text) {
   }
 }
 
+/* 防抖函数 */
 function debounce(fn, wait = 300) {
   let timer;
   return function (...args) {
@@ -72,12 +70,14 @@ function debounce(fn, wait = 300) {
   };
 }
 
+/* 转义 HTML，防止 XSS */
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text ?? '';
   return div.innerHTML;
 }
 
+/* 显示顶部提示条（3 秒自动消失） */
 function showNotice(msg) {
   let el = document.getElementById('globalNotice');
   if (!el) {
@@ -92,6 +92,7 @@ function showNotice(msg) {
   el._timer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+/* 确认弹窗（返回 Promise） */
 function showConfirm(title, message) {
   return new Promise(resolve => {
     let modal = document.getElementById('globalConfirm');
@@ -122,6 +123,7 @@ function showConfirm(title, message) {
   });
 }
 
+/* 检查页面版本更新 */
 async function checkPageUpdate(pageKey, options = {}) {
   const storageKey = `pageVersion_${pageKey}`;
 

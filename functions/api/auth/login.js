@@ -1,11 +1,9 @@
 /* ============================================================
-   POST /api/auth/login
-   接收凭证 → 比对哈希 → 设置 HttpOnly Cookie
+   织雾满穗 · 登录接口
+   接收密码 → 哈希比对 → 设置 Cookie
    ============================================================ */
 
-/**
- * 计算 SHA-512 哈希
- */
+/* SHA-512 哈希 */
 async function sha512(input) {
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
@@ -15,9 +13,7 @@ async function sha512(input) {
     .join('');
 }
 
-/**
- * JSON 响应工具
- */
+/* JSON 响应工具 */
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,

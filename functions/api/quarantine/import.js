@@ -1,7 +1,6 @@
 /* ============================================================
-   POST /api/quarantine/import
-   批量导入隔离区ID（需认证）
-   body: { items: [{ id, name, category }, ...], source?: 'xxx' }
+   织雾满穗 · 批量导入隔离区
+   需认证，最多一次 500 条
    ============================================================ */
 
 function json(data, status = 200) {
@@ -48,7 +47,7 @@ export async function onRequestPost(context) {
     let added = 0;
     let skipped = 0;
 
-    /* 用 batch 批量写入 */
+    /* 逐条准备 INSERT，最后批量执行 */
     const stmts = [];
     for (const item of items) {
       const id = String(item.id || '').trim();

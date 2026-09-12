@@ -1,6 +1,6 @@
 /* ============================================================
-   /api/updates
-   GET  ?page=xxx   获取单个页面版本信息（公开）
+   织雾满穗 · 版本信息
+   GET  ?page=xxx   获取单个页面（公开）
    GET  ?all=1      获取全部页面（需认证）
    POST             更新指定页面（需认证）
    ============================================================ */
@@ -27,9 +27,7 @@ function checkAuth(request, env) {
   return token && token === env.AUTH_TOKEN;
 }
 
-/**
- * 安全解析 JSON
- */
+/* 安全解析 JSON，出错返回空数组 */
 function safeParse(str, fallback = []) {
   try {
     if (!str) return fallback;

@@ -1,7 +1,7 @@
 /* ============================================================
-   /api/risk
-   GET  获取当前风险版本（公开）
-   POST 更新风险版本（需认证）
+   织雾满穗 · 风险弹窗版本
+   GET  获取当前风险版本
+   POST 重置风险版本（需认证）
    ============================================================ */
 
 function json(data, status = 200) {
@@ -26,7 +26,7 @@ function checkAuth(request, env) {
   return token && token === env.AUTH_TOKEN;
 }
 
-/* ---------- GET ---------- */
+/* 获取当前风险版本（公开） */
 export async function onRequestGet(context) {
   const { env } = context;
   try {
@@ -39,7 +39,7 @@ export async function onRequestGet(context) {
   }
 }
 
-/* ---------- POST（重置，需认证） ---------- */
+/* 重置风险版本（需认证） */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -50,7 +50,6 @@ export async function onRequestPost(context) {
   try {
     /* 用时间戳作为新版本 */
     const newVersion = 'v' + Date.now();
-
     const now = new Date();
     const date = now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +

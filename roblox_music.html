@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
+    /* ========== 头部内嵌导航 ========== */
     .header-nav {
       display: inline-flex;
       align-items: center;
@@ -76,12 +77,14 @@
       flex-shrink: 0;
     }
 
+    /* ========== 主容器 ========== */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 24px 20px 60px;
     }
 
+    /* ========== 页面头部 ========== */
     .page-header {
       background: linear-gradient(145deg, #f8d7de, #f0c4cd);
       border: 1px solid var(--border);
@@ -143,6 +146,7 @@
       transform: translateY(-2px);
     }
 
+    /* ========== 搜索与筛选 ========== */
     .search-row {
       display: flex;
       gap: 10px;
@@ -236,6 +240,7 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
 
+    /* ========== 批量操作栏 ========== */
     .batch-bar {
       display: none;
       align-items: center;
@@ -276,6 +281,7 @@
       font-size: 0.85rem;
     }
 
+    /* ========== 歌曲列表 ========== */
     .song-group {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -352,6 +358,7 @@
       transform: translateX(3px);
     }
 
+    /* 圆形复选框 */
     .id-checkbox {
       display: none;
       width: 20px;
@@ -483,6 +490,7 @@
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
 
+    /* ========== 加载更多 ========== */
     .load-more-wrap {
       text-align: center;
       padding: 20px 0 40px;
@@ -523,6 +531,7 @@
       transform: none;
     }
 
+    /* ========== 风险告知弹窗 ========== */
     #riskModal .modal-content {
       max-width: 700px;
       border: 1px solid var(--border);
@@ -628,6 +637,7 @@
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
+    /* ========== 二次确认弹窗 ========== */
     #riskConfirmModal .modal-content {
       max-width: 620px;
     }
@@ -654,6 +664,7 @@
       margin-top: 0;
     }
 
+    /* ========== 隔离区弹窗 ========== */
     #quarantineModal .modal-content {
       max-width: 800px;
     }
@@ -757,6 +768,7 @@
       font-size: 0.85rem;
     }
 
+    /* ========== 鸣谢弹窗 ========== */
     #thanksModal .modal-content {
       max-width: 600px;
       background: var(--gold-bg);
@@ -821,6 +833,7 @@
       font-size: 0.85rem;
     }
 
+    /* ========== 滚动条美化 ========== */
     #thanksList::-webkit-scrollbar,
     #quarantineList::-webkit-scrollbar {
       width: 6px;
@@ -848,6 +861,7 @@
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
+    /* ========== 动画 ========== */
     @keyframes cardRise {
       0% { opacity: 0; transform: translateY(20px) scale(0.96); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -877,6 +891,7 @@
       }
     }
 
+    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .container { padding: 16px 12px 40px; }
       .page-header { padding: 16px 18px; }
@@ -909,8 +924,10 @@
 </head>
 <body>
 
+  <!-- ==================== 主容器 ==================== -->
   <div class="container">
 
+    <!-- 头部 -->
     <header class="page-header">
       <div class="page-header-top">
         <h1>🎵 Roblox ID 宝库</h1>
@@ -933,6 +950,7 @@
       </div>
     </header>
 
+    <!-- 搜索与筛选 -->
     <div class="search-row">
       <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID...">
       <div class="filter-tabs" id="filterTabs">
@@ -941,6 +959,7 @@
       <button class="btn-multi" id="multiToggleBtn">🔁 多 ID</button>
     </div>
 
+    <!-- 批量操作栏 -->
     <div class="batch-bar" id="batchBar">
       <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
       <div class="actions">
@@ -949,6 +968,7 @@
       </div>
     </div>
 
+    <!-- 歌曲列表 -->
     <div id="songList"></div>
     <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
     <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
@@ -957,11 +977,12 @@
     </div>
   </div>
 
+  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- 风险告知弹窗 -->
+  <!-- ==================== 风险告知弹窗 ==================== -->
   <div class="modal" id="riskModal">
     <div class="modal-content">
       <h2>⚠️ 法律与平台风险告知</h2>
@@ -1000,7 +1021,7 @@
     </div>
   </div>
 
-  <!-- 二次确认弹窗 -->
+  <!-- ==================== 二次确认弹窗 ==================== -->
   <div class="modal" id="riskConfirmModal">
     <div class="modal-content">
       <h2>⚠️ 二次确认</h2>
@@ -1023,7 +1044,7 @@
     </div>
   </div>
 
-  <!-- 隔离区弹窗 -->
+  <!-- ==================== 隔离区弹窗 ==================== -->
   <div class="modal" id="quarantineModal">
     <div class="modal-content">
       <h2>⛔ 我的隔离区</h2>
@@ -1037,7 +1058,7 @@
     </div>
   </div>
 
-  <!-- 鸣谢弹窗 -->
+  <!-- ==================== 鸣谢弹窗 ==================== -->
   <div class="modal" id="thanksModal">
     <div class="modal-content">
       <h2>❤️ 鸣谢名单</h2>
@@ -1051,6 +1072,7 @@
 
   <script src="js/common.js"></script>
   <script>
+    /* ========== 全局状态 ========== */
     let songDatabase = [];
     let quarantineGuest = [];
     let currentCategory = 'all';
@@ -1064,11 +1086,13 @@
     /* 服务端风险版本 */
     let serverRiskVersion = null;
 
+    /* 分页 */
     const PAGE_SIZE = 100;
     let currentGroups = [];
     let renderedGroupCount = 0;
     let isLoadingMore = false;
 
+    /* DOM 引用 */
     const $ = id => document.getElementById(id);
     const dom = {
       statGroups: $('statGroups'),
@@ -1106,6 +1130,7 @@
       loadMoreInfo: $('loadMoreInfo')
     };
 
+    /* ========== 工具函数 ========== */
     function cleanName(name) {
       if (!name) return '未知歌名';
       return name.replace(/[《》]/g, '')
@@ -1153,6 +1178,7 @@
       }
     }
 
+    /* ========== 数据加载 ========== */
     async function loadData() {
       try {
         const [mainRes, qRes] = await Promise.all([
@@ -1189,6 +1215,7 @@
       }
     }
 
+    /* ========== 渲染 ========== */
     function renderAll() {
       const uniqueNames = new Set(songDatabase.map(i => i.name));
       dom.statGroups.textContent = uniqueNames.size;
@@ -1198,6 +1225,7 @@
       songDatabase.forEach(i => nameCount[i.name] = (nameCount[i.name] || 0) + 1);
       dom.statMulti.textContent = Object.values(nameCount).filter(c => c > 1).length;
 
+      /* 分类标签 */
       while (dom.filterTabs.children.length > 1) {
         dom.filterTabs.removeChild(dom.filterTabs.lastChild);
       }
@@ -1381,7 +1409,7 @@
       dom.selectedCount.textContent = selectedIds.size;
     }
 
-    /* 试听：检查风险版本 */
+    /* ========== 试听：风险告知 → 二次确认 → 3s 倒计时 → 跳转 ========== */
     function previewId(id) {
       pendingRedirectId = id;
 
@@ -1451,7 +1479,6 @@
 
     dom.riskConfirmOk.onclick = () => {
       closeModal('riskConfirmModal');
-      /* 保存服务端风险版本到本地 */
       if (serverRiskVersion) {
         localStorage.setItem('riskAckVersion', serverRiskVersion);
       }
@@ -1494,6 +1521,7 @@
       update();
     }
 
+    /* ========== 隔离操作 ========== */
     async function quarantineSingle(name, id) {
       const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
       if (!ok) return;
@@ -1568,6 +1596,7 @@
       }
     }
 
+    /* ========== 隔离区弹窗 ========== */
     function renderQuarantineList() {
       const keyword = dom.quarantineSearch.value.trim().toLowerCase();
       let list = quarantineGuest;
@@ -1644,7 +1673,6 @@
       );
       if (!ok) return;
 
-      /* 把隔离区全部加回主数据（跳过已存在的） */
       const existing = new Set(songDatabase.map(i => i.id));
       let added = 0;
       quarantineGuest.forEach(item => {
@@ -1669,6 +1697,7 @@
       renderQuarantineList();
     }
 
+    /* ========== 鸣谢名单 ========== */
     async function loadThanks() {
       dom.thanksList.innerHTML = '<div class="empty-state">加载中...</div>';
       try {
@@ -1699,11 +1728,11 @@
       }
     }
 
+    /* ========== 初始化 ========== */
     document.addEventListener('DOMContentLoaded', async () => {
-      /* 先获取服务端风险版本 */
       await loadServerRiskVersion();
 
-      /* 版本更新检查（不重置风险确认） */
+      /* 版本更新检查 */
       checkPageUpdate('roblox');
 
       loadQuarantine();
