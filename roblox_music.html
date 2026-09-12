@@ -93,7 +93,6 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
       animation: cardRise 0.55s var(--ease-bounce) both;
-      will-change: transform;
     }
 
     .page-header-top {
@@ -123,6 +122,10 @@
     .page-header .stats strong {
       color: var(--primary);
       font-weight: 700;
+    }
+
+    .page-header .stats .fav-stat strong {
+      color: var(--gold);
     }
 
     .page-header .btns {
@@ -210,22 +213,32 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
 
+    /* ============================================================
+       多 ID 按钮（醒目）
+       ============================================================ */
     .btn-multi {
-      padding: 7px 16px;
-      border: 2px solid var(--border);
+      padding: 8px 18px;
+      border: 2px solid var(--primary-light);
       border-radius: var(--radius-pill);
-      background: var(--bg-card);
-      color: var(--text-light);
-      font-size: 0.82rem;
-      font-weight: 600;
+      background: linear-gradient(135deg, rgba(162, 155, 254, 0.15), rgba(108, 92, 231, 0.12));
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      box-shadow: 0 2px 8px rgba(108, 92, 231, 0.12);
+      font-family: var(--font);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .btn-multi:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-dark);
       transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
     }
 
     .btn-multi:active {
@@ -234,10 +247,50 @@
     }
 
     .btn-multi.active {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       border-color: var(--primary);
       color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+      box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
+    }
+
+    /* ============================================================
+       收藏按钮（醒目）
+       ============================================================ */
+    .btn-fav-filter {
+      padding: 8px 18px;
+      border: 2px solid var(--gold-light);
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
+      color: #b8894f;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
+      font-family: var(--font);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-fav-filter:hover {
+      border-color: var(--gold);
+      color: #a07038;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
+    }
+
+    .btn-fav-filter:active {
+      transform: scale(0.93);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .btn-fav-filter.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-color: var(--gold);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
     }
 
     /* ========== 批量操作栏 ========== */
@@ -429,6 +482,28 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+    }
+
+    /* 收藏按钮 */
+    .id-actions .btn-fav {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      padding: 4px 8px;
+    }
+
+    .id-actions .btn-fav:hover {
+      color: var(--gold);
+      background: rgba(212, 160, 106, 0.12);
+    }
+
+    .id-actions .btn-fav:active {
+      transform: scale(0.85);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .id-actions .btn-fav.active {
+      color: var(--gold);
     }
 
     .id-actions .btn-copy {
@@ -924,10 +999,8 @@
 </head>
 <body>
 
-  <!-- ==================== 主容器 ==================== -->
   <div class="container">
 
-    <!-- 头部 -->
     <header class="page-header">
       <div class="page-header-top">
         <h1>🎵 Roblox ID 宝库</h1>
@@ -935,6 +1008,7 @@
           <span>📚 <strong id="statGroups">0</strong> 组</span>
           <span>🎶 <strong id="statIds">0</strong> 个 ID</span>
           <span>🔁 <strong id="statMulti">0</strong> 组多 ID</span>
+          <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
         </div>
         <nav class="header-nav" aria-label="主导航">
           <a href="index.html" class="nav-btn">🏠 首页</a>
@@ -950,16 +1024,15 @@
       </div>
     </header>
 
-    <!-- 搜索与筛选 -->
     <div class="search-row">
       <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID...">
       <div class="filter-tabs" id="filterTabs">
         <button class="active" data-cat="all">全部</button>
       </div>
       <button class="btn-multi" id="multiToggleBtn">🔁 多 ID</button>
+      <button class="btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
     </div>
 
-    <!-- 批量操作栏 -->
     <div class="batch-bar" id="batchBar">
       <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
       <div class="actions">
@@ -968,7 +1041,6 @@
       </div>
     </div>
 
-    <!-- 歌曲列表 -->
     <div id="songList"></div>
     <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
     <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
@@ -977,12 +1049,10 @@
     </div>
   </div>
 
-  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- ==================== 风险告知弹窗 ==================== -->
   <div class="modal" id="riskModal">
     <div class="modal-content">
       <h2>⚠️ 法律与平台风险告知</h2>
@@ -1021,7 +1091,6 @@
     </div>
   </div>
 
-  <!-- ==================== 二次确认弹窗 ==================== -->
   <div class="modal" id="riskConfirmModal">
     <div class="modal-content">
       <h2>⚠️ 二次确认</h2>
@@ -1044,7 +1113,6 @@
     </div>
   </div>
 
-  <!-- ==================== 隔离区弹窗 ==================== -->
   <div class="modal" id="quarantineModal">
     <div class="modal-content">
       <h2>⛔ 我的隔离区</h2>
@@ -1058,7 +1126,6 @@
     </div>
   </div>
 
-  <!-- ==================== 鸣谢弹窗 ==================== -->
   <div class="modal" id="thanksModal">
     <div class="modal-content">
       <h2>❤️ 鸣谢名单</h2>
@@ -1075,32 +1142,33 @@
     /* ========== 全局状态 ========== */
     let songDatabase = [];
     let quarantineGuest = [];
+    let favorites = new Set();
     let currentCategory = 'all';
     let currentKeyword = '';
     let showMultiOnly = false;
+    let showFavOnly = false;
     let batchMode = false;
     let selectedIds = new Set();
     let riskCountdownCleanup = null;
     let pendingRedirectId = null;
 
-    /* 服务端风险版本 */
     let serverRiskVersion = null;
 
-    /* 分页 */
     const PAGE_SIZE = 100;
     let currentGroups = [];
     let renderedGroupCount = 0;
     let isLoadingMore = false;
 
-    /* DOM 引用 */
     const $ = id => document.getElementById(id);
     const dom = {
       statGroups: $('statGroups'),
       statIds: $('statIds'),
       statMulti: $('statMulti'),
+      statFavs: $('statFavs'),
       searchInput: $('searchInput'),
       filterTabs: $('filterTabs'),
       multiToggleBtn: $('multiToggleBtn'),
+      favFilterBtn: $('favFilterBtn'),
       songList: $('songList'),
       emptyState: $('emptyState'),
       batchBar: $('batchBar'),
@@ -1130,7 +1198,6 @@
       loadMoreInfo: $('loadMoreInfo')
     };
 
-    /* ========== 工具函数 ========== */
     function cleanName(name) {
       if (!name) return '未知歌名';
       return name.replace(/[《》]/g, '')
@@ -1156,6 +1223,22 @@
       }
     }
 
+    function saveFavorites() {
+      try {
+        localStorage.setItem('roblox_favorites', JSON.stringify([...favorites]));
+      } catch (e) {}
+    }
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem('roblox_favorites');
+        const arr = raw ? JSON.parse(raw) : [];
+        favorites = new Set(Array.isArray(arr) ? arr.map(String) : []);
+      } catch (e) {
+        favorites = new Set();
+      }
+    }
+
     function nowStr() {
       const d = new Date();
       return d.getFullYear() + '-' +
@@ -1165,7 +1248,6 @@
         String(d.getMinutes()).padStart(2, '0');
     }
 
-    /* 获取服务端风险版本 */
     async function loadServerRiskVersion() {
       try {
         const res = await fetch('/api/risk?t=' + Date.now());
@@ -1178,12 +1260,13 @@
       }
     }
 
-    /* ========== 数据加载 ========== */
+    /* ========== 数据加载：合并 JSON + D1 ========== */
     async function loadData() {
       try {
-        const [mainRes, qRes] = await Promise.all([
+        const [mainRes, qRes, extraRes] = await Promise.all([
           fetch('data/roblox_music.json?t=' + Date.now(), { cache: 'no-store' }),
-          fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null)
+          fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
+          fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
         ]);
 
         if (!mainRes.ok) throw new Error('main HTTP ' + mainRes.status);
@@ -1199,12 +1282,42 @@
           } catch (e) {}
         }
 
+        let extraSongs = [];
+        if (extraRes && extraRes.ok) {
+          try {
+            const eData = await extraRes.json();
+            if (eData.ok && Array.isArray(eData.data)) {
+              extraSongs = eData.data;
+            }
+          } catch (e) {}
+        }
+
+        const mergedMap = new Map();
+        raw.forEach(i => {
+          if (!i || !i.id) return;
+          mergedMap.set(String(i.id), {
+            id: String(i.id),
+            name: i.name || '未知歌名',
+            category: i.category || '未分类',
+            lineIndex: i.lineIndex || 0
+          });
+        });
+        extraSongs.forEach(i => {
+          if (!i || !i.id) return;
+          mergedMap.set(String(i.id), {
+            id: String(i.id),
+            name: i.name || '未知歌名',
+            category: i.category || '未分类',
+            lineIndex: i.lineIndex || 100000
+          });
+        });
+
         const adminIds = new Set(adminQuarantine.map(i => String(i.id)));
         const guestIds = new Set(quarantineGuest.map(i => String(i.id)));
 
-        songDatabase = raw
-          .filter(i => !adminIds.has(String(i.id)) && !guestIds.has(String(i.id)))
-          .map(i => ({ ...i, name: cleanName(i.name || '未知歌名') }));
+        songDatabase = [...mergedMap.values()]
+          .filter(i => !adminIds.has(i.id) && !guestIds.has(i.id))
+          .map(i => ({ ...i, name: cleanName(i.name) }));
 
         renderAll();
       } catch (err) {
@@ -1215,17 +1328,16 @@
       }
     }
 
-    /* ========== 渲染 ========== */
     function renderAll() {
       const uniqueNames = new Set(songDatabase.map(i => i.name));
       dom.statGroups.textContent = uniqueNames.size;
       dom.statIds.textContent = songDatabase.length;
+      dom.statFavs.textContent = favorites.size;
 
       const nameCount = {};
       songDatabase.forEach(i => nameCount[i.name] = (nameCount[i.name] || 0) + 1);
       dom.statMulti.textContent = Object.values(nameCount).filter(c => c > 1).length;
 
-      /* 分类标签 */
       while (dom.filterTabs.children.length > 1) {
         dom.filterTabs.removeChild(dom.filterTabs.lastChild);
       }
@@ -1271,6 +1383,11 @@
       let groups = Object.values(groupMap);
       groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
       if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
+      if (showFavOnly) {
+        groups = groups
+          .map(g => ({ ...g, ids: g.ids.filter(id => favorites.has(id)) }))
+          .filter(g => g.ids.length > 0);
+      }
 
       currentGroups = groups;
       renderedGroupCount = 0;
@@ -1279,6 +1396,7 @@
         dom.songList.innerHTML = '';
         dom.emptyState.style.display = 'block';
         dom.loadMoreWrap.style.display = 'none';
+        dom.emptyState.textContent = showFavOnly ? '⭐ 暂无收藏的歌曲' : '😕 没有找到匹配的歌曲';
         return;
       }
       dom.emptyState.style.display = 'none';
@@ -1314,11 +1432,14 @@
         let rowsHtml = '';
         group.ids.forEach(id => {
           const checked = selectedIds.has(id) ? 'checked' : '';
+          const faved = favorites.has(id) ? 'active' : '';
+          const favIcon = favorites.has(id) ? '⭐' : '☆';
           rowsHtml += `
             <div class="id-row">
               <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
               <span class="id-number">${escapeHtml(id)}</span>
               <div class="id-actions">
+                <button class="btn-fav ${faved}" data-id="${escapeHtml(id)}" title="收藏">${favIcon}</button>
                 <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
                 <button class="btn-copy" data-id="${escapeHtml(id)}">📋 复制</button>
                 <button class="btn-quarantine" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
@@ -1373,6 +1494,9 @@
             updateSelectedCount();
           };
         });
+        group.querySelectorAll('.btn-fav').forEach(btn => {
+          btn.onclick = () => toggleFavorite(btn.dataset.id, btn);
+        });
         group.querySelectorAll('.btn-play').forEach(btn => {
           btn.onclick = () => previewId(btn.dataset.id);
         });
@@ -1409,12 +1533,28 @@
       dom.selectedCount.textContent = selectedIds.size;
     }
 
-    /* ========== 试听：风险告知 → 二次确认 → 3s 倒计时 → 跳转 ========== */
+    function toggleFavorite(id, btn) {
+      if (favorites.has(id)) {
+        favorites.delete(id);
+        btn.classList.remove('active');
+        btn.textContent = '☆';
+      } else {
+        favorites.add(id);
+        btn.classList.add('active');
+        btn.textContent = '⭐';
+      }
+      saveFavorites();
+      dom.statFavs.textContent = favorites.size;
+
+      if (showFavOnly && !favorites.has(id)) {
+        renderList();
+      }
+    }
+
     function previewId(id) {
       pendingRedirectId = id;
 
       const ackVersion = localStorage.getItem('riskAckVersion');
-      /* 已确认 且 和服务端版本一致 则跳过警告 */
       if (ackVersion && serverRiskVersion && ackVersion === serverRiskVersion) {
         const targetId = pendingRedirectId;
         pendingRedirectId = null;
@@ -1521,7 +1661,6 @@
       update();
     }
 
-    /* ========== 隔离操作 ========== */
     async function quarantineSingle(name, id) {
       const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
       if (!ok) return;
@@ -1596,7 +1735,6 @@
       }
     }
 
-    /* ========== 隔离区弹窗 ========== */
     function renderQuarantineList() {
       const keyword = dom.quarantineSearch.value.trim().toLowerCase();
       let list = quarantineGuest;
@@ -1659,7 +1797,6 @@
       renderQuarantineList();
     }
 
-    /* 全部恢复 */
     async function restoreAllFromQuarantine() {
       if (quarantineGuest.length === 0) {
         showToast('隔离区是空的');
@@ -1697,7 +1834,6 @@
       renderQuarantineList();
     }
 
-    /* ========== 鸣谢名单 ========== */
     async function loadThanks() {
       dom.thanksList.innerHTML = '<div class="empty-state">加载中...</div>';
       try {
@@ -1728,14 +1864,12 @@
       }
     }
 
-    /* ========== 初始化 ========== */
     document.addEventListener('DOMContentLoaded', async () => {
       await loadServerRiskVersion();
-
-      /* 版本更新检查 */
       checkPageUpdate('roblox');
 
       loadQuarantine();
+      loadFavorites();
       loadData();
 
       dom.loadMoreBtn.onclick = () => {
@@ -1750,6 +1884,12 @@
       dom.multiToggleBtn.onclick = () => {
         showMultiOnly = !showMultiOnly;
         dom.multiToggleBtn.classList.toggle('active', showMultiOnly);
+        renderList();
+      };
+
+      dom.favFilterBtn.onclick = () => {
+        showFavOnly = !showFavOnly;
+        dom.favFilterBtn.classList.toggle('active', showFavOnly);
         renderList();
       };
 

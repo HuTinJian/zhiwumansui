@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、Roblox 数据、鸣谢管理、版本管理
+   反馈管理、Roblox 数据、歌曲管理、鸣谢管理、版本管理
    ============================================================ */
 
 /* 缓存反馈列表，用于展开查看隔离区时定位 */
@@ -27,6 +27,7 @@ let feedbackCache = [];
 
   loadFeedback();
   loadRobloxStats();
+  loadSongs();
   loadThanks();
   loadUpdates();
 
@@ -39,6 +40,11 @@ let feedbackCache = [];
   };
   document.getElementById('cancelImportQuarantine').onclick = () => closeModal('importQuarantineModal');
   document.getElementById('confirmImportQuarantine').onclick = handleImportQuarantine;
+
+  /* 歌曲管理按钮 */
+  document.getElementById('addSongBtn').onclick = handleAddSong;
+  document.getElementById('exportSongsBtn').onclick = handleExportSongs;
+  document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
   /* 添加鸣谢弹窗 */
   const addThanksTrigger = document.getElementById('addThanksSelectTrigger');
@@ -350,12 +356,26 @@ async function deleteFeedback(id) {
    ============================================================ */
 async function loadRobloxStats() {
   try {
+    /* 主数据（JSON） */
     const res1 = await fetch('data/roblox_music.json?t=' + Date.now());
     const musicData = await res1.json();
+
+    /* D1 新歌 */
+    let extraCount = 0;
+    try {
+      const extraRes = await fetch('/api/songs/list?t=' + Date.now());
+      const extraData = await extraRes.json();
+      if (extraData.ok && Array.isArray(extraData.data)) {
+        extraCount = extraData.data.length;
+      }
+    } catch (e) {}
+
+    const total = musicData.length + extraCount;
     const uniqueNames = new Set(musicData.map(i => i.name));
-    document.getElementById('statTotal').textContent = musicData.length;
+    document.getElementById('statTotal').textContent = total;
     document.getElementById('statGroup').textContent = uniqueNames.size;
 
+    /* 隔离区 */
     const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
     const qData = await res2.json();
 
@@ -404,7 +424,6 @@ async function loadRobloxStats() {
   }
 }
 
-/* 删除隔离区单个ID */
 async function deleteQuarantineItem(musicId) {
   const confirmed = await showConfirm(
     '移除隔离',
@@ -431,7 +450,6 @@ async function deleteQuarantineItem(musicId) {
   }
 }
 
-/* 处理导入隔离区 */
 async function handleImportQuarantine() {
   const text = document.getElementById('importQuarantineText').value.trim();
   const status = document.getElementById('importQuarantineStatus');
@@ -502,6 +520,179 @@ async function handleImportQuarantine() {
 }
 
 /* ============================================================
+   歌曲管理（D1）
+   ============================================================ */
+async function loadSongs() {
+  const container = document.getElementById('songList');
+  const countEl = document.getElementById('songCount');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch('/api/songs/list?t=' + Date.now());
+    const data = await res.json();
+
+    let list = [];
+    if (data.ok && Array.isArray(data.data)) {
+      list = data.data;
+    }
+    countEl.textContent = list.length;
+
+    if (list.length === 0) {
+      container.innerHTML = '<div class="empty-state">D1 里还没有歌曲</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    list.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'list-item';
+      el.innerHTML = `
+        <div class="row1">
+          <span class="name">${escapeHtml(item.name)}</span>
+          <span class="type-tag">${escapeHtml(item.category)}</span>
+        </div>
+        <div class="meta">
+          🆔 ${escapeHtml(item.id)}
+          · 📌 lineIndex: ${escapeHtml(String(item.lineIndex || 0))}
+        </div>
+        <div class="actions">
+          <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除</button>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+
+    container.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteSong(btn.dataset.id));
+    });
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state">加载失败</div>';
+  }
+}
+
+async function handleAddSong() {
+  const idInput = document.getElementById('addSongId');
+  const nameInput = document.getElementById('addSongName');
+  const catInput = document.getElementById('addSongCat');
+
+  const musicId = idInput.value.trim();
+  const name = nameInput.value.trim();
+  const category = catInput.value.trim() || '未分类';
+
+  if (!musicId) { showToast('请填写歌曲 ID'); return; }
+  if (!name) { showToast('请填写歌曲名称'); return; }
+  if (!/^\d+$/.test(musicId)) { showToast('ID 必须是纯数字'); return; }
+
+  try {
+    const res = await fetch('/api/songs/add', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ musicId, name, category })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      showToast('✅ 已添加');
+      idInput.value = '';
+      nameInput.value = '';
+      catInput.value = '';
+      loadSongs();
+      loadRobloxStats();
+    } else {
+      showToast('添加失败：' + (data.message || data.error || '未知'));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+async function deleteSong(musicId) {
+  const confirmed = await showConfirm(
+    '删除歌曲',
+    `确定从 D1 删除 ID ${musicId} 吗？\n\n（不会影响 roblox_music.json 里的数据）`
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/songs/delete', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: musicId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('🗑️ 已删除');
+      loadSongs();
+      loadRobloxStats();
+    } else {
+      showToast('删除失败');
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+async function handleClearSongs() {
+  const confirmed = await showConfirm(
+    '清空歌曲',
+    '确定清空 D1 里的所有歌曲吗？\n\n（不会影响 roblox_music.json 里的数据）\n\n建议先导出，再清空。'
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/songs/clear', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast(`🧹 已清空 ${data.deleted || 0} 条`);
+      loadSongs();
+      loadRobloxStats();
+    } else {
+      showToast('清空失败');
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+async function handleExportSongs() {
+  try {
+    const res = await fetch('/api/songs/export', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.data)) {
+      showToast('导出失败');
+      return;
+    }
+    if (data.data.length === 0) {
+      showToast('D1 里没有歌曲可导出');
+      return;
+    }
+
+    const confirmed = await showConfirm(
+      '导出歌曲',
+      `即将导出 ${data.data.length} 条歌曲。\n\n导出后，用 merge.html 工具合并到 roblox_music.json 中。\n\n是否下载？`
+    );
+    if (!confirmed) return;
+
+    const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'songs_extra_' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast('📤 已下载');
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+/* ============================================================
    鸣谢管理
    ============================================================ */
 async function loadThanks() {
@@ -560,7 +751,6 @@ async function loadThanks() {
   }
 }
 
-/* 添加鸣谢 */
 async function handleAddThanks() {
   const selectedCatEl = document.getElementById('addThanksSelectedCat');
   const category = (selectedCatEl.textContent || '').trim();
@@ -597,7 +787,6 @@ async function handleAddThanks() {
   }
 }
 
-/* 删除鸣谢 */
 async function deleteThanks(id) {
   if (!id || isNaN(Number(id))) {
     showToast('⚠️ ID 无效，无法删除');

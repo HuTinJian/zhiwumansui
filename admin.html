@@ -341,7 +341,6 @@
       background: rgba(220, 107, 130, 0.05);
     }
 
-    /* 圆形复选框 */
     .fb-q-item input[type="checkbox"] {
       width: 20px;
       height: 20px;
@@ -587,6 +586,60 @@
       transform: scale(0.93);
     }
 
+    /* ========== 歌曲管理 ========== */
+    .song-add-form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 14px;
+      background: #fdf8fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .song-add-form input {
+      padding: 9px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+    }
+
+    .song-add-form input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+
+    .song-add-form input.song-id { flex: 1 1 200px; font-family: monospace; }
+    .song-add-form input.song-name { flex: 2 1 200px; }
+    .song-add-form input.song-cat { flex: 1 1 140px; }
+
+    .song-add-form .btn-add-song {
+      padding: 9px 22px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+
+    .song-add-form .btn-add-song:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .song-add-form .btn-add-song:active {
+      transform: scale(0.93);
+    }
+
     /* ========== 导入隔离区弹窗 ========== */
     #importQuarantineModal .modal-content {
       max-width: 680px;
@@ -775,10 +828,9 @@
       .panel-card { padding: 18px; }
       .panel-card h2 { font-size: 1.05rem; }
       .list-item { padding: 14px; }
-      .fb-q-item {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
+      .fb-q-item { flex-wrap: wrap; gap: 6px; }
+      .song-add-form { flex-direction: column; }
+      .song-add-form input { width: 100%; }
     }
   </style>
 </head>
@@ -795,7 +847,6 @@
   <!-- ==================== 后台主容器 ==================== -->
   <div class="admin-container">
 
-    <!-- 顶部工具条 -->
     <div class="admin-topbar">
       <h1>⚙️ 后台管理</h1>
       <div class="actions">
@@ -804,10 +855,10 @@
       </div>
     </div>
 
-    <!-- 标签页 -->
     <div class="tabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-roblox">🎵 Roblox 数据</button>
+      <button class="tab" data-panel="panel-songs">🎶 歌曲管理</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢管理</button>
       <button class="tab" data-panel="panel-updates">📝 版本管理</button>
     </div>
@@ -859,6 +910,32 @@
       </div>
     </div>
 
+    <!-- 歌曲管理 -->
+    <div class="panel" id="panel-songs">
+      <div class="panel-card">
+        <h2>
+          🎶 D1 歌曲管理
+          <span class="count" id="songCount">0</span>
+          <div class="head-actions">
+            <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
+            <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
+          </div>
+        </h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+          在此添加的歌曲会存到 D1，宝库页会自动加载并合并显示。当攒够后，点"📤 导出"下载 JSON，再用合并工具整合到主数据中。
+        </p>
+        <div class="song-add-form">
+          <input type="text" class="song-id" id="addSongId" placeholder="歌曲 ID（数字）" maxlength="30">
+          <input type="text" class="song-name" id="addSongName" placeholder="歌曲名称" maxlength="100">
+          <input type="text" class="song-cat" id="addSongCat" placeholder="分类（选填）" maxlength="30">
+          <button class="btn-add-song" id="addSongBtn">➕ 添加</button>
+        </div>
+        <div id="songList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 鸣谢管理 -->
     <div class="panel" id="panel-thanks">
       <div class="panel-card">
@@ -890,12 +967,11 @@
 
   </div>
 
-  <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- ==================== 导入隔离区弹窗 ==================== -->
+  <!-- 导入隔离区弹窗 -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
       <h2>📥 导入隔离区</h2>
@@ -912,7 +988,7 @@
     </div>
   </div>
 
-  <!-- ==================== 添加鸣谢弹窗 ==================== -->
+  <!-- 添加鸣谢弹窗 -->
   <div class="modal" id="addThanksModal">
     <div class="modal-content">
       <h2>➕ 添加鸣谢</h2>
