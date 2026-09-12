@@ -2,7 +2,7 @@
    织雾满穗 · 后台管理
    ============================================================ */
 
-/* 缓存反馈列表，用于展开查看隔离区时定位 */
+/* 缓存反馈列表 */
 let feedbackCache = [];
 
 (async function init() {
@@ -39,8 +39,17 @@ let feedbackCache = [];
   document.getElementById('confirmImportQuarantine').onclick = handleImportQuarantine;
 
   /* 添加鸣谢弹窗 */
+  const addThanksTrigger = document.getElementById('addThanksSelectTrigger');
+  const addThanksDropdown = document.getElementById('addThanksSelectDropdown');
+
   document.getElementById('openAddThanksBtn').onclick = () => {
-    document.getElementById('addThanksCategory').value = '💬 反馈贡献者';
+    /* 重置下拉 */
+    document.getElementById('addThanksSelectedCat').textContent = '请选择类别';
+    addThanksTrigger.classList.remove('selected');
+    addThanksDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
+    addThanksDropdown.classList.remove('open');
+    addThanksTrigger.classList.remove('open');
+    /* 清空其他字段 */
     document.getElementById('addThanksName').value = '';
     document.getElementById('addThanksPlatform').value = '';
     document.getElementById('addThanksMessage').value = '';
@@ -48,6 +57,33 @@ let feedbackCache = [];
   };
   document.getElementById('cancelAddThanks').onclick = () => closeModal('addThanksModal');
   document.getElementById('confirmAddThanks').onclick = handleAddThanks;
+
+  /* 添加鸣谢下拉交互 */
+  addThanksTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    addThanksTrigger.classList.toggle('open');
+    addThanksDropdown.classList.toggle('open');
+  });
+
+  addThanksDropdown.querySelectorAll('.select-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      addThanksDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
+      addThanksTrigger.classList.add('selected');
+      addThanksTrigger.classList.remove('open');
+      addThanksDropdown.classList.remove('open');
+    });
+  });
+
+  /* 点击弹窗外收起下拉 */
+  document.addEventListener('click', (e) => {
+    const wrapper = document.getElementById('addThanksSelectWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      addThanksTrigger.classList.remove('open');
+      addThanksDropdown.classList.remove('open');
+    }
+  });
 })();
 
 /* ============================================================
@@ -81,7 +117,6 @@ async function loadFeedback() {
       const el = document.createElement('div');
       el.className = 'list-item';
 
-      /* 是否带隔离区 */
       const hasQ = item.upload_quarantine === 1 && Array.isArray(item.quarantine_ids) && item.quarantine_ids.length > 0;
       const qCount = hasQ ? item.quarantine_ids.length : 0;
 
@@ -109,7 +144,6 @@ async function loadFeedback() {
       container.appendChild(el);
     });
 
-    /* 绑定按钮 */
     container.querySelectorAll('.btn-approve').forEach(btn => {
       btn.addEventListener('click', () => approveToThanks(Number(btn.dataset.id)));
     });
@@ -124,7 +158,6 @@ async function loadFeedback() {
   }
 }
 
-/* 展开/收起某条反馈的隔离区 */
 function toggleFeedbackQuarantine(feedbackId, btn) {
   const panel = document.getElementById('fbQ-' + feedbackId);
   if (!panel) return;
@@ -135,7 +168,6 @@ function toggleFeedbackQuarantine(feedbackId, btn) {
     return;
   }
 
-  /* 首次展开：渲染内容 */
   if (!panel.dataset.rendered) {
     const item = feedbackCache.find(i => i.id === feedbackId);
     if (!item || !Array.isArray(item.quarantine_ids)) return;
@@ -161,7 +193,6 @@ function toggleFeedbackQuarantine(feedbackId, btn) {
       <div class="q-list">${listHtml}</div>
     `;
 
-    /* 绑定操作 */
     panel.querySelector('.btn-sel-all').onclick = () => {
       panel.querySelectorAll('.fb-q-item input').forEach(cb => cb.checked = true);
     };
@@ -181,7 +212,6 @@ function toggleFeedbackQuarantine(feedbackId, btn) {
   btn.textContent = '📦 收起隔离区';
 }
 
-/* 从反馈导入选中的隔离区ID */
 async function importSelectedQuarantine(feedbackId, ids) {
   if (ids.length === 0) {
     showToast('请至少勾选一个ID');
@@ -206,7 +236,6 @@ async function importSelectedQuarantine(feedbackId, ids) {
     if (data.ok) {
       showToast(`✅ 已导入 ${data.added} 个，跳过 ${data.skipped} 个`);
       loadRobloxStats();
-      /* 重新加载反馈列表，刷新显示 */
       loadFeedback();
     } else {
       showToast('导入失败：' + (data.error || '未知错误'));
@@ -216,7 +245,6 @@ async function importSelectedQuarantine(feedbackId, ids) {
   }
 }
 
-/* 将反馈用户加入鸣谢 */
 async function approveToThanks(feedbackId) {
   const confirmed = await showConfirm(
     '加入鸣谢',
@@ -288,14 +316,12 @@ async function deleteFeedback(id) {
    ============================================================ */
 async function loadRobloxStats() {
   try {
-    /* 主数据 */
     const res1 = await fetch('data/roblox_music.json?t=' + Date.now());
     const musicData = await res1.json();
     const uniqueNames = new Set(musicData.map(i => i.name));
     document.getElementById('statTotal').textContent = musicData.length;
     document.getElementById('statGroup').textContent = uniqueNames.size;
 
-    /* 隔离区从 API 读 */
     const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
     const qData = await res2.json();
 
@@ -315,7 +341,6 @@ async function loadRobloxStats() {
       return;
     }
 
-    /* 已经按时间倒序，API 里 ORDER BY id DESC */
     container.innerHTML = '';
     quarantine.forEach(item => {
       const el = document.createElement('div');
@@ -345,7 +370,6 @@ async function loadRobloxStats() {
   }
 }
 
-/* 删除隔离区单个ID */
 async function deleteQuarantineItem(musicId) {
   const confirmed = await showConfirm(
     '移除隔离',
@@ -372,7 +396,6 @@ async function deleteQuarantineItem(musicId) {
   }
 }
 
-/* 处理导入隔离区 */
 async function handleImportQuarantine() {
   const text = document.getElementById('importQuarantineText').value.trim();
   const status = document.getElementById('importQuarantineStatus');
@@ -400,7 +423,6 @@ async function handleImportQuarantine() {
     return;
   }
 
-  /* 校验每条必须有 id */
   const valid = [];
   for (const it of items) {
     if (!it || !it.id) continue;
@@ -502,14 +524,14 @@ async function loadThanks() {
   }
 }
 
-/* 添加鸣谢 */
 async function handleAddThanks() {
-  const category = document.getElementById('addThanksCategory').value.trim();
+  const selectedCatEl = document.getElementById('addThanksSelectedCat');
+  const category = (selectedCatEl.textContent || '').trim();
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
   const message = document.getElementById('addThanksMessage').value.trim();
 
-  if (!category) { showToast('请填写类别'); return; }
+  if (!category || category === '请选择类别') { showToast('请选择类别'); return; }
   if (!name) { showToast('请填写名字'); return; }
 
   try {

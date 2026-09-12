@@ -123,7 +123,6 @@
       padding: 6px 16px;
     }
 
-    /* 列表项 */
     .list-item {
       padding: 16px;
       border: 1px solid var(--border);
@@ -221,15 +220,6 @@
       transform: translateY(-2px);
     }
 
-    .list-item .actions .btn-import {
-      background: var(--success);
-      color: #fff;
-    }
-    .list-item .actions .btn-import:hover {
-      background: var(--success-dark);
-      transform: translateY(-2px);
-    }
-
     .list-item .actions .btn-expand {
       background: var(--primary);
       color: #fff;
@@ -244,7 +234,6 @@
       transition: transform 0.1s var(--ease-soft);
     }
 
-    /* 反馈展开的隔离区区域 */
     .fb-quarantine {
       display: none;
       margin-top: 12px;
@@ -339,6 +328,7 @@
       border-radius: 8px;
       transition: background 0.2s var(--ease-soft);
       font-size: 0.88rem;
+      cursor: pointer;
     }
 
     .fb-q-item:hover {
@@ -346,11 +336,41 @@
     }
 
     .fb-q-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary);
+      width: 20px;
+      height: 20px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 2px solid var(--primary-light);
+      border-radius: 50%;
+      background: #fff;
       cursor: pointer;
       flex-shrink: 0;
+      position: relative;
+      transition: all 0.25s var(--ease-bounce);
+    }
+
+    .fb-q-item input[type="checkbox"]:hover {
+      transform: scale(1.1);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
+    }
+
+    .fb-q-item input[type="checkbox"]:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
+    }
+
+    .fb-q-item input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 5px;
+      height: 10px;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: translate(-50%, -60%) rotate(45deg);
     }
 
     .fb-q-item .q-name {
@@ -378,7 +398,6 @@
       flex-shrink: 0;
     }
 
-    /* 统计卡片 */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -425,7 +444,6 @@
       font-size: 0.95rem;
     }
 
-    /* 版本管理 */
     .update-edit-item {
       padding: 18px;
       border: 1px solid var(--border);
@@ -534,7 +552,6 @@
       transform: scale(0.93);
     }
 
-    /* 导入弹窗 */
     #importQuarantineModal .modal-content {
       max-width: 680px;
     }
@@ -578,12 +595,116 @@
       font-weight: 600;
     }
 
-    /* 添加鸣谢弹窗 */
     #addThanksModal .modal-content {
       max-width: 520px;
     }
 
-    /* 滚动条美化 */
+    .select-wrapper {
+      position: relative;
+      margin-top: 4px;
+    }
+
+    .select-trigger {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fdf8fa;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-family: var(--font);
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.3s var(--ease-soft), background 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
+    }
+
+    .select-trigger.selected {
+      color: var(--text);
+    }
+
+    .select-trigger:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-1px);
+    }
+
+    .select-trigger:active {
+      transform: scale(0.97);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .select-trigger.open {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+
+    .select-trigger .arrow {
+      color: var(--primary);
+      font-size: 0.9rem;
+      transition: transform 0.35s var(--ease-bounce);
+    }
+
+    .select-trigger.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    .select-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hover);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
+      z-index: 20;
+    }
+
+    .select-dropdown.open {
+      max-height: 300px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .select-option {
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s var(--ease-soft), padding-left 0.25s var(--ease-bounce), transform 0.15s var(--ease-soft);
+    }
+
+    .select-option:hover {
+      background: rgba(220, 107, 130, 0.08);
+      padding-left: 24px;
+    }
+
+    .select-option:active {
+      transform: scale(0.97);
+    }
+
+    .select-option.active {
+      background: rgba(220, 107, 130, 0.12);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .select-option.active::after {
+      content: '✓';
+      float: right;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
     .fb-quarantine .q-list::-webkit-scrollbar {
       width: 6px;
     }
@@ -646,7 +767,6 @@
       <button class="tab" data-panel="panel-updates">📝 版本管理</button>
     </div>
 
-    <!-- 反馈管理 -->
     <div class="panel active" id="panel-feedback">
       <div class="panel-card">
         <h2>
@@ -659,7 +779,6 @@
       </div>
     </div>
 
-    <!-- Roblox 数据 -->
     <div class="panel" id="panel-roblox">
       <div class="panel-card">
         <h2>📊 数据统计</h2>
@@ -691,9 +810,16 @@
           <div class="loading">加载中...</div>
         </div>
       </div>
+
+      <div class="panel-card">
+        <h2>⚠️ 风险弹窗管理</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+          重置后，所有用户在下次点"试听"时都会重新看到完整的风险告知弹窗。
+        </p>
+        <button class="btn btn-danger" id="resetRiskBtn">🔄 重置风险弹窗</button>
+      </div>
     </div>
 
-    <!-- 鸣谢管理 -->
     <div class="panel" id="panel-thanks">
       <div class="panel-card">
         <h2>
@@ -709,7 +835,6 @@
       </div>
     </div>
 
-    <!-- 版本管理 -->
     <div class="panel" id="panel-updates">
       <div class="panel-card">
         <h2>📝 版本管理</h2>
@@ -728,7 +853,6 @@
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- 导入隔离区弹窗 -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
       <h2>📥 导入隔离区</h2>
@@ -745,13 +869,23 @@
     </div>
   </div>
 
-  <!-- 添加鸣谢弹窗 -->
   <div class="modal" id="addThanksModal">
     <div class="modal-content">
       <h2>➕ 添加鸣谢</h2>
       <div class="form-group">
-        <label for="addThanksCategory">类别</label>
-        <input type="text" id="addThanksCategory" placeholder="例如：💬 反馈贡献者" maxlength="30">
+        <label>类别</label>
+        <div class="select-wrapper" id="addThanksSelectWrapper">
+          <button type="button" class="select-trigger" id="addThanksSelectTrigger">
+            <span id="addThanksSelectedCat">请选择类别</span>
+            <span class="arrow">▾</span>
+          </button>
+          <div class="select-dropdown" id="addThanksSelectDropdown">
+            <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
+            <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
+            <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>
+            <div class="select-option" data-value="🌟 特别感谢">🌟 特别感谢</div>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="addThanksName">名字</label>
