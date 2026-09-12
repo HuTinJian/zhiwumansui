@@ -2,7 +2,6 @@
    织雾满穗 · 后台管理
    ============================================================ */
 
-/* 缓存反馈列表 */
 let feedbackCache = [];
 
 (async function init() {
@@ -43,13 +42,11 @@ let feedbackCache = [];
   const addThanksDropdown = document.getElementById('addThanksSelectDropdown');
 
   document.getElementById('openAddThanksBtn').onclick = () => {
-    /* 重置下拉 */
     document.getElementById('addThanksSelectedCat').textContent = '请选择类别';
     addThanksTrigger.classList.remove('selected');
     addThanksDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
     addThanksDropdown.classList.remove('open');
     addThanksTrigger.classList.remove('open');
-    /* 清空其他字段 */
     document.getElementById('addThanksName').value = '';
     document.getElementById('addThanksPlatform').value = '';
     document.getElementById('addThanksMessage').value = '';
@@ -58,7 +55,6 @@ let feedbackCache = [];
   document.getElementById('cancelAddThanks').onclick = () => closeModal('addThanksModal');
   document.getElementById('confirmAddThanks').onclick = handleAddThanks;
 
-  /* 添加鸣谢下拉交互 */
   addThanksTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
     addThanksTrigger.classList.toggle('open');
@@ -76,7 +72,6 @@ let feedbackCache = [];
     });
   });
 
-  /* 点击弹窗外收起下拉 */
   document.addEventListener('click', (e) => {
     const wrapper = document.getElementById('addThanksSelectWrapper');
     if (wrapper && !wrapper.contains(e.target)) {
@@ -85,6 +80,32 @@ let feedbackCache = [];
     }
   });
 })();
+
+/* ============================================================
+   重置风险弹窗
+   ============================================================ */
+async function handleResetRisk() {
+  const confirmed = await showConfirm(
+    '重置风险弹窗',
+    '确定重置吗？\n\n所有用户下次点"试听"时会重新看到完整的风险告知弹窗。'
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/risk', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✅ 已重置，所有用户下次试听时将重新看到风险告知');
+    } else {
+      showToast('重置失败');
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
 
 /* ============================================================
    反馈管理
@@ -602,6 +623,9 @@ async function loadUpdates() {
     data.data.forEach(item => {
       const el = document.createElement('div');
       el.className = 'update-edit-item';
+
+      const isRoblox = item.page_key === 'roblox';
+
       el.innerHTML = `
         <div class="head">
           <span class="page-name">${escapeHtml(getPageName(item.page_key))}</span>
@@ -617,6 +641,7 @@ async function loadUpdates() {
           <textarea class="edit-updates" data-page="${escapeHtml(item.page_key)}" placeholder="每行写一条更新内容">${escapeHtml((item.updates || []).join('\n'))}</textarea>
         </div>
         <div class="actions">
+          ${isRoblox ? '<button class="btn-reset-risk">🔄 重置风险弹窗</button>' : ''}
           <button class="btn-save" data-page="${escapeHtml(item.page_key)}">💾 保存</button>
         </div>
       `;
@@ -625,6 +650,10 @@ async function loadUpdates() {
 
     container.querySelectorAll('.btn-save').forEach(btn => {
       btn.addEventListener('click', () => saveUpdate(btn.dataset.page));
+    });
+
+    container.querySelectorAll('.btn-reset-risk').forEach(btn => {
+      btn.addEventListener('click', handleResetRisk);
     });
   } catch (err) {
     container.innerHTML = '<div class="empty-state">加载失败</div>';

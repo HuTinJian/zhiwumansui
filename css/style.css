@@ -61,6 +61,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 弹窗打开时锁住页面滚动 */
+body.modal-open {
+  overflow: hidden;
+  /* 兼容移动端触摸滚动 */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
 /* ========== 导航栏 ========== */
 .navbar {
   position: sticky;
@@ -200,6 +208,7 @@ body {
   align-items: center;
   z-index: 999;
   padding: 16px;
+  overscroll-behavior: contain;
 }
 
 .modal.show {

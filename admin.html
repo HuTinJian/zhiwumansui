@@ -527,8 +527,10 @@
     .update-edit-item .actions {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       gap: 8px;
       margin-top: 6px;
+      flex-wrap: wrap;
     }
 
     .update-edit-item .actions .btn-save {
@@ -549,6 +551,29 @@
     }
 
     .update-edit-item .actions .btn-save:active {
+      transform: scale(0.93);
+    }
+
+    /* 重置风险按钮（版本管理里卡片1专属） */
+    .update-edit-item .actions .btn-reset-risk {
+      background: var(--danger);
+      color: #fff;
+      padding: 8px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      margin-right: auto;  /* 推到左侧 */
+      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+
+    .update-edit-item .actions .btn-reset-risk:hover {
+      background: #a93226;
+      transform: translateY(-2px);
+    }
+
+    .update-edit-item .actions .btn-reset-risk:active {
       transform: scale(0.93);
     }
 
@@ -810,14 +835,6 @@
           <div class="loading">加载中...</div>
         </div>
       </div>
-
-      <div class="panel-card">
-        <h2>⚠️ 风险弹窗管理</h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-          重置后，所有用户在下次点"试听"时都会重新看到完整的风险告知弹窗。
-        </p>
-        <button class="btn btn-danger" id="resetRiskBtn">🔄 重置风险弹窗</button>
-      </div>
     </div>
 
     <div class="panel" id="panel-thanks">
@@ -883,7 +900,6 @@
             <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
             <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>
-            <div class="select-option" data-value="🌟 特别感谢">🌟 特别感谢</div>
           </div>
         </div>
       </div>

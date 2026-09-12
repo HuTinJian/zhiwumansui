@@ -44,6 +44,7 @@ export async function onRequestGet(context) {
         `SELECT page_key, version, date, updates, updated_at
          FROM page_updates
          ORDER BY CASE page_key
+         ORDER BY CASE page_key
            WHEN 'index' THEN 1
            WHEN 'feedback' THEN 2
            WHEN 'roblox' THEN 3

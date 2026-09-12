@@ -16,19 +16,32 @@ function showToast(msg, duration = 2500) {
   el._timer = setTimeout(() => el.classList.remove('show'), duration);
 }
 
+/**
+ * 打开弹窗（同时锁住页面滚动）
+ */
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add('show');
   modal.classList.remove('closing');
+  /* 锁住 body 滚动 */
+  document.body.classList.add('modal-open');
 }
 
+/**
+ * 关闭弹窗（带退出动画）
+ * 关闭后如果还有弹窗，保持滚动锁定
+ */
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add('closing');
   setTimeout(() => {
     modal.classList.remove('show', 'closing');
+    /* 检查是否还有弹窗开着 */
+    if (!document.querySelector('.modal.show')) {
+      document.body.classList.remove('modal-open');
+    }
   }, 220);
 }
 
@@ -109,12 +122,6 @@ function showConfirm(title, message) {
   });
 }
 
-/**
- * 从后端获取版本信息并检查更新
- * @param {string} pageKey - 页面标识（index / feedback / roblox）
- * @param {Object} [options]
- * @param {Function} [options.onNewVersion] - 检测到新版本时的回调
- */
 async function checkPageUpdate(pageKey, options = {}) {
   const storageKey = `pageVersion_${pageKey}`;
 
@@ -135,12 +142,10 @@ async function checkPageUpdate(pageKey, options = {}) {
   const stored = localStorage.getItem(storageKey);
   if (stored === version) return;
 
-  /* 新版本：执行回调 */
   if (typeof options.onNewVersion === 'function') {
     options.onNewVersion();
   }
 
-  /* 弹更新弹窗 */
   const modalId = 'updateModal';
   let modal = document.getElementById(modalId);
   if (!modal) {
