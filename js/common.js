@@ -153,8 +153,8 @@ async function checkPageUpdate(pageKey, options = {}) {
           <h2>
             🎉 版本更新
             <span class="update-version" id="updateVersion"></span>
+            <span class="update-date" id="updateDate"></span>
           </h2>
-          <span class="update-date" id="updateDate"></span>
         </div>
         <div class="update-body" id="updateBody"></div>
         <div class="update-footer">

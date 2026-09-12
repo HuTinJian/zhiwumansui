@@ -43,7 +43,12 @@ export async function onRequestGet(context) {
       const result = await env.DB.prepare(
         `SELECT page_key, version, date, updates, updated_at
          FROM page_updates
-         ORDER BY page_key`
+         ORDER BY CASE page_key
+           WHEN 'index' THEN 1
+           WHEN 'feedback' THEN 2
+           WHEN 'roblox' THEN 3
+           ELSE 4
+         END`
       ).all();
       const list = (result.results || []).map(r => ({
         page_key: r.page_key,

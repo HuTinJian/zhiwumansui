@@ -612,7 +612,7 @@ async function loadUpdates() {
 function getPageName(key) {
   if (key === 'index') return '🏠 主页';
   if (key === 'feedback') return '💬 反馈页';
-  if (key === 'roblox') return '🎵 宝库页';
+  if (key === 'roblox') return '🎵 卡片1';
   return key;
 }
 

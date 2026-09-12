@@ -375,7 +375,7 @@ body {
 .update-modal .update-header h2 {
   color: #fff;
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -388,16 +388,18 @@ body {
   font-size: 0.72rem;
   background: rgba(255, 255, 255, 0.92);
   color: var(--primary);
-  padding: 2px 12px;
+  padding: 2px 10px;
   border-radius: 20px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .update-modal .update-date {
-  display: block;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.85);
-  margin-top: 4px;
+  display: inline-block;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .update-modal .update-body {
@@ -471,6 +473,10 @@ body {
   .update-modal .update-footer {
     padding-left: 20px;
     padding-right: 20px;
+  }
+  .update-modal .update-header h2 {
+    font-size: 1.05rem;
+    gap: 6px;
   }
 }
 
