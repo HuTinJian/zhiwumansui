@@ -104,7 +104,7 @@ function setupAdminEntry(titleId, redirect = 'admin.html') {
     count++;
     lastTime = now;
 
-    if (count >= 3) {
+    if (count >= 2) {
       count = 0;
       /* 已登录直接跳转 */
       if (await isLoggedIn()) {
