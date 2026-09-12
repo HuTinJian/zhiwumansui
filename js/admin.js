@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、Roblox 数据、歌曲管理、鸣谢管理、版本管理
+   反馈管理、版本管理、卡片管理（歌曲/隔离区/鸣谢）
    ============================================================ */
 
 /* 缓存反馈列表，用于展开查看隔离区时定位 */
@@ -16,6 +16,7 @@ let feedbackCache = [];
     window.location.href = 'index.html';
   });
 
+  /* 一级标签切换（通用写法：用 data-panel 找 #panel-xxx） */
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -81,6 +82,7 @@ let feedbackCache = [];
     });
   });
 
+  /* 点空白处收起下拉 */
   document.addEventListener('click', (e) => {
     const wrapper = document.getElementById('addThanksSelectWrapper');
     if (wrapper && !wrapper.contains(e.target)) {
@@ -128,6 +130,7 @@ async function loadFeedback() {
     const res = await fetch('/api/feedback/list', { credentials: 'include' });
     const data = await res.json();
 
+    /* 接口直接返回数组 */
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
       countEl.textContent = '0';
@@ -244,10 +247,10 @@ function toggleFeedbackQuarantine(feedbackId, btn) {
   btn.textContent = '📦 收起隔离区';
 }
 
-/* 从反馈导入选中的隔离区ID */
+/* 从反馈导入选中的隔离区 ID */
 async function importSelectedQuarantine(feedbackId, ids) {
   if (ids.length === 0) {
-    showToast('请至少勾选一个ID');
+    showToast('请至少勾选一个 ID');
     return;
   }
 
@@ -307,6 +310,7 @@ async function approveToThanks(feedbackId) {
 
     if (addData.ok) {
       showToast('✅ 已加入鸣谢名单');
+      /* 顺便把反馈状态标记为 approved */
       await fetch('/api/feedback/status', {
         method: 'POST',
         credentials: 'include',
@@ -352,7 +356,7 @@ async function deleteFeedback(id) {
 }
 
 /* ============================================================
-   Roblox 数据
+   Roblox 数据（统计 + 开发者隔离区）
    ============================================================ */
 async function loadRobloxStats() {
   try {
@@ -424,6 +428,7 @@ async function loadRobloxStats() {
   }
 }
 
+/* 从隔离区移除单个 ID */
 async function deleteQuarantineItem(musicId) {
   const confirmed = await showConfirm(
     '移除隔离',
@@ -450,6 +455,7 @@ async function deleteQuarantineItem(musicId) {
   }
 }
 
+/* 批量导入隔离区（JSON 数组格式） */
 async function handleImportQuarantine() {
   const text = document.getElementById('importQuarantineText').value.trim();
   const status = document.getElementById('importQuarantineStatus');
@@ -477,6 +483,7 @@ async function handleImportQuarantine() {
     return;
   }
 
+  /* 清洗每条记录 */
   const valid = [];
   for (const it of items) {
     if (!it || !it.id) continue;
@@ -570,6 +577,7 @@ async function loadSongs() {
   }
 }
 
+/* 单曲添加（从表单读值，走 addSongToServer） */
 async function handleAddSong() {
   const idInput = document.getElementById('addSongId');
   const nameInput = document.getElementById('addSongName');
@@ -583,6 +591,22 @@ async function handleAddSong() {
   if (!name) { showToast('请填写歌曲名称'); return; }
   if (!/^\d+$/.test(musicId)) { showToast('ID 必须是纯数字'); return; }
 
+  const data = await addSongToServer({ musicId, name, category });
+
+  if (data && data.ok) {
+    showToast('✅ 已添加');
+    idInput.value = '';
+    nameInput.value = '';
+    catInput.value = '';
+    loadSongs();
+    loadRobloxStats();
+  } else {
+    showToast('添加失败：' + ((data && (data.message || data.error)) || '未知'));
+  }
+}
+
+/* 调后端 /api/songs/add（单曲、批量导入都用它） */
+async function addSongToServer({ musicId, name, category }) {
   try {
     const res = await fetch('/api/songs/add', {
       method: 'POST',
@@ -590,23 +614,13 @@ async function handleAddSong() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ musicId, name, category })
     });
-    const data = await res.json();
-
-    if (data.ok) {
-      showToast('✅ 已添加');
-      idInput.value = '';
-      nameInput.value = '';
-      catInput.value = '';
-      loadSongs();
-      loadRobloxStats();
-    } else {
-      showToast('添加失败：' + (data.message || data.error || '未知'));
-    }
+    return await res.json();
   } catch (err) {
-    showToast('网络异常');
+    return { ok: false, error: 'network' };
   }
 }
 
+/* 删除单曲 */
 async function deleteSong(musicId) {
   const confirmed = await showConfirm(
     '删除歌曲',
@@ -634,6 +648,7 @@ async function deleteSong(musicId) {
   }
 }
 
+/* 清空 D1 歌曲 */
 async function handleClearSongs() {
   const confirmed = await showConfirm(
     '清空歌曲',
@@ -659,6 +674,7 @@ async function handleClearSongs() {
   }
 }
 
+/* 导出 D1 歌曲 */
 async function handleExportSongs() {
   try {
     const res = await fetch('/api/songs/export', { credentials: 'include' });
@@ -704,6 +720,7 @@ async function loadThanks() {
     const res = await fetch('/api/thanks?t=' + Date.now());
     const data = await res.json();
 
+    /* 接口直接返回数组（已按类别分组） */
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
       countEl.textContent = '0';
@@ -751,6 +768,7 @@ async function loadThanks() {
   }
 }
 
+/* 添加鸣谢 */
 async function handleAddThanks() {
   const selectedCatEl = document.getElementById('addThanksSelectedCat');
   const category = (selectedCatEl.textContent || '').trim();
@@ -787,6 +805,7 @@ async function handleAddThanks() {
   }
 }
 
+/* 删除鸣谢 */
 async function deleteThanks(id) {
   if (!id || isNaN(Number(id))) {
     showToast('⚠️ ID 无效，无法删除');
@@ -817,24 +836,46 @@ async function deleteThanks(id) {
 
 /* ============================================================
    版本管理
+   改：按 page_key 分发到三个容器
    ============================================================ */
 async function loadUpdates() {
-  const container = document.getElementById('updatesList');
-  container.innerHTML = '<div class="loading">加载中...</div>';
+  /* 三个容器分别对应主页 / 反馈 / 卡片1 */
+  const containerMap = {
+    index:    document.getElementById('updatesListIndex'),
+    feedback: document.getElementById('updatesListFeedback'),
+    roblox:   document.getElementById('updatesListCard1')
+  };
+
+  /* 先显示加载中 */
+  Object.values(containerMap).forEach(el => {
+    if (el) el.innerHTML = '<div class="loading">加载中...</div>';
+  });
 
   try {
     const res = await fetch('/api/updates?all=1&t=' + Date.now(), { credentials: 'include' });
     const data = await res.json();
+
     if (!data.ok || !Array.isArray(data.data)) {
-      container.innerHTML = '<div class="empty-state">加载失败</div>';
+      Object.values(containerMap).forEach(el => {
+        if (el) el.innerHTML = '<div class="empty-state">加载失败</div>';
+      });
       return;
     }
 
-    container.innerHTML = '';
+    /* 清空容器 */
+    Object.values(containerMap).forEach(el => { if (el) el.innerHTML = ''; });
+
+    /* 统计每个容器渲染条数 */
+    const rendered = { index: 0, feedback: 0, roblox: 0 };
+
     data.data.forEach(item => {
+      const container = containerMap[item.page_key];
+      if (!container) return;
+
       const el = document.createElement('div');
       el.className = 'update-edit-item';
 
+      /* 只有 roblox 卡片显示"重置风险弹窗"按钮 */
       const isRoblox = item.page_key === 'roblox';
 
       el.innerHTML = `
@@ -857,20 +898,33 @@ async function loadUpdates() {
         </div>
       `;
       container.appendChild(el);
+      rendered[item.page_key]++;
     });
 
-    container.querySelectorAll('.btn-save').forEach(btn => {
+    /* 某个分组为空时显示"暂无" */
+    Object.entries(containerMap).forEach(([key, el]) => {
+      if (el && rendered[key] === 0) {
+        el.innerHTML = '<div class="empty-state">暂无版本信息</div>';
+      }
+    });
+
+    /* 绑定保存按钮 */
+    document.querySelectorAll('.btn-save').forEach(btn => {
       btn.addEventListener('click', () => saveUpdate(btn.dataset.page));
     });
 
-    container.querySelectorAll('.btn-reset-risk').forEach(btn => {
+    /* 绑定重置风险按钮 */
+    document.querySelectorAll('.btn-reset-risk').forEach(btn => {
       btn.addEventListener('click', handleResetRisk);
     });
   } catch (err) {
-    container.innerHTML = '<div class="empty-state">加载失败</div>';
+    Object.values(containerMap).forEach(el => {
+      if (el) el.innerHTML = '<div class="empty-state">加载失败</div>';
+    });
   }
 }
 
+/* 页面 key → 显示名 */
 function getPageName(key) {
   if (key === 'index') return '🏠 主页';
   if (key === 'feedback') return '💬 反馈页';
@@ -878,6 +932,7 @@ function getPageName(key) {
   return key;
 }
 
+/* 保存某个页面的版本信息 */
 async function saveUpdate(pageKey) {
   const versionInput = document.querySelector(`.edit-version[data-page="${pageKey}"]`);
   const updatesInput = document.querySelector(`.edit-updates[data-page="${pageKey}"]`);
@@ -906,3 +961,10 @@ async function saveUpdate(pageKey) {
     showToast('网络异常');
   }
 }
+
+/* ============================================================
+   全局暴露（供 admin.html 内联脚本批量导入使用）
+   ============================================================ */
+window.loadSongs = loadSongs;
+window.loadRobloxStats = loadRobloxStats;
+window.addSongToServer = addSongToServer;
