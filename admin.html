@@ -1268,12 +1268,14 @@ See You Again 2456502348
           var targetId = btn.dataset.subpanel;
           if (!targetId) return;
 
+          /* 同级按钮：取消 active，加上 active */
           buttons.forEach(function (b) { b.classList.remove('active'); });
           btn.classList.add('active');
 
           var target = document.getElementById(targetId);
           if (!target) return;
 
+          /* 同一层级的面板：隐藏父级下所有直接子 .subpanel，再显示当前 */
           var parent = target.parentElement;
           parent.querySelectorAll(':scope > .subpanel').forEach(function (p) {
             p.classList.remove('active');
@@ -1336,15 +1338,18 @@ See You Again 2456502348
         line = line.trim();
         if (!line) { globalLineIndex++; continue; }
 
+        /* 提取这一行里所有 ID */
         const ids = [];
         let match;
         idRegex.lastIndex = 0;
         while ((match = idRegex.exec(line)) !== null) ids.push(match[1]);
         if (ids.length === 0) { globalLineIndex++; continue; }
 
+        /* 先从行里剥掉 ID 得到名字草稿 */
         let name = line;
         for (const id of ids) name = name.replace(id, '');
 
+        /* 尝试提取显式分类： 【xxx】 或 [xxx] */
         let explicitCat = '';
         const catMatch = name.match(/[\[【]([^\]】]{1,20})[\]】]/);
         if (catMatch) {
@@ -1352,6 +1357,7 @@ See You Again 2456502348
           name = name.replace(catMatch[0], '');
         }
 
+        /* 清理行首行尾的杂项 */
         name = name
           .replace(/^[\d]+[\.\、\s]+/, '')
           .replace(/^[\d]+[\s]*[\)）]/, '')
@@ -1374,18 +1380,27 @@ See You Again 2456502348
       return result;
     }
 
-    /* ---------- 添加单首歌到 D1（调用后端 /api/songs/add） ---------- */
+    /* ---------- 添加单首歌到 D1（字段名与后端 add.js 一致） ---------- */
     async function addSongToD1(song) {
-      // 优先复用 admin.js 里已经暴露的全局函数
+      /* 优先复用 admin.js 里已经暴露的全局函数 */
       if (typeof window.addSongToServer === 'function') {
         try {
-          const r = await window.addSongToServer(song);
-          return { ok: r !== false, msg: '' };
+          /* ⚠️ addSongToServer 的形参是 { musicId, name, category }，
+                这里把 song.id → musicId 映射过去 */
+          const r = await window.addSongToServer({
+            musicId: song.id,
+            name: song.name,
+            category: song.category
+          });
+          /* ⚠️ 返回的是 {ok: true/false, ...}，要按 .ok 判断 */
+          if (r && r.ok === true) return { ok: true };
+          return { ok: false, msg: (r && (r.message || r.error)) || '服务端返回失败' };
         } catch (e) {
           return { ok: false, msg: e.message || '调用 addSongToServer 异常' };
         }
       }
-      // 兜底：自己发请求（字段名与后端 add.js 一致：musicId / name / category）
+
+      /* 兜底：自己发请求 */
       try {
         const res = await fetch('/api/songs/add', {
           method: 'POST',
@@ -1397,10 +1412,14 @@ See You Again 2456502348
             category: song.category
           })
         });
-        if (!res.ok) return { ok: false, msg: 'HTTP ' + res.status };
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          return { ok: false, msg: errData.message || errData.error || ('HTTP ' + res.status) };
+        }
         const data = await res.json().catch(() => ({}));
-        if (data && data.ok === false) {
-          return { ok: false, msg: data.message || data.error || '服务端返回失败' };
+        if (!data || data.ok !== true) {
+          return { ok: false, msg: (data && (data.message || data.error)) || '服务端返回失败' };
         }
         return { ok: true };
       } catch (e) {
@@ -1444,6 +1463,7 @@ See You Again 2456502348
     openBtn.addEventListener('click', openModal);
     cancelBtn.addEventListener('click', closeModal);
 
+    /* 点背景关闭 */
     modal.addEventListener('click', function (e) {
       if (e.target === modal) closeModal();
     });
@@ -1462,6 +1482,7 @@ See You Again 2456502348
         return;
       }
 
+      /* 去重 */
       const seen = new Set();
       const unique = [];
       for (const item of parsed) {
@@ -1490,6 +1511,7 @@ See You Again 2456502348
 
       if (fail === 0) {
         setStatus(`✅ 导入完成，共 ${ok} 首`, 'ok');
+        /* 刷新歌曲列表和统计 */
         if (typeof window.loadSongs === 'function') window.loadSongs();
         if (typeof window.loadRobloxStats === 'function') window.loadRobloxStats();
       } else {
