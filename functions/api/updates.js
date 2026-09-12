@@ -27,6 +27,19 @@ function checkAuth(request, env) {
   return token && token === env.AUTH_TOKEN;
 }
 
+/**
+ * 安全解析 JSON
+ */
+function safeParse(str, fallback = []) {
+  try {
+    if (!str) return fallback;
+    const parsed = JSON.parse(str);
+    return parsed || fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
 /* ---------- GET ---------- */
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -40,10 +53,11 @@ export async function onRequestGet(context) {
       if (!checkAuth(request, env)) {
         return json({ ok: false, error: 'unauthorized' }, 401);
       }
+
       const result = await env.DB.prepare(
         `SELECT page_key, version, date, updates, updated_at
          FROM page_updates
-         ORDER BY CASE page_key
+         WHERE page_key != 'risk'
          ORDER BY CASE page_key
            WHEN 'index' THEN 1
            WHEN 'feedback' THEN 2
@@ -51,13 +65,15 @@ export async function onRequestGet(context) {
            ELSE 4
          END`
       ).all();
+
       const list = (result.results || []).map(r => ({
         page_key: r.page_key,
         version: r.version,
         date: r.date,
-        updates: JSON.parse(r.updates || '[]'),
+        updates: safeParse(r.updates, []),
         updated_at: r.updated_at
       }));
+
       return json({ ok: true, data: list });
     }
 
@@ -82,11 +98,15 @@ export async function onRequestGet(context) {
         page_key: row.page_key,
         version: row.version,
         date: row.date,
-        updates: JSON.parse(row.updates || '[]')
+        updates: safeParse(row.updates, [])
       }
     });
   } catch (err) {
-    return json({ ok: false, error: 'server error' }, 500);
+    return json({
+      ok: false,
+      error: 'server error',
+      message: String((err && err.message) || err)
+    }, 500);
   }
 }
 
@@ -117,7 +137,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'invalid updates' }, 400);
     }
 
-    /* 自动生成日期（当前时间） */
+    /* 自动生成日期 */
     const now = new Date();
     const date = now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -135,6 +155,10 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, date });
   } catch (err) {
-    return json({ ok: false, error: 'server error' }, 500);
+    return json({
+      ok: false,
+      error: 'server error',
+      message: String((err && err.message) || err)
+    }, 500);
   }
 }
