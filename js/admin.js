@@ -310,7 +310,6 @@ async function approveToThanks(feedbackId) {
 
     if (addData.ok) {
       showToast('✅ 已加入鸣谢名单');
-      /* 顺便把反馈状态标记为 approved */
       await fetch('/api/feedback/status', {
         method: 'POST',
         credentials: 'include',
@@ -483,7 +482,6 @@ async function handleImportQuarantine() {
     return;
   }
 
-  /* 清洗每条记录 */
   const valid = [];
   for (const it of items) {
     if (!it || !it.id) continue;
@@ -577,7 +575,7 @@ async function loadSongs() {
   }
 }
 
-/* 单曲添加（从表单读值，走 addSongToServer） */
+/* 单曲添加 */
 async function handleAddSong() {
   const idInput = document.getElementById('addSongId');
   const nameInput = document.getElementById('addSongName');
@@ -835,18 +833,15 @@ async function deleteThanks(id) {
 }
 
 /* ============================================================
-   版本管理
-   改：按 page_key 分发到三个容器
+   版本管理（按 page_key 分发到三个容器）
    ============================================================ */
 async function loadUpdates() {
-  /* 三个容器分别对应主页 / 反馈 / 卡片1 */
   const containerMap = {
     index:    document.getElementById('updatesListIndex'),
     feedback: document.getElementById('updatesListFeedback'),
     roblox:   document.getElementById('updatesListCard1')
   };
 
-  /* 先显示加载中 */
   Object.values(containerMap).forEach(el => {
     if (el) el.innerHTML = '<div class="loading">加载中...</div>';
   });
@@ -862,10 +857,8 @@ async function loadUpdates() {
       return;
     }
 
-    /* 清空容器 */
     Object.values(containerMap).forEach(el => { if (el) el.innerHTML = ''; });
 
-    /* 统计每个容器渲染条数 */
     const rendered = { index: 0, feedback: 0, roblox: 0 };
 
     data.data.forEach(item => {
@@ -875,7 +868,6 @@ async function loadUpdates() {
       const el = document.createElement('div');
       el.className = 'update-edit-item';
 
-      /* 只有 roblox 卡片显示"重置风险弹窗"按钮 */
       const isRoblox = item.page_key === 'roblox';
 
       el.innerHTML = `
@@ -901,19 +893,16 @@ async function loadUpdates() {
       rendered[item.page_key]++;
     });
 
-    /* 某个分组为空时显示"暂无" */
     Object.entries(containerMap).forEach(([key, el]) => {
       if (el && rendered[key] === 0) {
         el.innerHTML = '<div class="empty-state">暂无版本信息</div>';
       }
     });
 
-    /* 绑定保存按钮 */
     document.querySelectorAll('.btn-save').forEach(btn => {
       btn.addEventListener('click', () => saveUpdate(btn.dataset.page));
     });
 
-    /* 绑定重置风险按钮 */
     document.querySelectorAll('.btn-reset-risk').forEach(btn => {
       btn.addEventListener('click', handleResetRisk);
     });
