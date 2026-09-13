@@ -134,7 +134,7 @@
       flex-wrap: wrap;
     }
 
-    /* 头部操作区按钮统一尺寸（视觉一致） */
+    /* 头部操作区按钮统一尺寸 */
     .page-header .btns button {
       padding: 8px 18px;
       font-size: 0.85rem;
@@ -226,10 +226,10 @@
     }
 
     /* ============================================================
-       最新收录按钮（绿色）—— 带 margin-left:auto 把三个筛选按钮推到右边
+       最新收录按钮（绿色）
        ============================================================ */
     .btn-latest {
-      margin-left: auto;   /* 关键：把这组筛选按钮推到右侧 */
+      margin-left: auto;   /* 把这组筛选按钮推到右侧 */
       border: 2px solid #a8d5c2;
       background: linear-gradient(135deg, rgba(110, 198, 160, 0.15), rgba(86, 176, 138, 0.12));
       color: #3d8a6b;
@@ -1706,15 +1706,22 @@
       dom.selectedCount.textContent = selectedIds.size;
     }
 
+    /* ========== 收藏切换（新增收藏时上报热门 +1） ========== */
     function toggleFavorite(id, btn) {
       if (favorites.has(id)) {
+        /* 取消收藏：不上报（避免反复点击刷热度） */
         favorites.delete(id);
         btn.classList.remove('active');
         btn.textContent = '☆';
       } else {
+        /* 新收藏：上报 +1，本地热度同步 +1 */
         favorites.add(id);
         btn.classList.add('active');
         btn.textContent = '⭐';
+
+        reportHot(id, 'fav');
+        const oldTotal = hotMap.get(String(id)) || 0;
+        hotMap.set(String(id), oldTotal + 1);
       }
       saveFavorites();
       dom.statFavs.textContent = favorites.size;
