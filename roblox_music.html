@@ -134,14 +134,26 @@
       flex-wrap: wrap;
     }
 
+    /* 头部操作区按钮统一尺寸（视觉一致） */
     .page-header .btns button {
       padding: 8px 18px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      font-family: var(--font);
+      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
 
     .btn-quarantine-custom {
       background: linear-gradient(135deg, #f5b872, #e8a05a);
       color: #fff;
+      border: none;
       box-shadow: 0 6px 16px rgba(232, 160, 90, 0.25);
     }
 
@@ -214,24 +226,14 @@
     }
 
     /* ============================================================
-       最新收录按钮（绿色）
+       最新收录按钮（绿色）—— 带 margin-left:auto 把三个筛选按钮推到右边
        ============================================================ */
     .btn-latest {
-      padding: 8px 18px;
+      margin-left: auto;   /* 关键：把这组筛选按钮推到右侧 */
       border: 2px solid #a8d5c2;
-      border-radius: var(--radius-pill);
       background: linear-gradient(135deg, rgba(110, 198, 160, 0.15), rgba(86, 176, 138, 0.12));
       color: #3d8a6b;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
       box-shadow: 0 2px 8px rgba(110, 198, 160, 0.15);
-      font-family: var(--font);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .btn-latest:hover {
@@ -251,6 +253,35 @@
       border-color: #56b08a;
       color: #fff;
       box-shadow: 0 6px 18px rgba(110, 198, 160, 0.5);
+    }
+
+    /* ============================================================
+       热门推荐按钮（红橙色）
+       ============================================================ */
+    .btn-hot {
+      border: 2px solid #f5a89a;
+      background: linear-gradient(135deg, rgba(245, 138, 120, 0.15), rgba(232, 100, 80, 0.12));
+      color: #c04a35;
+      box-shadow: 0 2px 8px rgba(245, 138, 120, 0.15);
+    }
+
+    .btn-hot:hover {
+      border-color: #e86450;
+      color: #a03220;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
+    }
+
+    .btn-hot:active {
+      transform: scale(0.93);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .btn-hot.active {
+      background: linear-gradient(135deg, #f58a78, #e86450);
+      border-color: #e86450;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
     }
 
     /* ============================================================
@@ -297,21 +328,10 @@
        收藏按钮
        ============================================================ */
     .btn-fav-filter {
-      padding: 8px 18px;
       border: 2px solid var(--gold-light);
-      border-radius: var(--radius-pill);
       background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
       color: #b8894f;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
       box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
-      font-family: var(--font);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .btn-fav-filter:hover {
@@ -416,6 +436,16 @@
 
     .badge-multi {
       background: var(--primary);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-hot {
+      background: linear-gradient(135deg, #f58a78, #e86450);
       color: #fff;
       font-size: 0.72rem;
       font-weight: 600;
@@ -1042,6 +1072,7 @@
       .page-header h1 { font-size: 1.1rem; }
       .id-row { padding: 6px 8px; }
       .id-number { font-size: 0.78rem; }
+      .page-header .btns button { padding: 7px 12px; font-size: 0.78rem; }
     }
   </style>
 </head>
@@ -1069,6 +1100,9 @@
       <div class="btns">
         <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
         <button class="btn btn-primary" id="batchToggleBtn">📦 批量隔离</button>
+        <button class="btn btn-latest" id="latestToggleBtn">最新收录</button>
+        <button class="btn btn-hot" id="hotToggleBtn">热门推荐</button>
+        <button class="btn btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
       </div>
     </header>
 
@@ -1077,9 +1111,7 @@
       <div class="filter-tabs" id="filterTabs">
         <button class="active" data-cat="all">全部</button>
       </div>
-      <button class="btn-latest" id="latestToggleBtn">最新收录</button>
       <button class="btn-multi" id="multiToggleBtn">🔁 多 ID</button>
-      <button class="btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
     </div>
 
     <div class="batch-bar" id="batchBar">
@@ -1198,12 +1230,18 @@
     let showMultiOnly = false;
     let showFavOnly = false;
     let showLatestOnly = false;
+    let showHotOnly = false;
+    let hotMap = new Map();
     let batchMode = false;
     let selectedIds = new Set();
     let riskCountdownCleanup = null;
     let pendingRedirectId = null;
 
     let serverRiskVersion = null;
+
+    /* 上报限流：同一 ID + 类型，5 秒内只上报一次 */
+    const reportCooldown = new Map();
+    const REPORT_COOLDOWN_MS = 5000;
 
     const PAGE_SIZE = 100;
     let currentGroups = [];
@@ -1218,9 +1256,10 @@
       statFavs: $('statFavs'),
       searchInput: $('searchInput'),
       filterTabs: $('filterTabs'),
+      hotToggleBtn: $('hotToggleBtn'),
+      latestToggleBtn: $('latestToggleBtn'),
       multiToggleBtn: $('multiToggleBtn'),
       favFilterBtn: $('favFilterBtn'),
-      latestToggleBtn: $('latestToggleBtn'),
       songList: $('songList'),
       emptyState: $('emptyState'),
       batchBar: $('batchBar'),
@@ -1309,6 +1348,37 @@
         }
       } catch (e) {
         console.warn('获取风险版本失败', e);
+      }
+    }
+
+    /* ========== 热门统计上报（带 5 秒限流） ========== */
+    function reportHot(id, type) {
+      const key = id + '|' + type;
+      const now = Date.now();
+      const last = reportCooldown.get(key) || 0;
+      if (now - last < REPORT_COOLDOWN_MS) return;
+      reportCooldown.set(key, now);
+
+      fetch('/api/hot/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: String(id), type })
+      }).catch(() => {});
+    }
+
+    /* ========== 加载热门列表 ========== */
+    async function loadHotList() {
+      try {
+        const res = await fetch('/api/hot/list?t=' + Date.now());
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.data)) {
+          hotMap.clear();
+          data.data.forEach(item => {
+            hotMap.set(String(item.id), Number(item.total) || 0);
+          });
+        }
+      } catch (e) {
+        console.warn('加载热门列表失败', e);
       }
     }
 
@@ -1402,7 +1472,7 @@
         dom.filterTabs.appendChild(btn);
       });
 
-      /* 分类按钮：点击时若收藏/最新亮着，先取消它们，再切换分类 */
+      /* 分类按钮：点击时若收藏/最新/热门亮着，先取消它们，再切换分类 */
       dom.filterTabs.querySelectorAll('button').forEach(btn => {
         btn.onclick = () => {
           if (showFavOnly) {
@@ -1412,6 +1482,10 @@
           if (showLatestOnly) {
             showLatestOnly = false;
             dom.latestToggleBtn.classList.remove('active');
+          }
+          if (showHotOnly) {
+            showHotOnly = false;
+            dom.hotToggleBtn.classList.remove('active');
           }
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
@@ -1430,24 +1504,37 @@
         const catMatch = currentCategory === 'all' || item.category === currentCategory;
         const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
         const latestMatch = !showLatestOnly || item._fromD1 === true;
-        return catMatch && kwMatch && latestMatch;
+        const hotMatch = !showHotOnly || hotMap.has(String(item.id));
+        return catMatch && kwMatch && latestMatch && hotMatch;
       });
 
       const groupMap = {};
       filtered.forEach(item => {
         if (!groupMap[item.name]) {
-          groupMap[item.name] = { name: item.name, ids: [], categories: new Set(), maxLineIndex: 0 };
+          groupMap[item.name] = {
+            name: item.name,
+            ids: [],
+            categories: new Set(),
+            maxLineIndex: 0,
+            maxHot: 0
+          };
         }
         groupMap[item.name].ids.push(item.id);
         groupMap[item.name].categories.add(item.category);
         if ((item.lineIndex || 0) > groupMap[item.name].maxLineIndex) {
           groupMap[item.name].maxLineIndex = item.lineIndex || 0;
         }
+        const h = hotMap.get(String(item.id)) || 0;
+        if (h > groupMap[item.name].maxHot) {
+          groupMap[item.name].maxHot = h;
+        }
       });
 
       let groups = Object.values(groupMap);
 
-      if (showLatestOnly) {
+      if (showHotOnly) {
+        groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0));
+      } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
       } else {
         groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
@@ -1470,6 +1557,8 @@
           dom.emptyState.textContent = '⭐ 暂无收藏的歌曲';
         } else if (showLatestOnly) {
           dom.emptyState.textContent = '目前还没有新收录的歌曲，敬请期待';
+        } else if (showHotOnly) {
+          dom.emptyState.textContent = '🔥 暂时还没有热门数据，快来复制/试听吧';
         } else {
           dom.emptyState.textContent = '😕 没有找到匹配的歌曲';
         }
@@ -1504,6 +1593,9 @@
 
         let nameHtml = safeName;
         if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
+        if (showHotOnly && group.maxHot > 0) {
+          nameHtml += ' <span class="badge-hot">🔥 ' + group.maxHot + '</span>';
+        }
 
         let rowsHtml = '';
         group.ids.forEach(id => {
@@ -1578,8 +1670,13 @@
         });
         group.querySelectorAll('.btn-copy').forEach(btn => {
           btn.onclick = async () => {
-            const ok = await copyText(btn.dataset.id);
+            const id = btn.dataset.id;
+            const ok = await copyText(id);
             if (ok) {
+              reportHot(id, 'copy');
+              const oldTotal = hotMap.get(String(id)) || 0;
+              hotMap.set(String(id), oldTotal + 1);
+
               btn.textContent = '✅ 已复制';
               btn.classList.add('copied');
               setTimeout(() => {
@@ -1628,6 +1725,10 @@
     }
 
     function previewId(id) {
+      reportHot(id, 'play');
+      const oldTotal = hotMap.get(String(id)) || 0;
+      hotMap.set(String(id), oldTotal + 1);
+
       pendingRedirectId = id;
 
       const ackVersion = localStorage.getItem('riskAckVersion');
@@ -1946,7 +2047,13 @@
 
       loadQuarantine();
       loadFavorites();
-      loadData();
+
+      await Promise.all([
+        loadData(),
+        loadHotList()
+      ]);
+
+      renderAll();
 
       dom.loadMoreBtn.onclick = () => {
         renderPage();
@@ -1957,7 +2064,7 @@
         renderList();
       }, 250));
 
-      /* 多 ID 按钮：点击时若收藏/最新亮着，先取消它们，再切换多 ID */
+      /* 多 ID 按钮：点击时若收藏/最新/热门亮着，先取消它们 */
       dom.multiToggleBtn.onclick = () => {
         if (showFavOnly) {
           showFavOnly = false;
@@ -1967,20 +2074,26 @@
           showLatestOnly = false;
           dom.latestToggleBtn.classList.remove('active');
         }
+        if (showHotOnly) {
+          showHotOnly = false;
+          dom.hotToggleBtn.classList.remove('active');
+        }
         showMultiOnly = !showMultiOnly;
         dom.multiToggleBtn.classList.toggle('active', showMultiOnly);
         renderList();
       };
 
-      /* 收藏按钮：独占型，点击时其它全部熄灭 */
+      /* 收藏按钮：独占型 */
       dom.favFilterBtn.onclick = () => {
         const willActivate = !showFavOnly;
         if (willActivate) {
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           dom.multiToggleBtn.classList.remove('active');
           dom.latestToggleBtn.classList.remove('active');
+          dom.hotToggleBtn.classList.remove('active');
           showMultiOnly = false;
           showLatestOnly = false;
+          showHotOnly = false;
           currentCategory = 'all';
         }
         showFavOnly = willActivate;
@@ -1993,21 +2106,48 @@
         renderList();
       };
 
-      /* 最新收录按钮：独占型，点击时其它全部熄灭 */
+      /* 最新收录按钮：独占型 */
       dom.latestToggleBtn.onclick = () => {
         const willActivate = !showLatestOnly;
         if (willActivate) {
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           dom.multiToggleBtn.classList.remove('active');
           dom.favFilterBtn.classList.remove('active');
+          dom.hotToggleBtn.classList.remove('active');
           showMultiOnly = false;
           showFavOnly = false;
+          showHotOnly = false;
           currentCategory = 'all';
         }
         showLatestOnly = willActivate;
         dom.latestToggleBtn.classList.toggle('active', showLatestOnly);
 
         if (!showLatestOnly) {
+          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
+          if (allBtn) allBtn.classList.add('active');
+        }
+        renderList();
+      };
+
+      /* 热门推荐按钮：独占型；每次激活前刷新热门列表 */
+      dom.hotToggleBtn.onclick = async () => {
+        const willActivate = !showHotOnly;
+        if (willActivate) {
+          await loadHotList();
+
+          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          dom.multiToggleBtn.classList.remove('active');
+          dom.favFilterBtn.classList.remove('active');
+          dom.latestToggleBtn.classList.remove('active');
+          showMultiOnly = false;
+          showFavOnly = false;
+          showLatestOnly = false;
+          currentCategory = 'all';
+        }
+        showHotOnly = willActivate;
+        dom.hotToggleBtn.classList.toggle('active', showHotOnly);
+
+        if (!showHotOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
         }
