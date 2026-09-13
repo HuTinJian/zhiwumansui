@@ -140,6 +140,35 @@
       transform: translateY(-2px);
     }
 
+    /* ============================================================
+       访问来源按钮（蓝色，带呼吸光晕，很突出）
+       ============================================================ */
+    .btn-source {
+      background: linear-gradient(135deg, #6bb6e8, #4a9dd8);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
+      font-weight: 700;
+      animation: sourcePulse 2.5s ease-in-out infinite;
+    }
+    .btn-source:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(107, 182, 232, 0.6);
+      animation: none;
+    }
+    .btn-source:active {
+      transform: scale(0.93);
+    }
+    @keyframes sourcePulse {
+      0%, 100% {
+        box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
+      }
+      50% {
+        box-shadow: 0 6px 24px rgba(107, 182, 232, 0.7),
+                    0 0 0 4px rgba(107, 182, 232, 0.15);
+      }
+    }
+
     .search-row {
       display: flex;
       gap: 10px;
@@ -807,7 +836,7 @@
       font-size: 0.85rem;
     }
 
-    /* 访问渠道弹窗 */
+    /* ========== 访问渠道弹窗 ========== */
     #visitSourceModal .modal-content {
       max-width: 480px;
     }
@@ -818,15 +847,24 @@
     }
     #visitSourceModal .visit-desc {
       color: var(--text-light);
-      font-size: 0.88rem;
-      margin-bottom: 18px;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
       line-height: 1.6;
       text-align: center;
     }
+    #visitSourceModal .visit-current {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
     .visit-source-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-top: 8px;
     }
     .visit-source-btn {
       display: flex;
@@ -867,6 +905,33 @@
       color: var(--primary);
       background: #fde8ef;
     }
+
+    /* 当前已选（高亮） */
+    .visit-source-btn.active-choice {
+      border-color: var(--primary);
+      background: #fde8ef;
+      color: var(--primary);
+      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.22);
+      position: relative;
+    }
+    .visit-source-btn.active-choice::before {
+      content: '当前';
+      position: absolute;
+      top: -8px;
+      left: 12px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--primary);
+      padding: 1px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .visit-source-btn.active-choice .src-count {
+      color: var(--primary);
+      background: #fff;
+    }
+
     .visit-other-input {
       margin-top: 12px;
       padding: 14px;
@@ -1020,6 +1085,7 @@
       <div class="btns">
         <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
         <button class="btn btn-primary" id="batchToggleBtn">📦 批量隔离</button>
+        <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         <button class="btn btn-latest" id="latestToggleBtn">最新收录</button>
         <button class="btn btn-hot" id="hotToggleBtn">热门推荐</button>
         <button class="btn btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
@@ -1142,8 +1208,12 @@
   <!-- 访问渠道弹窗 -->
   <div class="modal" id="visitSourceModal">
     <div class="modal-content">
-      <h2>👋 你是怎么找到这里的？</h2>
-      <p class="visit-desc">帮我们了解一下推广渠道，谢谢你的支持 ❤️</p>
+      <h2>🙏 帮助我们了解推广渠道</h2>
+      <p class="visit-desc">
+        请告诉我们你是从哪知道这个网站的，<br>
+        这对我们改进内容很重要！
+        <span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
+      </p>
 
       <div class="visit-source-list">
         <button class="visit-source-btn" data-source="哔哩哔哩">
@@ -1163,11 +1233,7 @@
           <span class="src-count">--</span>
         </button>
         <button class="visit-source-btn" data-source="__other__" id="visitSourceOther">
-          <span>💡 其它</span>
-          <span class="src-count">--</span>
-        </button>
-        <button class="visit-source-btn" data-source="我不想回答这个问题">
-          <span>🤐 我不想回答这个问题</span>
+          <span>💡 其它（可自定义）</span>
           <span class="src-count">--</span>
         </button>
       </div>
@@ -2139,35 +2205,84 @@
     });
   </script>
 
-  <!-- 访问渠道弹窗（独立逻辑） -->
+  <!-- ============================================================
+       访问渠道（按钮触发，可随时修改）
+       ============================================================ -->
   <script>
   (function () {
     'use strict';
 
-    const STORAGE_KEY = 'visitSourceDone';
+    const USER_ID_KEY = 'visit_user_id';
+    const CHOICE_KEY = 'visit_source_choice';
     const MODAL_ID = 'visitSourceModal';
 
-    if (localStorage.getItem(STORAGE_KEY)) return;
+    /* 获取或生成用户唯一 ID（用于后端 UPSERT，避免重复计数） */
+    function getUserId() {
+      let uid = localStorage.getItem(USER_ID_KEY);
+      if (!uid) {
+        uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem(USER_ID_KEY, uid);
+      }
+      return uid;
+    }
 
+    const openBtn = document.getElementById('openSourceBtn');
     const modal = document.getElementById(MODAL_ID);
-    if (!modal) return;
+    if (!openBtn || !modal) return;
 
     const otherInput = document.getElementById('visitOtherInput');
     const otherText = document.getElementById('visitOtherText');
     const sourceList = modal.querySelector('.visit-source-list');
+    const currentHint = document.getElementById('visitCurrentHint');
 
-    function showModal() {
+    const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书'];
+
+    /* 显示当前已选答案 */
+    function updateCurrentHint() {
+      const cur = localStorage.getItem(CHOICE_KEY);
+      if (cur && currentHint) {
+        currentHint.textContent = '当前已选择：' + cur + '（可重新选择）';
+        currentHint.style.display = 'block';
+      } else if (currentHint) {
+        currentHint.textContent = '你还没有回答过哦';
+        currentHint.style.display = 'block';
+      }
+    }
+
+    /* 高亮当前已选的按钮 */
+    function markActiveChoice() {
+      const cur = localStorage.getItem(CHOICE_KEY) || '';
+      modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+        const src = btn.dataset.source;
+        btn.classList.remove('active-choice');
+        if (src === cur) {
+          btn.classList.add('active-choice');
+        } else if (src === '__other__' && cur && !PRESET.includes(cur)) {
+          btn.classList.add('active-choice');
+        }
+      });
+    }
+
+    /* 打开弹窗 */
+    async function showModal() {
+      otherInput.style.display = 'none';
+      otherText.value = '';
+      sourceList.style.display = 'flex';
+
+      updateCurrentHint();
+      markActiveChoice();
+
       openModal(MODAL_ID);
       loadSourceCounts();
     }
 
+    /* 拉取已有人数 */
     async function loadSourceCounts() {
       try {
         const res = await fetch('/api/visit/stats?t=' + Date.now());
         const data = await res.json();
         if (!data.ok || !Array.isArray(data.data)) return;
 
-        const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书', '我不想回答这个问题'];
         const counts = {};
         PRESET.forEach(p => counts[p] = 0);
         let otherTotal = 0;
@@ -2191,23 +2306,42 @@
       } catch (e) {}
     }
 
-    function submitSource(source) {
-      localStorage.setItem(STORAGE_KEY, '1');
+    /* 提交答案 */
+    async function submitSource(source) {
+      localStorage.setItem(CHOICE_KEY, source);
       closeModal(MODAL_ID);
 
-      fetch('/api/visit/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source })
-      }).catch(() => {});
+      try {
+        await fetch('/api/visit/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: getUserId(),
+            source: source
+          })
+        });
+      } catch (e) {}
+
+      showToast('🎉 感谢反馈！你的答案已记录');
     }
 
+    /* 打开按钮 */
+    openBtn.addEventListener('click', showModal);
+
+    /* 选项按钮 */
     modal.querySelectorAll('.visit-source-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const src = btn.dataset.source;
         if (src === '__other__') {
+          /* 显示自定义输入区 */
           sourceList.style.display = 'none';
           otherInput.style.display = 'block';
+          const cur = localStorage.getItem(CHOICE_KEY) || '';
+          if (cur && !PRESET.includes(cur)) {
+            otherText.value = cur;
+          } else {
+            otherText.value = '';
+          }
           setTimeout(() => otherText.focus(), 80);
           return;
         }
@@ -2215,41 +2349,27 @@
       });
     });
 
+    /* 其它 → 确认 */
     document.getElementById('visitOtherConfirm').addEventListener('click', () => {
       const val = otherText.value.trim();
-      if (!val) {
-        otherText.focus();
-        return;
-      }
+      if (!val) { otherText.focus(); return; }
       submitSource(val.slice(0, 20));
     });
 
+    /* 其它 → 返回 */
     document.getElementById('visitOtherCancel').addEventListener('click', () => {
       otherInput.style.display = 'none';
       otherText.value = '';
       sourceList.style.display = 'flex';
     });
 
+    /* 输入框回车 = 确认 */
     otherText.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
         document.getElementById('visitOtherConfirm').click();
       }
     });
-
-    /* 弹窗显示逻辑：等页面稳定后弹出 */
-    let attempts = 0;
-    const tryShow = () => {
-      attempts++;
-      if (attempts > 30) return;
-      if (document.querySelector('.modal.show')) {
-        setTimeout(tryShow, 1000);
-        return;
-      }
-      showModal();
-    };
-
-    setTimeout(tryShow, 1500);
   })();
   </script>
 
