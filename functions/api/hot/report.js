@@ -43,7 +43,6 @@ export async function onRequestPost(context) {
            last_updated = datetime('now', 'localtime')`
       ).bind(id).run();
     } else {
-      /* fav */
       await env.DB.prepare(
         `INSERT INTO hot_songs (music_id, copy_count, play_count, fav_count, last_updated)
          VALUES (?, 0, 0, 1, datetime('now', 'localtime'))

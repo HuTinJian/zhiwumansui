@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
-    /* ========== 头部内嵌导航 ========== */
     .header-nav {
       display: inline-flex;
       align-items: center;
@@ -20,7 +19,6 @@
       gap: 2px;
       margin-left: auto;
     }
-
     .header-nav .nav-btn {
       background: transparent;
       border: none;
@@ -39,28 +37,22 @@
       white-space: nowrap;
       font-family: var(--font);
     }
-
     .header-nav .nav-btn:hover {
       background: rgba(220, 107, 130, 0.12);
       color: var(--primary);
       transform: translateY(-2px);
     }
-
     .header-nav .nav-btn:active {
       transform: scale(0.92);
-      transition: transform 0.1s var(--ease-soft);
     }
-
     .header-nav .nav-btn.gold {
       color: var(--gold);
       font-weight: 600;
     }
-
     .header-nav .nav-btn.gold:hover {
       background: rgba(212, 160, 106, 0.15);
       color: #b8894f;
     }
-
     .header-nav .nav-divider {
       width: 1px;
       height: 18px;
@@ -68,7 +60,6 @@
       margin: 0 2px;
       flex-shrink: 0;
     }
-
     .header-nav .nav-divider-gold {
       width: 1px;
       height: 18px;
@@ -77,14 +68,12 @@
       flex-shrink: 0;
     }
 
-    /* ========== 主容器 ========== */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 24px 20px 60px;
     }
 
-    /* ========== 页面头部 ========== */
     .page-header {
       background: linear-gradient(145deg, #f8d7de, #f0c4cd);
       border: 1px solid var(--border);
@@ -94,7 +83,6 @@
       box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
       animation: cardRise 0.55s var(--ease-bounce) both;
     }
-
     .page-header-top {
       display: flex;
       flex-wrap: wrap;
@@ -102,14 +90,12 @@
       gap: 12px 20px;
       margin-bottom: 14px;
     }
-
     .page-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text);
       flex-shrink: 0;
     }
-
     .page-header .stats {
       display: flex;
       flex-wrap: wrap;
@@ -118,23 +104,18 @@
       color: var(--text-light);
       flex: 1 1 auto;
     }
-
     .page-header .stats strong {
       color: var(--primary);
       font-weight: 700;
     }
-
     .page-header .stats .fav-stat strong {
       color: var(--gold);
     }
-
     .page-header .btns {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
-
-    /* 头部操作区按钮统一尺寸 */
     .page-header .btns button {
       padding: 8px 18px;
       font-size: 0.85rem;
@@ -149,19 +130,16 @@
       font-family: var(--font);
       transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .btn-quarantine-custom {
       background: linear-gradient(135deg, #f5b872, #e8a05a);
       color: #fff;
       border: none;
       box-shadow: 0 6px 16px rgba(232, 160, 90, 0.25);
     }
-
     .btn-quarantine-custom:hover {
       transform: translateY(-2px);
     }
 
-    /* ========== 搜索与筛选 ========== */
     .search-row {
       display: flex;
       gap: 10px;
@@ -170,7 +148,6 @@
       margin-bottom: 16px;
       animation: fadeInUp 0.4s var(--ease-soft) 0.15s both;
     }
-
     .search-row input[type="text"] {
       flex: 1 1 200px;
       min-width: 160px;
@@ -183,18 +160,15 @@
       outline: none;
       transition: border-color 0.25s var(--ease-soft);
     }
-
     .search-row input[type="text"]:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     .filter-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
     }
-
     .filter-tabs button {
       padding: 7px 14px;
       border: 2px solid var(--border);
@@ -206,18 +180,14 @@
       cursor: pointer;
       transition: background 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .filter-tabs button:hover {
       border-color: var(--primary-light);
       color: var(--primary);
       transform: translateY(-2px);
     }
-
     .filter-tabs button:active {
       transform: scale(0.93);
-      transition: transform 0.1s var(--ease-soft);
     }
-
     .filter-tabs button.active {
       background: var(--primary);
       border-color: var(--primary);
@@ -225,29 +195,20 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
 
-    /* ============================================================
-       最新收录按钮（绿色）
-       ============================================================ */
     .btn-latest {
-      margin-left: auto;   /* 把这组筛选按钮推到右侧 */
+      margin-left: auto;
       border: 2px solid #a8d5c2;
       background: linear-gradient(135deg, rgba(110, 198, 160, 0.15), rgba(86, 176, 138, 0.12));
       color: #3d8a6b;
       box-shadow: 0 2px 8px rgba(110, 198, 160, 0.15);
     }
-
     .btn-latest:hover {
       border-color: #56b08a;
       color: #2e7355;
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(110, 198, 160, 0.3);
     }
-
-    .btn-latest:active {
-      transform: scale(0.93);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .btn-latest:active { transform: scale(0.93); }
     .btn-latest.active {
       background: linear-gradient(135deg, #6ec6a0, #56b08a);
       border-color: #56b08a;
@@ -255,28 +216,19 @@
       box-shadow: 0 6px 18px rgba(110, 198, 160, 0.5);
     }
 
-    /* ============================================================
-       热门推荐按钮（红橙色）
-       ============================================================ */
     .btn-hot {
       border: 2px solid #f5a89a;
       background: linear-gradient(135deg, rgba(245, 138, 120, 0.15), rgba(232, 100, 80, 0.12));
       color: #c04a35;
       box-shadow: 0 2px 8px rgba(245, 138, 120, 0.15);
     }
-
     .btn-hot:hover {
       border-color: #e86450;
       color: #a03220;
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
     }
-
-    .btn-hot:active {
-      transform: scale(0.93);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .btn-hot:active { transform: scale(0.93); }
     .btn-hot.active {
       background: linear-gradient(135deg, #f58a78, #e86450);
       border-color: #e86450;
@@ -284,9 +236,6 @@
       box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
     }
 
-    /* ============================================================
-       多 ID 按钮
-       ============================================================ */
     .btn-multi {
       padding: 8px 18px;
       border: 2px solid var(--primary-light);
@@ -304,19 +253,13 @@
       align-items: center;
       gap: 4px;
     }
-
     .btn-multi:hover {
       border-color: var(--primary);
       color: var(--primary-dark);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
     }
-
-    .btn-multi:active {
-      transform: scale(0.93);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .btn-multi:active { transform: scale(0.93); }
     .btn-multi.active {
       background: linear-gradient(135deg, var(--primary), var(--accent));
       border-color: var(--primary);
@@ -324,28 +267,19 @@
       box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
     }
 
-    /* ============================================================
-       收藏按钮
-       ============================================================ */
     .btn-fav-filter {
       border: 2px solid var(--gold-light);
       background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
       color: #b8894f;
       box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
     }
-
     .btn-fav-filter:hover {
       border-color: var(--gold);
       color: #a07038;
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
     }
-
-    .btn-fav-filter:active {
-      transform: scale(0.93);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .btn-fav-filter:active { transform: scale(0.93); }
     .btn-fav-filter.active {
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
       border-color: var(--gold);
@@ -353,7 +287,6 @@
       box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
     }
 
-    /* ========== 批量操作栏 ========== */
     .batch-bar {
       display: none;
       align-items: center;
@@ -367,34 +300,28 @@
       margin-bottom: 14px;
       box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
     }
-
     .batch-bar.show {
       display: flex;
       animation: popIn 0.35s var(--ease-bounce) both;
     }
-
     .batch-bar .info {
       font-size: 0.9rem;
       color: var(--text-light);
     }
-
     .batch-bar .info strong {
       color: var(--primary);
       font-weight: 700;
     }
-
     .batch-bar .actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
-
     .batch-bar .actions button {
       padding: 8px 18px;
       font-size: 0.85rem;
     }
 
-    /* ========== 歌曲列表 ========== */
     .song-group {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -406,13 +333,11 @@
       animation: groupIn 0.35s var(--ease-soft) both;
       will-change: transform;
     }
-
     .song-group:hover {
       border-color: rgba(220, 107, 130, 0.3);
       box-shadow: 0 6px 18px rgba(220, 107, 130, 0.1);
       transform: translateX(4px);
     }
-
     .group-header {
       display: flex;
       flex-wrap: wrap;
@@ -421,7 +346,6 @@
       gap: 6px 12px;
       margin-bottom: 10px;
     }
-
     .group-name {
       font-size: 1.1rem;
       font-weight: 700;
@@ -433,7 +357,6 @@
       flex-wrap: wrap;
       gap: 8px;
     }
-
     .badge-multi {
       background: var(--primary);
       color: #fff;
@@ -443,7 +366,6 @@
       border-radius: 20px;
       white-space: nowrap;
     }
-
     .badge-hot {
       background: linear-gradient(135deg, #f58a78, #e86450);
       color: #fff;
@@ -453,7 +375,6 @@
       border-radius: 20px;
       white-space: nowrap;
     }
-
     .group-category {
       font-size: 0.75rem;
       background: #fde8ef;
@@ -475,13 +396,10 @@
       margin-bottom: 4px;
       transition: background 0.2s var(--ease-soft), transform 0.25s var(--ease-soft);
     }
-
     .id-row:hover {
       background: rgba(253, 242, 245, 0.9);
       transform: translateX(3px);
     }
-
-    /* 圆形复选框 */
     .id-checkbox {
       display: none;
       width: 20px;
@@ -496,19 +414,16 @@
       position: relative;
       transition: all 0.25s var(--ease-bounce);
     }
-
     .id-checkbox:hover {
       transform: scale(1.1);
       border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
     }
-
     .id-checkbox:checked {
       background: var(--primary);
       border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
     }
-
     .id-checkbox:checked::after {
       content: '';
       position: absolute;
@@ -520,11 +435,9 @@
       border-bottom: 2px solid #fff;
       transform: translate(-50%, -60%) rotate(45deg);
     }
-
     .batch-mode .id-checkbox {
       display: inline-block;
     }
-
     .id-number {
       font-family: 'Courier New', monospace;
       font-size: 0.88rem;
@@ -534,13 +447,11 @@
       flex: 1 1 120px;
       min-width: 80px;
     }
-
     .id-actions {
       display: flex;
       gap: 6px;
       flex-shrink: 0;
     }
-
     .id-actions button {
       padding: 6px 12px;
       border: none;
@@ -553,77 +464,49 @@
       align-items: center;
       gap: 4px;
     }
-
     .id-actions .btn-fav {
       background: transparent;
       color: var(--text-muted);
       font-size: 1rem;
       padding: 4px 8px;
     }
-
     .id-actions .btn-fav:hover {
       color: var(--gold);
       background: rgba(212, 160, 106, 0.12);
     }
-
-    .id-actions .btn-fav:active {
-      transform: scale(0.85);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
-    .id-actions .btn-fav.active {
-      color: var(--gold);
-    }
-
+    .id-actions .btn-fav:active { transform: scale(0.85); }
+    .id-actions .btn-fav.active { color: var(--gold); }
     .id-actions .btn-copy {
       background: var(--primary);
       color: #fff;
     }
-
     .id-actions .btn-copy:hover {
       background: var(--primary-dark);
       transform: scale(1.06) rotate(-2deg);
     }
-
-    .id-actions .btn-copy:active {
-      transform: scale(0.9);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
-    .id-actions .btn-copy.copied {
-      background: var(--success);
-    }
-
+    .id-actions .btn-copy:active { transform: scale(0.9); }
+    .id-actions .btn-copy.copied { background: var(--success); }
     .id-actions .btn-play {
       background: var(--success);
       color: #fff;
     }
-
     .id-actions .btn-play:hover {
       background: var(--success-dark);
       transform: scale(1.06) rotate(2deg);
     }
-
-    .id-actions .btn-play:active {
-      transform: scale(0.9);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .id-actions .btn-play:active { transform: scale(0.9); }
     .id-actions .btn-quarantine {
       background: transparent;
       color: var(--text-muted);
       font-size: 1rem;
       padding: 4px 8px;
     }
-
     .id-actions .btn-quarantine:hover {
       color: var(--danger);
       background: rgba(232, 116, 122, 0.12);
     }
-
     .id-actions .btn-quarantine:active {
       transform: scale(0.85) rotate(-10deg);
-      transition: transform 0.1s var(--ease-soft);
     }
 
     .empty-state {
@@ -634,19 +517,16 @@
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
 
-    /* ========== 加载更多 ========== */
     .load-more-wrap {
       text-align: center;
       padding: 20px 0 40px;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
-
     .load-more-wrap .info {
       color: var(--text-muted);
       font-size: 0.85rem;
       margin-bottom: 12px;
     }
-
     .load-more-wrap .btn-more {
       padding: 10px 32px;
       background: var(--primary);
@@ -659,29 +539,22 @@
       font-family: var(--font);
       transition: transform 0.25s var(--ease-bounce), background 0.25s var(--ease-soft);
     }
-
     .load-more-wrap .btn-more:hover {
       background: var(--primary-dark);
       transform: translateY(-2px) scale(1.03);
     }
-
-    .load-more-wrap .btn-more:active {
-      transform: scale(0.95);
-    }
-
+    .load-more-wrap .btn-more:active { transform: scale(0.95); }
     .load-more-wrap .btn-more:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
     }
 
-    /* ========== 风险告知弹窗 ========== */
     #riskModal .modal-content {
       max-width: 700px;
       border: 1px solid var(--border);
       padding: 24px 28px 16px;
     }
-
     #riskModal .modal-content h2 {
       font-size: 1.3rem;
       font-weight: 700;
@@ -691,7 +564,6 @@
       align-items: center;
       gap: 8px;
     }
-
     #riskModal .sub-warning {
       display: inline-block;
       font-size: 0.78rem;
@@ -703,7 +575,6 @@
       border: 1px solid var(--danger-light);
       margin-bottom: 10px;
     }
-
     #riskModal .redirect-notice {
       background: #fdf0ed;
       border-left: 4px solid var(--danger);
@@ -714,7 +585,6 @@
       color: var(--danger);
       border-radius: 0 6px 6px 0;
     }
-
     #riskModal .risk-body {
       max-height: 48vh;
       overflow-y: auto;
@@ -726,7 +596,6 @@
       word-break: break-word;
       margin-bottom: 12px;
     }
-
     #riskModal .risk-body .section-title {
       display: block;
       font-weight: 700;
@@ -735,11 +604,9 @@
       margin-bottom: 2px;
       font-size: 0.88rem;
     }
-
     #riskModal .risk-body .section-title:first-of-type {
       margin-top: 0;
     }
-
     #riskModal .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -747,7 +614,6 @@
       padding-top: 12px;
       border-top: 1px solid var(--border);
     }
-
     #riskModal .btn-confirm {
       background: var(--danger);
       color: #fff;
@@ -755,23 +621,16 @@
       pointer-events: none;
       transition: opacity 0.3s var(--ease-soft), background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     #riskModal .btn-confirm.active {
       opacity: 1;
       pointer-events: auto;
     }
-
     #riskModal .btn-confirm:hover.active {
       background: #a93226;
       transform: translateY(-2px);
     }
-
-    #riskModal .risk-body::-webkit-scrollbar {
-      width: 6px;
-    }
-    #riskModal .risk-body::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    #riskModal .risk-body::-webkit-scrollbar { width: 6px; }
+    #riskModal .risk-body::-webkit-scrollbar-track { background: transparent; }
     #riskModal .risk-body::-webkit-scrollbar-thumb {
       background: rgba(220, 107, 130, 0.25);
       border-radius: 10px;
@@ -781,11 +640,7 @@
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
-    /* ========== 二次确认弹窗 ========== */
-    #riskConfirmModal .modal-content {
-      max-width: 620px;
-    }
-
+    #riskConfirmModal .modal-content { max-width: 620px; }
     #riskConfirmModal .risk-body {
       font-size: 0.88rem;
       line-height: 1.9;
@@ -794,7 +649,6 @@
       word-break: break-word;
       margin-bottom: 14px;
     }
-
     #riskConfirmModal .section-title {
       display: block;
       font-weight: 700;
@@ -803,16 +657,11 @@
       margin-bottom: 2px;
       font-size: 0.9rem;
     }
-
     #riskConfirmModal .section-title:first-of-type {
       margin-top: 0;
     }
 
-    /* ========== 隔离区弹窗 ========== */
-    #quarantineModal .modal-content {
-      max-width: 800px;
-    }
-
+    #quarantineModal .modal-content { max-width: 800px; }
     #quarantineModal .search-inline {
       width: 100%;
       padding: 10px 16px;
@@ -825,19 +674,16 @@
       margin-bottom: 12px;
       transition: border-color 0.25s var(--ease-soft);
     }
-
     #quarantineModal .search-inline:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     #quarantineList {
       max-height: 50vh;
       overflow-y: auto;
       margin-bottom: 12px;
       padding-right: 4px;
     }
-
     .quarantine-item {
       display: flex;
       flex-wrap: wrap;
@@ -847,11 +693,9 @@
       padding: 10px 14px;
       border-bottom: 1px solid var(--border);
     }
-
     .quarantine-item:last-child {
       border-bottom: none;
     }
-
     .quarantine-item .info {
       display: flex;
       flex-wrap: wrap;
@@ -859,23 +703,19 @@
       align-items: center;
       flex: 1 1 200px;
     }
-
     .quarantine-item .name {
       font-weight: 600;
       color: var(--text);
     }
-
     .quarantine-item .q-id {
       color: var(--primary-dark);
       font-family: monospace;
       font-size: 0.88rem;
     }
-
     .quarantine-item .time {
       color: var(--text-muted);
       font-size: 0.75rem;
     }
-
     .quarantine-item .q-actions button {
       padding: 5px 14px;
       border: none;
@@ -887,17 +727,13 @@
       cursor: pointer;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .quarantine-item .q-actions button:hover {
       background: var(--success-dark);
       transform: scale(1.06);
     }
-
     .quarantine-item .q-actions button:active {
       transform: scale(0.9);
-      transition: transform 0.1s var(--ease-soft);
     }
-
     .quarantine-footer {
       display: flex;
       flex-wrap: wrap;
@@ -906,24 +742,20 @@
       padding-top: 12px;
       border-top: 1px solid var(--border);
     }
-
     .quarantine-footer button {
       padding: 8px 18px;
       font-size: 0.85rem;
     }
 
-    /* ========== 鸣谢弹窗 ========== */
     #thanksModal .modal-content {
       max-width: 600px;
       background: var(--gold-bg);
       border: 1px solid var(--gold-light);
     }
-
     #thanksModal h2 {
       color: var(--gold);
       text-align: center;
     }
-
     #thanksModal .subtitle {
       text-align: center;
       color: var(--gold);
@@ -932,8 +764,6 @@
       margin-bottom: 16px;
       opacity: 0.85;
     }
-
-    /* 开发者信息行（位于副标题下方） */
     #thanksModal .thanks-dev-line {
       text-align: center;
       color: var(--text-light);
@@ -941,17 +771,12 @@
       margin: -8px 0 14px 0;
       opacity: 0.85;
     }
-
     #thanksList {
       max-height: 50vh;
       overflow-y: auto;
       margin-bottom: 12px;
     }
-
-    .thanks-cat {
-      margin-bottom: 14px;
-    }
-
+    .thanks-cat { margin-bottom: 14px; }
     .thanks-cat .cat-title {
       font-weight: 700;
       color: #7a4a5a;
@@ -960,7 +785,6 @@
       padding-bottom: 4px;
       margin-bottom: 6px;
     }
-
     .thanks-person {
       padding: 4px 0;
       font-size: 0.9rem;
@@ -970,72 +794,171 @@
       gap: 4px 8px;
       align-items: baseline;
     }
-
     .thanks-person .p-name {
       font-weight: 600;
       color: #d4884a;
     }
-
     .thanks-person .p-platform {
       color: var(--text-muted);
       font-size: 0.82rem;
     }
-
     .thanks-person .p-message {
       color: var(--text-light);
       font-size: 0.85rem;
     }
 
-    /* ========== 滚动条美化 ========== */
+    /* 访问渠道弹窗 */
+    #visitSourceModal .modal-content {
+      max-width: 480px;
+    }
+    #visitSourceModal h2 {
+      color: var(--primary);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    #visitSourceModal .visit-desc {
+      color: var(--text-light);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .visit-source-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .visit-source-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 18px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fdf8fa;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.25s var(--ease-soft);
+    }
+    .visit-source-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.12);
+    }
+    .visit-source-btn:active {
+      transform: scale(0.97);
+    }
+    .visit-source-btn .src-count {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .visit-source-btn:hover .src-count {
+      color: var(--primary);
+      background: #fde8ef;
+    }
+    .visit-other-input {
+      margin-top: 12px;
+      padding: 14px;
+      background: #fdf8fa;
+      border: 2px dashed var(--primary-light);
+      border-radius: var(--radius-sm);
+      animation: fadeInUp 0.25s var(--ease-soft) both;
+    }
+    .visit-other-input input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color 0.25s var(--ease-soft);
+    }
+    .visit-other-input input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .visit-other-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .visit-other-actions button {
+      padding: 7px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      border: none;
+      transition: all 0.25s var(--ease-soft);
+    }
+    .visit-other-actions .btn-cancel-other {
+      background: var(--border);
+      color: var(--text);
+    }
+    .visit-other-actions .btn-cancel-other:hover {
+      background: #e6c9cf;
+    }
+    .visit-other-actions .btn-confirm-other {
+      background: var(--primary);
+      color: #fff;
+    }
+    .visit-other-actions .btn-confirm-other:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
     #thanksList::-webkit-scrollbar,
-    #quarantineList::-webkit-scrollbar {
-      width: 6px;
-    }
-
+    #quarantineList::-webkit-scrollbar { width: 6px; }
     #thanksList::-webkit-scrollbar-track,
-    #quarantineList::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
+    #quarantineList::-webkit-scrollbar-track { background: transparent; }
     #thanksList::-webkit-scrollbar-thumb,
     #quarantineList::-webkit-scrollbar-thumb {
       background: rgba(220, 107, 130, 0.25);
       border-radius: 10px;
     }
-
     #thanksList::-webkit-scrollbar-thumb:hover,
     #quarantineList::-webkit-scrollbar-thumb:hover {
       background: rgba(220, 107, 130, 0.45);
     }
-
     #thanksList,
     #quarantineList {
       scrollbar-width: thin;
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
-    /* ========== 动画 ========== */
     @keyframes cardRise {
       0% { opacity: 0; transform: translateY(20px) scale(0.96); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     @keyframes popIn {
       0% { opacity: 0; transform: scale(0.5); }
       70% { transform: scale(1.08); }
       100% { opacity: 1; transform: scale(1); }
     }
-
     @keyframes groupIn {
       0% { opacity: 0; transform: translateY(8px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-
     @media (prefers-reduced-motion: reduce) {
       * {
         animation-duration: 0.01ms !important;
@@ -1044,7 +967,6 @@
       }
     }
 
-    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .container { padding: 16px 12px 40px; }
       .page-header { padding: 16px 18px; }
@@ -1066,7 +988,6 @@
       #riskModal .modal-content { padding: 18px 16px 12px; }
       #riskModal .risk-body { font-size: 0.78rem; max-height: 45vh; }
     }
-
     @media (max-width: 480px) {
       .page-header { padding: 14px 14px; }
       .page-header h1 { font-size: 1.1rem; }
@@ -1079,7 +1000,6 @@
 <body>
 
   <div class="container">
-
     <header class="page-header">
       <div class="page-header-top">
         <h1>🎵 Roblox ID 宝库</h1>
@@ -1219,6 +1139,49 @@
     </div>
   </div>
 
+  <!-- 访问渠道弹窗 -->
+  <div class="modal" id="visitSourceModal">
+    <div class="modal-content">
+      <h2>👋 你是怎么找到这里的？</h2>
+      <p class="visit-desc">帮我们了解一下推广渠道，谢谢你的支持 ❤️</p>
+
+      <div class="visit-source-list">
+        <button class="visit-source-btn" data-source="哔哩哔哩">
+          <span>📺 哔哩哔哩</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="抖音">
+          <span>🎵 抖音</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="快手">
+          <span>⚡ 快手</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="小红书">
+          <span>📕 小红书</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="__other__" id="visitSourceOther">
+          <span>💡 其它</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="我不想回答这个问题">
+          <span>🤐 我不想回答这个问题</span>
+          <span class="src-count">--</span>
+        </button>
+      </div>
+
+      <div class="visit-other-input" id="visitOtherInput" style="display:none;">
+        <input type="text" id="visitOtherText" placeholder="请输入平台名字（最多 20 字）" maxlength="20">
+        <div class="visit-other-actions">
+          <button type="button" class="btn-cancel-other" id="visitOtherCancel">返回</button>
+          <button type="button" class="btn-confirm-other" id="visitOtherConfirm">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/common.js"></script>
   <script>
     /* ========== 全局状态 ========== */
@@ -1239,9 +1202,43 @@
 
     let serverRiskVersion = null;
 
-    /* 上报限流：同一 ID + 类型，5 秒内只上报一次 */
-    const reportCooldown = new Map();
-    const REPORT_COOLDOWN_MS = 5000;
+    /* 热门计数：每个 ID 只上报一次（localStorage 持久保存） */
+    let countedIds = new Set();
+    let countedIdsLoaded = false;
+
+    function loadCountedIds() {
+      if (countedIdsLoaded) return;
+      try {
+        const raw = localStorage.getItem('hot_counted_ids');
+        const arr = raw ? JSON.parse(raw) : [];
+        countedIds = new Set(Array.isArray(arr) ? arr.map(String) : []);
+      } catch (e) {
+        countedIds = new Set();
+      }
+      countedIdsLoaded = true;
+    }
+
+    function saveCountedIds() {
+      try {
+        localStorage.setItem('hot_counted_ids', JSON.stringify([...countedIds]));
+      } catch (e) {}
+    }
+
+    function reportHot(id, type) {
+      loadCountedIds();
+      id = String(id);
+      if (countedIds.has(id)) return false;
+      countedIds.add(id);
+      saveCountedIds();
+
+      fetch('/api/hot/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type })
+      }).catch(() => {});
+
+      return true;
+    }
 
     const PAGE_SIZE = 100;
     let currentGroups = [];
@@ -1351,22 +1348,6 @@
       }
     }
 
-    /* ========== 热门统计上报（带 5 秒限流） ========== */
-    function reportHot(id, type) {
-      const key = id + '|' + type;
-      const now = Date.now();
-      const last = reportCooldown.get(key) || 0;
-      if (now - last < REPORT_COOLDOWN_MS) return;
-      reportCooldown.set(key, now);
-
-      fetch('/api/hot/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: String(id), type })
-      }).catch(() => {});
-    }
-
-    /* ========== 加载热门列表 ========== */
     async function loadHotList() {
       try {
         const res = await fetch('/api/hot/list?t=' + Date.now());
@@ -1382,7 +1363,6 @@
       }
     }
 
-    /* ========== 数据加载：合并 JSON + D1 ========== */
     async function loadData() {
       try {
         const [mainRes, qRes, extraRes] = await Promise.all([
@@ -1472,7 +1452,6 @@
         dom.filterTabs.appendChild(btn);
       });
 
-      /* 分类按钮：点击时若收藏/最新/热门亮着，先取消它们，再切换分类 */
       dom.filterTabs.querySelectorAll('button').forEach(btn => {
         btn.onclick = () => {
           if (showFavOnly) {
@@ -1673,10 +1652,10 @@
             const id = btn.dataset.id;
             const ok = await copyText(id);
             if (ok) {
-              reportHot(id, 'copy');
-              const oldTotal = hotMap.get(String(id)) || 0;
-              hotMap.set(String(id), oldTotal + 1);
-
+              if (reportHot(id, 'copy')) {
+                const oldTotal = hotMap.get(String(id)) || 0;
+                hotMap.set(String(id), oldTotal + 1);
+              }
               btn.textContent = '✅ 已复制';
               btn.classList.add('copied');
               setTimeout(() => {
@@ -1706,22 +1685,19 @@
       dom.selectedCount.textContent = selectedIds.size;
     }
 
-    /* ========== 收藏切换（新增收藏时上报热门 +1） ========== */
     function toggleFavorite(id, btn) {
       if (favorites.has(id)) {
-        /* 取消收藏：不上报（避免反复点击刷热度） */
         favorites.delete(id);
         btn.classList.remove('active');
         btn.textContent = '☆';
       } else {
-        /* 新收藏：上报 +1，本地热度同步 +1 */
         favorites.add(id);
         btn.classList.add('active');
         btn.textContent = '⭐';
-
-        reportHot(id, 'fav');
-        const oldTotal = hotMap.get(String(id)) || 0;
-        hotMap.set(String(id), oldTotal + 1);
+        if (reportHot(id, 'fav')) {
+          const oldTotal = hotMap.get(String(id)) || 0;
+          hotMap.set(String(id), oldTotal + 1);
+        }
       }
       saveFavorites();
       dom.statFavs.textContent = favorites.size;
@@ -1732,9 +1708,10 @@
     }
 
     function previewId(id) {
-      reportHot(id, 'play');
-      const oldTotal = hotMap.get(String(id)) || 0;
-      hotMap.set(String(id), oldTotal + 1);
+      if (reportHot(id, 'play')) {
+        const oldTotal = hotMap.get(String(id)) || 0;
+        hotMap.set(String(id), oldTotal + 1);
+      }
 
       pendingRedirectId = id;
 
@@ -1806,7 +1783,6 @@
       if (serverRiskVersion) {
         localStorage.setItem('riskAckVersion', serverRiskVersion);
       }
-
       const id = pendingRedirectId;
       pendingRedirectId = null;
       if (!id) return;
@@ -1830,7 +1806,6 @@
         document.body.appendChild(el);
       }
       el.classList.add('show');
-
       let remaining = seconds;
       const update = () => {
         if (remaining > 0) {
@@ -1848,15 +1823,12 @@
     async function quarantineSingle(name, id) {
       const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
       if (!ok) return;
-
       const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
       if (idx === -1) return;
-
       const item = songDatabase[idx];
       songDatabase.splice(idx, 1);
       quarantineGuest.push({ ...item, quarantinedAt: nowStr() });
       saveQuarantine();
-
       showToast('⛔ 已移入隔离区');
       renderAll();
     }
@@ -1868,11 +1840,9 @@
       }
       const ok = await showConfirm('批量隔离', `确定将选中的 ${selectedIds.size} 个 ID 移入你的隔离区吗？`);
       if (!ok) return;
-
       const timeStr = nowStr();
       const toRemove = [];
       const remaining = [];
-
       songDatabase.forEach(item => {
         if (selectedIds.has(item.id)) {
           toRemove.push({ ...item, quarantinedAt: timeStr });
@@ -1880,14 +1850,12 @@
           remaining.push(item);
         }
       });
-
       quarantineGuest.push(...toRemove);
       songDatabase = remaining;
       saveQuarantine();
       selectedIds.clear();
       updateSelectedCount();
       toggleBatchMode(false);
-
       showToast(`⛔ 已隔离 ${toRemove.length} 个 ID`);
       renderAll();
     }
@@ -1964,18 +1932,14 @@
     async function restoreFromQuarantine(id) {
       const idx = quarantineGuest.findIndex(i => i.id === id);
       if (idx === -1) return;
-
       const item = quarantineGuest[idx];
       const ok = await showConfirm('恢复 ID', `确定将 ID ${id}（${item.name}）从隔离区恢复吗？`);
       if (!ok) return;
-
       quarantineGuest.splice(idx, 1);
       saveQuarantine();
-
       if (!songDatabase.some(i => i.id === item.id)) {
         songDatabase.push(item);
       }
-
       showToast('✅ 已恢复');
       renderAll();
       renderQuarantineList();
@@ -1986,14 +1950,12 @@
         showToast('隔离区是空的');
         return;
       }
-
       const count = quarantineGuest.length;
       const ok = await showConfirm(
         '全部恢复',
         `确定将隔离区中的全部 ${count} 个 ID 恢复到主列表吗？\n\n恢复后，这些 ID 会重新出现在列表中。`
       );
       if (!ok) return;
-
       const existing = new Set(songDatabase.map(i => i.id));
       let added = 0;
       quarantineGuest.forEach(item => {
@@ -2008,11 +1970,9 @@
           added++;
         }
       });
-
       const restoredCount = quarantineGuest.length;
       quarantineGuest = [];
       saveQuarantine();
-
       showToast(`🔄 已恢复 ${added} 个 ID（跳过 ${restoredCount - added} 个已存在的）`);
       renderAll();
       renderQuarantineList();
@@ -2027,7 +1987,6 @@
           dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
           return;
         }
-
         let html = '';
         data.forEach(cat => {
           if (!cat.people || cat.people.length === 0) return;
@@ -2054,6 +2013,7 @@
 
       loadQuarantine();
       loadFavorites();
+      loadCountedIds();
 
       await Promise.all([
         loadData(),
@@ -2071,7 +2031,6 @@
         renderList();
       }, 250));
 
-      /* 多 ID 按钮：点击时若收藏/最新/热门亮着，先取消它们 */
       dom.multiToggleBtn.onclick = () => {
         if (showFavOnly) {
           showFavOnly = false;
@@ -2090,7 +2049,6 @@
         renderList();
       };
 
-      /* 收藏按钮：独占型 */
       dom.favFilterBtn.onclick = () => {
         const willActivate = !showFavOnly;
         if (willActivate) {
@@ -2105,7 +2063,6 @@
         }
         showFavOnly = willActivate;
         dom.favFilterBtn.classList.toggle('active', showFavOnly);
-
         if (!showFavOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
@@ -2113,7 +2070,6 @@
         renderList();
       };
 
-      /* 最新收录按钮：独占型 */
       dom.latestToggleBtn.onclick = () => {
         const willActivate = !showLatestOnly;
         if (willActivate) {
@@ -2128,7 +2084,6 @@
         }
         showLatestOnly = willActivate;
         dom.latestToggleBtn.classList.toggle('active', showLatestOnly);
-
         if (!showLatestOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
@@ -2136,12 +2091,10 @@
         renderList();
       };
 
-      /* 热门推荐按钮：独占型；每次激活前刷新热门列表 */
       dom.hotToggleBtn.onclick = async () => {
         const willActivate = !showHotOnly;
         if (willActivate) {
           await loadHotList();
-
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           dom.multiToggleBtn.classList.remove('active');
           dom.favFilterBtn.classList.remove('active');
@@ -2153,7 +2106,6 @@
         }
         showHotOnly = willActivate;
         dom.hotToggleBtn.classList.toggle('active', showHotOnly);
-
         if (!showHotOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
@@ -2186,5 +2138,120 @@
       dom.closeThanksBtn.onclick = () => closeModal('thanksModal');
     });
   </script>
+
+  <!-- 访问渠道弹窗（独立逻辑） -->
+  <script>
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'visitSourceDone';
+    const MODAL_ID = 'visitSourceModal';
+
+    if (localStorage.getItem(STORAGE_KEY)) return;
+
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+
+    const otherInput = document.getElementById('visitOtherInput');
+    const otherText = document.getElementById('visitOtherText');
+    const sourceList = modal.querySelector('.visit-source-list');
+
+    function showModal() {
+      openModal(MODAL_ID);
+      loadSourceCounts();
+    }
+
+    async function loadSourceCounts() {
+      try {
+        const res = await fetch('/api/visit/stats?t=' + Date.now());
+        const data = await res.json();
+        if (!data.ok || !Array.isArray(data.data)) return;
+
+        const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书', '我不想回答这个问题'];
+        const counts = {};
+        PRESET.forEach(p => counts[p] = 0);
+        let otherTotal = 0;
+
+        data.data.forEach(item => {
+          if (PRESET.includes(item.source)) {
+            counts[item.source] = item.count;
+          } else {
+            otherTotal += item.count;
+          }
+        });
+        counts['__other__'] = otherTotal;
+
+        modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+          const src = btn.dataset.source;
+          const el = btn.querySelector('.src-count');
+          if (el && counts[src] !== undefined) {
+            el.textContent = counts[src] + ' 人';
+          }
+        });
+      } catch (e) {}
+    }
+
+    function submitSource(source) {
+      localStorage.setItem(STORAGE_KEY, '1');
+      closeModal(MODAL_ID);
+
+      fetch('/api/visit/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source })
+      }).catch(() => {});
+    }
+
+    modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const src = btn.dataset.source;
+        if (src === '__other__') {
+          sourceList.style.display = 'none';
+          otherInput.style.display = 'block';
+          setTimeout(() => otherText.focus(), 80);
+          return;
+        }
+        submitSource(src);
+      });
+    });
+
+    document.getElementById('visitOtherConfirm').addEventListener('click', () => {
+      const val = otherText.value.trim();
+      if (!val) {
+        otherText.focus();
+        return;
+      }
+      submitSource(val.slice(0, 20));
+    });
+
+    document.getElementById('visitOtherCancel').addEventListener('click', () => {
+      otherInput.style.display = 'none';
+      otherText.value = '';
+      sourceList.style.display = 'flex';
+    });
+
+    otherText.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('visitOtherConfirm').click();
+      }
+    });
+
+    /* 弹窗显示逻辑：等页面稳定后弹出 */
+    let attempts = 0;
+    const tryShow = () => {
+      attempts++;
+      if (attempts > 30) return;
+      if (document.querySelector('.modal.show')) {
+        setTimeout(tryShow, 1000);
+        return;
+      }
+      showModal();
+    };
+
+    setTimeout(tryShow, 1500);
+  })();
+  </script>
+
 </body>
 </html>

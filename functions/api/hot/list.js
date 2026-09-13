@@ -28,7 +28,7 @@ export async function onRequestGet(context) {
       id: r.music_id,
       copy: r.copy_count || 0,
       play: r.play_count || 0,
-      fav:  r.fav_count  || 0,
+      fav: r.fav_count || 0,
       total: r.total || 0
     }));
 

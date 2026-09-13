@@ -4,932 +4,484 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>后台管理 - 织雾满穗</title>
-
   <link rel="stylesheet" href="css/style.css">
-
   <style>
-    /* ========== 后台主容器 ========== */
-    .admin-container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
-
-    /* ========== 顶部工具条 ========== */
+    .admin-container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
     .admin-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
+    .admin-topbar h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+    .admin-topbar .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .admin-topbar h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .admin-topbar .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* ========== 一级标签页 ========== */
     .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
       animation: fadeInUp 0.4s var(--ease-soft) 0.08s both;
     }
-
     .tab {
-      padding: 10px 22px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-pill);
-      background: var(--bg-card);
-      color: var(--text-light);
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
+      padding: 10px 22px; border: 2px solid var(--border);
+      border-radius: var(--radius-pill); background: var(--bg-card);
+      color: var(--text-light); font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce), border-color 0.25s var(--ease-soft);
     }
-
-    .tab:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
-      transform: translateY(-2px);
-    }
-
-    .tab:active {
-      transform: scale(0.95);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-2px); }
+    .tab:active { transform: scale(0.95); }
     .tab.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
+      background: var(--primary); border-color: var(--primary); color: #fff;
       box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
     }
 
-    /* ========== 二级 / 三级标签页 ========== */
     .subtabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      padding: 6px;
-      background: rgba(220, 107, 130, 0.06);
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+      padding: 6px; background: rgba(220, 107, 130, 0.06);
       border-radius: var(--radius-pill);
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
-
     .subtab {
-      padding: 9px 20px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: transparent;
-      color: var(--text-light);
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
+      padding: 9px 20px; border: none; border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-light);
+      font-size: 0.88rem; font-weight: 600; cursor: pointer;
       font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
-    .subtab:hover {
-      color: var(--primary);
-      background: rgba(220, 107, 130, 0.1);
-    }
-
-    .subtab:active {
-      transform: scale(0.95);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .subtab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
+    .subtab:active { transform: scale(0.95); }
     .subtab.active {
-      background: var(--primary);
-      color: #fff;
+      background: var(--primary); color: #fff;
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
-    /* 下划线风格（需要时用） */
     .subtabs-lv3 {
-      background: transparent;
-      padding: 0;
-      margin-top: 4px;
-      margin-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-      border-radius: 0;
-      gap: 4px;
+      background: transparent; padding: 0; margin-top: 4px;
+      margin-bottom: 18px; border-bottom: 1px solid var(--border);
+      border-radius: 0; gap: 4px;
     }
-
     .subtabs-lv3 .subtab {
-      border-radius: 8px 8px 0 0;
-      padding: 9px 18px;
-      font-size: 0.86rem;
-      position: relative;
+      border-radius: 8px 8px 0 0; padding: 9px 18px;
+      font-size: 0.86rem; position: relative;
     }
-
     .subtabs-lv3 .subtab.active {
-      background: transparent;
-      color: var(--primary);
-      box-shadow: none;
+      background: transparent; color: var(--primary); box-shadow: none;
     }
-
     .subtabs-lv3 .subtab.active::after {
-      content: '';
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: -1px;
-      height: 3px;
-      background: var(--primary);
-      border-radius: 3px;
+      content: ''; position: absolute; left: 12px; right: 12px;
+      bottom: -1px; height: 3px; background: var(--primary); border-radius: 3px;
     }
 
-    /* ========== 面板 ========== */
     .panel { display: none; }
-    .panel.active {
-      display: block;
-      animation: fadeInUp 0.4s var(--ease-soft) both;
-    }
-
+    .panel.active { display: block; animation: fadeInUp 0.4s var(--ease-soft) both; }
     .subpanel { display: none; }
-    .subpanel.active {
-      display: block;
-      animation: fadeInUp 0.35s var(--ease-soft) both;
-    }
+    .subpanel.active { display: block; animation: fadeInUp 0.35s var(--ease-soft) both; }
 
     .panel-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 24px;
-      margin-bottom: 20px;
+      background: var(--bg-card); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px;
     }
-
     .panel-card h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
+      font-size: 1.2rem; font-weight: 700; color: var(--primary);
+      margin-bottom: 16px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 10px;
     }
-
     .panel-card h2 .count {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: var(--bg);
-      padding: 3px 12px;
-      border-radius: 20px;
+      font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
+      background: var(--bg); padding: 3px 12px; border-radius: 20px;
     }
+    .panel-card h2 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .panel-card h2 .head-actions button { font-size: 0.85rem; padding: 6px 16px; }
 
-    .panel-card h2 .head-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .panel-card h2 .head-actions button {
-      font-size: 0.85rem;
-      padding: 6px 16px;
-    }
-
-    /* ========== 列表项 ========== */
     .list-item {
-      padding: 16px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      margin-bottom: 10px;
+      padding: 16px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); margin-bottom: 10px;
       background: #fdf8fa;
       transition: border-color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
-    .list-item:hover {
-      border-color: var(--primary-light);
-      transform: translateY(-2px);
-    }
-
+    .list-item:hover { border-color: var(--primary-light); transform: translateY(-2px); }
     .list-item .row1 {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 6px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 6px;
     }
-
-    .list-item .name {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 1rem;
-    }
-
+    .list-item .name { font-weight: 700; color: var(--text); font-size: 1rem; }
     .list-item .type-tag {
-      font-size: 0.75rem;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: #fde8ef;
-      color: var(--primary);
-      font-weight: 600;
+      font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
+      background: #fde8ef; color: var(--primary); font-weight: 600;
     }
-
-    .list-item .type-tag.gold {
-      background: var(--gold-bg);
-      color: var(--gold);
-    }
-
-    .list-item .type-tag.blue {
-      background: #e6f0ff;
-      color: #4a7fdd;
-    }
-
-    .list-item .meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
+    .list-item .type-tag.gold { background: var(--gold-bg); color: var(--gold); }
+    .list-item .type-tag.blue { background: #e6f0ff; color: #4a7fdd; }
+    .list-item .meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
     .list-item .message {
-      color: var(--text-light);
-      font-size: 0.92rem;
-      line-height: 1.7;
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 10px;
+      color: var(--text-light); font-size: 0.92rem; line-height: 1.7;
+      white-space: pre-wrap; word-break: break-word; margin-bottom: 10px;
     }
-
-    .list-item .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
+    .list-item .actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .list-item .actions button {
-      padding: 6px 16px;
-      font-size: 0.85rem;
-      border: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      font-weight: 600;
+      padding: 6px 16px; font-size: 0.85rem; border: none;
+      border-radius: var(--radius-pill); cursor: pointer; font-weight: 600;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
+    .list-item .actions .btn-approve { background: var(--gold); color: #fff; }
+    .list-item .actions .btn-approve:hover { background: #b8894f; transform: translateY(-2px); }
+    .list-item .actions .btn-delete { background: var(--danger); color: #fff; }
+    .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-expand { background: var(--primary); color: #fff; }
+    .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .list-item .actions button:active { transform: scale(0.92); }
 
-    .list-item .actions .btn-approve {
-      background: var(--gold);
-      color: #fff;
-    }
-    .list-item .actions .btn-approve:hover {
-      background: #b8894f;
-      transform: translateY(-2px);
-    }
-
-    .list-item .actions .btn-delete {
-      background: var(--danger);
-      color: #fff;
-    }
-    .list-item .actions .btn-delete:hover {
-      background: #a93226;
-      transform: translateY(-2px);
-    }
-
-    .list-item .actions .btn-expand {
-      background: var(--primary);
-      color: #fff;
-    }
-    .list-item .actions .btn-expand:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-    }
-
-    .list-item .actions button:active {
-      transform: scale(0.92);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
-    /* ========== 反馈隔离区展开 ========== */
     .fb-quarantine {
-      display: none;
-      margin-top: 12px;
-      padding: 12px 14px;
-      background: #fff;
-      border: 1px solid var(--border);
+      display: none; margin-top: 12px; padding: 12px 14px;
+      background: #fff; border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       animation: fadeInUp 0.3s var(--ease-soft) both;
     }
-
     .fb-quarantine.show { display: block; }
-
     .fb-quarantine .q-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 10px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
     }
-
-    .fb-quarantine .q-head .q-info {
-      font-size: 0.85rem;
-      color: var(--text-light);
-    }
-
-    .fb-quarantine .q-head .q-info strong {
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .fb-quarantine .q-head .q-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
+    .fb-quarantine .q-head .q-info { font-size: 0.85rem; color: var(--text-light); }
+    .fb-quarantine .q-head .q-info strong { color: var(--primary); font-weight: 700; }
+    .fb-quarantine .q-head .q-actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .fb-quarantine .q-head .q-actions button {
-      padding: 5px 12px;
-      font-size: 0.78rem;
-      border: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      font-weight: 600;
+      padding: 5px 12px; font-size: 0.78rem; border: none;
+      border-radius: var(--radius-pill); cursor: pointer; font-weight: 600;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
-    .fb-quarantine .q-head .q-actions .btn-sel-all {
-      background: var(--primary-light);
-      color: #fff;
-    }
+    .fb-quarantine .q-head .q-actions .btn-sel-all { background: var(--primary-light); color: #fff; }
     .fb-quarantine .q-head .q-actions .btn-sel-all:hover { background: var(--primary); }
-
-    .fb-quarantine .q-head .q-actions .btn-sel-none {
-      background: var(--border);
-      color: var(--text);
-    }
+    .fb-quarantine .q-head .q-actions .btn-sel-none { background: var(--border); color: var(--text); }
     .fb-quarantine .q-head .q-actions .btn-sel-none:hover { background: #e6c9cf; }
-
-    .fb-quarantine .q-head .q-actions .btn-import-sel {
-      background: var(--success);
-      color: #fff;
-    }
+    .fb-quarantine .q-head .q-actions .btn-import-sel { background: var(--success); color: #fff; }
     .fb-quarantine .q-head .q-actions .btn-import-sel:hover {
-      background: var(--success-dark);
-      transform: translateY(-1px);
+      background: var(--success-dark); transform: translateY(-1px);
     }
-
-    .fb-quarantine .q-head .q-actions .btn-import-sel:active {
-      transform: scale(0.92);
-    }
-
-    .fb-quarantine .q-list {
-      max-height: 320px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
+    .fb-quarantine .q-list { max-height: 320px; overflow-y: auto; padding-right: 4px; }
 
     .fb-q-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
       transition: background 0.2s var(--ease-soft);
-      font-size: 0.88rem;
-      cursor: pointer;
+      font-size: 0.88rem; cursor: pointer;
     }
-
     .fb-q-item:hover { background: rgba(220, 107, 130, 0.05); }
-
     .fb-q-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      appearance: none;
-      -webkit-appearance: none;
-      border: 2px solid var(--primary-light);
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      flex-shrink: 0;
-      position: relative;
+      width: 20px; height: 20px; appearance: none; -webkit-appearance: none;
+      border: 2px solid var(--primary-light); border-radius: 50%;
+      background: #fff; cursor: pointer; flex-shrink: 0; position: relative;
       transition: all 0.25s var(--ease-bounce);
     }
-
     .fb-q-item input[type="checkbox"]:hover {
-      transform: scale(1.1);
-      border-color: var(--primary);
+      transform: scale(1.1); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
     }
-
     .fb-q-item input[type="checkbox"]:checked {
-      background: var(--primary);
-      border-color: var(--primary);
+      background: var(--primary); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
     }
-
     .fb-q-item input[type="checkbox"]:checked::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 5px;
-      height: 10px;
-      border-right: 2px solid #fff;
+      content: ''; position: absolute; left: 50%; top: 50%;
+      width: 5px; height: 10px; border-right: 2px solid #fff;
       border-bottom: 2px solid #fff;
       transform: translate(-50%, -60%) rotate(45deg);
     }
-
-    .fb-q-item .q-name {
-      font-weight: 600;
-      color: var(--text);
-      flex: 1 1 auto;
-      min-width: 100px;
-      word-break: break-word;
-    }
-
-    .fb-q-item .q-id {
-      font-family: monospace;
-      color: var(--primary-dark);
-      font-size: 0.82rem;
-      flex-shrink: 0;
-    }
-
+    .fb-q-item .q-name { font-weight: 600; color: var(--text); flex: 1 1 auto; min-width: 100px; word-break: break-word; }
+    .fb-q-item .q-id { font-family: monospace; color: var(--primary-dark); font-size: 0.82rem; flex-shrink: 0; }
     .fb-q-item .q-cat {
-      font-size: 0.72rem;
-      background: #fde8ef;
-      color: var(--primary);
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      flex-shrink: 0;
+      font-size: 0.72rem; background: #fde8ef; color: var(--primary);
+      padding: 2px 10px; border-radius: 20px; font-weight: 600; flex-shrink: 0;
     }
 
-    /* ========== 统计卡片 ========== */
     .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px; margin-bottom: 20px;
     }
-
     .stat-card {
       background: linear-gradient(135deg, #fde8ef, #f8d0db);
-      border-radius: var(--radius-sm);
-      padding: 18px;
-      text-align: center;
+      border-radius: var(--radius-sm); padding: 18px; text-align: center;
       transition: transform 0.35s var(--ease-bounce);
     }
-
     .stat-card:hover { transform: translateY(-4px) rotate(-1deg); }
+    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1.2; }
+    .stat-card .label { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
 
-    .stat-card .num {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--primary);
-      line-height: 1.2;
-    }
+    .loading { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; }
 
-    .stat-card .label {
-      font-size: 0.8rem;
-      color: var(--text-light);
-      margin-top: 4px;
-    }
-
-    /* ========== 加载/空状态 ========== */
-    .loading {
-      text-align: center;
-      padding: 30px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    /* ========== 版本管理卡片 ========== */
     .update-edit-item {
-      padding: 18px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: #fdf8fa;
-      transition: border-color 0.3s var(--ease-soft);
-      margin: 0;
+      padding: 18px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); background: #fdf8fa;
+      transition: border-color 0.3s var(--ease-soft); margin: 0;
     }
-
     .update-edit-item:hover { border-color: var(--primary-light); }
-
     .update-edit-item .head {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
+      display: flex; justify-content: flex-end; align-items: center;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
     }
-
     .update-edit-item .head .version-tag {
-      font-size: 0.75rem;
-      padding: 3px 12px;
-      border-radius: 20px;
-      background: #fde8ef;
-      color: var(--primary);
-      font-weight: 600;
+      font-size: 0.75rem; padding: 3px 12px; border-radius: 20px;
+      background: #fde8ef; color: var(--primary); font-weight: 600;
     }
-
-    .update-edit-item .head .date-info {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .update-edit-item .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 10px;
-    }
-
-    .update-edit-item .field label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-light);
-    }
-
+    .update-edit-item .head .date-info { font-size: 0.8rem; color: var(--text-muted); }
+    .update-edit-item .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .update-edit-item .field label { font-size: 0.8rem; font-weight: 600; color: var(--text-light); }
     .update-edit-item .field input,
     .update-edit-item .field textarea {
-      padding: 9px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-family: var(--font);
-      font-size: 0.9rem;
-      background: #fff;
-      color: var(--text);
-      outline: none;
+      padding: 9px 14px; border: 2px solid var(--border);
+      border-radius: 10px; font-family: var(--font); font-size: 0.9rem;
+      background: #fff; color: var(--text); outline: none;
       transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
     }
-
     .update-edit-item .field input:focus,
     .update-edit-item .field textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
-    /* 更新内容 textarea：禁用拖拽调整大小，去掉右下角斜纹手柄；加大高度 */
     .update-edit-item .field textarea {
-      resize: none;
-      min-height: 240px;
-      line-height: 1.8;
-      font-size: 0.92rem;
+      resize: none; min-height: 240px; line-height: 1.8; font-size: 0.92rem;
     }
-
     .update-edit-item .actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-      flex-wrap: wrap;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 8px; margin-top: 6px; flex-wrap: wrap;
     }
-
     .update-edit-item .actions .btn-save {
-      background: var(--primary);
-      color: #fff;
-      padding: 8px 22px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
+      background: var(--primary); color: #fff; padding: 8px 22px;
+      font-size: 0.88rem; font-weight: 600; border: none;
+      border-radius: var(--radius-pill); cursor: pointer;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .update-edit-item .actions .btn-save:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
+      background: var(--primary-dark); transform: translateY(-2px);
     }
-
     .update-edit-item .actions .btn-save:active { transform: scale(0.93); }
-
     .update-edit-item .actions .btn-reset-risk {
-      background: var(--danger);
-      color: #fff;
-      padding: 8px 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      margin-right: auto;
+      background: var(--danger); color: #fff; padding: 8px 20px;
+      font-size: 0.85rem; font-weight: 600; border: none;
+      border-radius: var(--radius-pill); cursor: pointer; margin-right: auto;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .update-edit-item .actions .btn-reset-risk:hover {
-      background: #a93226;
-      transform: translateY(-2px);
+      background: #a93226; transform: translateY(-2px);
     }
-
     .update-edit-item .actions .btn-reset-risk:active { transform: scale(0.93); }
 
-    /* ========== 歌曲管理 ========== */
     .song-add-form {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      padding: 14px;
-      background: #fdf8fa;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+      padding: 14px; background: #fdf8fa;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
     }
-
     .song-add-form input {
-      padding: 9px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-family: var(--font);
-      font-size: 0.9rem;
-      background: #fff;
-      color: var(--text);
-      outline: none;
+      padding: 9px 14px; border: 2px solid var(--border);
+      border-radius: 10px; font-family: var(--font); font-size: 0.9rem;
+      background: #fff; color: var(--text); outline: none;
       transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
     }
-
     .song-add-form input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     .song-add-form input.song-id { flex: 1 1 200px; font-family: monospace; }
     .song-add-form input.song-name { flex: 2 1 200px; }
     .song-add-form input.song-cat { flex: 1 1 140px; }
-
     .song-add-form .btn-add-song {
-      padding: 9px 22px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-pill);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
+      padding: 9px 22px; background: var(--primary); color: #fff;
+      border: none; border-radius: var(--radius-pill);
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-
     .song-add-form .btn-add-song:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
+      background: var(--primary-dark); transform: translateY(-2px);
     }
-
     .song-add-form .btn-add-song:active { transform: scale(0.93); }
 
-    /* ========== 批量导入弹窗 ========== */
-    #batchImportModal .modal-content {
-      max-width: 720px;
-    }
-
+    #batchImportModal .modal-content { max-width: 720px; }
     #batchImportModal .import-hint {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      line-height: 1.75;
-      margin-bottom: 12px;
-      background: rgba(220, 107, 130, 0.05);
+      font-size: 0.82rem; color: var(--text-muted); line-height: 1.75;
+      margin-bottom: 12px; background: rgba(220, 107, 130, 0.05);
       border-left: 3px solid var(--primary-light);
-      padding: 10px 14px;
-      border-radius: 0 8px 8px 0;
+      padding: 10px 14px; border-radius: 0 8px 8px 0;
     }
-
     #batchImportModal .import-hint code {
-      background: #fde8ef;
-      color: var(--primary-dark);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 0.8rem;
+      background: #fde8ef; color: var(--primary-dark);
+      padding: 1px 6px; border-radius: 4px; font-size: 0.8rem;
       font-family: 'Courier New', monospace;
     }
-
     #batchImportModal textarea {
-      width: 100%;
-      min-height: 260px;
-      padding: 14px 18px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-family: 'Courier New', monospace;
-      background: #fdf8fa;
-      color: var(--text);
-      outline: none;
-      margin-bottom: 12px;
-      resize: vertical;
-      line-height: 1.7;
+      width: 100%; min-height: 260px; padding: 14px 18px;
+      border: 2px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.85rem; font-family: 'Courier New', monospace;
+      background: #fdf8fa; color: var(--text); outline: none;
+      margin-bottom: 12px; resize: vertical; line-height: 1.7;
       transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
     }
-
     #batchImportModal textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     #batchImportModal .import-status {
-      font-size: 0.85rem;
-      margin-bottom: 10px;
-      min-height: 20px;
-      color: var(--text-light);
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: 'Courier New', monospace;
-      line-height: 1.6;
+      font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
+      color: var(--text-light); white-space: pre-wrap; word-break: break-word;
+      font-family: 'Courier New', monospace; line-height: 1.6;
     }
+    #batchImportModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
+    #batchImportModal .import-status.err { color: var(--danger); font-weight: 600; }
 
-    #batchImportModal .import-status.ok {
-      color: var(--success-dark);
-      font-weight: 600;
-    }
-
-    #batchImportModal .import-status.err {
-      color: var(--danger);
-      font-weight: 600;
-    }
-
-    /* ========== 导入隔离区弹窗 ========== */
     #importQuarantineModal .modal-content { max-width: 680px; }
-
     #importQuarantineModal textarea {
-      width: 100%;
-      min-height: 260px;
-      padding: 14px 18px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-family: 'Courier New', monospace;
-      background: #fdf8fa;
-      color: var(--text);
-      outline: none;
-      margin-bottom: 12px;
-      resize: vertical;
-      line-height: 1.6;
+      width: 100%; min-height: 260px; padding: 14px 18px;
+      border: 2px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.85rem; font-family: 'Courier New', monospace;
+      background: #fdf8fa; color: var(--text); outline: none;
+      margin-bottom: 12px; resize: vertical; line-height: 1.6;
       transition: border-color 0.25s var(--ease-soft);
     }
-
     #importQuarantineModal textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     #importQuarantineModal .import-status {
-      font-size: 0.85rem;
-      margin-bottom: 10px;
-      min-height: 20px;
-      color: var(--text-light);
+      font-size: 0.85rem; margin-bottom: 10px;
+      min-height: 20px; color: var(--text-light);
     }
+    #importQuarantineModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
+    #importQuarantineModal .import-status.err { color: var(--danger); font-weight: 600; }
 
-    #importQuarantineModal .import-status.ok {
-      color: var(--success-dark);
-      font-weight: 600;
-    }
-
-    #importQuarantineModal .import-status.err {
-      color: var(--danger);
-      font-weight: 600;
-    }
-
-    /* ========== 添加鸣谢弹窗 ========== */
     #addThanksModal .modal-content { max-width: 520px; }
 
-    /* ========== 自定义下拉选择器 ========== */
-    .select-wrapper {
-      position: relative;
-      margin-top: 4px;
-    }
-
+    .select-wrapper { position: relative; margin-top: 4px; }
     .select-trigger {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: #fdf8fa;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      font-family: var(--font);
-      font-weight: 500;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      width: 100%; padding: 12px 16px; border: 2px solid var(--border);
+      border-radius: var(--radius-sm); background: #fdf8fa;
+      color: var(--text-muted); font-size: 0.95rem;
+      font-family: var(--font); font-weight: 500;
+      text-align: left; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
       transition: border-color 0.3s var(--ease-soft), background 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
     }
-
     .select-trigger.selected { color: var(--text); }
-
-    .select-trigger:hover {
-      border-color: var(--primary-light);
-      transform: translateY(-1px);
-    }
-
-    .select-trigger:active {
-      transform: scale(0.97);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .select-trigger:hover { border-color: var(--primary-light); transform: translateY(-1px); }
+    .select-trigger:active { transform: scale(0.97); }
     .select-trigger.open {
-      border-color: var(--primary);
-      background: #fff;
+      border-color: var(--primary); background: #fff;
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-
     .select-trigger .arrow {
-      color: var(--primary);
-      font-size: 0.9rem;
+      color: var(--primary); font-size: 0.9rem;
       transition: transform 0.35s var(--ease-bounce);
     }
-
     .select-trigger.open .arrow { transform: rotate(180deg); }
-
     .select-dropdown {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      right: 0;
-      background: #fff;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-hover);
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: #fff; border: 2px solid var(--border);
+      border-radius: var(--radius-sm); box-shadow: var(--shadow-hover);
+      overflow: hidden; max-height: 0; opacity: 0;
       pointer-events: none;
       transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 20;
     }
-
-    .select-dropdown.open {
-      max-height: 300px;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
+    .select-dropdown.open { max-height: 300px; opacity: 1; pointer-events: auto; }
     .select-option {
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      color: var(--text);
+      padding: 12px 16px; font-size: 0.95rem; color: var(--text);
       cursor: pointer;
       transition: background 0.2s var(--ease-soft), padding-left 0.25s var(--ease-bounce), transform 0.15s var(--ease-soft);
     }
-
-    .select-option:hover {
-      background: rgba(220, 107, 130, 0.08);
-      padding-left: 24px;
-    }
-
+    .select-option:hover { background: rgba(220, 107, 130, 0.08); padding-left: 24px; }
     .select-option:active { transform: scale(0.97); }
-
     .select-option.active {
-      background: rgba(220, 107, 130, 0.12);
-      color: var(--primary);
-      font-weight: 600;
+      background: rgba(220, 107, 130, 0.12); color: var(--primary); font-weight: 600;
     }
-
     .select-option.active::after {
-      content: '✓';
-      float: right;
-      color: var(--primary);
-      font-weight: 700;
+      content: '✓'; float: right; color: var(--primary); font-weight: 700;
     }
 
-    /* 滚动条美化 */
+    .visit-stats-total {
+      font-size: 1rem; color: var(--text-light);
+      margin-bottom: 18px; text-align: center;
+    }
+    .visit-stats-total strong {
+      color: var(--primary); font-size: 1.3rem; font-weight: 800;
+    }
+    .visit-stats-list {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .visit-stat-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 80px;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fdf8fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: border-color 0.25s var(--ease-soft);
+    }
+    .visit-stat-row:hover { border-color: var(--primary-light); }
+    .visit-stat-row .vs-name {
+      font-size: 0.9rem; font-weight: 600; color: var(--text);
+    }
+    .visit-stat-row .vs-bar-wrap {
+      height: 10px; background: #fde8ef;
+      border-radius: 10px; overflow: hidden;
+    }
+    .visit-stat-row .vs-bar {
+      height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 10px; min-width: 4px;
+      transition: width 0.5s var(--ease-soft);
+    }
+    .visit-stat-row .vs-bar.vs-bar-other {
+      background: linear-gradient(90deg, #f5a89a, #e86450);
+    }
+    .visit-stat-row .vs-bar.vs-bar-skip {
+      background: linear-gradient(90deg, #b5a1a8, #8c7a82);
+    }
+    .visit-stat-row .vs-count {
+      font-size: 0.85rem; font-weight: 700; color: var(--primary);
+      text-align: right;
+    }
+    .visit-stat-others {
+      margin: 4px 0 4px 20px;
+      padding: 10px 14px;
+      background: #fff5f0;
+      border-left: 3px solid #f5a89a;
+      border-radius: 0 8px 8px 0;
+    }
+    .visit-stat-other-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      border-bottom: 1px dashed var(--border);
+    }
+    .visit-stat-other-item:last-child { border-bottom: none; }
+    .visit-stat-other-item .vso-name { font-weight: 600; color: var(--text); }
+    .visit-stat-other-item .vso-count { color: #c04a35; font-weight: 700; }
+
+    @media (max-width: 600px) {
+      .visit-stat-row {
+        grid-template-columns: 110px 1fr 60px;
+        gap: 8px;
+      }
+      .visit-stat-row .vs-name { font-size: 0.82rem; }
+      .visit-stat-row .vs-count { font-size: 0.78rem; }
+    }
+
     .fb-quarantine .q-list::-webkit-scrollbar { width: 6px; }
     .fb-quarantine .q-list::-webkit-scrollbar-track { background: transparent; }
     .fb-quarantine .q-list::-webkit-scrollbar-thumb {
-      background: rgba(220, 107, 130, 0.25);
-      border-radius: 10px;
+      background: rgba(220, 107, 130, 0.25); border-radius: 10px;
     }
     .fb-quarantine .q-list {
       scrollbar-width: thin;
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
-    /* ========== 动画 ========== */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .admin-container { padding: 16px 12px 40px; }
       .admin-topbar h1 { font-size: 1.3rem; }
@@ -948,7 +500,6 @@
 </head>
 <body>
 
-  <!-- ==================== 导航栏 ==================== -->
   <nav class="navbar">
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
@@ -956,7 +507,6 @@
     </ul>
   </nav>
 
-  <!-- ==================== 后台主容器 ==================== -->
   <div class="admin-container">
 
     <div class="admin-topbar">
@@ -967,14 +517,12 @@
       </div>
     </div>
 
-    <!-- ========== 一级标签 ========== -->
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 版本管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
     </div>
 
-    <!-- ==================== 反馈管理 ==================== -->
     <div class="panel active" id="panel-feedback">
       <div class="panel-card">
         <h2>
@@ -987,67 +535,51 @@
       </div>
     </div>
 
-    <!-- ==================== 版本管理 ==================== -->
     <div class="panel" id="panel-updates">
-
-      <!-- 二级标签：选择页面 -->
       <div class="subtabs" data-tabs-group="updates">
         <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
         <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
         <button class="subtab" data-subpanel="updates-card">🎮 卡片</button>
       </div>
 
-      <!-- 主页 -->
       <div class="subpanel active" id="updates-index">
         <div class="panel-card">
           <div id="updatesListIndex"><div class="loading">加载中...</div></div>
         </div>
       </div>
 
-      <!-- 反馈 -->
       <div class="subpanel" id="updates-feedback">
         <div class="panel-card">
           <div id="updatesListFeedback"><div class="loading">加载中...</div></div>
         </div>
       </div>
 
-      <!-- 卡片（三级分类） -->
       <div class="subpanel" id="updates-card">
-
-        <!-- 三级标签：选择具体卡片 -->
         <div class="subtabs" data-tabs-group="updates-cards">
           <button class="subtab active" data-subpanel="updates-card1">🎵 卡片1 · Roblox ID 宝库</button>
         </div>
-
         <div class="subpanel active" id="updates-card1">
           <div class="panel-card">
             <div id="updatesListCard1"><div class="loading">加载中...</div></div>
           </div>
         </div>
-
       </div>
-
     </div>
 
-    <!-- ==================== 卡片管理 ==================== -->
     <div class="panel" id="panel-cards">
 
-      <!-- 二级标签：卡片选择 -->
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 卡片1 · Roblox ID 宝库</button>
+        <button class="subtab" data-subpanel="visit-panel">📊 访问渠道</button>
       </div>
 
-      <!-- ========== 卡片1 ========== -->
       <div class="subpanel active" id="card1-panel">
-
-        <!-- 三级标签 -->
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
           <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
           <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
         </div>
 
-        <!-- 卡片1 · 歌曲管理 -->
         <div class="subpanel active" id="card1-songs">
           <div class="panel-card">
             <h2>📊 数据统计</h2>
@@ -1092,7 +624,6 @@
           </div>
         </div>
 
-        <!-- 卡片1 · 开发者隔离区 -->
         <div class="subpanel" id="card1-quarantine">
           <div class="panel-card">
             <h2>
@@ -1108,7 +639,6 @@
           </div>
         </div>
 
-        <!-- 卡片1 · 鸣谢管理 -->
         <div class="subpanel" id="card1-thanks">
           <div class="panel-card">
             <h2>
@@ -1123,7 +653,18 @@
             </div>
           </div>
         </div>
+      </div>
 
+      <div class="subpanel" id="visit-panel">
+        <div class="panel-card">
+          <h2>📊 访问渠道统计</h2>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+            统计游客是从哪个渠道来到宝库页的。数据实时累计，不需要手动刷新。
+          </p>
+          <div id="visitStatsList">
+            <div class="loading">加载中...</div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1134,7 +675,6 @@
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- ==================== 批量导入弹窗 ==================== -->
   <div class="modal" id="batchImportModal">
     <div class="modal-content">
       <h2>📥 批量导入歌曲</h2>
@@ -1161,7 +701,6 @@ See You Again 2456502348
     </div>
   </div>
 
-  <!-- ==================== 导入隔离区弹窗 ==================== -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
       <h2>📥 导入隔离区</h2>
@@ -1178,7 +717,6 @@ See You Again 2456502348
     </div>
   </div>
 
-  <!-- ==================== 添加鸣谢弹窗 ==================== -->
   <div class="modal" id="addThanksModal">
     <div class="modal-content">
       <h2>➕ 添加鸣谢</h2>
@@ -1219,13 +757,8 @@ See You Again 2456502348
   <script src="js/auth.js"></script>
   <script src="js/admin.js"></script>
 
-  <!-- ============================================================
-       内联脚本：二级/三级标签切换 + 批量导入
-       ============================================================ -->
   <script>
-  /* =========================================================
-     一、二级 / 三级标签切换
-     ========================================================= */
+  /* 二级 / 三级标签切换 */
   (function () {
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
       var buttons = group.querySelectorAll('.subtab');
@@ -1246,14 +779,17 @@ See You Again 2456502348
             p.classList.remove('active');
           });
           target.classList.add('active');
+
+          /* 切到访问渠道时加载数据 */
+          if (targetId === 'visit-panel' && typeof window.loadVisitStats === 'function') {
+            window.loadVisitStats();
+          }
         });
       });
     });
   })();
 
-  /* =========================================================
-     二、批量导入歌曲（智能分类）
-     ========================================================= */
+  /* 批量导入歌曲 */
   (function () {
     'use strict';
 
