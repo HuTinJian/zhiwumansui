@@ -903,6 +903,15 @@
       opacity: 0.85;
     }
 
+    /* 开发者信息行（位于副标题下方） */
+    #thanksModal .thanks-dev-line {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.82rem;
+      margin: -8px 0 14px 0;
+      opacity: 0.85;
+    }
+
     #thanksList {
       max-height: 50vh;
       overflow-y: auto;
@@ -1170,6 +1179,7 @@
     <div class="modal-content">
       <h2>❤️ 鸣谢名单</h2>
       <div class="subtitle">“因为你们，这个项目才更美好。”</div>
+      <div class="thanks-dev-line">👑 开发者 · Roblox：@HuTinJian</div>
       <div id="thanksList"></div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="closeThanksBtn">关闭</button>
@@ -1966,7 +1976,6 @@
       dom.favFilterBtn.onclick = () => {
         const willActivate = !showFavOnly;
         if (willActivate) {
-          /* 清空所有其它高亮 */
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           dom.multiToggleBtn.classList.remove('active');
           dom.latestToggleBtn.classList.remove('active');
@@ -1977,7 +1986,6 @@
         showFavOnly = willActivate;
         dom.favFilterBtn.classList.toggle('active', showFavOnly);
 
-        /* 取消收藏后，让"全部"重新亮起 */
         if (!showFavOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
