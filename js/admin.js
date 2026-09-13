@@ -130,7 +130,6 @@ async function loadFeedback() {
     const res = await fetch('/api/feedback/list', { credentials: 'include' });
     const data = await res.json();
 
-    /* 接口直接返回数组 */
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
       countEl.textContent = '0';
@@ -359,11 +358,9 @@ async function deleteFeedback(id) {
    ============================================================ */
 async function loadRobloxStats() {
   try {
-    /* 主数据（JSON） */
     const res1 = await fetch('data/roblox_music.json?t=' + Date.now());
     const musicData = await res1.json();
 
-    /* D1 新歌 */
     let extraCount = 0;
     try {
       const extraRes = await fetch('/api/songs/list?t=' + Date.now());
@@ -378,7 +375,6 @@ async function loadRobloxStats() {
     document.getElementById('statTotal').textContent = total;
     document.getElementById('statGroup').textContent = uniqueNames.size;
 
-    /* 隔离区 */
     const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
     const qData = await res2.json();
 
@@ -718,7 +714,6 @@ async function loadThanks() {
     const res = await fetch('/api/thanks?t=' + Date.now());
     const data = await res.json();
 
-    /* 接口直接返回数组（已按类别分组） */
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
       countEl.textContent = '0';
@@ -870,9 +865,9 @@ async function loadUpdates() {
 
       const isRoblox = item.page_key === 'roblox';
 
+      /* 无 page-name，页面名由二级标签显示 */
       el.innerHTML = `
         <div class="head">
-          <span class="page-name">${escapeHtml(getPageName(item.page_key))}</span>
           <span class="version-tag">${escapeHtml(item.version)}</span>
           <span class="date-info">📅 ${escapeHtml(item.date)}</span>
         </div>
@@ -911,14 +906,6 @@ async function loadUpdates() {
       if (el) el.innerHTML = '<div class="empty-state">加载失败</div>';
     });
   }
-}
-
-/* 页面 key → 显示名 */
-function getPageName(key) {
-  if (key === 'index') return '🏠 主页';
-  if (key === 'feedback') return '💬 反馈页';
-  if (key === 'roblox') return '🎵 卡片1';
-  return key;
 }
 
 /* 保存某个页面的版本信息 */

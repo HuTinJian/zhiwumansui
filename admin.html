@@ -119,7 +119,7 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
-    /* 三级标签：下划线风格 */
+    /* 下划线风格（三级标签或需要下划线时用） */
     .subtabs-lv3 {
       background: transparent;
       padding: 0;
@@ -205,40 +205,6 @@
     .panel-card h2 .head-actions button {
       font-size: 0.85rem;
       padding: 6px 16px;
-    }
-
-    /* ========== 版本管理分组 ========== */
-    .version-group {
-      margin-bottom: 26px;
-    }
-
-    .version-group:last-child {
-      margin-bottom: 0;
-    }
-
-    .version-group-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 12px;
-      padding-left: 12px;
-      border-left: 4px solid var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .version-group-title.small {
-      font-size: 0.92rem;
-      border-left-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .version-group-sub {
-      margin-left: 14px;
-      padding-left: 16px;
-      border-left: 2px dashed var(--border);
-      margin-top: 8px;
     }
 
     /* ========== 列表项 ========== */
@@ -561,26 +527,20 @@
       padding: 18px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      margin-bottom: 14px;
       background: #fdf8fa;
       transition: border-color 0.3s var(--ease-soft);
+      margin: 0;
     }
 
     .update-edit-item:hover { border-color: var(--primary-light); }
 
     .update-edit-item .head {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .update-edit-item .head .page-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text);
+      margin-bottom: 14px;
     }
 
     .update-edit-item .head .version-tag {
@@ -629,11 +589,12 @@
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
 
-    /* 更新内容 textarea：禁用拖拽调整大小，去掉右下角斜纹手柄 */
+    /* 更新内容 textarea：禁用拖拽调整大小，去掉右下角斜纹手柄；加大高度 */
     .update-edit-item .field textarea {
       resize: none;
-      min-height: 100px;
-      line-height: 1.6;
+      min-height: 240px;
+      line-height: 1.8;
+      font-size: 0.92rem;
     }
 
     .update-edit-item .actions {
@@ -1030,35 +991,30 @@
     <div class="panel" id="panel-updates">
       <div class="panel-card">
         <h2>📝 版本管理</h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:18px;">
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
           修改版本号后，用户下次打开该页面会看到更新弹窗。日期会自动设为今天。
         </p>
 
+        <!-- 二级标签：选择页面 -->
+        <div class="subtabs subtabs-lv3" data-tabs-group="updates">
+          <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
+          <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
+          <button class="subtab" data-subpanel="updates-card1">🎮 卡片1</button>
+        </div>
+
         <!-- 主页 -->
-        <div class="version-group">
-          <div class="version-group-title">🏠 主页</div>
-          <div id="updatesListIndex">
-            <div class="loading">加载中...</div>
-          </div>
+        <div class="subpanel active" id="updates-index">
+          <div id="updatesListIndex"><div class="loading">加载中...</div></div>
         </div>
 
         <!-- 反馈 -->
-        <div class="version-group">
-          <div class="version-group-title">💬 反馈</div>
-          <div id="updatesListFeedback">
-            <div class="loading">加载中...</div>
-          </div>
+        <div class="subpanel" id="updates-feedback">
+          <div id="updatesListFeedback"><div class="loading">加载中...</div></div>
         </div>
 
-        <!-- 卡片 -->
-        <div class="version-group">
-          <div class="version-group-title">🎵 卡片</div>
-          <div class="version-group-sub">
-            <div class="version-group-title small">🎮 卡片1 · Roblox ID 宝库</div>
-            <div id="updatesListCard1">
-              <div class="loading">加载中...</div>
-            </div>
-          </div>
+        <!-- 卡片1 -->
+        <div class="subpanel" id="updates-card1">
+          <div id="updatesListCard1"><div class="loading">加载中...</div></div>
         </div>
       </div>
     </div>
@@ -1375,7 +1331,7 @@ See You Again 2456502348
       return result;
     }
 
-    /* ---------- 添加单首歌到 D1（字段名与后端 add.js 一致） ---------- */
+    /* ---------- 添加单首歌到 D1 ---------- */
     async function addSongToD1(song) {
       if (typeof window.addSongToServer === 'function') {
         try {
