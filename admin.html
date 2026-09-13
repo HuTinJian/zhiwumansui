@@ -119,12 +119,12 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
-    /* 三级：下划线风格（用于"卡片名"这一层） */
+    /* 下划线风格（需要时用） */
     .subtabs-lv3 {
       background: transparent;
       padding: 0;
       margin-top: 4px;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
       border-bottom: 1px solid var(--border);
       border-radius: 0;
       gap: 4px;
@@ -152,38 +152,6 @@
       height: 3px;
       background: var(--primary);
       border-radius: 3px;
-    }
-
-    /* 四级：浅色描边 pill（用于"功能"这一层） */
-    .subtabs-pill-light {
-      background: transparent;
-      padding: 0;
-      margin-top: 2px;
-      margin-bottom: 16px;
-      gap: 6px;
-    }
-
-    .subtabs-pill-light .subtab {
-      padding: 7px 16px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-pill);
-      background: var(--bg-card);
-      color: var(--text-light);
-    }
-
-    .subtabs-pill-light .subtab:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
-      background: rgba(220, 107, 130, 0.04);
-    }
-
-    .subtabs-pill-light .subtab.active {
-      background: #fde8ef;
-      color: var(--primary);
-      border-color: var(--primary-light);
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.15);
     }
 
     /* ========== 面板 ========== */
@@ -1003,7 +971,7 @@
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 版本管理</button>
-      <button class="tab" data-panel="panel-cards">🎵 卡片管理</button>
+      <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
     </div>
 
     <!-- ==================== 反馈管理 ==================== -->
@@ -1026,7 +994,7 @@
       <div class="subtabs" data-tabs-group="updates">
         <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
         <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
-        <button class="subtab" data-subpanel="updates-card1">🎮 卡片1</button>
+        <button class="subtab" data-subpanel="updates-card">🎮 卡片</button>
       </div>
 
       <!-- 主页 -->
@@ -1043,11 +1011,20 @@
         </div>
       </div>
 
-      <!-- 卡片1 -->
-      <div class="subpanel" id="updates-card1">
-        <div class="panel-card">
-          <div id="updatesListCard1"><div class="loading">加载中...</div></div>
+      <!-- 卡片（三级分类） -->
+      <div class="subpanel" id="updates-card">
+
+        <!-- 三级标签：选择具体卡片 -->
+        <div class="subtabs" data-tabs-group="updates-cards">
+          <button class="subtab active" data-subpanel="updates-card1">🎵 卡片1 · Roblox ID 宝库</button>
         </div>
+
+        <div class="subpanel active" id="updates-card1">
+          <div class="panel-card">
+            <div id="updatesListCard1"><div class="loading">加载中...</div></div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -1055,106 +1032,96 @@
     <!-- ==================== 卡片管理 ==================== -->
     <div class="panel" id="panel-cards">
 
-      <!-- 二级标签：卡片分类 -->
-      <div class="subtabs" data-tabs-group="card-categories">
-        <button class="subtab active" data-subpanel="card-cat-game">🎮 卡片</button>
+      <!-- 二级标签：卡片选择 -->
+      <div class="subtabs" data-tabs-group="cards">
+        <button class="subtab active" data-subpanel="card1-panel">🎵 卡片1 · Roblox ID 宝库</button>
       </div>
 
-      <!-- 🎮 卡片分类 -->
-      <div class="subpanel active" id="card-cat-game">
+      <!-- ========== 卡片1 ========== -->
+      <div class="subpanel active" id="card1-panel">
 
-        <!-- 三级标签：具体卡片 -->
-        <div class="subtabs subtabs-lv3" data-tabs-group="cards">
-          <button class="subtab active" data-subpanel="card1-panel">🎵 卡片1 · Roblox ID 宝库</button>
+        <!-- 三级标签 -->
+        <div class="subtabs subtabs-lv3" data-tabs-group="card1">
+          <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
+          <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
+          <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
         </div>
 
-        <!-- 🎵 卡片1 -->
-        <div class="subpanel active" id="card1-panel">
-
-          <!-- 四级标签：功能 -->
-          <div class="subtabs subtabs-pill-light" data-tabs-group="card1">
-            <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
-            <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
-            <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
-          </div>
-
-          <!-- 卡片1 · 歌曲管理 -->
-          <div class="subpanel active" id="card1-songs">
-            <div class="panel-card">
-              <h2>📊 数据统计</h2>
-              <div class="stat-grid">
-                <div class="stat-card">
-                  <div class="num" id="statTotal">-</div>
-                  <div class="label">总 ID 数</div>
-                </div>
-                <div class="stat-card">
-                  <div class="num" id="statGroup">-</div>
-                  <div class="label">歌曲组数</div>
-                </div>
-                <div class="stat-card">
-                  <div class="num" id="statQuarantine">-</div>
-                  <div class="label">开发者隔离区</div>
-                </div>
+        <!-- 卡片1 · 歌曲管理 -->
+        <div class="subpanel active" id="card1-songs">
+          <div class="panel-card">
+            <h2>📊 数据统计</h2>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="num" id="statTotal">-</div>
+                <div class="label">总 ID 数</div>
               </div>
-            </div>
-
-            <div class="panel-card">
-              <h2>
-                🎶 D1 歌曲管理
-                <span class="count" id="songCount">0</span>
-                <div class="head-actions">
-                  <button class="btn btn-primary" id="openBatchImportBtn">📥 批量导入</button>
-                  <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
-                  <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
-                </div>
-              </h2>
-              <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-                在此添加的歌曲会存到 D1，宝库页会自动加载并合并显示。当攒够后，点"📤 导出"下载 JSON，再用合并工具整合到主数据中。
-              </p>
-              <div class="song-add-form">
-                <input type="text" class="song-id" id="addSongId" placeholder="歌曲 ID（数字）" maxlength="30">
-                <input type="text" class="song-name" id="addSongName" placeholder="歌曲名称" maxlength="100">
-                <input type="text" class="song-cat" id="addSongCat" placeholder="分类（选填）" maxlength="30">
-                <button class="btn-add-song" id="addSongBtn">➕ 添加</button>
+              <div class="stat-card">
+                <div class="num" id="statGroup">-</div>
+                <div class="label">歌曲组数</div>
               </div>
-              <div id="songList">
-                <div class="loading">加载中...</div>
+              <div class="stat-card">
+                <div class="num" id="statQuarantine">-</div>
+                <div class="label">开发者隔离区</div>
               </div>
             </div>
           </div>
 
-          <!-- 卡片1 · 开发者隔离区 -->
-          <div class="subpanel" id="card1-quarantine">
-            <div class="panel-card">
-              <h2>
-                ⛔ 开发者隔离区
-                <span class="count" id="quarantineCount">0</span>
-                <div class="head-actions">
-                  <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入隔离区</button>
-                </div>
-              </h2>
-              <div id="quarantineList">
-                <div class="loading">加载中...</div>
+          <div class="panel-card">
+            <h2>
+              🎶 D1 歌曲管理
+              <span class="count" id="songCount">0</span>
+              <div class="head-actions">
+                <button class="btn btn-primary" id="openBatchImportBtn">📥 批量导入</button>
+                <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
+                <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
               </div>
+            </h2>
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+              在此添加的歌曲会存到 D1，宝库页会自动加载并合并显示。当攒够后，点"📤 导出"下载 JSON，再用合并工具整合到主数据中。
+            </p>
+            <div class="song-add-form">
+              <input type="text" class="song-id" id="addSongId" placeholder="歌曲 ID（数字）" maxlength="30">
+              <input type="text" class="song-name" id="addSongName" placeholder="歌曲名称" maxlength="100">
+              <input type="text" class="song-cat" id="addSongCat" placeholder="分类（选填）" maxlength="30">
+              <button class="btn-add-song" id="addSongBtn">➕ 添加</button>
+            </div>
+            <div id="songList">
+              <div class="loading">加载中...</div>
             </div>
           </div>
+        </div>
 
-          <!-- 卡片1 · 鸣谢管理 -->
-          <div class="subpanel" id="card1-thanks">
-            <div class="panel-card">
-              <h2>
-                ❤️ 鸣谢名单
-                <span class="count" id="thanksCount">0</span>
-                <div class="head-actions">
-                  <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
-                </div>
-              </h2>
-              <div id="thanksList">
-                <div class="loading">加载中...</div>
+        <!-- 卡片1 · 开发者隔离区 -->
+        <div class="subpanel" id="card1-quarantine">
+          <div class="panel-card">
+            <h2>
+              ⛔ 开发者隔离区
+              <span class="count" id="quarantineCount">0</span>
+              <div class="head-actions">
+                <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入隔离区</button>
               </div>
+            </h2>
+            <div id="quarantineList">
+              <div class="loading">加载中...</div>
             </div>
           </div>
+        </div>
 
+        <!-- 卡片1 · 鸣谢管理 -->
+        <div class="subpanel" id="card1-thanks">
+          <div class="panel-card">
+            <h2>
+              ❤️ 鸣谢名单
+              <span class="count" id="thanksCount">0</span>
+              <div class="head-actions">
+                <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
+              </div>
+            </h2>
+            <div id="thanksList">
+              <div class="loading">加载中...</div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1253,11 +1220,11 @@ See You Again 2456502348
   <script src="js/admin.js"></script>
 
   <!-- ============================================================
-       内联脚本：多级标签切换 + 批量导入
+       内联脚本：二级/三级标签切换 + 批量导入
        ============================================================ -->
   <script>
   /* =========================================================
-     一、多级标签切换（递归处理 [data-tabs-group]）
+     一、二级 / 三级标签切换
      ========================================================= */
   (function () {
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
@@ -1274,7 +1241,6 @@ See You Again 2456502348
           var target = document.getElementById(targetId);
           if (!target) return;
 
-          /* 只切换直接子级 subpanel，不影响更深层 */
           var parent = target.parentElement;
           parent.querySelectorAll(':scope > .subpanel').forEach(function (p) {
             p.classList.remove('active');
