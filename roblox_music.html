@@ -905,6 +905,8 @@
       color: var(--primary);
       background: #fde8ef;
     }
+
+    /* 当前已选（高亮） */
     .visit-source-btn.active-choice {
       border-color: var(--primary);
       background: #fde8ef;
@@ -2079,16 +2081,12 @@
       loadFavorites();
       loadCountedIds();
 
-      /* ============================================================
-         优化：主数据先加载（内部会自己 renderAll）
-         热门数据后台静默加载，不阻塞首屏
-         ============================================================ */
-      loadData();
+      await Promise.all([
+        loadData(),
+        loadHotList()
+      ]);
 
-      loadHotList().then(() => {
-        /* 热门数据回来后，如果当前正显示热门模式，自动重绘一次 */
-        if (showHotOnly) renderList();
-      });
+      renderAll();
 
       dom.loadMoreBtn.onclick = () => {
         renderPage();
@@ -2159,15 +2157,10 @@
         renderList();
       };
 
-      /* ============================================================
-         优化：热门按钮 → 立即渲染（用缓存的 hotMap）
-         同时后台刷新，1 秒内自动更新
-         ============================================================ */
-      dom.hotToggleBtn.onclick = () => {
+      dom.hotToggleBtn.onclick = async () => {
         const willActivate = !showHotOnly;
-
         if (willActivate) {
-          /* 清掉其它筛选状态 */
+          await loadHotList();
           dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           dom.multiToggleBtn.classList.remove('active');
           dom.favFilterBtn.classList.remove('active');
@@ -2176,24 +2169,14 @@
           showFavOnly = false;
           showLatestOnly = false;
           currentCategory = 'all';
-
-          showHotOnly = true;
-          dom.hotToggleBtn.classList.add('active');
-
-          /* 立即用缓存渲染（瞬间出结果） */
-          renderList();
-
-          /* 后台静默刷新最新热门数据 */
-          loadHotList().then(() => {
-            if (showHotOnly) renderList();
-          });
-        } else {
-          showHotOnly = false;
-          dom.hotToggleBtn.classList.remove('active');
+        }
+        showHotOnly = willActivate;
+        dom.hotToggleBtn.classList.toggle('active', showHotOnly);
+        if (!showHotOnly) {
           const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
           if (allBtn) allBtn.classList.add('active');
-          renderList();
         }
+        renderList();
       };
 
       dom.batchToggleBtn.onclick = () => toggleBatchMode();
@@ -2233,6 +2216,7 @@
     const CHOICE_KEY = 'visit_source_choice';
     const MODAL_ID = 'visitSourceModal';
 
+    /* 获取或生成用户唯一 ID（用于后端 UPSERT，避免重复计数） */
     function getUserId() {
       let uid = localStorage.getItem(USER_ID_KEY);
       if (!uid) {
@@ -2253,6 +2237,7 @@
 
     const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书'];
 
+    /* 显示当前已选答案 */
     function updateCurrentHint() {
       const cur = localStorage.getItem(CHOICE_KEY);
       if (cur && currentHint) {
@@ -2264,6 +2249,7 @@
       }
     }
 
+    /* 高亮当前已选的按钮 */
     function markActiveChoice() {
       const cur = localStorage.getItem(CHOICE_KEY) || '';
       modal.querySelectorAll('.visit-source-btn').forEach(btn => {
@@ -2277,6 +2263,7 @@
       });
     }
 
+    /* 打开弹窗 */
     async function showModal() {
       otherInput.style.display = 'none';
       otherText.value = '';
@@ -2289,6 +2276,7 @@
       loadSourceCounts();
     }
 
+    /* 拉取已有人数 */
     async function loadSourceCounts() {
       try {
         const res = await fetch('/api/visit/stats?t=' + Date.now());
@@ -2318,6 +2306,7 @@
       } catch (e) {}
     }
 
+    /* 提交答案 */
     async function submitSource(source) {
       localStorage.setItem(CHOICE_KEY, source);
       closeModal(MODAL_ID);
@@ -2336,12 +2325,15 @@
       showToast('🎉 感谢反馈！你的答案已记录');
     }
 
+    /* 打开按钮 */
     openBtn.addEventListener('click', showModal);
 
+    /* 选项按钮 */
     modal.querySelectorAll('.visit-source-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const src = btn.dataset.source;
         if (src === '__other__') {
+          /* 显示自定义输入区 */
           sourceList.style.display = 'none';
           otherInput.style.display = 'block';
           const cur = localStorage.getItem(CHOICE_KEY) || '';
@@ -2357,18 +2349,21 @@
       });
     });
 
+    /* 其它 → 确认 */
     document.getElementById('visitOtherConfirm').addEventListener('click', () => {
       const val = otherText.value.trim();
       if (!val) { otherText.focus(); return; }
       submitSource(val.slice(0, 20));
     });
 
+    /* 其它 → 返回 */
     document.getElementById('visitOtherCancel').addEventListener('click', () => {
       otherInput.style.display = 'none';
       otherText.value = '';
       sourceList.style.display = 'flex';
     });
 
+    /* 输入框回车 = 确认 */
     otherText.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
