@@ -989,34 +989,35 @@
 
     <!-- ==================== 版本管理 ==================== -->
     <div class="panel" id="panel-updates">
-      <div class="panel-card">
-        <h2>📝 版本管理</h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
-          修改版本号后，用户下次打开该页面会看到更新弹窗。日期会自动设为今天。
-        </p>
 
-        <!-- 二级标签：选择页面 -->
-        <div class="subtabs subtabs-lv3" data-tabs-group="updates">
-          <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
-          <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
-          <button class="subtab" data-subpanel="updates-card1">🎮 卡片1</button>
-        </div>
+      <!-- 二级标签：选择页面 -->
+      <div class="subtabs" data-tabs-group="updates">
+        <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
+        <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
+        <button class="subtab" data-subpanel="updates-card1">🎮 卡片1</button>
+      </div>
 
-        <!-- 主页 -->
-        <div class="subpanel active" id="updates-index">
+      <!-- 主页 -->
+      <div class="subpanel active" id="updates-index">
+        <div class="panel-card">
           <div id="updatesListIndex"><div class="loading">加载中...</div></div>
         </div>
+      </div>
 
-        <!-- 反馈 -->
-        <div class="subpanel" id="updates-feedback">
+      <!-- 反馈 -->
+      <div class="subpanel" id="updates-feedback">
+        <div class="panel-card">
           <div id="updatesListFeedback"><div class="loading">加载中...</div></div>
         </div>
+      </div>
 
-        <!-- 卡片1 -->
-        <div class="subpanel" id="updates-card1">
+      <!-- 卡片1 -->
+      <div class="subpanel" id="updates-card1">
+        <div class="panel-card">
           <div id="updatesListCard1"><div class="loading">加载中...</div></div>
         </div>
       </div>
+
     </div>
 
     <!-- ==================== 卡片管理 ==================== -->
@@ -1247,14 +1248,12 @@ See You Again 2456502348
   (function () {
     'use strict';
 
-    /* ---------- 关键词表（与 roblox_music.html 保持一致） ---------- */
     const SOUND_KEYWORDS = [
       '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
       '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
       '啊', '哦', '嗯', '欸', '喂', '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
     ];
 
-    /* ---------- 歌名清洗 ---------- */
     function cleanName(name) {
       if (!name) return '未知歌名';
       return name
@@ -1265,7 +1264,6 @@ See You Again 2456502348
         .trim() || '未知歌名';
     }
 
-    /* ---------- 智能分类 ---------- */
     function guessCategory(name) {
       const lower = name.toLowerCase();
       if (SOUND_KEYWORDS.some(k => lower.includes(k))) return '搞笑音效';
@@ -1282,7 +1280,6 @@ See You Again 2456502348
       return '中文流行';
     }
 
-    /* ---------- 解析原始文本 ---------- */
     function parseRawText(text) {
       const lines = String(text).split(/\r?\n/);
       const result = [];
@@ -1331,7 +1328,6 @@ See You Again 2456502348
       return result;
     }
 
-    /* ---------- 添加单首歌到 D1 ---------- */
     async function addSongToD1(song) {
       if (typeof window.addSongToServer === 'function') {
         try {
@@ -1373,7 +1369,6 @@ See You Again 2456502348
       }
     }
 
-    /* ---------- DOM ---------- */
     const openBtn = document.getElementById('openBatchImportBtn');
     const modal = document.getElementById('batchImportModal');
     const textarea = document.getElementById('batchImportText');
