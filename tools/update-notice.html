@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>更新公告生成 - 织雾满穗</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #dc6b82;
+      --primary-dark: #c7546a;
+      --primary-light: #f0a3b4;
+      --accent: #e88da1;
+      --bg: #fdf2f5;
+      --bg-card: #ffffff;
+      --text: #4a3f44;
+      --text-light: #6e5f65;
+      --text-muted: #b5a1a8;
+      --border: #f0d9de;
+      --success: #8cb8a8;
+      --success-dark: #72a392;
+      --radius: 20px;
+      --radius-sm: 14px;
+      --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 24px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .page-title h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .page-title .subtitle {
+      color: var(--text-light);
+      font-size: 0.92rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 18px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .hint {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .steps {
+      background: #f0f4ff;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 0.87rem;
+      color: var(--text-light);
+      line-height: 1.85;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .steps .steps-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-size: 0.93rem;
+    }
+    .steps ol { margin-left: 22px; }
+    .steps li { margin-bottom: 6px; }
+    .steps code {
+      background: #e8ecff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: var(--primary-dark);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    .form-group input,
+    .form-group select {
+      padding: 9px 13px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.88rem;
+      background: #fdf8fa;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      background: #fff;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font);
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), var(--success-dark));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
+    }
+
+    .canvas-preview-wrap {
+      overflow-x: auto;
+      padding: 14px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ============================================================
+       ★ 图片本体（1200 × 300）
+       ============================================================ */
+    #canvas {
+      width: 1200px;
+      height: 300px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background:
+        radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
+        radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
+        linear-gradient(125deg, #e8a2b0 0%, #dc6b82 40%, #c7546a 75%, #a83e56 100%);
+    }
+    #canvas.theme-pink { background:
+      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
+      linear-gradient(125deg, #e8a2b0 0%, #dc6b82 40%, #c7546a 75%, #a83e56 100%); }
+    #canvas.theme-purple { background:
+      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
+      linear-gradient(125deg, #b6a8ee 0%, #8878d8 40%, #6d5bc4 75%, #5544a6 100%); }
+    #canvas.theme-blue { background:
+      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
+      linear-gradient(125deg, #9ed2ee 0%, #5aa5d8 40%, #3d8dc0 75%, #2d6f9c 100%); }
+    #canvas.theme-gold { background:
+      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.22), transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.15), transparent 70%),
+      linear-gradient(125deg, #eed4a8 0%, #d4a06a 40%, #b8894f 75%, #926a3a 100%); }
+    #canvas.theme-green { background:
+      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
+      linear-gradient(125deg, #bcdccd 0%, #8cb8a8 40%, #72a392 75%, #567a6c 100%); }
+
+    #canvas::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Ccircle cx='24' cy='24' r='1.6' fill='rgba(255,255,255,0.20)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      pointer-events: none;
+      z-index: 1;
+    }
+    #canvas .light-band {
+      position: absolute;
+      top: -50%;
+      left: 30%;
+      width: 220px;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      transform: rotate(20deg);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 26px;
+      line-height: 26px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      color: rgba(255, 255, 255, 0.42);
+      white-space: nowrap;
+      overflow: hidden;
+      text-align: center;
+      z-index: 5;
+    }
+    .strip-top {
+      top: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.12), transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .strip-bottom {
+      bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.12), transparent);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .wheat-deco {
+      position: absolute;
+      font-size: 90px;
+      opacity: 0.09;
+      z-index: 3;
+      pointer-events: none;
+      color: #fff;
+      filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+    }
+    .wheat-deco.left  { left: 8px;  bottom: 15px; transform: rotate(-18deg); }
+    .wheat-deco.right { right: 8px; top: 15px;    transform: rotate(18deg) scaleX(-1); }
+
+    .content {
+      position: absolute;
+      top: 26px;
+      bottom: 26px;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 60px;
+      gap: 60px;
+      z-index: 6;
+    }
+    .info-left {
+      flex: 1;
+      text-align: right;
+      color: #fff;
+      min-width: 0;
+    }
+    .info-left .title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+      line-height: 1.15;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.15),
+        0 4px 18px rgba(0,0,0,0.30),
+        0 8px 30px rgba(0,0,0,0.15);
+    }
+    .info-left .version {
+      font-size: 23px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      opacity: 0.95;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.28);
+    }
+
+    .logo-center {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .logo-circle {
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.3),
+        0 4px 16px rgba(0,0,0,0.35);
+      background:
+        radial-gradient(circle at 35% 28%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.20) 25%, transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.16), rgba(255,255,255,0.06) 70%, rgba(0,0,0,0.10) 100%);
+      border: 2px solid rgba(255,255,255,0.55);
+      box-shadow:
+        0 16px 50px rgba(0,0,0,0.28),
+        0 0 0 8px rgba(255,255,255,0.05),
+        0 0 0 20px rgba(255,255,255,0.025),
+        inset 0 -10px 25px rgba(0,0,0,0.16),
+        inset 0 10px 25px rgba(255,255,255,0.30);
+    }
+    .logo-circle::after {
+      content: '';
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.30);
+      animation: rotate-slow 40s linear infinite;
+    }
+    @keyframes rotate-slow {
+      from { transform: rotate(0); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .info-right {
+      flex: 1;
+      text-align: left;
+      color: #fff;
+      min-width: 0;
+    }
+    .info-right .line1 {
+      font-size: 23px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+      line-height: 1.35;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.12),
+        0 4px 16px rgba(0,0,0,0.28);
+    }
+    .info-right .line2 {
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      opacity: 0.92;
+      line-height: 1.35;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1320px) {
+      #canvas {
+        transform: scale(calc((100vw - 100px) / 1200));
+        transform-origin: center top;
+        margin-bottom: calc(-300px * (1 - (100vw - 100px) / 1200));
+      }
+    }
+    @media (max-width: 600px) {
+      body { padding: 16px 12px; }
+      .page-title h1 { font-size: 1.4rem; }
+      .card { padding: 16px; }
+      .btn { padding: 10px 22px; font-size: 0.9rem; }
+      .steps { padding: 14px 16px; font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-title">
+      <h1>🎨 更新公告生成</h1>
+      <p class="subtitle">改文字 → 点导出，生成一张 1200×300 的高清更新公告图</p>
+    </div>
+
+    <div class="steps">
+      <div class="steps-title">📖 操作步骤（第一次用请按顺序做）</div>
+      <ol>
+        <li><strong>写内容：</strong>在下面的输入框里改主题色、标题、版本号、更新内容。</li>
+        <li><strong>实时预览：</strong>下面会实时显示生成效果，不满意直接改。</li>
+        <li><strong>选倍率：</strong>推荐 2x（2400×600），够清晰又不占空间。</li>
+        <li><strong>点导出：</strong>点 <strong>💾 下载 PNG</strong>，会下载一张高清图片。</li>
+        <li><strong>发布：</strong>把图片发到 B站动态、QQ 群、GitHub Release、公众号等。</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>✏️ 内容编辑</h2>
+      <p class="hint">修改下面输入框，下面预览会实时更新。</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>主题色</label>
+          <select id="themeInput">
+            <option value="theme-pink" selected>🌸 玫瑰（日常更新）</option>
+            <option value="theme-purple">💜 紫罗兰（重大更新）</option>
+            <option value="theme-blue">💙 天青（体验优化）</option>
+            <option value="theme-gold">⭐ 香槟金（活动 / 节日）</option>
+            <option value="theme-green">🌿 苔绿（修复 / 补丁）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>顶部 / 底部文字带</label>
+          <input type="text" id="stripInput" value="织雾满穗 ZHIWU UPDATE" maxlength="40">
+        </div>
+        <div class="form-group">
+          <label>中央 Logo 文字</label>
+          <input type="text" id="logoInput" value="穗" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label>左侧主标题</label>
+          <input type="text" id="titleInput" value="新版本发布" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>左侧版本号</label>
+          <input type="text" id="versionInput" value="v1.4.0 → v1.5.0" maxlength="22">
+        </div>
+        <div class="form-group">
+          <label>右侧第一行（主要更新）</label>
+          <input type="text" id="line1Input" value="🔥 新增热门推荐" maxlength="22">
+        </div>
+        <div class="form-group">
+          <label>右侧第二行（次要更新）</label>
+          <input type="text" id="line2Input" value="📢 访问渠道上线" maxlength="22">
+        </div>
+        <div class="form-group">
+          <label>导出倍率</label>
+          <select id="scaleInput">
+            <option value="2" selected>2x（推荐 2400×600）</option>
+            <option value="3">3x（超清 3600×900）</option>
+            <option value="1">1x（小图 1200×300）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>👀 实时预览</h2>
+      <p class="hint">这就是最终会导出的图片（1:1 显示，宽 1200px）。</p>
+      <div class="canvas-preview-wrap">
+        <div id="canvas" class="theme-pink">
+          <div class="light-band"></div>
+
+          <div class="strip strip-top" id="stripTop">织雾满穗 ZHIWU UPDATE</div>
+
+          <div class="wheat-deco left">🌾</div>
+          <div class="wheat-deco right">🌾</div>
+
+          <div class="content">
+            <div class="info-left">
+              <div class="title" id="canvasTitle">新版本发布</div>
+              <div class="version" id="canvasVersion">v1.4.0 → v1.5.0</div>
+            </div>
+            <div class="logo-center">
+              <div class="logo-circle" id="canvasLogo">穗</div>
+            </div>
+            <div class="info-right">
+              <div class="line1" id="canvasLine1">🔥 新增热门推荐</div>
+              <div class="line2" id="canvasLine2">📢 访问渠道上线</div>
+            </div>
+          </div>
+
+          <div class="strip strip-bottom" id="stripBottom">织雾满穗 ZHIWU UPDATE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💾 导出</h2>
+      <p class="hint">点击下方按钮，浏览器会直接下载 PNG。</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="downloadBtn">💾 下载 PNG</button>
+        <button class="btn btn-success" id="resetBtn">🔄 恢复默认</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const canvas = $('canvas');
+
+    const inputs = {
+      theme:   $('themeInput'),
+      strip:   $('stripInput'),
+      logo:    $('logoInput'),
+      title:   $('titleInput'),
+      version: $('versionInput'),
+      line1:   $('line1Input'),
+      line2:   $('line2Input'),
+      scale:   $('scaleInput')
+    };
+    const targets = {
+      title:       $('canvasTitle'),
+      version:     $('canvasVersion'),
+      logo:        $('canvasLogo'),
+      line1:       $('canvasLine1'),
+      line2:       $('canvasLine2'),
+      stripTop:    $('stripTop'),
+      stripBottom: $('stripBottom')
+    };
+
+    const DEFAULTS = {
+      theme: 'theme-pink',
+      strip: '织雾满穗 ZHIWU UPDATE',
+      logo: '穗',
+      title: '新版本发布',
+      version: 'v1.4.0 → v1.5.0',
+      line1: '🔥 新增热门推荐',
+      line2: '📢 访问渠道上线'
+    };
+
+    function fillStrip(text) {
+      const repeated = (text + '　　').repeat(14);
+      targets.stripTop.textContent = repeated;
+      targets.stripBottom.textContent = repeated;
+    }
+
+    function applyTheme(t) { canvas.className = t; }
+
+    inputs.theme.addEventListener('change', e => applyTheme(e.target.value));
+    inputs.strip.addEventListener('input', e => fillStrip(e.target.value || DEFAULTS.strip));
+    inputs.logo.addEventListener('input', e => targets.logo.textContent = e.target.value || '穗');
+    inputs.title.addEventListener('input', e => targets.title.textContent = e.target.value || '');
+    inputs.version.addEventListener('input', e => targets.version.textContent = e.target.value || '');
+    inputs.line1.addEventListener('input', e => targets.line1.textContent = e.target.value || '');
+    inputs.line2.addEventListener('input', e => targets.line2.textContent = e.target.value || '');
+
+    $('downloadBtn').addEventListener('click', function () {
+      const scale = parseInt(inputs.scale.value, 10) || 2;
+      const oldT = canvas.style.transform;
+      const oldM = canvas.style.marginBottom;
+      canvas.style.transform = 'none';
+      canvas.style.marginBottom = '0';
+
+      html2canvas(canvas, {
+        scale: scale,
+        backgroundColor: null,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: 1200,
+        height: 300
+      }).then(rendered => {
+        canvas.style.transform = oldT;
+        canvas.style.marginBottom = oldM;
+        const link = document.createElement('a');
+        const ts = new Date();
+        const stamp = ts.getFullYear()
+          + String(ts.getMonth() + 1).padStart(2, '0')
+          + String(ts.getDate()).padStart(2, '0') + '_'
+          + String(ts.getHours()).padStart(2, '0')
+          + String(ts.getMinutes()).padStart(2, '0');
+        link.download = 'zhimu_update_' + stamp + '.png';
+        link.href = rendered.toDataURL('image/png');
+        link.click();
+      }).catch(err => {
+        canvas.style.transform = oldT;
+        canvas.style.marginBottom = oldM;
+        alert('❌ 导出失败：' + err.message + '\n\n建议用 Chrome / Edge 打开，或用系统截图工具截取预览区域。');
+      });
+    });
+
+    $('resetBtn').addEventListener('click', function () {
+      if (!confirm('恢复默认内容？当前修改会丢失。')) return;
+      inputs.theme.value = DEFAULTS.theme;
+      inputs.strip.value = DEFAULTS.strip;
+      inputs.logo.value = DEFAULTS.logo;
+      inputs.title.value = DEFAULTS.title;
+      inputs.version.value = DEFAULTS.version;
+      inputs.line1.value = DEFAULTS.line1;
+      inputs.line2.value = DEFAULTS.line2;
+      applyTheme(DEFAULTS.theme);
+      fillStrip(DEFAULTS.strip);
+      targets.logo.textContent = DEFAULTS.logo;
+      targets.title.textContent = DEFAULTS.title;
+      targets.version.textContent = DEFAULTS.version;
+      targets.line1.textContent = DEFAULTS.line1;
+      targets.line2.textContent = DEFAULTS.line2;
+    });
+
+    applyTheme(DEFAULTS.theme);
+    fillStrip(DEFAULTS.strip);
+  </script>
+</body>
+</html>

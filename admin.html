@@ -294,6 +294,20 @@
     }
     .song-add-form .btn-add-song:active { transform: scale(0.93); }
 
+    /* ========== 工具 iframe ========== */
+    .tool-iframe-wrap {
+      background: #fdf8fa;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .tool-iframe-wrap iframe {
+      display: block;
+      width: 100%;
+      min-height: 800px;
+      border: none;
+    }
+
     #batchImportModal .modal-content { max-width: 720px; }
     #batchImportModal .import-hint {
       font-size: 0.82rem; color: var(--text-muted); line-height: 1.75;
@@ -444,12 +458,14 @@
       </div>
     </div>
 
+    <!-- 一级标签 -->
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
-      <button class="tab" data-panel="panel-updates">📝 版本管理</button>
+      <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
     </div>
 
+    <!-- ==================== 反馈管理 ==================== -->
     <div class="panel active" id="panel-feedback">
       <div class="panel-card">
         <h2>
@@ -462,14 +478,31 @@
       </div>
     </div>
 
+    <!-- ==================== 更新管理 ==================== -->
     <div class="panel" id="panel-updates">
+
+      <!-- 二级标签：公告生成默认第一 -->
       <div class="subtabs" data-tabs-group="updates">
-        <button class="subtab active" data-subpanel="updates-index">🏠 主页</button>
+        <button class="subtab active" data-subpanel="updates-announce">🎨 公告生成</button>
+        <button class="subtab" data-subpanel="updates-index">🏠 主页</button>
         <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
         <button class="subtab" data-subpanel="updates-card">🎮 卡片</button>
       </div>
 
-      <div class="subpanel active" id="updates-index">
+      <!-- 公告生成（默认激活，工具 iframe） -->
+      <div class="subpanel active" id="updates-announce">
+        <div class="panel-card">
+          <h2>🎨 更新公告生成</h2>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+            内部工具：快速生成版本更新公告图。改文字 → 点下载，得到一张高清 PNG。
+          </p>
+          <div class="tool-iframe-wrap">
+            <iframe src="tools/update-notice.html" data-tool-frame></iframe>
+          </div>
+        </div>
+      </div>
+
+      <div class="subpanel" id="updates-index">
         <div class="panel-card">
           <div id="updatesListIndex"><div class="loading">加载中...</div></div>
         </div>
@@ -491,8 +524,10 @@
           </div>
         </div>
       </div>
+
     </div>
 
+    <!-- ==================== 卡片管理 ==================== -->
     <div class="panel" id="panel-cards">
 
       <div class="subtabs" data-tabs-group="cards">
@@ -504,6 +539,7 @@
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
           <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
           <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
+          <button class="subtab" data-subpanel="card1-json-merge">📦 JSON 合并</button>
         </div>
 
         <div class="subpanel active" id="card1-songs">
@@ -579,6 +615,18 @@
             </div>
           </div>
         </div>
+
+        <div class="subpanel" id="card1-json-merge">
+          <div class="panel-card">
+            <h2>📦 JSON 合并工具</h2>
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
+              把 D1 里的新歌合并到主数据 roblox_music.json。上传两个文件 → 点合并 → 下载，最后覆盖 <code>data/roblox_music.json</code> 即可。
+            </p>
+            <div class="tool-iframe-wrap">
+              <iframe src="tools/json-merge.html" data-tool-frame></iframe>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -589,6 +637,7 @@
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
+  <!-- 批量导入弹窗 -->
   <div class="modal" id="batchImportModal">
     <div class="modal-content">
       <h2>📥 批量导入歌曲</h2>
@@ -615,6 +664,7 @@ See You Again 2456502348
     </div>
   </div>
 
+  <!-- 导入隔离区弹窗 -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
       <h2>📥 导入隔离区</h2>
@@ -631,6 +681,7 @@ See You Again 2456502348
     </div>
   </div>
 
+  <!-- 添加鸣谢弹窗 -->
   <div class="modal" id="addThanksModal">
     <div class="modal-content">
       <h2>➕ 添加鸣谢</h2>
@@ -693,8 +744,38 @@ See You Again 2456502348
             p.classList.remove('active');
           });
           target.classList.add('active');
+
+          /* 切到工具页时主动测量一次 iframe 高度 */
+          var iframe = target.querySelector('iframe[data-tool-frame]');
+          if (iframe) setTimeout(function () { fitIframe(iframe); }, 200);
         });
       });
+    });
+
+    /* 工具 iframe 高度自适应 */
+    function fitIframe(iframe) {
+      try {
+        var doc = iframe.contentDocument;
+        if (!doc) return;
+        var h = Math.max(
+          doc.body.scrollHeight,
+          doc.documentElement.scrollHeight,
+          doc.body.offsetHeight,
+          doc.documentElement.offsetHeight
+        );
+        if (h > 0) iframe.style.height = (h + 30) + 'px';
+      } catch (e) {}
+    }
+    window.fitIframe = fitIframe;
+
+    document.querySelectorAll('iframe[data-tool-frame]').forEach(function (iframe) {
+      iframe.addEventListener('load', function () {
+        fitIframe(iframe);
+        setInterval(function () { fitIframe(iframe); }, 1500);
+      });
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        fitIframe(iframe);
+      }
     });
   })();
 

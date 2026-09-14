@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON 合并工具 - 织雾满穗</title>
+  <style>
+    :root {
+      --primary: #dc6b82;
+      --primary-dark: #c7546a;
+      --primary-light: #f0a3b4;
+      --accent: #e88da1;
+      --bg: #fdf2f5;
+      --bg-card: #ffffff;
+      --text: #4a3f44;
+      --text-light: #6e5f65;
+      --text-muted: #b5a1a8;
+      --border: #f0d9de;
+      --success: #8cb8a8;
+      --success-dark: #72a392;
+      --radius: 20px;
+      --radius-sm: 14px;
+      --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 24px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .page-title h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .page-title .subtitle {
+      color: var(--text-light);
+      font-size: 0.92rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 18px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .hint {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .upload-box {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft);
+      background: #fdf8fa;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .upload-box:hover {
+      border-color: var(--primary-light);
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 107, 130, 0.08);
+    }
+    .upload-box.dragover {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .upload-box .upload-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .upload-box .upload-text {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+    .upload-box .upload-text strong { color: var(--primary); }
+    .upload-box .file-info {
+      font-size: 0.8rem;
+      color: var(--success-dark);
+      margin-top: 6px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+    .upload-box input[type="file"] { display: none; }
+
+    .preview {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      background: #fdf8fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      max-height: 120px;
+      overflow-y: auto;
+      color: var(--text-light);
+      white-space: pre;
+      word-break: break-all;
+    }
+
+    .actions {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font);
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), var(--success-dark));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-item {
+      background: linear-gradient(135deg, #fde8ef, #f8d0db);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-item .num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .stat-item .label {
+      font-size: 0.76rem;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .stat-item.gold {
+      background: linear-gradient(135deg, #fbf3e8, #f0e0c8);
+    }
+    .stat-item.gold .num { color: #d4a06a; }
+
+    .steps {
+      background: #f0f4ff;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 0.87rem;
+      color: var(--text-light);
+      line-height: 1.85;
+    }
+    .steps .steps-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-size: 0.93rem;
+    }
+    .steps ol { margin-left: 22px; }
+    .steps li { margin-bottom: 6px; }
+    .steps code {
+      background: #e8ecff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: var(--primary-dark);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 16px 12px; }
+      .page-title h1 { font-size: 1.4rem; }
+      .card { padding: 16px; }
+      .btn { padding: 10px 22px; font-size: 0.9rem; }
+      .steps { padding: 14px 16px; font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-title">
+      <h1>📦 JSON 合并工具</h1>
+      <p class="subtitle">把 D1 里的新歌合并到主数据 roblox_music.json</p>
+    </div>
+
+    <div class="steps">
+      <div class="steps-title">📖 操作步骤（第一次用请按顺序做）</div>
+      <ol>
+        <li><strong>导出 D1 新歌：</strong>后台 → 🎶 歌曲管理 → 点右上角 <strong>📤 导出</strong>，会下载 <code>songs_extra_xxx.json</code>。</li>
+        <li><strong>上传原有数据：</strong>点第一个方框，选中你网站文件夹里的 <code>data/roblox_music.json</code>。</li>
+        <li><strong>上传新歌数据：</strong>点第二个方框，选中刚下载的 <code>songs_extra_xxx.json</code>。</li>
+        <li><strong>点合并：</strong>点中间的 <strong>🔀 合并</strong>，看统计结果。</li>
+        <li><strong>下载：</strong>点 <strong>💾 下载合并后的 JSON</strong>，得到新的 <code>roblox_music.json</code>。</li>
+        <li><strong>替换并重新部署：</strong>用新文件覆盖 <code>data/roblox_music.json</code>，重新上传网站到 Cloudflare。</li>
+        <li><strong>最后清空 D1：</strong>后台 → 🎶 歌曲管理 → 点 <strong>🧹 清空</strong>。</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>📁 原有数据（data/roblox_music.json）</h2>
+      <p class="hint">点下面方框，选择你网站文件夹里的 roblox_music.json；也可以直接把文件拖进去。</p>
+      <label class="upload-box" id="uploadBoxA">
+        <input type="file" id="fileA" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">点击这里选择 <strong>roblox_music.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoA"></div>
+      </label>
+      <div class="preview" id="previewA">等待上传...</div>
+    </div>
+
+    <div class="card">
+      <h2>📁 D1 导出的新歌（songs_extra_xxx.json）</h2>
+      <p class="hint">点下面方框，选择后台刚导出的 songs_extra_xxx.json；也可以直接把文件拖进去。</p>
+      <label class="upload-box" id="uploadBoxB">
+        <input type="file" id="fileB" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">点击这里选择 <strong>songs_extra_xxx.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoB"></div>
+      </label>
+      <div class="preview" id="previewB">等待上传...</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="mergeBtn" disabled>🔀 合并</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <h2>✅ 合并结果</h2>
+      <div class="result-stats">
+        <div class="stat-item">
+          <div class="num" id="statOriginal">0</div>
+          <div class="label">原有条数</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statExtra">0</div>
+          <div class="label">新歌条数</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statMerged">0</div>
+          <div class="label">合并后总条数</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statOverwritten">0</div>
+          <div class="label">重复覆盖</div>
+        </div>
+      </div>
+      <div class="preview" id="previewResult" style="max-height:200px;"></div>
+      <div class="actions" style="margin-bottom:0;">
+        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let dataA = null;
+    let dataB = null;
+    let merged = null;
+
+    const fileA = document.getElementById('fileA');
+    const fileB = document.getElementById('fileB');
+    const uploadBoxA = document.getElementById('uploadBoxA');
+    const uploadBoxB = document.getElementById('uploadBoxB');
+    const fileInfoA = document.getElementById('fileInfoA');
+    const fileInfoB = document.getElementById('fileInfoB');
+    const previewA = document.getElementById('previewA');
+    const previewB = document.getElementById('previewB');
+    const mergeBtn = document.getElementById('mergeBtn');
+    const resultCard = document.getElementById('resultCard');
+    const previewResult = document.getElementById('previewResult');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function readFile(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          callback(null, JSON.parse(e.target.result));
+        } catch (err) {
+          callback(err, null);
+        }
+      };
+      reader.onerror = function () { callback(new Error('读取文件失败'), null); };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function handleFileA(file) {
+      readFile(file, function (err, data) {
+        if (err) { alert('❌ 原有数据文件解析失败：' + err.message); return; }
+        if (!Array.isArray(data)) { alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）'); return; }
+        dataA = data;
+        fileInfoA.textContent = '✅ 已加载 ' + data.length + ' 条';
+        previewA.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
+        checkReady();
+      });
+    }
+
+    function handleFileB(file) {
+      readFile(file, function (err, data) {
+        if (err) { alert('❌ 新歌文件解析失败：' + err.message); return; }
+        if (!Array.isArray(data)) { alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）'); return; }
+        dataB = data;
+        fileInfoB.textContent = '✅ 已加载 ' + data.length + ' 条';
+        previewB.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
+        checkReady();
+      });
+    }
+
+    function checkReady() {
+      if (dataA && dataB) mergeBtn.disabled = false;
+    }
+
+    fileA.addEventListener('change', function () { if (this.files[0]) handleFileA(this.files[0]); });
+    fileB.addEventListener('change', function () { if (this.files[0]) handleFileB(this.files[0]); });
+
+    function setupDragDrop(box, handler) {
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.remove('dragover');
+        });
+      });
+      box.addEventListener('drop', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]);
+      });
+    }
+    setupDragDrop(uploadBoxA, handleFileA);
+    setupDragDrop(uploadBoxB, handleFileB);
+
+    mergeBtn.addEventListener('click', function () {
+      if (!dataA || !dataB) return;
+      const map = new Map();
+
+      dataA.forEach(function (item) {
+        if (!item || !item.id) return;
+        const id = String(item.id);
+        map.set(id, {
+          id: id,
+          name: item.name || '未知歌名',
+          category: item.category || '未分类',
+          lineIndex: typeof item.lineIndex === 'number' ? item.lineIndex : 0
+        });
+      });
+
+      const originalCount = map.size;
+      let overwritten = 0;
+
+      dataB.forEach(function (item) {
+        if (!item || !item.id) return;
+        const id = String(item.id);
+        if (map.has(id)) overwritten++;
+        map.set(id, {
+          id: id,
+          name: item.name || '未知歌名',
+          category: item.category || '未分类',
+          lineIndex: typeof item.lineIndex === 'number' ? item.lineIndex : 0
+        });
+      });
+
+      merged = [...map.values()].sort(function (a, b) {
+        return (a.lineIndex || 0) - (b.lineIndex || 0);
+      });
+
+      document.getElementById('statOriginal').textContent = originalCount;
+      document.getElementById('statExtra').textContent = dataB.length;
+      document.getElementById('statMerged').textContent = merged.length;
+      document.getElementById('statOverwritten').textContent = overwritten;
+
+      previewResult.textContent = JSON.stringify(merged.slice(0, 5), null, 2) + (merged.length > 5 ? '\n...' : '');
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    downloadBtn.addEventListener('click', function () {
+      if (!merged) return;
+      const content = JSON.stringify(merged, null, 2);
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'roblox_music.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新上传整个网站到 Cloudflare');
+    });
+  </script>
+</body>
+</html>
