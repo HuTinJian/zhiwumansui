@@ -18,6 +18,7 @@
       --border: #f0d9de;
       --success: #8cb8a8;
       --success-dark: #72a392;
+      --danger: #c0392b;
       --radius: 20px;
       --radius-sm: 14px;
       --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
@@ -37,60 +38,94 @@
     }
     .container { max-width: 1180px; margin: 0 auto; }
 
-    /* 保存目标选择器 */
+    /* ============================================================
+       保存目标选择器（紧凑卡片式）
+       ============================================================ */
     .target-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 14px 18px;
+      padding: 14px 18px 16px;
       margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
     .target-bar .label {
-      font-size: 0.85rem;
+      display: block;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: var(--text-light);
-      flex-shrink: 0;
+      color: var(--primary);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
     }
     .target-bar .target-btns {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
-      flex: 1 1 auto;
+      gap: 8px;
     }
     .target-btn {
-      padding: 8px 18px;
+      position: relative;
+      padding: 8px 14px 8px 12px;
       border: 2px solid var(--border);
       border-radius: var(--radius-pill);
       background: #fdf8fa;
-      color: var(--text-light);
-      font-size: 0.85rem;
-      font-weight: 600;
+      color: var(--text);
       cursor: pointer;
       font-family: var(--font);
-      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
-      white-space: nowrap;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      transition: all 0.25s var(--ease-soft);
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-light);
     }
-    .target-btn:hover {
-      border-color: var(--primary-light);
+    .target-btn .tb-icon {
+      font-size: 1.05rem;
+      line-height: 1;
+      transition: transform 0.3s var(--ease-bounce);
+    }
+    .target-btn .tb-name {
+      transition: color 0.25s var(--ease-soft);
+    }
+    .target-btn .tb-check {
+      display: none;
+      font-size: 0.75rem;
+      font-weight: 900;
       color: var(--primary);
-      transform: translateY(-2px);
-    }
-    .target-btn:active { transform: scale(0.93); }
-    .target-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+      margin-left: 2px;
     }
 
+    .target-btn:hover {
+      border-color: var(--primary-light);
+      background: #fff;
+      color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.12);
+    }
+    .target-btn:hover .tb-icon {
+      transform: scale(1.15) rotate(-8deg);
+    }
+    .target-btn:active {
+      transform: scale(0.96);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .target-btn.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, #fde8ef 0%, #fbd5e0 100%);
+      color: var(--primary-dark);
+      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.22);
+    }
+    .target-btn.active .tb-icon {
+      transform: scale(1.1);
+    }
+    .target-btn.active .tb-check {
+      display: inline;
+    }
+
+    /* ============================================================
+       卡片
+       ============================================================ */
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -353,64 +388,57 @@
       transform-origin: top left;
     }
 
-    /* 底部操作 */
+    /* ============================================================
+       底部操作
+       ============================================================ */
     .action-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 16px 18px;
+      padding: 18px;
       display: flex;
+      flex-direction: column;
       gap: 12px;
-      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
-    .btn {
+    .action-bar .btn-main {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 12px 32px;
+      gap: 8px;
+      padding: 14px 48px;
       border: none;
       border-radius: 50px;
       font-family: var(--font);
-      font-size: 0.98rem;
-      font-weight: 700;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 1px;
       cursor: pointer;
-      transition: all 0.3s var(--ease-bounce);
-      white-space: nowrap;
-    }
-    .btn:active { transform: scale(0.93); }
-    .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
-      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+      box-shadow: 0 8px 22px rgba(220, 107, 130, 0.32);
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+      min-width: 240px;
     }
-    .btn-primary:hover {
+    .action-bar .btn-main:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+      box-shadow: 0 12px 28px rgba(220, 107, 130, 0.42);
     }
-    .btn-primary:disabled {
+    .action-bar .btn-main:active {
+      transform: scale(0.95);
+    }
+    .action-bar .btn-main:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
-    }
-    .btn-secondary {
-      background: #fdf8fa;
-      color: var(--text);
-      border: 2px solid var(--border);
-    }
-    .btn-secondary:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
-      transform: translateY(-2px);
     }
 
     .save-status {
       width: 100%;
       text-align: center;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       min-height: 20px;
       font-weight: 600;
     }
@@ -422,14 +450,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 窄屏时整体缩放 */
     @media (max-width: 1240px) {
       .canvas-scaler {
         transform: scale(calc((100vw - 40px) / 1200));
         height: calc(300px * (100vw - 40px) / 1200);
-      }
-      .canvas-preview-wrap {
-        height: auto;
       }
     }
   </style>
@@ -437,16 +461,29 @@
 <body>
   <div class="container">
 
-    <!-- 保存目标选择器 -->
+    <!-- 保存目标 -->
     <div class="target-bar">
-      <span class="label">📌 保存到：</span>
+      <span class="label">📌 选择要更新的页面</span>
       <div class="target-btns">
-        <button class="target-btn active" data-page="index">🏠 主页</button>
-        <button class="target-btn" data-page="feedback">💬 反馈</button>
-        <button class="target-btn" data-page="roblox">🎮 卡片1</button>
+        <button class="target-btn active" data-page="index">
+          <span class="tb-icon">🏠</span>
+          <span class="tb-name">主页</span>
+          <span class="tb-check">✓</span>
+        </button>
+        <button class="target-btn" data-page="feedback">
+          <span class="tb-icon">💬</span>
+          <span class="tb-name">反馈页</span>
+          <span class="tb-check">✓</span>
+        </button>
+        <button class="target-btn" data-page="roblox">
+          <span class="tb-icon">🎮</span>
+          <span class="tb-name">卡片1</span>
+          <span class="tb-check">✓</span>
+        </button>
       </div>
     </div>
 
+    <!-- 内容编辑 -->
     <div class="card">
       <h2>✏️ 内容编辑</h2>
       <div class="form-grid">
@@ -487,6 +524,7 @@
       </div>
     </div>
 
+    <!-- 预览 -->
     <div class="card">
       <h2>👀 实时预览</h2>
       <div class="canvas-preview-wrap">
@@ -515,9 +553,9 @@
       </div>
     </div>
 
+    <!-- 保存 -->
     <div class="action-bar">
-      <button class="btn btn-primary" id="saveBtn">💾 保存并生效</button>
-      <button class="btn btn-secondary" id="resetBtn">🔄 恢复默认</button>
+      <button class="btn-main" id="saveBtn">💾 保存并生效</button>
       <div class="save-status" id="saveStatus"></div>
     </div>
 
@@ -566,7 +604,6 @@
 
     function applyTheme(t) { canvas.className = t; }
 
-    /* ========== 输入实时同步到预览 ========== */
     inputs.theme.addEventListener('change', e => applyTheme(e.target.value));
     inputs.strip.addEventListener('input', e => fillStrip(e.target.value || DEFAULTS.strip));
     inputs.logo.addEventListener('input', e => targets.logo.textContent = e.target.value || '穗');
@@ -575,7 +612,6 @@
     inputs.line1.addEventListener('input', e => targets.line1.textContent = e.target.value || '');
     inputs.line2.addEventListener('input', e => targets.line2.textContent = e.target.value || '');
 
-    /* ========== 从输入框收集配置 ========== */
     function collectConfig() {
       return {
         theme: inputs.theme.value,
@@ -588,7 +624,6 @@
       };
     }
 
-    /* ========== 把配置填充到输入框 + 预览 ========== */
     function applyConfig(cfg) {
       inputs.theme.value   = cfg.theme   || DEFAULTS.theme;
       inputs.strip.value   = cfg.strip   || DEFAULTS.strip;
@@ -607,7 +642,6 @@
       targets.line2.textContent   = inputs.line2.value;
     }
 
-    /* ========== 从后端加载指定页面的现有配置 ========== */
     async function loadConfigFromServer(pageKey) {
       try {
         const res = await fetch('/api/updates?page=' + pageKey + '&t=' + Date.now());
@@ -615,7 +649,6 @@
         if (!data.ok || !data.data || !Array.isArray(data.data.updates) || data.data.updates.length === 0) {
           return null;
         }
-        /* updates[0] 是 JSON 字符串 */
         const first = data.data.updates[0];
         if (typeof first !== 'string') return null;
         try {
@@ -628,7 +661,6 @@
       }
     }
 
-    /* ========== 切换保存目标 ========== */
     document.querySelectorAll('.target-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
@@ -637,23 +669,16 @@
 
         setStatus('', '');
         const cfg = await loadConfigFromServer(currentPage);
-        if (cfg) {
-          applyConfig(cfg);
-        } else {
-          /* 没有历史配置，就回默认 */
-          applyConfig(DEFAULTS);
-        }
+        applyConfig(cfg || DEFAULTS);
       });
     });
 
-    /* ========== 保存状态提示 ========== */
     function setStatus(text, type) {
       const el = $('saveStatus');
       el.textContent = text;
       el.className = 'save-status' + (type ? ' ' + type : '');
     }
 
-    /* ========== 保存并生效 ========== */
     $('saveBtn').addEventListener('click', async function () {
       const btn = this;
       btn.disabled = true;
@@ -661,8 +686,6 @@
       setStatus('', '');
 
       const cfg = collectConfig();
-
-      /* 版本号用时间戳：每次保存都不同，保证所有用户都能看到新弹窗 */
       const realVersion = 'v' + Date.now();
 
       try {
@@ -679,7 +702,7 @@
         const data = await res.json();
 
         if (data.ok) {
-          const pageName = { index: '主页', feedback: '反馈', roblox: '卡片1' }[currentPage] || currentPage;
+          const pageName = { index: '主页', feedback: '反馈页', roblox: '卡片1' }[currentPage] || currentPage;
           setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
         } else {
           setStatus('❌ 保存失败：' + (data.error || '未知错误'), 'err');
@@ -692,17 +715,8 @@
       btn.textContent = '💾 保存并生效';
     });
 
-    /* ========== 恢复默认 ========== */
-    $('resetBtn').addEventListener('click', function () {
-      if (!confirm('恢复默认内容？当前修改会丢失。')) return;
-      applyConfig(DEFAULTS);
-      setStatus('', '');
-    });
-
-    /* ========== 初始化 ========== */
     (async function init() {
       applyConfig(DEFAULTS);
-      /* 默认加载主页的现有配置 */
       const cfg = await loadConfigFromServer('index');
       if (cfg) applyConfig(cfg);
     })();
