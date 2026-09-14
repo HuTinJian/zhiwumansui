@@ -394,79 +394,6 @@
       content: '✓'; float: right; color: var(--primary); font-weight: 700;
     }
 
-    .visit-stats-total {
-      font-size: 1rem; color: var(--text-light);
-      margin-bottom: 18px; text-align: center;
-    }
-    .visit-stats-total strong {
-      color: var(--primary); font-size: 1.3rem; font-weight: 800;
-    }
-    .visit-stats-list {
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    .visit-stat-row {
-      display: grid;
-      grid-template-columns: 140px 1fr 80px;
-      gap: 12px;
-      align-items: center;
-      padding: 10px 12px;
-      background: #fdf8fa;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      transition: border-color 0.25s var(--ease-soft);
-    }
-    .visit-stat-row:hover { border-color: var(--primary-light); }
-    .visit-stat-row .vs-name {
-      font-size: 0.9rem; font-weight: 600; color: var(--text);
-    }
-    .visit-stat-row .vs-bar-wrap {
-      height: 10px; background: #fde8ef;
-      border-radius: 10px; overflow: hidden;
-    }
-    .visit-stat-row .vs-bar {
-      height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent));
-      border-radius: 10px; min-width: 4px;
-      transition: width 0.5s var(--ease-soft);
-    }
-    .visit-stat-row .vs-bar.vs-bar-other {
-      background: linear-gradient(90deg, #f5a89a, #e86450);
-    }
-    .visit-stat-row .vs-bar.vs-bar-skip {
-      background: linear-gradient(90deg, #b5a1a8, #8c7a82);
-    }
-    .visit-stat-row .vs-count {
-      font-size: 0.85rem; font-weight: 700; color: var(--primary);
-      text-align: right;
-    }
-    .visit-stat-others {
-      margin: 4px 0 4px 20px;
-      padding: 10px 14px;
-      background: #fff5f0;
-      border-left: 3px solid #f5a89a;
-      border-radius: 0 8px 8px 0;
-    }
-    .visit-stat-other-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      font-size: 0.85rem;
-      color: var(--text-light);
-      border-bottom: 1px dashed var(--border);
-    }
-    .visit-stat-other-item:last-child { border-bottom: none; }
-    .visit-stat-other-item .vso-name { font-weight: 600; color: var(--text); }
-    .visit-stat-other-item .vso-count { color: #c04a35; font-weight: 700; }
-
-    @media (max-width: 600px) {
-      .visit-stat-row {
-        grid-template-columns: 110px 1fr 60px;
-        gap: 8px;
-      }
-      .visit-stat-row .vs-name { font-size: 0.82rem; }
-      .visit-stat-row .vs-count { font-size: 0.78rem; }
-    }
-
     .fb-quarantine .q-list::-webkit-scrollbar { width: 6px; }
     .fb-quarantine .q-list::-webkit-scrollbar-track { background: transparent; }
     .fb-quarantine .q-list::-webkit-scrollbar-thumb {
@@ -570,7 +497,6 @@
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 卡片1 · Roblox ID 宝库</button>
-        <button class="subtab" data-subpanel="visit-panel">📊 访问渠道</button>
       </div>
 
       <div class="subpanel active" id="card1-panel">
@@ -651,18 +577,6 @@
             <div id="thanksList">
               <div class="loading">加载中...</div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="subpanel" id="visit-panel">
-        <div class="panel-card">
-          <h2>📊 访问渠道统计</h2>
-          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-            统计游客是从哪个渠道来到宝库页的。数据实时累计，不需要手动刷新。
-          </p>
-          <div id="visitStatsList">
-            <div class="loading">加载中...</div>
           </div>
         </div>
       </div>
@@ -779,11 +693,6 @@ See You Again 2456502348
             p.classList.remove('active');
           });
           target.classList.add('active');
-
-          /* 切到访问渠道时加载数据 */
-          if (targetId === 'visit-panel' && typeof window.loadVisitStats === 'function') {
-            window.loadVisitStats();
-          }
         });
       });
     });
