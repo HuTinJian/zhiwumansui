@@ -208,63 +208,6 @@
     .loading { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; }
 
-    .update-edit-item {
-      padding: 18px; border: 1px solid var(--border);
-      border-radius: var(--radius-sm); background: #fdf8fa;
-      transition: border-color 0.3s var(--ease-soft); margin: 0;
-    }
-    .update-edit-item:hover { border-color: var(--primary-light); }
-    .update-edit-item .head {
-      display: flex; justify-content: flex-end; align-items: center;
-      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
-    }
-    .update-edit-item .head .version-tag {
-      font-size: 0.75rem; padding: 3px 12px; border-radius: 20px;
-      background: #fde8ef; color: var(--primary); font-weight: 600;
-    }
-    .update-edit-item .head .date-info { font-size: 0.8rem; color: var(--text-muted); }
-    .update-edit-item .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
-    .update-edit-item .field label { font-size: 0.8rem; font-weight: 600; color: var(--text-light); }
-    .update-edit-item .field input,
-    .update-edit-item .field textarea {
-      padding: 9px 14px; border: 2px solid var(--border);
-      border-radius: 10px; font-family: var(--font); font-size: 0.9rem;
-      background: #fff; color: var(--text); outline: none;
-      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
-    }
-    .update-edit-item .field input:focus,
-    .update-edit-item .field textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
-    }
-    .update-edit-item .field textarea {
-      resize: none; min-height: 240px; line-height: 1.8; font-size: 0.92rem;
-    }
-    .update-edit-item .actions {
-      display: flex; justify-content: flex-end; align-items: center;
-      gap: 8px; margin-top: 6px; flex-wrap: wrap;
-    }
-    .update-edit-item .actions .btn-save {
-      background: var(--primary); color: #fff; padding: 8px 22px;
-      font-size: 0.88rem; font-weight: 600; border: none;
-      border-radius: var(--radius-pill); cursor: pointer;
-      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
-    }
-    .update-edit-item .actions .btn-save:hover {
-      background: var(--primary-dark); transform: translateY(-2px);
-    }
-    .update-edit-item .actions .btn-save:active { transform: scale(0.93); }
-    .update-edit-item .actions .btn-reset-risk {
-      background: var(--danger); color: #fff; padding: 8px 20px;
-      font-size: 0.85rem; font-weight: 600; border: none;
-      border-radius: var(--radius-pill); cursor: pointer; margin-right: auto;
-      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
-    }
-    .update-edit-item .actions .btn-reset-risk:hover {
-      background: #a93226; transform: translateY(-2px);
-    }
-    .update-edit-item .actions .btn-reset-risk:active { transform: scale(0.93); }
-
     .song-add-form {
       display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
       padding: 14px; background: #fdf8fa;
@@ -296,16 +239,12 @@
 
     /* ========== 工具 iframe ========== */
     .tool-iframe-wrap {
-      background: #fdf8fa;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
+      margin: 0; padding: 0; border: none; background: transparent;
     }
     .tool-iframe-wrap iframe {
-      display: block;
-      width: 100%;
-      min-height: 800px;
-      border: none;
+      display: block; width: 100%; min-height: 400px;
+      border: none; background: transparent;
+      transition: height 0.15s ease;
     }
 
     #batchImportModal .modal-content { max-width: 720px; }
@@ -458,14 +397,13 @@
       </div>
     </div>
 
-    <!-- 一级标签 -->
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
     </div>
 
-    <!-- ==================== 反馈管理 ==================== -->
+    <!-- 反馈管理 -->
     <div class="panel active" id="panel-feedback">
       <div class="panel-card">
         <h2>
@@ -478,56 +416,16 @@
       </div>
     </div>
 
-    <!-- ==================== 更新管理 ==================== -->
+    <!-- 更新管理（只有生成器） -->
     <div class="panel" id="panel-updates">
-
-      <!-- 二级标签：公告生成默认第一 -->
-      <div class="subtabs" data-tabs-group="updates">
-        <button class="subtab active" data-subpanel="updates-announce">🎨 公告生成</button>
-        <button class="subtab" data-subpanel="updates-index">🏠 主页</button>
-        <button class="subtab" data-subpanel="updates-feedback">💬 反馈</button>
-        <button class="subtab" data-subpanel="updates-card">🎮 卡片</button>
-      </div>
-
-      <!-- 公告生成（默认激活，工具 iframe） -->
-      <div class="subpanel active" id="updates-announce">
-        <div class="panel-card">
-          <h2>🎨 更新公告生成</h2>
-          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-            内部工具：快速生成版本更新公告图。改文字 → 点下载，得到一张高清 PNG。
-          </p>
-          <div class="tool-iframe-wrap">
-            <iframe src="tools/update-notice.html" data-tool-frame></iframe>
-          </div>
+      <div class="panel-card" style="padding:0;overflow:hidden;">
+        <div class="tool-iframe-wrap">
+          <iframe src="tools/update-notice.html" data-tool-frame></iframe>
         </div>
       </div>
-
-      <div class="subpanel" id="updates-index">
-        <div class="panel-card">
-          <div id="updatesListIndex"><div class="loading">加载中...</div></div>
-        </div>
-      </div>
-
-      <div class="subpanel" id="updates-feedback">
-        <div class="panel-card">
-          <div id="updatesListFeedback"><div class="loading">加载中...</div></div>
-        </div>
-      </div>
-
-      <div class="subpanel" id="updates-card">
-        <div class="subtabs" data-tabs-group="updates-cards">
-          <button class="subtab active" data-subpanel="updates-card1">🎵 卡片1 · Roblox ID 宝库</button>
-        </div>
-        <div class="subpanel active" id="updates-card1">
-          <div class="panel-card">
-            <div id="updatesListCard1"><div class="loading">加载中...</div></div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ==================== 卡片管理 ==================== -->
+    <!-- 卡片管理 -->
     <div class="panel" id="panel-cards">
 
       <div class="subtabs" data-tabs-group="cards">
@@ -617,11 +515,7 @@
         </div>
 
         <div class="subpanel" id="card1-json-merge">
-          <div class="panel-card">
-            <h2>📦 JSON 合并工具</h2>
-            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-              把 D1 里的新歌合并到主数据 roblox_music.json。上传两个文件 → 点合并 → 下载，最后覆盖 <code>data/roblox_music.json</code> 即可。
-            </p>
+          <div class="panel-card" style="padding:0;overflow:hidden;">
             <div class="tool-iframe-wrap">
               <iframe src="tools/json-merge.html" data-tool-frame></iframe>
             </div>
@@ -723,63 +617,77 @@ See You Again 2456502348
   <script src="js/admin.js"></script>
 
   <script>
-  /* 二级 / 三级标签切换 */
+  /* 标签切换 + iframe 高度自适应 */
   (function () {
+    function fitIframe(iframe) {
+      try {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc || !doc.body) return;
+        var h = Math.max(
+          doc.body.scrollHeight,
+          doc.body.offsetHeight,
+          doc.documentElement.scrollHeight,
+          doc.documentElement.offsetHeight
+        );
+        if (h > 0) iframe.style.height = (h + 4) + 'px';
+      } catch (e) {}
+    }
+
+    function bindIframeResize(iframe) {
+      function scheduleResize() {
+        fitIframe(iframe);
+        setTimeout(function () { fitIframe(iframe); }, 100);
+        setTimeout(function () { fitIframe(iframe); }, 350);
+        setTimeout(function () { fitIframe(iframe); }, 800);
+        setTimeout(function () { fitIframe(iframe); }, 1500);
+      }
+      iframe.addEventListener('load', function () {
+        scheduleResize();
+        try {
+          var doc = iframe.contentDocument;
+          if (doc && doc.body && window.ResizeObserver) {
+            var ro = new ResizeObserver(function () { fitIframe(iframe); });
+            ro.observe(doc.body);
+          } else {
+            setInterval(function () { fitIframe(iframe); }, 1200);
+          }
+        } catch (e) {
+          setInterval(function () { fitIframe(iframe); }, 1200);
+        }
+      });
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        scheduleResize();
+      }
+    }
+
+    document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframeResize);
+
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
       var buttons = group.querySelectorAll('.subtab');
-
       buttons.forEach(function (btn) {
         btn.addEventListener('click', function () {
           var targetId = btn.dataset.subpanel;
           if (!targetId) return;
-
           buttons.forEach(function (b) { b.classList.remove('active'); });
           btn.classList.add('active');
-
           var target = document.getElementById(targetId);
           if (!target) return;
-
           var parent = target.parentElement;
           parent.querySelectorAll(':scope > .subpanel').forEach(function (p) {
             p.classList.remove('active');
           });
           target.classList.add('active');
-
-          /* 切到工具页时主动测量一次 iframe 高度 */
           var iframe = target.querySelector('iframe[data-tool-frame]');
-          if (iframe) setTimeout(function () { fitIframe(iframe); }, 200);
+          if (iframe) {
+            setTimeout(function () { fitIframe(iframe); }, 150);
+            setTimeout(function () { fitIframe(iframe); }, 500);
+          }
         });
       });
     });
-
-    /* 工具 iframe 高度自适应 */
-    function fitIframe(iframe) {
-      try {
-        var doc = iframe.contentDocument;
-        if (!doc) return;
-        var h = Math.max(
-          doc.body.scrollHeight,
-          doc.documentElement.scrollHeight,
-          doc.body.offsetHeight,
-          doc.documentElement.offsetHeight
-        );
-        if (h > 0) iframe.style.height = (h + 30) + 'px';
-      } catch (e) {}
-    }
-    window.fitIframe = fitIframe;
-
-    document.querySelectorAll('iframe[data-tool-frame]').forEach(function (iframe) {
-      iframe.addEventListener('load', function () {
-        fitIframe(iframe);
-        setInterval(function () { fitIframe(iframe); }, 1500);
-      });
-      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        fitIframe(iframe);
-      }
-    });
   })();
 
-  /* 批量导入歌曲 */
+  /* 批量导入 */
   (function () {
     'use strict';
 

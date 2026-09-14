@@ -32,36 +32,36 @@
       color: var(--text);
       line-height: 1.7;
       min-height: 100vh;
-      padding: 24px 20px;
+      padding: 20px;
       -webkit-font-smoothing: antialiased;
     }
     .container { max-width: 1000px; margin: 0 auto; }
 
     .page-title {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
     .page-title h1 {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .page-title .subtitle {
       color: var(--text-light);
-      font-size: 0.92rem;
+      font-size: 0.88rem;
     }
 
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 22px;
-      margin-bottom: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
     .card:nth-child(2) { animation-delay: 0.05s; }
@@ -69,7 +69,7 @@
     .card:nth-child(4) { animation-delay: 0.15s; }
 
     .card h2 {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary);
       margin-bottom: 10px;
@@ -78,15 +78,15 @@
       gap: 8px;
     }
     .card .hint {
-      font-size: 0.83rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .upload-box {
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 22px;
+      padding: 20px;
       text-align: center;
       cursor: pointer;
       transition: all 0.25s var(--ease-soft);
@@ -105,7 +105,7 @@
       background: #fff;
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-    .upload-box .upload-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .upload-box .upload-icon { font-size: 1.7rem; margin-bottom: 6px; }
     .upload-box .upload-text {
       font-size: 0.88rem;
       color: var(--text-light);
@@ -137,7 +137,7 @@
 
     .actions {
       text-align: center;
-      margin: 20px 0;
+      margin: 18px 0;
     }
 
     .btn {
@@ -145,11 +145,11 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 12px 32px;
+      padding: 11px 30px;
       border: none;
       border-radius: 50px;
       font-family: var(--font);
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s var(--ease-bounce);
@@ -208,44 +208,16 @@
     }
     .stat-item.gold .num { color: #d4a06a; }
 
-    .steps {
-      background: #f0f4ff;
-      border: 2px solid var(--primary-light);
-      border-radius: var(--radius-sm);
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      font-size: 0.87rem;
-      color: var(--text-light);
-      line-height: 1.85;
-    }
-    .steps .steps-title {
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 8px;
-      font-size: 0.93rem;
-    }
-    .steps ol { margin-left: 22px; }
-    .steps li { margin-bottom: 6px; }
-    .steps code {
-      background: #e8ecff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.8rem;
-      color: var(--primary-dark);
-    }
-
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 600px) {
-      body { padding: 16px 12px; }
+      body { padding: 12px; }
       .page-title h1 { font-size: 1.4rem; }
       .card { padding: 16px; }
       .btn { padding: 10px 22px; font-size: 0.9rem; }
-      .steps { padding: 14px 16px; font-size: 0.82rem; }
     }
   </style>
 </head>
@@ -255,19 +227,6 @@
     <div class="page-title">
       <h1>📦 JSON 合并工具</h1>
       <p class="subtitle">把 D1 里的新歌合并到主数据 roblox_music.json</p>
-    </div>
-
-    <div class="steps">
-      <div class="steps-title">📖 操作步骤（第一次用请按顺序做）</div>
-      <ol>
-        <li><strong>导出 D1 新歌：</strong>后台 → 🎶 歌曲管理 → 点右上角 <strong>📤 导出</strong>，会下载 <code>songs_extra_xxx.json</code>。</li>
-        <li><strong>上传原有数据：</strong>点第一个方框，选中你网站文件夹里的 <code>data/roblox_music.json</code>。</li>
-        <li><strong>上传新歌数据：</strong>点第二个方框，选中刚下载的 <code>songs_extra_xxx.json</code>。</li>
-        <li><strong>点合并：</strong>点中间的 <strong>🔀 合并</strong>，看统计结果。</li>
-        <li><strong>下载：</strong>点 <strong>💾 下载合并后的 JSON</strong>，得到新的 <code>roblox_music.json</code>。</li>
-        <li><strong>替换并重新部署：</strong>用新文件覆盖 <code>data/roblox_music.json</code>，重新上传网站到 Cloudflare。</li>
-        <li><strong>最后清空 D1：</strong>后台 → 🎶 歌曲管理 → 点 <strong>🧹 清空</strong>。</li>
-      </ol>
     </div>
 
     <div class="card">

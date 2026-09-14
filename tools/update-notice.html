@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>更新公告生成 - 织雾满穗</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #dc6b82;
@@ -33,83 +32,81 @@
       color: var(--text);
       line-height: 1.7;
       min-height: 100vh;
-      padding: 24px 20px;
+      padding: 18px;
       -webkit-font-smoothing: antialiased;
     }
-    .container { max-width: 1280px; margin: 0 auto; }
+    .container { max-width: 1180px; margin: 0 auto; }
 
-    .page-title {
-      text-align: center;
-      margin-bottom: 24px;
-      animation: fadeInUp 0.5s var(--ease-soft) both;
+    /* 保存目标选择器 */
+    .target-bar {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.4s var(--ease-soft) both;
     }
-    .page-title h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 6px;
-    }
-    .page-title .subtitle {
+    .target-bar .label {
+      font-size: 0.85rem;
+      font-weight: 700;
       color: var(--text-light);
-      font-size: 0.92rem;
+      flex-shrink: 0;
+    }
+    .target-bar .target-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex: 1 1 auto;
+    }
+    .target-btn {
+      padding: 8px 18px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: #fdf8fa;
+      color: var(--text-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .target-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .target-btn:active { transform: scale(0.93); }
+    .target-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
 
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 22px;
-      margin-bottom: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
-    .card:nth-child(2) { animation-delay: 0.05s; }
-    .card:nth-child(3) { animation-delay: 0.10s; }
-    .card:nth-child(4) { animation-delay: 0.15s; }
-
     .card h2 {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-    .card .hint {
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .steps {
-      background: #f0f4ff;
-      border: 2px solid var(--primary-light);
-      border-radius: var(--radius-sm);
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      font-size: 0.87rem;
-      color: var(--text-light);
-      line-height: 1.85;
-      animation: fadeInUp 0.5s var(--ease-soft) both;
-    }
-    .steps .steps-title {
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 8px;
-      font-size: 0.93rem;
-    }
-    .steps ol { margin-left: 22px; }
-    .steps li { margin-bottom: 6px; }
-    .steps code {
-      background: #e8ecff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.8rem;
-      color: var(--primary-dark);
     }
 
     .form-grid {
@@ -117,11 +114,7 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label {
       font-size: 0.8rem;
       font-weight: 600;
@@ -146,58 +139,15 @@
       background: #fff;
     }
 
-    .actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 8px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 12px 32px;
-      border: none;
-      border-radius: 50px;
-      font-family: var(--font);
-      font-size: 0.98rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s var(--ease-bounce);
-      white-space: nowrap;
-    }
-    .btn:active { transform: scale(0.93); }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: #fff;
-      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
-    }
-    .btn-success {
-      background: linear-gradient(135deg, var(--success), var(--success-dark));
-      color: #fff;
-      box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
-    }
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
-    }
-
     .canvas-preview-wrap {
-      overflow-x: auto;
-      padding: 14px 0;
+      overflow: hidden;
+      padding: 8px 0;
       display: flex;
       justify-content: center;
     }
 
     /* ============================================================
-       ★ 图片本体（1200 × 300）
+       图片本体（1200 × 300）
        ============================================================ */
     #canvas {
       width: 1200px;
@@ -255,8 +205,7 @@
 
     .strip {
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 0; right: 0;
       height: 26px;
       line-height: 26px;
       font-size: 10px;
@@ -293,10 +242,8 @@
 
     .content {
       position: absolute;
-      top: 26px;
-      bottom: 26px;
-      left: 0;
-      right: 0;
+      top: 26px; bottom: 26px;
+      left: 0; right: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -400,49 +347,108 @@
       text-shadow: 0 3px 12px rgba(0,0,0,0.25);
     }
 
+    .canvas-scaler {
+      width: 1200px;
+      height: 300px;
+      transform-origin: top left;
+    }
+
+    /* 底部操作 */
+    .action-bar {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font);
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+    }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .btn-secondary {
+      background: #fdf8fa;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .save-status {
+      width: 100%;
+      text-align: center;
+      font-size: 0.86rem;
+      min-height: 20px;
+      font-weight: 600;
+    }
+    .save-status.ok { color: var(--success-dark); }
+    .save-status.err { color: var(--danger); }
+
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 1320px) {
-      #canvas {
-        transform: scale(calc((100vw - 100px) / 1200));
-        transform-origin: center top;
-        margin-bottom: calc(-300px * (1 - (100vw - 100px) / 1200));
+    /* 窄屏时整体缩放 */
+    @media (max-width: 1240px) {
+      .canvas-scaler {
+        transform: scale(calc((100vw - 40px) / 1200));
+        height: calc(300px * (100vw - 40px) / 1200);
       }
-    }
-    @media (max-width: 600px) {
-      body { padding: 16px 12px; }
-      .page-title h1 { font-size: 1.4rem; }
-      .card { padding: 16px; }
-      .btn { padding: 10px 22px; font-size: 0.9rem; }
-      .steps { padding: 14px 16px; font-size: 0.82rem; }
+      .canvas-preview-wrap {
+        height: auto;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <div class="page-title">
-      <h1>🎨 更新公告生成</h1>
-      <p class="subtitle">改文字 → 点导出，生成一张 1200×300 的高清更新公告图</p>
-    </div>
-
-    <div class="steps">
-      <div class="steps-title">📖 操作步骤（第一次用请按顺序做）</div>
-      <ol>
-        <li><strong>写内容：</strong>在下面的输入框里改主题色、标题、版本号、更新内容。</li>
-        <li><strong>实时预览：</strong>下面会实时显示生成效果，不满意直接改。</li>
-        <li><strong>选倍率：</strong>推荐 2x（2400×600），够清晰又不占空间。</li>
-        <li><strong>点导出：</strong>点 <strong>💾 下载 PNG</strong>，会下载一张高清图片。</li>
-        <li><strong>发布：</strong>把图片发到 B站动态、QQ 群、GitHub Release、公众号等。</li>
-      </ol>
+    <!-- 保存目标选择器 -->
+    <div class="target-bar">
+      <span class="label">📌 保存到：</span>
+      <div class="target-btns">
+        <button class="target-btn active" data-page="index">🏠 主页</button>
+        <button class="target-btn" data-page="feedback">💬 反馈</button>
+        <button class="target-btn" data-page="roblox">🎮 卡片1</button>
+      </div>
     </div>
 
     <div class="card">
       <h2>✏️ 内容编辑</h2>
-      <p class="hint">修改下面输入框，下面预览会实时更新。</p>
       <div class="form-grid">
         <div class="form-group">
           <label>主题色</label>
@@ -467,7 +473,7 @@
           <input type="text" id="titleInput" value="新版本发布" maxlength="10">
         </div>
         <div class="form-group">
-          <label>左侧版本号</label>
+          <label>左侧版本号（显示用）</label>
           <input type="text" id="versionInput" value="v1.4.0 → v1.5.0" maxlength="22">
         </div>
         <div class="form-group">
@@ -478,55 +484,41 @@
           <label>右侧第二行（次要更新）</label>
           <input type="text" id="line2Input" value="📢 访问渠道上线" maxlength="22">
         </div>
-        <div class="form-group">
-          <label>导出倍率</label>
-          <select id="scaleInput">
-            <option value="2" selected>2x（推荐 2400×600）</option>
-            <option value="3">3x（超清 3600×900）</option>
-            <option value="1">1x（小图 1200×300）</option>
-          </select>
-        </div>
       </div>
     </div>
 
     <div class="card">
       <h2>👀 实时预览</h2>
-      <p class="hint">这就是最终会导出的图片（1:1 显示，宽 1200px）。</p>
       <div class="canvas-preview-wrap">
-        <div id="canvas" class="theme-pink">
-          <div class="light-band"></div>
-
-          <div class="strip strip-top" id="stripTop">织雾满穗 ZHIWU UPDATE</div>
-
-          <div class="wheat-deco left">🌾</div>
-          <div class="wheat-deco right">🌾</div>
-
-          <div class="content">
-            <div class="info-left">
-              <div class="title" id="canvasTitle">新版本发布</div>
-              <div class="version" id="canvasVersion">v1.4.0 → v1.5.0</div>
+        <div class="canvas-scaler">
+          <div id="canvas" class="theme-pink">
+            <div class="light-band"></div>
+            <div class="strip strip-top" id="stripTop">织雾满穗 ZHIWU UPDATE</div>
+            <div class="wheat-deco left">🌾</div>
+            <div class="wheat-deco right">🌾</div>
+            <div class="content">
+              <div class="info-left">
+                <div class="title" id="canvasTitle">新版本发布</div>
+                <div class="version" id="canvasVersion">v1.4.0 → v1.5.0</div>
+              </div>
+              <div class="logo-center">
+                <div class="logo-circle" id="canvasLogo">穗</div>
+              </div>
+              <div class="info-right">
+                <div class="line1" id="canvasLine1">🔥 新增热门推荐</div>
+                <div class="line2" id="canvasLine2">📢 访问渠道上线</div>
+              </div>
             </div>
-            <div class="logo-center">
-              <div class="logo-circle" id="canvasLogo">穗</div>
-            </div>
-            <div class="info-right">
-              <div class="line1" id="canvasLine1">🔥 新增热门推荐</div>
-              <div class="line2" id="canvasLine2">📢 访问渠道上线</div>
-            </div>
+            <div class="strip strip-bottom" id="stripBottom">织雾满穗 ZHIWU UPDATE</div>
           </div>
-
-          <div class="strip strip-bottom" id="stripBottom">织雾满穗 ZHIWU UPDATE</div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>💾 导出</h2>
-      <p class="hint">点击下方按钮，浏览器会直接下载 PNG。</p>
-      <div class="actions">
-        <button class="btn btn-primary" id="downloadBtn">💾 下载 PNG</button>
-        <button class="btn btn-success" id="resetBtn">🔄 恢复默认</button>
-      </div>
+    <div class="action-bar">
+      <button class="btn btn-primary" id="saveBtn">💾 保存并生效</button>
+      <button class="btn btn-secondary" id="resetBtn">🔄 恢复默认</button>
+      <div class="save-status" id="saveStatus"></div>
     </div>
 
   </div>
@@ -535,6 +527,8 @@
     const $ = id => document.getElementById(id);
     const canvas = $('canvas');
 
+    let currentPage = 'index';
+
     const inputs = {
       theme:   $('themeInput'),
       strip:   $('stripInput'),
@@ -542,8 +536,7 @@
       title:   $('titleInput'),
       version: $('versionInput'),
       line1:   $('line1Input'),
-      line2:   $('line2Input'),
-      scale:   $('scaleInput')
+      line2:   $('line2Input')
     };
     const targets = {
       title:       $('canvasTitle'),
@@ -573,6 +566,7 @@
 
     function applyTheme(t) { canvas.className = t; }
 
+    /* ========== 输入实时同步到预览 ========== */
     inputs.theme.addEventListener('change', e => applyTheme(e.target.value));
     inputs.strip.addEventListener('input', e => fillStrip(e.target.value || DEFAULTS.strip));
     inputs.logo.addEventListener('input', e => targets.logo.textContent = e.target.value || '穗');
@@ -581,61 +575,137 @@
     inputs.line1.addEventListener('input', e => targets.line1.textContent = e.target.value || '');
     inputs.line2.addEventListener('input', e => targets.line2.textContent = e.target.value || '');
 
-    $('downloadBtn').addEventListener('click', function () {
-      const scale = parseInt(inputs.scale.value, 10) || 2;
-      const oldT = canvas.style.transform;
-      const oldM = canvas.style.marginBottom;
-      canvas.style.transform = 'none';
-      canvas.style.marginBottom = '0';
+    /* ========== 从输入框收集配置 ========== */
+    function collectConfig() {
+      return {
+        theme: inputs.theme.value,
+        strip: inputs.strip.value,
+        logo: inputs.logo.value,
+        title: inputs.title.value,
+        version: inputs.version.value,
+        line1: inputs.line1.value,
+        line2: inputs.line2.value
+      };
+    }
 
-      html2canvas(canvas, {
-        scale: scale,
-        backgroundColor: null,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        width: 1200,
-        height: 300
-      }).then(rendered => {
-        canvas.style.transform = oldT;
-        canvas.style.marginBottom = oldM;
-        const link = document.createElement('a');
-        const ts = new Date();
-        const stamp = ts.getFullYear()
-          + String(ts.getMonth() + 1).padStart(2, '0')
-          + String(ts.getDate()).padStart(2, '0') + '_'
-          + String(ts.getHours()).padStart(2, '0')
-          + String(ts.getMinutes()).padStart(2, '0');
-        link.download = 'zhimu_update_' + stamp + '.png';
-        link.href = rendered.toDataURL('image/png');
-        link.click();
-      }).catch(err => {
-        canvas.style.transform = oldT;
-        canvas.style.marginBottom = oldM;
-        alert('❌ 导出失败：' + err.message + '\n\n建议用 Chrome / Edge 打开，或用系统截图工具截取预览区域。');
+    /* ========== 把配置填充到输入框 + 预览 ========== */
+    function applyConfig(cfg) {
+      inputs.theme.value   = cfg.theme   || DEFAULTS.theme;
+      inputs.strip.value   = cfg.strip   || DEFAULTS.strip;
+      inputs.logo.value    = cfg.logo    || DEFAULTS.logo;
+      inputs.title.value   = cfg.title   || DEFAULTS.title;
+      inputs.version.value = cfg.version || DEFAULTS.version;
+      inputs.line1.value   = cfg.line1   || '';
+      inputs.line2.value   = cfg.line2   || '';
+
+      applyTheme(inputs.theme.value);
+      fillStrip(inputs.strip.value);
+      targets.logo.textContent    = inputs.logo.value;
+      targets.title.textContent   = inputs.title.value;
+      targets.version.textContent = inputs.version.value;
+      targets.line1.textContent   = inputs.line1.value;
+      targets.line2.textContent   = inputs.line2.value;
+    }
+
+    /* ========== 从后端加载指定页面的现有配置 ========== */
+    async function loadConfigFromServer(pageKey) {
+      try {
+        const res = await fetch('/api/updates?page=' + pageKey + '&t=' + Date.now());
+        const data = await res.json();
+        if (!data.ok || !data.data || !Array.isArray(data.data.updates) || data.data.updates.length === 0) {
+          return null;
+        }
+        /* updates[0] 是 JSON 字符串 */
+        const first = data.data.updates[0];
+        if (typeof first !== 'string') return null;
+        try {
+          const cfg = JSON.parse(first);
+          if (cfg && typeof cfg === 'object' && cfg.theme) return cfg;
+        } catch (e) {}
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /* ========== 切换保存目标 ========== */
+    document.querySelectorAll('.target-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPage = btn.dataset.page;
+
+        setStatus('', '');
+        const cfg = await loadConfigFromServer(currentPage);
+        if (cfg) {
+          applyConfig(cfg);
+        } else {
+          /* 没有历史配置，就回默认 */
+          applyConfig(DEFAULTS);
+        }
       });
     });
 
-    $('resetBtn').addEventListener('click', function () {
-      if (!confirm('恢复默认内容？当前修改会丢失。')) return;
-      inputs.theme.value = DEFAULTS.theme;
-      inputs.strip.value = DEFAULTS.strip;
-      inputs.logo.value = DEFAULTS.logo;
-      inputs.title.value = DEFAULTS.title;
-      inputs.version.value = DEFAULTS.version;
-      inputs.line1.value = DEFAULTS.line1;
-      inputs.line2.value = DEFAULTS.line2;
-      applyTheme(DEFAULTS.theme);
-      fillStrip(DEFAULTS.strip);
-      targets.logo.textContent = DEFAULTS.logo;
-      targets.title.textContent = DEFAULTS.title;
-      targets.version.textContent = DEFAULTS.version;
-      targets.line1.textContent = DEFAULTS.line1;
-      targets.line2.textContent = DEFAULTS.line2;
+    /* ========== 保存状态提示 ========== */
+    function setStatus(text, type) {
+      const el = $('saveStatus');
+      el.textContent = text;
+      el.className = 'save-status' + (type ? ' ' + type : '');
+    }
+
+    /* ========== 保存并生效 ========== */
+    $('saveBtn').addEventListener('click', async function () {
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = '保存中...';
+      setStatus('', '');
+
+      const cfg = collectConfig();
+
+      /* 版本号用时间戳：每次保存都不同，保证所有用户都能看到新弹窗 */
+      const realVersion = 'v' + Date.now();
+
+      try {
+        const res = await fetch('/api/updates', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            page: currentPage,
+            version: realVersion,
+            updates: [JSON.stringify(cfg)]
+          })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          const pageName = { index: '主页', feedback: '反馈', roblox: '卡片1' }[currentPage] || currentPage;
+          setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
+        } else {
+          setStatus('❌ 保存失败：' + (data.error || '未知错误'), 'err');
+        }
+      } catch (e) {
+        setStatus('❌ 网络异常：' + e.message, 'err');
+      }
+
+      btn.disabled = false;
+      btn.textContent = '💾 保存并生效';
     });
 
-    applyTheme(DEFAULTS.theme);
-    fillStrip(DEFAULTS.strip);
+    /* ========== 恢复默认 ========== */
+    $('resetBtn').addEventListener('click', function () {
+      if (!confirm('恢复默认内容？当前修改会丢失。')) return;
+      applyConfig(DEFAULTS);
+      setStatus('', '');
+    });
+
+    /* ========== 初始化 ========== */
+    (async function init() {
+      applyConfig(DEFAULTS);
+      /* 默认加载主页的现有配置 */
+      const cfg = await loadConfigFromServer('index');
+      if (cfg) applyConfig(cfg);
+    })();
   </script>
 </body>
 </html>
