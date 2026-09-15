@@ -40,7 +40,7 @@
     .container { max-width: 1180px; margin: 0 auto; }
 
     /* ============================================================
-       保存目标选择器（胶囊风格，跟后台标签一致）
+       保存目标选择器
        ============================================================ */
     .target-bar {
       background: var(--bg-card);
@@ -58,8 +58,6 @@
       margin-bottom: 10px;
       letter-spacing: 0.5px;
     }
-
-    /* 一级：主页 / 反馈页 / 卡片 */
     .target-btns {
       display: inline-flex;
       gap: 6px;
@@ -98,7 +96,6 @@
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
-    /* 二级：卡片1 · Roblox ID 宝库（只在选"卡片"时出现） */
     .target-sub {
       margin-top: 12px;
       padding-top: 12px;
@@ -106,9 +103,7 @@
       display: none;
       animation: fadeInUp 0.3s var(--ease-soft) both;
     }
-    .target-sub.show {
-      display: block;
-    }
+    .target-sub.show { display: block; }
     .target-sub-btns {
       display: inline-flex;
       gap: 6px;
@@ -196,6 +191,13 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
       background: #fff;
+    }
+
+    /* 提示小字 */
+    .form-tip {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
     .canvas-preview-wrap {
@@ -316,22 +318,40 @@
       color: #fff;
       min-width: 0;
     }
+
+    /* 左侧主标题：金色金属渐变 */
     .info-left .title {
       font-size: 34px;
       font-weight: 800;
       letter-spacing: 4px;
       margin-bottom: 10px;
       line-height: 1.15;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.15),
-        0 4px 18px rgba(0,0,0,0.30),
-        0 8px 30px rgba(0,0,0,0.15);
+      background: linear-gradient(180deg, #ffffff 0%, #fff0c8 45%, #ffcf7a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      filter:
+        drop-shadow(0 1px 0 rgba(0,0,0,0.25))
+        drop-shadow(0 4px 12px rgba(0,0,0,0.3))
+        drop-shadow(0 10px 28px rgba(0,0,0,0.2));
     }
+
+    /* 金色主题下，标题改白（避免撞色） */
+    #canvas.theme-gold .info-left .title {
+      background: linear-gradient(180deg, #ffffff 0%, #fffbf0 45%, #ffeeda 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
     .info-left .version {
       font-size: 23px;
       font-weight: 600;
       letter-spacing: 2px;
       opacity: 0.95;
+      color: #fff;
       text-shadow: 0 2px 10px rgba(0,0,0,0.28);
     }
 
@@ -489,14 +509,12 @@
     <div class="target-bar">
       <span class="label">📌 选择要更新的页面</span>
 
-      <!-- 一级：主页 / 反馈页 / 卡片 -->
       <div class="target-btns">
         <button class="target-btn active" data-page="index">🏠 主页</button>
         <button class="target-btn" data-page="feedback">💬 反馈页</button>
         <button class="target-btn" data-page="card">🎮 卡片</button>
       </div>
 
-      <!-- 二级：卡片1 · Roblox ID 宝库（选"卡片"后显示） -->
       <div class="target-sub" id="cardSub">
         <div class="target-sub-btns">
           <button class="target-sub-btn active" data-page="roblox">🎵 卡片1 · Roblox ID 宝库</button>
@@ -509,14 +527,15 @@
       <h2>✏️ 内容编辑</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>主题色</label>
+          <label>主题色（同时决定左侧主标题）</label>
           <select id="themeInput">
-            <option value="theme-pink" selected>🌸 玫瑰（日常更新）</option>
-            <option value="theme-purple">💜 紫罗兰（重大更新）</option>
-            <option value="theme-blue">💙 天青（体验优化）</option>
-            <option value="theme-gold">⭐ 香槟金（活动 / 节日）</option>
-            <option value="theme-green">🌿 苔绿（修复 / 补丁）</option>
+            <option value="theme-pink" selected>🌸 玫瑰 · 日常更新</option>
+            <option value="theme-purple">💜 紫罗兰 · 重大更新</option>
+            <option value="theme-blue">💙 天青 · 体验优化</option>
+            <option value="theme-gold">⭐ 香槟金 · 活动更新</option>
+            <option value="theme-green">🌿 苔绿 · 修复更新</option>
           </select>
+          <span class="form-tip" id="titlePreviewTip">当前主标题：日常更新</span>
         </div>
         <div class="form-group">
           <label>顶部 / 底部文字带</label>
@@ -525,10 +544,6 @@
         <div class="form-group">
           <label>中央 Logo 文字</label>
           <input type="text" id="logoInput" value="穗" maxlength="4">
-        </div>
-        <div class="form-group">
-          <label>左侧主标题</label>
-          <input type="text" id="titleInput" value="新版本发布" maxlength="10">
         </div>
         <div class="form-group">
           <label>左侧版本号（显示用）</label>
@@ -557,7 +572,7 @@
             <div class="wheat-deco right">🌾</div>
             <div class="content">
               <div class="info-left">
-                <div class="title" id="canvasTitle">新版本发布</div>
+                <div class="title" id="canvasTitle">日常更新</div>
                 <div class="version" id="canvasVersion">v1.4.0 → v1.5.0</div>
               </div>
               <div class="logo-center">
@@ -586,6 +601,7 @@
     const $ = id => document.getElementById(id);
     const canvas = $('canvas');
     const cardSub = $('cardSub');
+    const titlePreviewTip = $('titlePreviewTip');
 
     let currentPage = 'index';
 
@@ -593,7 +609,6 @@
       theme:   $('themeInput'),
       strip:   $('stripInput'),
       logo:    $('logoInput'),
-      title:   $('titleInput'),
       version: $('versionInput'),
       line1:   $('line1Input'),
       line2:   $('line2Input')
@@ -608,11 +623,19 @@
       stripBottom: $('stripBottom')
     };
 
+    /* 主题色 → 自动标题 */
+    const THEME_TITLES = {
+      'theme-pink':   '日常更新',
+      'theme-purple': '重大更新',
+      'theme-blue':   '体验优化',
+      'theme-gold':   '活动更新',
+      'theme-green':  '修复更新'
+    };
+
     const DEFAULTS = {
       theme: 'theme-pink',
       strip: '织雾满穗 ZHIWU UPDATE',
       logo: '穗',
-      title: '新版本发布',
       version: 'v1.4.0 → v1.5.0',
       line1: '🔥 新增热门推荐',
       line2: '📢 访问渠道上线'
@@ -626,20 +649,33 @@
 
     function applyTheme(t) { canvas.className = t; }
 
-    inputs.theme.addEventListener('change', e => applyTheme(e.target.value));
+    /* 更新左侧主标题（根据主题色） */
+    function updateAutoTitle() {
+      const t = inputs.theme.value;
+      const autoTitle = THEME_TITLES[t] || '更新';
+      targets.title.textContent = autoTitle;
+      if (titlePreviewTip) titlePreviewTip.textContent = '当前主标题：' + autoTitle;
+    }
+
+    /* 输入同步到预览 */
     inputs.strip.addEventListener('input', e => fillStrip(e.target.value || DEFAULTS.strip));
     inputs.logo.addEventListener('input', e => targets.logo.textContent = e.target.value || '穗');
-    inputs.title.addEventListener('input', e => targets.title.textContent = e.target.value || '');
     inputs.version.addEventListener('input', e => targets.version.textContent = e.target.value || '');
     inputs.line1.addEventListener('input', e => targets.line1.textContent = e.target.value || '');
     inputs.line2.addEventListener('input', e => targets.line2.textContent = e.target.value || '');
+
+    /* 主题色变化 → 改画布 + 改主标题 */
+    inputs.theme.addEventListener('change', e => {
+      applyTheme(e.target.value);
+      updateAutoTitle();
+    });
 
     function collectConfig() {
       return {
         theme: inputs.theme.value,
         strip: inputs.strip.value,
         logo: inputs.logo.value,
-        title: inputs.title.value,
+        title: targets.title.textContent,   /* 直接取画布上显示的文字 */
         version: inputs.version.value,
         line1: inputs.line1.value,
         line2: inputs.line2.value
@@ -650,7 +686,6 @@
       inputs.theme.value   = cfg.theme   || DEFAULTS.theme;
       inputs.strip.value   = cfg.strip   || DEFAULTS.strip;
       inputs.logo.value    = cfg.logo    || DEFAULTS.logo;
-      inputs.title.value   = cfg.title   || DEFAULTS.title;
       inputs.version.value = cfg.version || DEFAULTS.version;
       inputs.line1.value   = cfg.line1   || '';
       inputs.line2.value   = cfg.line2   || '';
@@ -658,10 +693,17 @@
       applyTheme(inputs.theme.value);
       fillStrip(inputs.strip.value);
       targets.logo.textContent    = inputs.logo.value;
-      targets.title.textContent   = inputs.title.value;
       targets.version.textContent = inputs.version.value;
       targets.line1.textContent   = inputs.line1.value;
       targets.line2.textContent   = inputs.line2.value;
+
+      /* 主标题：优先用配置里存的（可能是旧版本自定义的），否则按主题色推导 */
+      if (cfg.title) {
+        targets.title.textContent = cfg.title;
+        titlePreviewTip.textContent = '当前主标题：' + cfg.title;
+      } else {
+        updateAutoTitle();
+      }
     }
 
     async function loadConfigFromServer(pageKey) {
@@ -683,7 +725,6 @@
       }
     }
 
-    /* ========== 切换一级：主页 / 反馈页 / 卡片 ========== */
     document.querySelectorAll('.target-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
@@ -692,15 +733,12 @@
         const page = btn.dataset.page;
 
         if (page === 'card') {
-          /* 显示二级选择 */
           cardSub.classList.add('show');
-          /* 默认选中卡片1 */
           document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
           const firstSub = document.querySelector('.target-sub-btn');
           if (firstSub) firstSub.classList.add('active');
           currentPage = firstSub ? firstSub.dataset.page : 'roblox';
         } else {
-          /* 隐藏二级 */
           cardSub.classList.remove('show');
           currentPage = page;
         }
@@ -711,7 +749,6 @@
       });
     });
 
-    /* ========== 切换二级：卡片1 ========== */
     document.querySelectorAll('.target-sub-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
