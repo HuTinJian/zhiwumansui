@@ -239,11 +239,20 @@
 
     /* ========== 工具 iframe ========== */
     .tool-iframe-wrap {
-      margin: 0; padding: 0; border: none; background: transparent;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      width: 100%;
+      overflow: hidden;
     }
     .tool-iframe-wrap iframe {
-      display: block; width: 100%; min-height: 400px;
-      border: none; background: transparent;
+      display: block;
+      width: 100%;
+      height: 200px;         /* 初始高度，稍后由子页面 report 覆盖 */
+      border: none;
+      background: transparent;
+      overflow: hidden;
       transition: height 0.15s ease;
     }
 
@@ -416,11 +425,11 @@
       </div>
     </div>
 
-    <!-- 更新管理（只有生成器） -->
+    <!-- 更新管理 -->
     <div class="panel" id="panel-updates">
       <div class="panel-card" style="padding:0;overflow:hidden;">
         <div class="tool-iframe-wrap">
-          <iframe src="tools/update-notice.html" data-tool-frame></iframe>
+          <iframe src="tools/update-notice.html" data-tool-frame scrolling="no"></iframe>
         </div>
       </div>
     </div>
@@ -437,7 +446,7 @@
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
           <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
           <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
-          <button class="subtab" data-subpanel="card1-json-merge">📦 JSON 合并</button>
+          <button class="subtab" data-subpanel="card1-json-merge">📦 JSON 合并工具</button>
         </div>
 
         <div class="subpanel active" id="card1-songs">
@@ -517,7 +526,7 @@
         <div class="subpanel" id="card1-json-merge">
           <div class="panel-card" style="padding:0;overflow:hidden;">
             <div class="tool-iframe-wrap">
-              <iframe src="tools/json-merge.html" data-tool-frame></iframe>
+              <iframe src="tools/json-merge.html" data-tool-frame scrolling="no"></iframe>
             </div>
           </div>
         </div>
@@ -618,39 +627,55 @@ See You Again 2456502348
 
   <script>
   /* ============================================================
-     标签切换 + iframe 高度自适应
+     标签切换 + iframe 高度自适应（子页面主动上报）
      ============================================================ */
   (function () {
 
-    /* iframe 高度自适应：只在加载完成后测 2 次，避免累积变大 */
+    /* ---- 兜底：跨域拿不到 contentWindow 时，仍能测高度 ---- */
     function fitIframe(iframe) {
       try {
         var doc = iframe.contentDocument || iframe.contentWindow.document;
         if (!doc || !doc.body) return;
         var h = Math.max(
           doc.body.scrollHeight,
-          doc.documentElement.scrollHeight
+          doc.body.offsetHeight,
+          doc.documentElement.scrollHeight,
+          doc.documentElement.offsetHeight
         );
-        if (h > 1800) h = 1800;
-        if (h < 400) h = 400;
-        iframe.style.height = h + 'px';
+        if (h > 0) iframe.style.height = h + 'px';
       } catch (e) {}
     }
 
-    function bindIframeResize(iframe) {
+    /* ---- 接收子页面主动上报的高度（精确） ---- */
+    window.addEventListener('message', function (e) {
+      if (!e.data || e.data.type !== 'iframe-resize') return;
+      var h = Number(e.data.height);
+      if (!h || h < 100) return;
+
+      document.querySelectorAll('iframe[data-tool-frame]').forEach(function (iframe) {
+        try {
+          if (iframe.contentWindow === e.source) {
+            iframe.style.height = h + 'px';
+          }
+        } catch (err) {}
+      });
+    });
+
+    /* ---- iframe 加载完成后测一次兜底 ---- */
+    function bindIframe(iframe) {
       iframe.addEventListener('load', function () {
-        setTimeout(function () { fitIframe(iframe); }, 100);
-        setTimeout(function () { fitIframe(iframe); }, 500);
+        setTimeout(function () { fitIframe(iframe); }, 200);
+        setTimeout(function () { fitIframe(iframe); }, 800);
       });
       if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        setTimeout(function () { fitIframe(iframe); }, 100);
-        setTimeout(function () { fitIframe(iframe); }, 500);
+        setTimeout(function () { fitIframe(iframe); }, 200);
+        setTimeout(function () { fitIframe(iframe); }, 800);
       }
     }
 
-    document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframeResize);
+    document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframe);
 
-    /* 标签切换 */
+    /* ---- 标签切换 ---- */
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
       var buttons = group.querySelectorAll('.subtab');
       buttons.forEach(function (btn) {
@@ -667,9 +692,8 @@ See You Again 2456502348
           });
           target.classList.add('active');
 
-          /* 切到工具页时补测一次 */
           var iframe = target.querySelector('iframe[data-tool-frame]');
-          if (iframe) setTimeout(function () { fitIframe(iframe); }, 200);
+          if (iframe) setTimeout(function () { fitIframe(iframe); }, 300);
         });
       });
     });

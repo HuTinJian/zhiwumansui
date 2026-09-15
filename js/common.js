@@ -34,7 +34,6 @@ function closeModal(id) {
   modal.classList.add('closing');
   setTimeout(() => {
     modal.classList.remove('show', 'closing');
-    /* 如果还有其他弹窗，保持滚动锁定 */
     if (!document.querySelector('.modal.show')) {
       document.body.classList.remove('modal-open');
     }
@@ -172,12 +171,18 @@ async function checkPageUpdate(pageKey, options = {}) {
   const oldModal = document.getElementById(modalId);
   if (oldModal) oldModal.remove();
 
-  /* 计算右侧多行字号 */
-  const lines = String(cfg.lines || '').split('\n').map(s => s.trim()).filter(s => '');
+  /* ---- 解析右侧多行，空则用兜底内容 ---- */
+  const FALLBACK_LINES = [
+    '🎨 更新弹窗全面升级',
+    '✨ 5 种主题色可选'
+  ];
+  let lines = String(cfg.lines || '').split('\n').map(s => s.trim()).filter(s => '');
   if (lines.length === 0 && (cfg.line1 || cfg.line2)) {
-    if (cfg.line1) lines.push(cfg.line1);
-    if (cfg.line2) lines.push(cfg.line2);
+    if (cfg.line1) lines.push(String(cfg.line1).trim());
+    if (cfg.line2) lines.push(String(cfg.line2).trim());
   }
+  if (lines.length === 0) lines = FALLBACK_LINES.slice();
+
   const display = lines.slice(0, 6);
   const rightSize = display.length >= 6 ? 16
                   : display.length === 5 ? 17
@@ -185,11 +190,16 @@ async function checkPageUpdate(pageKey, options = {}) {
                   : display.length === 3 ? 21
                   : 23;
 
+  /* ---- 创建弹窗 ---- */
   const modal = document.createElement('div');
   modal.id = modalId;
   modal.className = 'modal update-image-modal';
   modal.innerHTML = `
     <div class="modal-content update-image-content">
+      <div class="update-image-header">
+        <span class="update-image-title">🎉 版本更新</span>
+        <button class="update-image-close" id="updateCloseBtn" aria-label="关闭">✕</button>
+      </div>
       <div class="update-image-inner">
         <div class="canvas-scaler">
           <div class="update-canvas ${cfg.theme || 'theme-pink'}">
@@ -212,7 +222,7 @@ async function checkPageUpdate(pageKey, options = {}) {
         </div>
       </div>
       <div class="update-image-footer">
-        <button class="btn btn-primary" id="updateOkBtn">我知道了</button>
+        <button class="update-image-ok" id="updateOkBtn">我知道了</button>
       </div>
     </div>
   `;
@@ -226,29 +236,23 @@ async function checkPageUpdate(pageKey, options = {}) {
   modal.querySelector('.logo-circle').textContent        = cfg.logo    || '穗';
 
   const rightEl = modal.querySelector('.info-right');
-  if (display.length === 0) {
+  display.forEach(line => {
     const div = document.createElement('div');
     div.className = 'right-line';
-    div.style.fontSize = '19px';
-    div.style.opacity = '0.55';
-    div.textContent = '（暂无更新内容）';
+    div.style.fontSize = rightSize + 'px';
+    div.textContent = line;
     rightEl.appendChild(div);
-  } else {
-    display.forEach(line => {
-      const div = document.createElement('div');
-      div.className = 'right-line';
-      div.style.fontSize = rightSize + 'px';
-      div.textContent = line;
-      rightEl.appendChild(div);
-    });
-  }
+  });
 
   openModal(modalId);
 
-  document.getElementById('updateOkBtn').onclick = () => {
+  const finish = () => {
     localStorage.setItem(storageKey, version);
     closeModal(modalId);
   };
+
+  document.getElementById('updateOkBtn').onclick = finish;
+  document.getElementById('updateCloseBtn').onclick = finish;
 }
 
 /* ============================================================
@@ -294,7 +298,7 @@ function showOldTextModal(version, date, updates, storageKey) {
 }
 
 /* ============================================================
-   注入图片弹窗的 CSS（只需一次）
+   注入图片弹窗的 CSS
    ============================================================ */
 function injectUpdateImageCSS() {
   if (document.getElementById('updateImageCSS')) return;
@@ -302,40 +306,93 @@ function injectUpdateImageCSS() {
   style.id = 'updateImageCSS';
   style.textContent = `
     .update-image-modal {
-      background: rgba(74, 63, 68, 0.6);
+      background: rgba(74, 63, 68, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     .update-image-modal .modal-content {
-      max-width: 1240px;
-      width: 95vw;
+      max-width: 1040px;
+      width: 92vw;
       padding: 0;
-      overflow: visible;
-      background: transparent;
+      overflow: hidden;
+      background: #ffffff;
       border: none;
-      border-radius: 24px;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-      position: relative;
+      border-radius: 20px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
     }
+
+    /* ---- 顶部标题栏 ---- */
+    .update-image-modal .update-image-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #fde8ef 0%, #fbd5e0 100%);
+      border-bottom: 1px solid rgba(220, 107, 130, 0.15);
+    }
+    .update-image-modal .update-image-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #c7546a;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .update-image-modal .update-image-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.75);
+      color: #c7546a;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+      font-family: inherit;
+    }
+    .update-image-modal .update-image-close:hover {
+      background: #ffffff;
+      transform: rotate(90deg) scale(1.1);
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.2);
+    }
+    .update-image-modal .update-image-close:active {
+      transform: rotate(90deg) scale(0.9);
+    }
+
+    /* ---- 图片区 ---- */
     .update-image-modal .update-image-inner {
-      padding: 0;
-      background: transparent;
+      padding: 16px;
+      background: #fdf8fa;
       display: flex;
       justify-content: center;
+      align-items: center;
       overflow: hidden;
-      border-radius: 24px;
     }
     .update-image-modal .canvas-scaler {
       width: 1200px;
       height: 300px;
       transform-origin: top left;
-      border-radius: 24px;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(220, 107, 130, 0.1);
+      background: #fdf2f5;
     }
     .update-image-modal .update-canvas {
       width: 1200px;
       height: 300px;
       position: relative;
       overflow: hidden;
-      border-radius: 24px;
+      border-radius: 12px;
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
     .update-image-modal .update-canvas.theme-pink { background:
@@ -392,13 +449,11 @@ function injectUpdateImageCSS() {
       top: 0;
       background: linear-gradient(to bottom, rgba(0,0,0,0.12), transparent);
       border-bottom: 1px solid rgba(255,255,255,0.06);
-      border-radius: 24px 24px 0 0;
     }
     .update-image-modal .strip-bottom {
       bottom: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.12), transparent);
       border-top: 1px solid rgba(255,255,255,0.06);
-      border-radius: 0 0 24px 24px;
     }
     .update-image-modal .wheat-deco {
       position: absolute;
@@ -503,47 +558,42 @@ function injectUpdateImageCSS() {
         0 4px 16px rgba(0,0,0,0.28);
     }
 
-    /* 我知道了按钮：浮在右下角，白底粉字，玻璃感 */
+    /* ---- 底部按钮区 ---- */
     .update-image-modal .update-image-footer {
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      padding: 0;
-      background: transparent;
-      text-align: right;
-      z-index: 10;
+      padding: 14px 20px 18px;
+      text-align: center;
+      background: #ffffff;
+      border-top: 1px solid rgba(220, 107, 130, 0.12);
     }
-    .update-image-modal .update-image-footer .btn {
-      background: rgba(255, 255, 255, 0.92);
-      color: var(--primary-dark, #c7546a);
+    .update-image-modal .update-image-ok {
+      padding: 12px 52px;
       border: none;
-      padding: 10px 26px;
       border-radius: 50px;
       font-family: inherit;
-      font-size: 0.92rem;
+      font-size: 0.98rem;
       font-weight: 800;
       letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,255,255,0.5) inset;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      background: linear-gradient(135deg, #dc6b82, #e88da1);
+      box-shadow: 0 8px 20px rgba(220, 107, 130, 0.35);
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       white-space: nowrap;
+      min-width: 200px;
     }
-    .update-image-modal .update-image-footer .btn:hover {
-      background: #fff;
+    .update-image-modal .update-image-ok:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 12px 28px rgba(220, 107, 130, 0.5);
     }
-    .update-image-modal .update-image-footer .btn:active {
+    .update-image-modal .update-image-ok:active {
       transform: scale(0.95);
     }
 
     @media (max-width: 1240px) {
       .update-image-modal .canvas-scaler {
-        transform: scale(calc((95vw - 40px) / 1200));
-        width: calc(95vw - 40px);
-        height: calc(300px * (95vw - 40px) / 1200);
+        transform: scale(calc((92vw - 32px) / 1200));
+        width: calc(92vw - 32px);
+        height: calc(300px * (92vw - 32px) / 1200);
       }
     }
   `;
