@@ -21,6 +21,7 @@
       --danger: #c0392b;
       --radius: 20px;
       --radius-sm: 14px;
+      --radius-pill: 50px;
       --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
       --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -39,23 +40,24 @@
     .container { max-width: 1180px; margin: 0 auto; }
 
     /* ============================================================
-       保存目标选择器（紧凑卡片式）
+       保存目标选择器
+       样式 = 网站里的 .subtab（二级标签）
        ============================================================ */
     .target-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 14px 18px 16px;
+      padding: 16px 18px 18px;
       margin-bottom: 16px;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
     .target-bar .label {
       display: block;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 10px;
-      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
     }
     .target-bar .target-btns {
       display: flex;
@@ -63,64 +65,35 @@
       gap: 8px;
     }
     .target-btn {
-      position: relative;
-      padding: 8px 14px 8px 12px;
+      padding: 9px 20px;
       border: 2px solid var(--border);
       border-radius: var(--radius-pill);
       background: #fdf8fa;
-      color: var(--text);
+      color: var(--text-light);
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
       font-family: var(--font);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.25s var(--ease-soft);
-      font-size: 0.86rem;
-      font-weight: 700;
-      color: var(--text-light);
+      white-space: nowrap;
+      transition: background 0.25s var(--ease-soft),
+                  border-color 0.25s var(--ease-soft),
+                  color 0.25s var(--ease-soft),
+                  transform 0.25s var(--ease-bounce);
     }
-    .target-btn .tb-icon {
-      font-size: 1.05rem;
-      line-height: 1;
-      transition: transform 0.3s var(--ease-bounce);
-    }
-    .target-btn .tb-name {
-      transition: color 0.25s var(--ease-soft);
-    }
-    .target-btn .tb-check {
-      display: none;
-      font-size: 0.75rem;
-      font-weight: 900;
-      color: var(--primary);
-      margin-left: 2px;
-    }
-
     .target-btn:hover {
       border-color: var(--primary-light);
-      background: #fff;
       color: var(--primary);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.12);
-    }
-    .target-btn:hover .tb-icon {
-      transform: scale(1.15) rotate(-8deg);
+      transform: translateY(-2px);
     }
     .target-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.93);
       transition: transform 0.1s var(--ease-soft);
     }
-
     .target-btn.active {
+      background: var(--primary);
       border-color: var(--primary);
-      background: linear-gradient(135deg, #fde8ef 0%, #fbd5e0 100%);
-      color: var(--primary-dark);
-      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.22);
-    }
-    .target-btn.active .tb-icon {
-      transform: scale(1.1);
-    }
-    .target-btn.active .tb-check {
-      display: inline;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
 
     /* ============================================================
@@ -138,7 +111,7 @@
       font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -409,7 +382,7 @@
       gap: 8px;
       padding: 14px 48px;
       border: none;
-      border-radius: 50px;
+      border-radius: var(--radius-pill);
       font-family: var(--font);
       font-size: 1.05rem;
       font-weight: 800;
@@ -465,21 +438,9 @@
     <div class="target-bar">
       <span class="label">📌 选择要更新的页面</span>
       <div class="target-btns">
-        <button class="target-btn active" data-page="index">
-          <span class="tb-icon">🏠</span>
-          <span class="tb-name">主页</span>
-          <span class="tb-check">✓</span>
-        </button>
-        <button class="target-btn" data-page="feedback">
-          <span class="tb-icon">💬</span>
-          <span class="tb-name">反馈页</span>
-          <span class="tb-check">✓</span>
-        </button>
-        <button class="target-btn" data-page="roblox">
-          <span class="tb-icon">🎮</span>
-          <span class="tb-name">卡片1</span>
-          <span class="tb-check">✓</span>
-        </button>
+        <button class="target-btn active" data-page="index">🏠 主页</button>
+        <button class="target-btn" data-page="feedback">💬 反馈页</button>
+        <button class="target-btn" data-page="roblox">🎮 卡片1</button>
       </div>
     </div>
 
