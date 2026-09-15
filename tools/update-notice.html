@@ -40,14 +40,13 @@
     .container { max-width: 1180px; margin: 0 auto; }
 
     /* ============================================================
-       保存目标选择器
-       样式 = 网站里的 .subtab（二级标签）
+       保存目标选择器（胶囊风格，跟后台标签一致）
        ============================================================ */
     .target-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 16px 18px 18px;
+      padding: 16px 20px;
       margin-bottom: 16px;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
@@ -56,44 +55,96 @@
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 12px;
-      letter-spacing: 0.3px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
     }
-    .target-bar .target-btns {
-      display: flex;
+
+    /* 一级：主页 / 反馈页 / 卡片 */
+    .target-btns {
+      display: inline-flex;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(220, 107, 130, 0.06);
+      border-radius: var(--radius-pill);
       flex-wrap: wrap;
-      gap: 8px;
     }
     .target-btn {
       padding: 9px 20px;
-      border: 2px solid var(--border);
+      border: none;
       border-radius: var(--radius-pill);
-      background: #fdf8fa;
+      background: transparent;
       color: var(--text-light);
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
       font-family: var(--font);
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
       white-space: nowrap;
-      transition: background 0.25s var(--ease-soft),
-                  border-color 0.25s var(--ease-soft),
-                  color 0.25s var(--ease-soft),
-                  transform 0.25s var(--ease-bounce);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .target-btn:hover {
-      border-color: var(--primary-light);
       color: var(--primary);
-      transform: translateY(-2px);
+      background: rgba(220, 107, 130, 0.1);
     }
     .target-btn:active {
-      transform: scale(0.93);
+      transform: scale(0.95);
       transition: transform 0.1s var(--ease-soft);
     }
     .target-btn.active {
       background: var(--primary);
-      border-color: var(--primary);
       color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
+    }
+
+    /* 二级：卡片1 · Roblox ID 宝库（只在选"卡片"时出现） */
+    .target-sub {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      display: none;
+      animation: fadeInUp 0.3s var(--ease-soft) both;
+    }
+    .target-sub.show {
+      display: block;
+    }
+    .target-sub-btns {
+      display: inline-flex;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(220, 107, 130, 0.06);
+      border-radius: var(--radius-pill);
+      flex-wrap: wrap;
+    }
+    .target-sub-btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-light);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .target-sub-btn:hover {
+      color: var(--primary);
+      background: rgba(220, 107, 130, 0.1);
+    }
+    .target-sub-btn:active {
+      transform: scale(0.95);
+      transition: transform 0.1s var(--ease-soft);
+    }
+    .target-sub-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
     /* ============================================================
@@ -111,7 +162,7 @@
       font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -382,7 +433,7 @@
       gap: 8px;
       padding: 14px 48px;
       border: none;
-      border-radius: var(--radius-pill);
+      border-radius: 50px;
       font-family: var(--font);
       font-size: 1.05rem;
       font-weight: 800;
@@ -437,10 +488,19 @@
     <!-- 保存目标 -->
     <div class="target-bar">
       <span class="label">📌 选择要更新的页面</span>
+
+      <!-- 一级：主页 / 反馈页 / 卡片 -->
       <div class="target-btns">
         <button class="target-btn active" data-page="index">🏠 主页</button>
         <button class="target-btn" data-page="feedback">💬 反馈页</button>
-        <button class="target-btn" data-page="roblox">🎮 卡片1</button>
+        <button class="target-btn" data-page="card">🎮 卡片</button>
+      </div>
+
+      <!-- 二级：卡片1 · Roblox ID 宝库（选"卡片"后显示） -->
+      <div class="target-sub" id="cardSub">
+        <div class="target-sub-btns">
+          <button class="target-sub-btn active" data-page="roblox">🎵 卡片1 · Roblox ID 宝库</button>
+        </div>
       </div>
     </div>
 
@@ -525,6 +585,7 @@
   <script>
     const $ = id => document.getElementById(id);
     const canvas = $('canvas');
+    const cardSub = $('cardSub');
 
     let currentPage = 'index';
 
@@ -622,9 +683,38 @@
       }
     }
 
+    /* ========== 切换一级：主页 / 反馈页 / 卡片 ========== */
     document.querySelectorAll('.target-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const page = btn.dataset.page;
+
+        if (page === 'card') {
+          /* 显示二级选择 */
+          cardSub.classList.add('show');
+          /* 默认选中卡片1 */
+          document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
+          const firstSub = document.querySelector('.target-sub-btn');
+          if (firstSub) firstSub.classList.add('active');
+          currentPage = firstSub ? firstSub.dataset.page : 'roblox';
+        } else {
+          /* 隐藏二级 */
+          cardSub.classList.remove('show');
+          currentPage = page;
+        }
+
+        setStatus('', '');
+        const cfg = await loadConfigFromServer(currentPage);
+        applyConfig(cfg || DEFAULTS);
+      });
+    });
+
+    /* ========== 切换二级：卡片1 ========== */
+    document.querySelectorAll('.target-sub-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentPage = btn.dataset.page;
 
@@ -663,7 +753,7 @@
         const data = await res.json();
 
         if (data.ok) {
-          const pageName = { index: '主页', feedback: '反馈页', roblox: '卡片1' }[currentPage] || currentPage;
+          const pageName = { index: '主页', feedback: '反馈页', roblox: '卡片1 · Roblox ID 宝库' }[currentPage] || currentPage;
           setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
         } else {
           setStatus('❌ 保存失败：' + (data.error || '未知错误'), 'err');
