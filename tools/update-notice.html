@@ -39,9 +39,7 @@
     }
     .container { max-width: 1180px; margin: 0 auto; }
 
-    /* ============================================================
-       保存目标选择器
-       ============================================================ */
+    /* ========== 保存目标 ========== */
     .target-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -76,23 +74,16 @@
       font-weight: 600;
       cursor: pointer;
       font-family: var(--font);
-      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      transition: all 0.25s var(--ease-soft);
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .target-btn:hover {
-      color: var(--primary);
-      background: rgba(220, 107, 130, 0.1);
-    }
-    .target-btn:active {
-      transform: scale(0.95);
-      transition: transform 0.1s var(--ease-soft);
-    }
+    .target-btn:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
+    .target-btn:active { transform: scale(0.95); }
     .target-btn.active {
-      background: var(--primary);
-      color: #fff;
+      background: var(--primary); color: #fff;
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
@@ -122,29 +113,20 @@
       font-weight: 600;
       cursor: pointer;
       font-family: var(--font);
-      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      transition: all 0.25s var(--ease-soft);
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .target-sub-btn:hover {
-      color: var(--primary);
-      background: rgba(220, 107, 130, 0.1);
-    }
-    .target-sub-btn:active {
-      transform: scale(0.95);
-      transition: transform 0.1s var(--ease-soft);
-    }
+    .target-sub-btn:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
+    .target-sub-btn:active { transform: scale(0.95); }
     .target-sub-btn.active {
-      background: var(--primary);
-      color: #fff;
+      background: var(--primary); color: #fff;
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
-    /* ============================================================
-       卡片
-       ============================================================ */
+    /* ========== 卡片 ========== */
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -154,13 +136,9 @@
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
     .card h2 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--primary);
+      font-size: 1.05rem; font-weight: 700; color: var(--primary);
       margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
     }
 
     .form-grid {
@@ -170,12 +148,11 @@
     }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-light);
+      font-size: 0.8rem; font-weight: 600; color: var(--text-light);
     }
     .form-group input,
-    .form-group select {
+    .form-group select,
+    .form-group textarea {
       padding: 9px 13px;
       border: 2px solid var(--border);
       border-radius: 10px;
@@ -186,18 +163,25 @@
       outline: none;
       transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
     }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.7;
+      font-family: var(--font);
+    }
     .form-group input:focus,
-    .form-group select:focus {
+    .form-group select:focus,
+    .form-group textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
       background: #fff;
     }
 
-    /* 提示小字 */
+    /* 右侧多行输入占两列 */
+    .form-group.full-width { grid-column: 1 / -1; }
+
     .form-tip {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      margin-top: 2px;
+      font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;
     }
 
     .canvas-preview-wrap {
@@ -207,9 +191,7 @@
       justify-content: center;
     }
 
-    /* ============================================================
-       图片本体（1200 × 300）
-       ============================================================ */
+    /* ========== 图片本体 ========== */
     #canvas {
       width: 1200px;
       height: 300px;
@@ -217,10 +199,6 @@
       overflow: hidden;
       flex-shrink: 0;
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      background:
-        radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
-        radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
-        linear-gradient(125deg, #e8a2b0 0%, #dc6b82 40%, #c7546a 75%, #a83e56 100%);
     }
     #canvas.theme-pink { background:
       radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
@@ -254,10 +232,8 @@
     }
     #canvas .light-band {
       position: absolute;
-      top: -50%;
-      left: 30%;
-      width: 220px;
-      height: 200%;
+      top: -50%; left: 30%;
+      width: 220px; height: 200%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
       transform: rotate(20deg);
       pointer-events: none;
@@ -267,14 +243,11 @@
     .strip {
       position: absolute;
       left: 0; right: 0;
-      height: 26px;
-      line-height: 26px;
-      font-size: 10px;
-      font-weight: 600;
+      height: 26px; line-height: 26px;
+      font-size: 10px; font-weight: 600;
       letter-spacing: 6px;
       color: rgba(255, 255, 255, 0.42);
-      white-space: nowrap;
-      overflow: hidden;
+      white-space: nowrap; overflow: hidden;
       text-align: center;
       z-index: 5;
     }
@@ -296,7 +269,6 @@
       z-index: 3;
       pointer-events: none;
       color: #fff;
-      filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
     }
     .wheat-deco.left  { left: 8px;  bottom: 15px; transform: rotate(-18deg); }
     .wheat-deco.right { right: 8px; top: 15px;    transform: rotate(18deg) scaleX(-1); }
@@ -309,7 +281,7 @@
       align-items: center;
       justify-content: center;
       padding: 0 60px;
-      gap: 60px;
+      gap: 50px;
       z-index: 6;
     }
     .info-left {
@@ -317,9 +289,10 @@
       text-align: right;
       color: #fff;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-
-    /* 左侧主标题：金色金属渐变 */
     .info-left .title {
       font-size: 34px;
       font-weight: 800;
@@ -336,8 +309,6 @@
         drop-shadow(0 4px 12px rgba(0,0,0,0.3))
         drop-shadow(0 10px 28px rgba(0,0,0,0.2));
     }
-
-    /* 金色主题下，标题改白（避免撞色） */
     #canvas.theme-gold .info-left .title {
       background: linear-gradient(180deg, #ffffff 0%, #fffbf0 45%, #ffeeda 100%);
       -webkit-background-clip: text;
@@ -347,7 +318,7 @@
     }
 
     .info-left .version {
-      font-size: 23px;
+      font-size: 22px;
       font-weight: 600;
       letter-spacing: 2px;
       opacity: 0.95;
@@ -363,20 +334,13 @@
       position: relative;
     }
     .logo-circle {
-      width: 148px;
-      height: 148px;
+      width: 148px; height: 148px;
       border-radius: 50%;
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 56px;
-      font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 56px; font-weight: 900;
       letter-spacing: 2px;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.3),
-        0 4px 16px rgba(0,0,0,0.35);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.3), 0 4px 16px rgba(0,0,0,0.35);
       background:
         radial-gradient(circle at 35% 28%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.20) 25%, transparent 60%),
         radial-gradient(circle at 50% 50%, rgba(255,255,255,0.16), rgba(255,255,255,0.06) 70%, rgba(0,0,0,0.10) 100%);
@@ -401,29 +365,25 @@
       to   { transform: rotate(360deg); }
     }
 
+    /* 右侧多行区 */
     .info-right {
       flex: 1;
       text-align: left;
       color: #fff;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
     }
-    .info-right .line1 {
-      font-size: 23px;
+    .info-right .right-line {
       font-weight: 700;
-      margin-bottom: 8px;
       letter-spacing: 1px;
       line-height: 1.35;
+      color: #fff;
       text-shadow:
         0 1px 0 rgba(255,255,255,0.12),
         0 4px 16px rgba(0,0,0,0.28);
-    }
-    .info-right .line2 {
-      font-size: 19px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      opacity: 0.92;
-      line-height: 1.35;
-      text-shadow: 0 3px 12px rgba(0,0,0,0.25);
     }
 
     .canvas-scaler {
@@ -432,9 +392,7 @@
       transform-origin: top left;
     }
 
-    /* ============================================================
-       底部操作
-       ============================================================ */
+    /* ========== 底部 ========== */
     .action-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -470,13 +428,9 @@
       transform: translateY(-2px);
       box-shadow: 0 12px 28px rgba(220, 107, 130, 0.42);
     }
-    .action-bar .btn-main:active {
-      transform: scale(0.95);
-    }
+    .action-bar .btn-main:active { transform: scale(0.95); }
     .action-bar .btn-main:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
+      opacity: 0.6; cursor: not-allowed; transform: none !important;
     }
 
     .save-status {
@@ -505,16 +459,13 @@
 <body>
   <div class="container">
 
-    <!-- 保存目标 -->
     <div class="target-bar">
       <span class="label">📌 选择要更新的页面</span>
-
       <div class="target-btns">
         <button class="target-btn active" data-page="index">🏠 主页</button>
         <button class="target-btn" data-page="feedback">💬 反馈页</button>
         <button class="target-btn" data-page="card">🎮 卡片</button>
       </div>
-
       <div class="target-sub" id="cardSub">
         <div class="target-sub-btns">
           <button class="target-sub-btn active" data-page="roblox">🎵 卡片1 · Roblox ID 宝库</button>
@@ -522,7 +473,6 @@
       </div>
     </div>
 
-    <!-- 内容编辑 -->
     <div class="card">
       <h2>✏️ 内容编辑</h2>
       <div class="form-grid">
@@ -547,20 +497,19 @@
         </div>
         <div class="form-group">
           <label>左侧版本号（显示用）</label>
-          <input type="text" id="versionInput" value="v1.4.0 → v1.5.0" maxlength="22">
+          <input type="text" id="versionInput" value="v1.5.0 → v1.6.0" maxlength="22">
         </div>
-        <div class="form-group">
-          <label>右侧第一行（主要更新）</label>
-          <input type="text" id="line1Input" value="🔥 新增热门推荐" maxlength="22">
-        </div>
-        <div class="form-group">
-          <label>右侧第二行（次要更新）</label>
-          <input type="text" id="line2Input" value="📢 访问渠道上线" maxlength="22">
+        <div class="form-group full-width">
+          <label>右侧更新内容（每行一条，最多 6 行）</label>
+          <textarea id="linesInput" maxlength="300" placeholder="每行一条更新内容">🎨 更新弹窗全面升级
+✨ 5 种主题色可选
+📢 后台可直接生成公告图
+🐛 修复部分显示异常</textarea>
+          <span class="form-tip" id="linesTip">已输入 4 条，字号 19px</span>
         </div>
       </div>
     </div>
 
-    <!-- 预览 -->
     <div class="card">
       <h2>👀 实时预览</h2>
       <div class="canvas-preview-wrap">
@@ -573,15 +522,12 @@
             <div class="content">
               <div class="info-left">
                 <div class="title" id="canvasTitle">日常更新</div>
-                <div class="version" id="canvasVersion">v1.4.0 → v1.5.0</div>
+                <div class="version" id="canvasVersion">v1.5.0 → v1.6.0</div>
               </div>
               <div class="logo-center">
                 <div class="logo-circle" id="canvasLogo">穗</div>
               </div>
-              <div class="info-right">
-                <div class="line1" id="canvasLine1">🔥 新增热门推荐</div>
-                <div class="line2" id="canvasLine2">📢 访问渠道上线</div>
-              </div>
+              <div class="info-right" id="canvasRight"></div>
             </div>
             <div class="strip strip-bottom" id="stripBottom">织雾满穗 ZHIWU UPDATE</div>
           </div>
@@ -589,7 +535,6 @@
       </div>
     </div>
 
-    <!-- 保存 -->
     <div class="action-bar">
       <button class="btn-main" id="saveBtn">💾 保存并生效</button>
       <div class="save-status" id="saveStatus"></div>
@@ -602,6 +547,7 @@
     const canvas = $('canvas');
     const cardSub = $('cardSub');
     const titlePreviewTip = $('titlePreviewTip');
+    const linesTip = $('linesTip');
 
     let currentPage = 'index';
 
@@ -610,20 +556,17 @@
       strip:   $('stripInput'),
       logo:    $('logoInput'),
       version: $('versionInput'),
-      line1:   $('line1Input'),
-      line2:   $('line2Input')
+      lines:   $('linesInput')
     };
     const targets = {
       title:       $('canvasTitle'),
       version:     $('canvasVersion'),
       logo:        $('canvasLogo'),
-      line1:       $('canvasLine1'),
-      line2:       $('canvasLine2'),
+      right:       $('canvasRight'),
       stripTop:    $('stripTop'),
       stripBottom: $('stripBottom')
     };
 
-    /* 主题色 → 自动标题 */
     const THEME_TITLES = {
       'theme-pink':   '日常更新',
       'theme-purple': '重大更新',
@@ -636,9 +579,8 @@
       theme: 'theme-pink',
       strip: '织雾满穗 ZHIWU UPDATE',
       logo: '穗',
-      version: 'v1.4.0 → v1.5.0',
-      line1: '🔥 新增热门推荐',
-      line2: '📢 访问渠道上线'
+      version: 'v1.5.0 → v1.6.0',
+      lines: '🎨 更新弹窗全面升级\n✨ 5 种主题色可选\n📢 后台可直接生成公告图\n🐛 修复部分显示异常'
     };
 
     function fillStrip(text) {
@@ -649,7 +591,6 @@
 
     function applyTheme(t) { canvas.className = t; }
 
-    /* 更新左侧主标题（根据主题色） */
     function updateAutoTitle() {
       const t = inputs.theme.value;
       const autoTitle = THEME_TITLES[t] || '更新';
@@ -657,14 +598,57 @@
       if (titlePreviewTip) titlePreviewTip.textContent = '当前主标题：' + autoTitle;
     }
 
-    /* 输入同步到预览 */
+    /* 根据行数返回字号 */
+    function getRightFontSize(count) {
+      if (count >= 6) return 16;
+      if (count === 5) return 17;
+      if (count === 4) return 19;
+      if (count === 3) return 21;
+      return 23;
+    }
+
+    /* 渲染右侧多行 */
+    function renderRightLines(text) {
+      const lines = String(text || '')
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s);
+
+      targets.right.innerHTML = '';
+
+      if (lines.length === 0) {
+        const div = document.createElement('div');
+        div.className = 'right-line';
+        div.style.fontSize = '19px';
+        div.style.opacity = '0.55';
+        div.textContent = '（暂无更新内容）';
+        targets.right.appendChild(div);
+        if (linesTip) linesTip.textContent = '已输入 0 条';
+        return;
+      }
+
+      const display = lines.slice(0, 6);
+      const size = getRightFontSize(display.length);
+      display.forEach(line => {
+        const div = document.createElement('div');
+        div.className = 'right-line';
+        div.style.fontSize = size + 'px';
+        div.textContent = line;
+        targets.right.appendChild(div);
+      });
+
+      if (linesTip) {
+        const extra = lines.length > 6 ? '（超出 6 行会被截断）' : '';
+        linesTip.textContent = `已输入 ${lines.length} 条，字号 ${size}px${extra}`;
+      }
+    }
+
+    /* 输入同步 */
     inputs.strip.addEventListener('input', e => fillStrip(e.target.value || DEFAULTS.strip));
     inputs.logo.addEventListener('input', e => targets.logo.textContent = e.target.value || '穗');
     inputs.version.addEventListener('input', e => targets.version.textContent = e.target.value || '');
-    inputs.line1.addEventListener('input', e => targets.line1.textContent = e.target.value || '');
-    inputs.line2.addEventListener('input', e => targets.line2.textContent = e.target.value || '');
+    inputs.lines.addEventListener('input', e => renderRightLines(e.target.value));
 
-    /* 主题色变化 → 改画布 + 改主标题 */
     inputs.theme.addEventListener('change', e => {
       applyTheme(e.target.value);
       updateAutoTitle();
@@ -675,10 +659,9 @@
         theme: inputs.theme.value,
         strip: inputs.strip.value,
         logo: inputs.logo.value,
-        title: targets.title.textContent,   /* 直接取画布上显示的文字 */
+        title: targets.title.textContent,
         version: inputs.version.value,
-        line1: inputs.line1.value,
-        line2: inputs.line2.value
+        lines: inputs.lines.value
       };
     }
 
@@ -687,17 +670,22 @@
       inputs.strip.value   = cfg.strip   || DEFAULTS.strip;
       inputs.logo.value    = cfg.logo    || DEFAULTS.logo;
       inputs.version.value = cfg.version || DEFAULTS.version;
-      inputs.line1.value   = cfg.line1   || '';
-      inputs.line2.value   = cfg.line2   || '';
+
+      /* 兼容旧数据：如果只有 line1/line2，合并成 lines */
+      if (cfg.lines) {
+        inputs.lines.value = cfg.lines;
+      } else if (cfg.line1 || cfg.line2) {
+        inputs.lines.value = [cfg.line1 || '', cfg.line2 || ''].filter(s => s).join('\n');
+      } else {
+        inputs.lines.value = DEFAULTS.lines;
+      }
 
       applyTheme(inputs.theme.value);
       fillStrip(inputs.strip.value);
       targets.logo.textContent    = inputs.logo.value;
       targets.version.textContent = inputs.version.value;
-      targets.line1.textContent   = inputs.line1.value;
-      targets.line2.textContent   = inputs.line2.value;
+      renderRightLines(inputs.lines.value);
 
-      /* 主标题：优先用配置里存的（可能是旧版本自定义的），否则按主题色推导 */
       if (cfg.title) {
         targets.title.textContent = cfg.title;
         titlePreviewTip.textContent = '当前主标题：' + cfg.title;
@@ -729,9 +717,7 @@
       btn.addEventListener('click', async () => {
         document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
         const page = btn.dataset.page;
-
         if (page === 'card') {
           cardSub.classList.add('show');
           document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
@@ -742,7 +728,6 @@
           cardSub.classList.remove('show');
           currentPage = page;
         }
-
         setStatus('', '');
         const cfg = await loadConfigFromServer(currentPage);
         applyConfig(cfg || DEFAULTS);
@@ -754,7 +739,6 @@
         document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentPage = btn.dataset.page;
-
         setStatus('', '');
         const cfg = await loadConfigFromServer(currentPage);
         applyConfig(cfg || DEFAULTS);

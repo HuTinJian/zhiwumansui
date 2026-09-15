@@ -617,51 +617,40 @@ See You Again 2456502348
   <script src="js/admin.js"></script>
 
   <script>
-  /* 标签切换 + iframe 高度自适应 */
+  /* ============================================================
+     标签切换 + iframe 高度自适应
+     ============================================================ */
   (function () {
+
+    /* iframe 高度自适应：只在加载完成后测 2 次，避免累积变大 */
     function fitIframe(iframe) {
       try {
         var doc = iframe.contentDocument || iframe.contentWindow.document;
         if (!doc || !doc.body) return;
         var h = Math.max(
           doc.body.scrollHeight,
-          doc.body.offsetHeight,
-          doc.documentElement.scrollHeight,
-          doc.documentElement.offsetHeight
+          doc.documentElement.scrollHeight
         );
-        if (h > 0) iframe.style.height = (h + 4) + 'px';
+        if (h > 1800) h = 1800;
+        if (h < 400) h = 400;
+        iframe.style.height = h + 'px';
       } catch (e) {}
     }
 
     function bindIframeResize(iframe) {
-      function scheduleResize() {
-        fitIframe(iframe);
-        setTimeout(function () { fitIframe(iframe); }, 100);
-        setTimeout(function () { fitIframe(iframe); }, 350);
-        setTimeout(function () { fitIframe(iframe); }, 800);
-        setTimeout(function () { fitIframe(iframe); }, 1500);
-      }
       iframe.addEventListener('load', function () {
-        scheduleResize();
-        try {
-          var doc = iframe.contentDocument;
-          if (doc && doc.body && window.ResizeObserver) {
-            var ro = new ResizeObserver(function () { fitIframe(iframe); });
-            ro.observe(doc.body);
-          } else {
-            setInterval(function () { fitIframe(iframe); }, 1200);
-          }
-        } catch (e) {
-          setInterval(function () { fitIframe(iframe); }, 1200);
-        }
+        setTimeout(function () { fitIframe(iframe); }, 100);
+        setTimeout(function () { fitIframe(iframe); }, 500);
       });
       if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        scheduleResize();
+        setTimeout(function () { fitIframe(iframe); }, 100);
+        setTimeout(function () { fitIframe(iframe); }, 500);
       }
     }
 
     document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframeResize);
 
+    /* 标签切换 */
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
       var buttons = group.querySelectorAll('.subtab');
       buttons.forEach(function (btn) {
@@ -677,17 +666,18 @@ See You Again 2456502348
             p.classList.remove('active');
           });
           target.classList.add('active');
+
+          /* 切到工具页时补测一次 */
           var iframe = target.querySelector('iframe[data-tool-frame]');
-          if (iframe) {
-            setTimeout(function () { fitIframe(iframe); }, 150);
-            setTimeout(function () { fitIframe(iframe); }, 500);
-          }
+          if (iframe) setTimeout(function () { fitIframe(iframe); }, 200);
         });
       });
     });
   })();
 
-  /* 批量导入 */
+  /* ============================================================
+     批量导入歌曲
+     ============================================================ */
   (function () {
     'use strict';
 
