@@ -242,11 +242,11 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
   if (lines.length === 0) lines = FALLBACK_LINES.slice();
 
   const display = lines.slice(0, 6);
-  const rightSize = display.length >= 6 ? 16
-                  : display.length === 5 ? 17
-                  : display.length === 4 ? 19
-                  : display.length === 3 ? 21
-                  : 23;
+  const rightSize = display.length >= 6 ? 15
+                  : display.length === 5 ? 16
+                  : display.length === 4 ? 17
+                  : display.length === 3 ? 19
+                  : 21;
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -260,21 +260,14 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
       <div class="update-image-inner">
         <div class="canvas-scaler">
           <div class="update-canvas ${cfg.theme || 'theme-pink'}">
-            <div class="light-band"></div>
-            <div class="strip strip-top"></div>
-            <div class="wheat-deco left">🌾</div>
-            <div class="wheat-deco right">🌾</div>
-            <div class="content">
-              <div class="info-left">
+            <div class="canvas-inner">
+              <div class="left-block">
                 <div class="title"></div>
-                <div class="version"></div>
+                <div class="version-pill"></div>
               </div>
-              <div class="logo-center">
-                <div class="logo-circle"></div>
-              </div>
-              <div class="info-right"></div>
+              <div class="divider"></div>
+              <div class="right-block"></div>
             </div>
-            <div class="strip strip-bottom"></div>
           </div>
         </div>
       </div>
@@ -285,14 +278,10 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
   `;
   document.body.appendChild(modal);
 
-  const stripText = cfg.strip || '织雾满穗 ZHIWU UPDATE';
-  const repeated = (stripText + '　　').repeat(14);
-  modal.querySelectorAll('.strip-top, .strip-bottom').forEach(el => el.textContent = repeated);
-  modal.querySelector('.info-left .title').textContent   = cfg.title   || '日常更新';
-  modal.querySelector('.info-left .version').textContent = cfg.version || '';
-  modal.querySelector('.logo-circle').textContent        = cfg.logo    || '穗';
+  modal.querySelector('.left-block .title').textContent        = cfg.title   || '日常更新';
+  modal.querySelector('.left-block .version-pill').textContent = cfg.version || '';
 
-  const rightEl = modal.querySelector('.info-right');
+  const rightEl = modal.querySelector('.right-block');
   display.forEach(line => {
     const div = document.createElement('div');
     div.className = 'right-line';
@@ -309,14 +298,14 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
     if (!inner || !scaler) return;
     const availW = inner.clientWidth - 32;
     if (availW <= 0) return;
-    const scale = Math.min(1, availW / 1200);
+    const scale = Math.min(1, availW / 960);
     scaler.style.transform = `scale(${scale})`;
     scaler.style.transformOrigin = 'top left';
-    scaler.style.width = '1200px';
-    scaler.style.height = '300px';
+    scaler.style.width = '960px';
+    scaler.style.height = '340px';
     scaler.style.marginLeft = 'auto';
     scaler.style.marginRight = 'auto';
-    inner.style.height = (300 * scale + 32) + 'px';
+    inner.style.height = (340 * scale + 32) + 'px';
   };
 
   requestAnimationFrame(fitCanvas);
@@ -388,7 +377,7 @@ function injectUpdateImageCSS() {
       -webkit-backdrop-filter: blur(4px);
     }
     .update-image-modal .modal-content {
-      max-width: 1040px;
+      max-width: 1000px;
       width: 92vw;
       padding: 0;
       overflow: hidden;
@@ -414,9 +403,6 @@ function injectUpdateImageCSS() {
       font-weight: 800;
       color: #c7546a;
       letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .update-image-modal .update-image-close {
       width: 30px;
@@ -445,7 +431,7 @@ function injectUpdateImageCSS() {
       transform: rotate(90deg) scale(0.9);
     }
 
-    /* ---- 图片区 ---- */
+    /* ---- 画布区 ---- */
     .update-image-modal .update-image-inner {
       padding: 16px;
       background: #fdf8fa;
@@ -457,10 +443,10 @@ function injectUpdateImageCSS() {
       transition: height 0.15s ease;
     }
     .update-image-modal .canvas-scaler {
-      width: 1200px;
-      height: 300px;
+      width: 960px;
+      height: 340px;
       transform-origin: top left;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
       box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.15),
@@ -469,174 +455,103 @@ function injectUpdateImageCSS() {
       flex-shrink: 0;
     }
     .update-image-modal .update-canvas {
-      width: 1200px;
-      height: 300px;
+      width: 960px;
+      height: 340px;
       position: relative;
       overflow: hidden;
-      border-radius: 12px;
+      border-radius: 14px;
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
-    .update-image-modal .update-canvas.theme-pink { background:
-      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
-      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
-      linear-gradient(125deg, #e8a2b0 0%, #dc6b82 40%, #c7546a 75%, #a83e56 100%); }
-    .update-image-modal .update-canvas.theme-purple { background:
-      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
-      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
-      linear-gradient(125deg, #b6a8ee 0%, #8878d8 40%, #6d5bc4 75%, #5544a6 100%); }
-    .update-image-modal .update-canvas.theme-blue { background:
-      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
-      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
-      linear-gradient(125deg, #9ed2ee 0%, #5aa5d8 40%, #3d8dc0 75%, #2d6f9c 100%); }
-    .update-image-modal .update-canvas.theme-gold { background:
-      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.22), transparent 70%),
-      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.15), transparent 70%),
-      linear-gradient(125deg, #eed4a8 0%, #d4a06a 40%, #b8894f 75%, #926a3a 100%); }
-    .update-image-modal .update-canvas.theme-green { background:
-      radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
-      radial-gradient(ellipse 500px 350px at 90% 100%, rgba(255,255,255,0.14), transparent 70%),
-      linear-gradient(125deg, #bcdccd 0%, #8cb8a8 40%, #72a392 75%, #567a6c 100%); }
+    .update-image-modal .update-canvas.theme-pink   { background: linear-gradient(135deg, #f0a3b4 0%, #dc6b82 50%, #b84460 100%); }
+    .update-image-modal .update-canvas.theme-purple { background: linear-gradient(135deg, #a89ce8 0%, #7b68c7 50%, #5544a6 100%); }
+    .update-image-modal .update-canvas.theme-blue   { background: linear-gradient(135deg, #8bc7e8 0%, #5aa5d8 50%, #2d6f9c 100%); }
+    .update-image-modal .update-canvas.theme-gold   { background: linear-gradient(135deg, #eed4a8 0%, #d4a06a 50%, #926a3a 100%); }
+    .update-image-modal .update-canvas.theme-green  { background: linear-gradient(135deg, #a8d4c0 0%, #72a392 50%, #567a6c 100%); }
 
     .update-image-modal .update-canvas::before {
       content: '';
       position: absolute;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Ccircle cx='24' cy='24' r='1.6' fill='rgba(255,255,255,0.20)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255,255,255,0.22) 0%, transparent 45%),
+        radial-gradient(circle at 88% 85%, rgba(255,255,255,0.12) 0%, transparent 50%);
       pointer-events: none;
-      z-index: 1;
+      z-index: 0;
     }
-    .update-image-modal .light-band {
-      position: absolute;
-      top: -50%; left: 30%;
-      width: 220px; height: 200%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
-      transform: rotate(20deg);
-      pointer-events: none;
-      z-index: 2;
-    }
-    .update-image-modal .strip {
-      position: absolute;
-      left: 0; right: 0;
-      height: 26px; line-height: 26px;
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 6px;
-      color: rgba(255, 255, 255, 0.42);
-      white-space: nowrap; overflow: hidden;
-      text-align: center;
-      z-index: 5;
-    }
-    .update-image-modal .strip-top {
-      top: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.12), transparent);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .update-image-modal .strip-bottom {
-      bottom: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.12), transparent);
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-    .update-image-modal .wheat-deco {
-      position: absolute;
-      font-size: 90px;
-      opacity: 0.09;
-      z-index: 3;
-      pointer-events: none;
-      color: #fff;
-    }
-    .update-image-modal .wheat-deco.left  { left: 8px;  bottom: 15px; transform: rotate(-18deg); }
-    .update-image-modal .wheat-deco.right { right: 8px; top: 15px;    transform: rotate(18deg) scaleX(-1); }
-    .update-image-modal .content {
-      position: absolute;
-      top: 26px; bottom: 26px;
-      left: 0; right: 0;
+
+    .update-image-modal .canvas-inner {
+      position: relative;
+      height: 100%;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 0 60px;
-      gap: 50px;
-      z-index: 6;
+      padding: 0 56px;
+      gap: 40px;
+      z-index: 1;
     }
-    .update-image-modal .info-left {
-      flex: 1; text-align: right; color: #fff; min-width: 0;
-      display: flex; flex-direction: column; justify-content: center;
-    }
-    .update-image-modal .info-left .title {
-      font-size: 34px; font-weight: 800;
-      letter-spacing: 4px; margin-bottom: 10px;
-      line-height: 1.15;
-      background: linear-gradient(180deg, #ffffff 0%, #fff0c8 45%, #ffcf7a 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
-      filter:
-        drop-shadow(0 1px 0 rgba(0,0,0,0.25))
-        drop-shadow(0 4px 12px rgba(0,0,0,0.3))
-        drop-shadow(0 10px 28px rgba(0,0,0,0.2));
-    }
-    .update-image-modal .update-canvas.theme-gold .info-left .title {
-      background: linear-gradient(180deg, #ffffff 0%, #fffbf0 45%, #ffeeda 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
-    }
-    .update-image-modal .info-left .version {
-      font-size: 22px; font-weight: 600;
-      letter-spacing: 2px; opacity: 0.95;
+
+    .update-image-modal .left-block {
+      flex: 0 0 auto;
+      text-align: right;
       color: #fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.28);
+      padding-right: 8px;
     }
-    .update-image-modal .logo-center {
+    .update-image-modal .left-block .title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .update-image-modal .left-block .version-pill {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #fff;
+      padding: 7px 18px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 20px;
+    }
+
+    .update-image-modal .divider {
+      width: 1px;
+      height: 55%;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.5), transparent);
       flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
     }
-    .update-image-modal .logo-circle {
-      width: 148px; height: 148px;
-      border-radius: 50%;
-      position: relative;
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 56px; font-weight: 900;
-      letter-spacing: 2px;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.3), 0 4px 16px rgba(0,0,0,0.35);
-      background:
-        radial-gradient(circle at 35% 28%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.20) 25%, transparent 60%),
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.16), rgba(255,255,255,0.06) 70%, rgba(0,0,0,0.10) 100%);
-      border: 2px solid rgba(255,255,255,0.55);
-      box-shadow:
-        0 16px 50px rgba(0,0,0,0.28),
-        0 0 0 8px rgba(255,255,255,0.05),
-        0 0 0 20px rgba(255,255,255,0.025),
-        inset 0 -10px 25px rgba(0,0,0,0.16),
-        inset 0 10px 25px rgba(255,255,255,0.30);
+
+    .update-image-modal .right-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      color: #fff;
+      min-width: 0;
     }
-    .update-image-modal .logo-circle::after {
+    .update-image-modal .right-block .right-line {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      line-height: 1.5;
+      padding-left: 20px;
+      position: relative;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.22);
+      word-break: break-word;
+    }
+    .update-image-modal .right-block .right-line::before {
       content: '';
       position: absolute;
-      inset: -18px;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      border: 1px dashed rgba(255,255,255,0.30);
-      animation: rotate-slow 40s linear infinite;
-    }
-    @keyframes rotate-slow {
-      from { transform: rotate(0); }
-      to   { transform: rotate(360deg); }
-    }
-    .update-image-modal .info-right {
-      flex: 1; text-align: left; color: #fff; min-width: 0;
-      display: flex; flex-direction: column; justify-content: center;
-      gap: 4px;
-    }
-    .update-image-modal .info-right .right-line {
-      font-weight: 700;
-      letter-spacing: 1px;
-      line-height: 1.35;
-      color: #fff;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.12),
-        0 4px 16px rgba(0,0,0,0.28);
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 0 10px rgba(255,255,255,0.6);
     }
 
     /* ---- 底部按钮区 ---- */
