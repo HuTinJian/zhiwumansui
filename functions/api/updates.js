@@ -1,44 +1,11 @@
 /* ============================================================
    织雾满穗 · 版本信息
-   GET  ?page=xxx   获取单个页面（公开）
-   GET  ?all=1      获取全部页面（需认证）
-   POST             更新指定页面（需认证）
+   GET  ?page=xxx 单页（公开） | ?all=1 全部（需认证）
+   POST 更新（需认证）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json, checkAuth, safeParse } from './_utils.js';
 
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
-
-/* 安全解析 JSON，出错返回空数组 */
-function safeParse(str, fallback = []) {
-  try {
-    if (!str) return fallback;
-    const parsed = JSON.parse(str);
-    return parsed || fallback;
-  } catch (e) {
-    return fallback;
-  }
-}
-
-/* ---------- GET ---------- */
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -46,7 +13,6 @@ export async function onRequestGet(context) {
   const all = url.searchParams.get('all');
 
   try {
-    /* 获取全部（需认证） */
     if (all === '1') {
       if (!checkAuth(request, env)) {
         return json({ ok: false, error: 'unauthorized' }, 401);
@@ -75,7 +41,6 @@ export async function onRequestGet(context) {
       return json({ ok: true, data: list });
     }
 
-    /* 获取单个页面（公开） */
     if (!page) {
       return json({ ok: false, error: 'missing page' }, 400);
     }
@@ -108,7 +73,6 @@ export async function onRequestGet(context) {
   }
 }
 
-/* ---------- POST（更新，需认证） ---------- */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -135,7 +99,6 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'invalid updates' }, 400);
     }
 
-    /* 自动生成日期 */
     const now = new Date();
     const date = now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +

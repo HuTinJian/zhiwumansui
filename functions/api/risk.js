@@ -1,30 +1,8 @@
 /* ============================================================
    织雾满穗 · 风险弹窗版本
-   GET  获取当前风险版本
-   POST 重置风险版本（需认证）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
+import { json, checkAuth } from './_utils.js';
 
 /* 获取当前风险版本（公开） */
 export async function onRequestGet(context) {
@@ -48,7 +26,6 @@ export async function onRequestPost(context) {
   }
 
   try {
-    /* 用时间戳作为新版本 */
     const newVersion = 'v' + Date.now();
     const now = new Date();
     const date = now.getFullYear() + '-' +

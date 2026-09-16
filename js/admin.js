@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、版本管理、卡片管理（歌曲/隔离区/鸣谢）
+   反馈管理、卡片管理（歌曲/隔离区/鸣谢）
    ============================================================ */
 
 /* 缓存反馈列表，用于展开查看隔离区时定位 */
@@ -16,7 +16,7 @@ let feedbackCache = [];
     window.location.href = 'index.html';
   });
 
-  /* 一级标签切换（通用写法：用 data-panel 找 #panel-xxx） */
+  /* 一级标签切换 */
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -30,7 +30,7 @@ let feedbackCache = [];
   loadRobloxStats();
   loadSongs();
   loadThanks();
-  loadUpdates();
+  // 注：更新管理走 iframe（tools/update-notice.html），不需要在这里加载
 
   /* 导入隔离区弹窗 */
   document.getElementById('openImportQuarantineBtn').onclick = () => {
@@ -91,32 +91,6 @@ let feedbackCache = [];
     }
   });
 })();
-
-/* ============================================================
-   重置风险弹窗
-   ============================================================ */
-async function handleResetRisk() {
-  const confirmed = await showConfirm(
-    '重置风险弹窗',
-    '确定重置吗？\n\n所有用户下次点"试听"时会重新看到完整的风险告知弹窗。'
-  );
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch('/api/risk', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast('✅ 已重置，所有用户下次试听时将重新看到风险告知');
-    } else {
-      showToast('重置失败');
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
 
 /* ============================================================
    反馈管理
@@ -821,117 +795,6 @@ async function deleteThanks(id) {
       loadThanks();
     } else {
       showToast('删除失败');
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* ============================================================
-   版本管理（按 page_key 分发到三个容器）
-   ============================================================ */
-async function loadUpdates() {
-  const containerMap = {
-    index:    document.getElementById('updatesListIndex'),
-    feedback: document.getElementById('updatesListFeedback'),
-    roblox:   document.getElementById('updatesListCard1')
-  };
-
-  Object.values(containerMap).forEach(el => {
-    if (el) el.innerHTML = '<div class="loading">加载中...</div>';
-  });
-
-  try {
-    const res = await fetch('/api/updates?all=1&t=' + Date.now(), { credentials: 'include' });
-    const data = await res.json();
-
-    if (!data.ok || !Array.isArray(data.data)) {
-      Object.values(containerMap).forEach(el => {
-        if (el) el.innerHTML = '<div class="empty-state">加载失败</div>';
-      });
-      return;
-    }
-
-    Object.values(containerMap).forEach(el => { if (el) el.innerHTML = ''; });
-
-    const rendered = { index: 0, feedback: 0, roblox: 0 };
-
-    data.data.forEach(item => {
-      const container = containerMap[item.page_key];
-      if (!container) return;
-
-      const el = document.createElement('div');
-      el.className = 'update-edit-item';
-
-      const isRoblox = item.page_key === 'roblox';
-
-      /* 无 page-name，页面名由二级标签显示 */
-      el.innerHTML = `
-        <div class="head">
-          <span class="version-tag">${escapeHtml(item.version)}</span>
-          <span class="date-info">📅 ${escapeHtml(item.date)}</span>
-        </div>
-        <div class="field">
-          <label>版本号</label>
-          <input type="text" class="edit-version" value="${escapeHtml(item.version)}" data-page="${escapeHtml(item.page_key)}" placeholder="例如 v1.0.1">
-        </div>
-        <div class="field">
-          <label>更新内容（每行一条）</label>
-          <textarea class="edit-updates" data-page="${escapeHtml(item.page_key)}" placeholder="每行写一条更新内容">${escapeHtml((item.updates || []).join('\n'))}</textarea>
-        </div>
-        <div class="actions">
-          ${isRoblox ? '<button class="btn-reset-risk">🔄 重置风险弹窗</button>' : ''}
-          <button class="btn-save" data-page="${escapeHtml(item.page_key)}">💾 保存</button>
-        </div>
-      `;
-      container.appendChild(el);
-      rendered[item.page_key]++;
-    });
-
-    Object.entries(containerMap).forEach(([key, el]) => {
-      if (el && rendered[key] === 0) {
-        el.innerHTML = '<div class="empty-state">暂无版本信息</div>';
-      }
-    });
-
-    document.querySelectorAll('.btn-save').forEach(btn => {
-      btn.addEventListener('click', () => saveUpdate(btn.dataset.page));
-    });
-
-    document.querySelectorAll('.btn-reset-risk').forEach(btn => {
-      btn.addEventListener('click', handleResetRisk);
-    });
-  } catch (err) {
-    Object.values(containerMap).forEach(el => {
-      if (el) el.innerHTML = '<div class="empty-state">加载失败</div>';
-    });
-  }
-}
-
-/* 保存某个页面的版本信息 */
-async function saveUpdate(pageKey) {
-  const versionInput = document.querySelector(`.edit-version[data-page="${pageKey}"]`);
-  const updatesInput = document.querySelector(`.edit-updates[data-page="${pageKey}"]`);
-
-  const version = versionInput.value.trim();
-  const updates = updatesInput.value.split('\n').map(s => s.trim()).filter(s => s);
-
-  if (!version) { showToast('请填写版本号'); return; }
-  if (updates.length === 0) { showToast('请至少填写一条更新内容'); return; }
-
-  try {
-    const res = await fetch('/api/updates', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ page: pageKey, version, updates })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast('✅ 已保存，日期自动更新为今天');
-      loadUpdates();
-    } else {
-      showToast('保存失败');
     }
   } catch (err) {
     showToast('网络异常');

@@ -1,29 +1,8 @@
 /* ============================================================
-   织雾满穗 · 移除隔离区
-   需认证，支持单个或多个
+   织雾满穗 · 移除隔离区（需认证，支持单个或批量）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
+import { json, checkAuth } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -35,7 +14,6 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
 
-    /* 支持单个或批量 */
     let ids = [];
     if (body.id) ids = [String(body.id)];
     if (Array.isArray(body.ids)) ids = body.ids.map(String);

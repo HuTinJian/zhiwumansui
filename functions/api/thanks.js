@@ -1,32 +1,10 @@
 /* ============================================================
    织雾满穗 · 鸣谢名单
-   GET  公开获取鸣谢列表
-   POST 管理操作（需认证）：add / delete / update
+   GET 公开；POST add / delete / update（需认证）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json, checkAuth } from './_utils.js';
 
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
-
-/* ---------- GET：公开获取鸣谢名单 ---------- */
 export async function onRequestGet(context) {
   const { env } = context;
 
@@ -38,8 +16,6 @@ export async function onRequestGet(context) {
     ).all();
 
     const rows = result.results || [];
-
-    /* 按 category 分组 */
     const grouped = [];
     const map = new Map();
 
@@ -63,7 +39,6 @@ export async function onRequestGet(context) {
   }
 }
 
-/* ---------- POST：管理操作（需认证） ---------- */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -75,7 +50,6 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const action = String(body.action || '').trim();
 
-    /* 添加 */
     if (action === 'add') {
       const category = String(body.category || '').trim();
       const name = String(body.name || '').trim();
@@ -98,17 +72,13 @@ export async function onRequestPost(context) {
       return json({ ok: true, id: result.meta.last_row_id });
     }
 
-    /* 删除 */
     if (action === 'delete') {
       const id = Number(body.id);
-      if (!id) {
-        return json({ ok: false, error: 'invalid id' }, 400);
-      }
+      if (!id) return json({ ok: false, error: 'invalid id' }, 400);
       await env.DB.prepare('DELETE FROM thanks WHERE id = ?').bind(id).run();
       return json({ ok: true });
     }
 
-    /* 修改 */
     if (action === 'update') {
       const id = Number(body.id);
       const category = String(body.category || '').trim();

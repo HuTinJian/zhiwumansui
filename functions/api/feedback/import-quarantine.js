@@ -1,29 +1,8 @@
 /* ============================================================
-   织雾满穗 · 导入反馈隔离区
-   将反馈中的隔离区ID导入开发者隔离区（需认证）
+   织雾满穗 · 从反馈导入隔离区（需认证）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
+import { json, checkAuth, safeParse } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -41,7 +20,6 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'missing params' }, 400);
     }
 
-    /* 读取该反馈里的隔离区数据 */
     const row = await env.DB.prepare(
       'SELECT quarantine_ids FROM feedback WHERE id = ?'
     ).bind(feedbackId).first();
@@ -50,10 +28,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'no quarantine data' }, 404);
     }
 
-    let allItems = [];
-    try { allItems = JSON.parse(row.quarantine_ids); } catch {}
-
-    /* 只保留用户勾选的 */
+    const allItems = safeParse(row.quarantine_ids, []);
     const selectedSet = new Set(selectedIds);
     const toImport = allItems.filter(i => selectedSet.has(String(i.id)));
 
@@ -61,7 +36,6 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'no matching items' }, 400);
     }
 
-    /* 批量写入开发者隔离区 */
     const stmts = toImport.map(i =>
       env.DB.prepare(
         `INSERT OR IGNORE INTO quarantine_admin (music_id, name, category, source)

@@ -1,29 +1,8 @@
 /* ============================================================
-   织雾满穗 · 批量导入隔离区
-   需认证，最多一次 500 条
+   织雾满穗 · 批量导入隔离区（需认证，最多 500 条）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
+import { json, checkAuth } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -46,14 +25,12 @@ export async function onRequestPost(context) {
 
     let added = 0;
     let skipped = 0;
-
-    /* 逐条准备 INSERT，最后批量执行 */
     const stmts = [];
+
     for (const item of items) {
       const id = String(item.id || '').trim();
       const name = String(item.name || '').trim().slice(0, 100);
       const category = String(item.category || '').trim().slice(0, 30);
-
       if (!id) { skipped++; continue; }
 
       stmts.push(

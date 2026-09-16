@@ -1,15 +1,8 @@
 /* ============================================================
-   织雾满穗 · 访问渠道上报
-   公开接口，接收 { userId, source }
-   同一 userId 重复上报会覆盖旧答案
+   织雾满穗 · 访问渠道上报（公开）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -31,7 +24,6 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'invalid source' }, 400);
     }
 
-    /* UPSERT：同一 userId 有记录就覆盖 */
     await env.DB.prepare(
       `INSERT INTO visit_sources (user_id, source, updated_at)
        VALUES (?, ?, datetime('now', 'localtime'))

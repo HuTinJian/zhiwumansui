@@ -1,16 +1,9 @@
 /* ============================================================
    织雾满穗 · 提交反馈
-   接收反馈 → 存入 D1
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json } from './_utils.js';
 
-/* 有效的反馈类型 */
 const VALID_TYPES = ['主页', '反馈页', '卡片1', '其他'];
 
 export async function onRequestPost(context) {
@@ -27,19 +20,15 @@ export async function onRequestPost(context) {
     const uploadQuarantine = body.uploadQuarantine === 1 ? 1 : 0;
     const quarantineIds = Array.isArray(body.quarantineIds) ? body.quarantineIds : [];
 
-    /* 类型校验 */
     if (!VALID_TYPES.includes(type)) {
       return json({ ok: false, error: 'invalid type' }, 400);
     }
-    /* 必填校验 */
     if (!name || name.length > 40) {
       return json({ ok: false, error: 'invalid name' }, 400);
     }
     if (!message || message.length > 1000) {
       return json({ ok: false, error: 'invalid message' }, 400);
     }
-
-    /* 邮箱选填，填了要格式正确 */
     if (email) {
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
       if (!emailPattern.test(email) || email.length > 100) {
@@ -47,11 +36,9 @@ export async function onRequestPost(context) {
       }
     }
 
-    /* 只有"卡片1"类型才允许附加选项 */
     const finalWantThanks = (type === '卡片1') ? wantThanks : 0;
     const finalUploadQuarantine = (type === '卡片1') ? uploadQuarantine : 0;
 
-    /* 隔离区ID：只保留有效字段，最多 500 个 */
     let quarantineJson = null;
     if (finalUploadQuarantine === 1 && quarantineIds.length > 0) {
       const cleaned = quarantineIds

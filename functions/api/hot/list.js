@@ -1,15 +1,8 @@
 /* ============================================================
-   织雾满穗 · 热门列表
-   公开接口，返回 Top 100 热门 ID
-   热度 = copy_count + play_count + fav_count
+   织雾满穗 · 热门列表（公开，Top 100）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json } from '../_utils.js';
 
 export async function onRequestGet(context) {
   const { env } = context;

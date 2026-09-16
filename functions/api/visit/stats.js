@@ -1,14 +1,8 @@
 /* ============================================================
-   织雾满穗 · 访问渠道统计
-   公开接口，返回每个 source 的计数
+   织雾满穗 · 访问渠道统计（公开）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+import { json } from '../_utils.js';
 
 export async function onRequestGet(context) {
   const { env } = context;

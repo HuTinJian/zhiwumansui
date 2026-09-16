@@ -1,29 +1,8 @@
 /* ============================================================
-   织雾满穗 · 反馈列表
-   获取所有反馈（需认证）
+   织雾满穗 · 反馈列表（需认证）
    ============================================================ */
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-function readCookie(cookieHeader, key) {
-  if (!cookieHeader) return null;
-  const parts = cookieHeader.split(';');
-  for (const part of parts) {
-    const [k, ...v] = part.trim().split('=');
-    if (k === key) return v.join('=');
-  }
-  return null;
-}
-
-function checkAuth(request, env) {
-  const token = readCookie(request.headers.get('Cookie'), 'zm_auth');
-  return token && token === env.AUTH_TOKEN;
-}
+import { json, checkAuth, safeParse } from '../_utils.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -41,24 +20,18 @@ export async function onRequestGet(context) {
        ORDER BY id DESC`
     ).all();
 
-    const list = (result.results || []).map(r => {
-      let quarantineIds = [];
-      if (r.quarantine_ids) {
-        try { quarantineIds = JSON.parse(r.quarantine_ids); } catch {}
-      }
-      return {
-        id: r.id,
-        type: r.type,
-        name: r.name,
-        email: r.email || '',
-        message: r.message,
-        want_thanks: r.want_thanks || 0,
-        upload_quarantine: r.upload_quarantine || 0,
-        quarantine_ids: quarantineIds,
-        status: r.status || 'pending',
-        created_at: r.created_at
-      };
-    });
+    const list = (result.results || []).map(r => ({
+      id: r.id,
+      type: r.type,
+      name: r.name,
+      email: r.email || '',
+      message: r.message,
+      want_thanks: r.want_thanks || 0,
+      upload_quarantine: r.upload_quarantine || 0,
+      quarantine_ids: safeParse(r.quarantine_ids, []),
+      status: r.status || 'pending',
+      created_at: r.created_at
+    }));
 
     return json(list);
   } catch (err) {

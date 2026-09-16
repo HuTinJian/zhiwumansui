@@ -249,7 +249,7 @@
     .tool-iframe-wrap iframe {
       display: block;
       width: 100%;
-      height: 200px;         /* 初始高度，稍后由子页面 report 覆盖 */
+      height: 200px;
       border: none;
       background: transparent;
       overflow: hidden;
@@ -472,11 +472,11 @@
             <h2>
               🎶 D1 歌曲管理
               <span class="count" id="songCount">0</span>
-              <div class="head-actions">
+              <span class="head-actions">
                 <button class="btn btn-primary" id="openBatchImportBtn">📥 批量导入</button>
                 <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
-              </div>
+              </span>
             </h2>
             <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
               在此添加的歌曲会存到 D1，宝库页会自动加载并合并显示。当攒够后，点"📤 导出"下载 JSON，再用合并工具整合到主数据中。
@@ -498,9 +498,9 @@
             <h2>
               ⛔ 开发者隔离区
               <span class="count" id="quarantineCount">0</span>
-              <div class="head-actions">
+              <span class="head-actions">
                 <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入隔离区</button>
-              </div>
+              </span>
             </h2>
             <div id="quarantineList">
               <div class="loading">加载中...</div>
@@ -513,9 +513,9 @@
             <h2>
               ❤️ 鸣谢名单
               <span class="count" id="thanksCount">0</span>
-              <div class="head-actions">
+              <span class="head-actions">
                 <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
-              </div>
+              </span>
             </h2>
             <div id="thanksList">
               <div class="loading">加载中...</div>
@@ -631,7 +631,6 @@ See You Again 2456502348
      ============================================================ */
   (function () {
 
-    /* ---- 兜底：跨域拿不到 contentWindow 时，仍能测高度 ---- */
     function fitIframe(iframe) {
       try {
         var doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -646,7 +645,6 @@ See You Again 2456502348
       } catch (e) {}
     }
 
-    /* ---- 接收子页面主动上报的高度（精确） ---- */
     window.addEventListener('message', function (e) {
       if (!e.data || e.data.type !== 'iframe-resize') return;
       var h = Number(e.data.height);
@@ -661,7 +659,6 @@ See You Again 2456502348
       });
     });
 
-    /* ---- iframe 加载完成后测一次兜底 ---- */
     function bindIframe(iframe) {
       iframe.addEventListener('load', function () {
         setTimeout(function () { fitIframe(iframe); }, 200);
@@ -675,7 +672,6 @@ See You Again 2456502348
 
     document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframe);
 
-    /* ---- 标签切换 ---- */
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
       var buttons = group.querySelectorAll('.subtab');
       buttons.forEach(function (btn) {

@@ -69,11 +69,13 @@ function debounce(fn, wait = 300) {
   };
 }
 
-/* 转义 HTML，防止 XSS */
+/* 转义 HTML，防止 XSS（含引号，属性位置也安全） */
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text ?? '';
-  return div.innerHTML;
+  return div.innerHTML
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /* 显示顶部提示条（3 秒自动消失） */
