@@ -1432,7 +1432,7 @@
     async function loadData() {
       try {
         const [mainRes, qRes, extraRes] = await Promise.all([
-          fetch('data/roblox_music.json?t=' + Date.now(), { cache: 'no-store' }),
+          fetch('data/roblox_music.json'),
           fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
           fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
         ]);
