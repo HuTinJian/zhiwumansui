@@ -126,8 +126,6 @@ function showConfirm(title, message) {
 
 /* ============================================================
    检查页面版本更新（图片弹窗版）
-   桌面 / 平板：canvas 图片式弹窗
-   手机（< 640px）：简化纵向弹窗
    ============================================================ */
 async function checkPageUpdate(pageKey, options = {}) {
   const storageKey = `pageVersion_${pageKey}`;
@@ -242,11 +240,13 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
   if (lines.length === 0) lines = FALLBACK_LINES.slice();
 
   const display = lines.slice(0, 6);
-  const rightSize = display.length >= 6 ? 15
-                  : display.length === 5 ? 16
-                  : display.length === 4 ? 17
-                  : display.length === 3 ? 19
-                  : 21;
+  const rightSize = display.length >= 6 ? 14
+                  : display.length === 5 ? 15
+                  : display.length === 4 ? 16
+                  : display.length === 3 ? 18
+                  : 20;
+
+  const STRIP_TEXT = '织雾满穗 · ZHIWU · 织雾满穗 · ZHIWU · 织雾满穗 · ZHIWU · 织雾满穗 · ZHIWU';
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -260,14 +260,41 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
       <div class="update-image-inner">
         <div class="canvas-scaler">
           <div class="update-canvas ${cfg.theme || 'theme-pink'}">
+            <div class="light-band"></div>
+            <div class="glow glow-left"></div>
+            <div class="glow glow-right"></div>
+            <div class="canvas-frame">
+              <div class="frame-dot left"></div>
+              <div class="frame-dot right"></div>
+            </div>
+            <div class="strip strip-top">${STRIP_TEXT}</div>
+            <div class="wheat-deco left">🌾</div>
+            <div class="wheat-deco right">🌾</div>
+            <div class="sparkle s1"></div>
+            <div class="sparkle s2"></div>
+            <div class="sparkle s3"></div>
+            <div class="sparkle s4"></div>
+            <div class="sparkle s5"></div>
+            <div class="sparkle s6"></div>
+            <div class="sparkle s7"></div>
+            <div class="sparkle s8"></div>
+            <div class="sparkle s9"></div>
+            <div class="sparkle s10"></div>
             <div class="canvas-inner">
               <div class="left-block">
                 <div class="title"></div>
+                <div class="title-rule"></div>
                 <div class="version-pill"></div>
+              </div>
+              <div class="divider"></div>
+              <div class="logo-center">
+                <div class="logo-ring"></div>
+                <div class="logo-circle"></div>
               </div>
               <div class="divider"></div>
               <div class="right-block"></div>
             </div>
+            <div class="strip strip-bottom">${STRIP_TEXT}</div>
           </div>
         </div>
       </div>
@@ -280,6 +307,7 @@ function showCanvasUpdateModal(cfg, version, storageKey) {
 
   modal.querySelector('.left-block .title').textContent        = cfg.title   || '日常更新';
   modal.querySelector('.left-block .version-pill').textContent = cfg.version || '';
+  modal.querySelector('.logo-circle').textContent              = cfg.logo    || '穗';
 
   const rightEl = modal.querySelector('.right-block');
   display.forEach(line => {
@@ -468,66 +496,335 @@ function injectUpdateImageCSS() {
     .update-image-modal .update-canvas.theme-gold   { background: linear-gradient(135deg, #eed4a8 0%, #d4a06a 50%, #926a3a 100%); }
     .update-image-modal .update-canvas.theme-green  { background: linear-gradient(135deg, #a8d4c0 0%, #72a392 50%, #567a6c 100%); }
 
+    /* 柔光层 */
     .update-image-modal .update-canvas::before {
       content: '';
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 12% 15%, rgba(255,255,255,0.22) 0%, transparent 45%),
-        radial-gradient(circle at 88% 85%, rgba(255,255,255,0.12) 0%, transparent 50%);
+        radial-gradient(circle at 12% 15%, rgba(255,255,255,0.20) 0%, transparent 45%),
+        radial-gradient(circle at 88% 85%, rgba(255,255,255,0.10) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
+    /* 网格点纹 */
+    .update-image-modal .update-canvas::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.16) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 1;
+      -webkit-mask-image: radial-gradient(ellipse at center, transparent 20%, black 80%);
+      mask-image: radial-gradient(ellipse at center, transparent 20%, black 80%);
+    }
 
+    /* ---- 斜向光带 ---- */
+    .update-image-modal .light-band {
+      position: absolute;
+      top: -40%;
+      left: 32%;
+      width: 180px;
+      height: 180%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+      transform: rotate(20deg);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ---- 两处光晕 ---- */
+    .update-image-modal .glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(40px);
+    }
+    .update-image-modal .glow-left {
+      width: 220px;
+      height: 220px;
+      left: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+    }
+    .update-image-modal .glow-right {
+      width: 280px;
+      height: 280px;
+      right: -60px;
+      bottom: -60px;
+      background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
+    }
+
+    /* ---- 内边框 + 角部装饰 ---- */
+    .update-image-modal .canvas-frame {
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .update-image-modal .canvas-frame::before,
+    .update-image-modal .canvas-frame::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: rgba(255, 235, 200, 0.6);
+      border-style: solid;
+      border-width: 0;
+    }
+    .update-image-modal .canvas-frame::before {
+      top: -1px;
+      left: -1px;
+      border-top-width: 2px;
+      border-left-width: 2px;
+      border-top-left-radius: 10px;
+    }
+    .update-image-modal .canvas-frame::after {
+      bottom: -1px;
+      right: -1px;
+      border-bottom-width: 2px;
+      border-right-width: 2px;
+      border-bottom-right-radius: 10px;
+    }
+    .update-image-modal .frame-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,235,200,0.5);
+      box-shadow: 0 0 8px rgba(255,235,200,0.5);
+      z-index: 4;
+      pointer-events: none;
+    }
+    .update-image-modal .frame-dot.left {
+      left: -3px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .update-image-modal .frame-dot.right {
+      right: -3px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* ---- 上下文字带 ---- */
+    .update-image-modal .strip {
+      position: absolute;
+      left: 0; right: 0;
+      height: 30px;
+      line-height: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-align: center;
+      z-index: 5;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    }
+    .update-image-modal .strip-top {
+      top: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.10), transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-top: 1px;
+    }
+    .update-image-modal .strip-bottom {
+      bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.10), transparent);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 1px;
+    }
+
+    /* ---- 稻穗 ---- */
+    .update-image-modal .wheat-deco {
+      position: absolute;
+      font-size: 120px;
+      line-height: 1;
+      z-index: 2;
+      pointer-events: none;
+      color: #fff;
+      opacity: 0.13;
+      filter: blur(0.3px);
+    }
+    .update-image-modal .wheat-deco.left {
+      left: -12px;
+      bottom: 20px;
+      transform: rotate(-22deg);
+      transform-origin: bottom left;
+    }
+    .update-image-modal .wheat-deco.right {
+      right: -12px;
+      top: 20px;
+      transform: rotate(-22deg) scaleX(-1);
+      transform-origin: top right;
+    }
+
+    /* ---- 漂浮光点 ---- */
+    .update-image-modal .sparkle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px 2px rgba(255,255,255,0.7);
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      animation: updateSparkle 3.4s ease-in-out infinite;
+    }
+    .update-image-modal .sparkle.s1  { top: 42px;    left: 180px;  animation-delay: 0s;    }
+    .update-image-modal .sparkle.s2  { top: 55px;    left: 360px;  animation-delay: 0.4s;  }
+    .update-image-modal .sparkle.s3  { top: 48px;    right: 130px; animation-delay: 0.8s;  }
+    .update-image-modal .sparkle.s4  { top: 58px;    right: 280px; animation-delay: 1.2s;  }
+    .update-image-modal .sparkle.s5  { bottom: 42px; left: 200px;  animation-delay: 1.6s;  }
+    .update-image-modal .sparkle.s6  { bottom: 55px; left: 380px;  animation-delay: 2.0s;  }
+    .update-image-modal .sparkle.s7  { bottom: 48px; right: 140px; animation-delay: 2.4s;  }
+    .update-image-modal .sparkle.s8  { bottom: 58px; right: 300px; animation-delay: 2.8s;  }
+    .update-image-modal .sparkle.s9  { top: 155px;   left: 34px;   animation-delay: 3.2s;  }
+    .update-image-modal .sparkle.s10 { top: 165px;   right: 34px;  animation-delay: 3.6s;  }
+    @keyframes updateSparkle {
+      0%, 100% { opacity: 0; transform: scale(0.4); }
+      50%      { opacity: 1; transform: scale(1); }
+    }
+
+    /* ---- 内容区（5 段式） ---- */
     .update-image-modal .canvas-inner {
-      position: relative;
-      height: 100%;
+      position: absolute;
+      top: 30px;
+      bottom: 30px;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
-      padding: 0 56px;
-      gap: 40px;
-      z-index: 1;
+      justify-content: center;
+      padding: 0 44px;
+      gap: 26px;
+      z-index: 6;
     }
 
+    /* 左块 */
     .update-image-modal .left-block {
-      flex: 0 0 auto;
+      flex: 0 1 auto;
+      min-width: 0;
       text-align: right;
       color: #fff;
-      padding-right: 8px;
     }
     .update-image-modal .left-block .title {
-      font-size: 34px;
+      font-size: 30px;
       font-weight: 800;
-      letter-spacing: 8px;
+      letter-spacing: 5px;
       line-height: 1.15;
-      margin-bottom: 16px;
-      color: #fff;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, #fff5d8 45%, #ffd98a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      filter:
+        drop-shadow(0 1px 0 rgba(0,0,0,0.20))
+        drop-shadow(0 3px 10px rgba(0,0,0,0.25));
+    }
+    .update-image-modal .update-canvas.theme-gold .left-block .title {
+      background: linear-gradient(180deg, #ffffff 0%, #fffbf0 55%, #ffeeda 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .update-image-modal .left-block .title-rule {
+      width: 56px;
+      height: 2px;
+      margin: 0 0 10px auto;
+      background: linear-gradient(90deg, transparent, rgba(255,240,200,0.85), transparent);
+      border-radius: 2px;
     }
     .update-image-modal .left-block .version-pill {
       display: inline-block;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 1px;
       color: #fff;
-      padding: 7px 18px;
-      background: rgba(255,255,255,0.18);
+      padding: 6px 16px;
+      background: rgba(255,255,255,0.16);
       border: 1px solid rgba(255,255,255,0.28);
       border-radius: 20px;
+      white-space: nowrap;
     }
 
+    /* 分隔线 */
     .update-image-modal .divider {
       width: 1px;
-      height: 55%;
-      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.5), transparent);
+      height: 52%;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.45), transparent);
       flex-shrink: 0;
     }
 
+    /* 中央圆环 logo */
+    .update-image-modal .logo-center {
+      position: relative;
+      flex: 0 0 116px;
+      width: 116px;
+      height: 116px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .update-image-modal .logo-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.38);
+      animation: updateRotateSlow 34s linear infinite;
+    }
+    .update-image-modal .logo-ring::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    @keyframes updateRotateSlow {
+      from { transform: rotate(0); }
+      to   { transform: rotate(360deg); }
+    }
+    .update-image-modal .logo-circle {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.30),
+        0 3px 12px rgba(0,0,0,0.35);
+      background:
+        radial-gradient(circle at 35% 28%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.15) 30%, transparent 65%),
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 70%, rgba(0,0,0,0.12) 100%);
+      border: 1.5px solid rgba(255,255,255,0.52);
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.22),
+        0 0 0 6px rgba(255,255,255,0.05),
+        inset 0 -6px 15px rgba(0,0,0,0.15),
+        inset 0 6px 15px rgba(255,255,255,0.28);
+    }
+
+    /* 右块 */
     .update-image-modal .right-block {
-      flex: 1;
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 9px;
       color: #fff;
       min-width: 0;
     }
@@ -535,7 +832,7 @@ function injectUpdateImageCSS() {
       font-weight: 600;
       letter-spacing: 0.5px;
       line-height: 1.5;
-      padding-left: 20px;
+      padding-left: 18px;
       position: relative;
       color: #fff;
       text-shadow: 0 2px 10px rgba(0,0,0,0.22);
@@ -547,11 +844,11 @@ function injectUpdateImageCSS() {
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: rgba(255,255,255,0.95);
-      box-shadow: 0 0 10px rgba(255,255,255,0.6);
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
     }
 
     /* ---- 底部按钮区 ---- */
