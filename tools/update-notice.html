@@ -21,7 +21,6 @@
       --danger: #c0392b;
       --radius: 20px;
       --radius-sm: 14px;
-      --radius-pill: 50px;
       --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
       --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -35,121 +34,122 @@
       color: var(--text);
       line-height: 1.7;
       min-height: 100vh;
-      padding: 16px;
+      padding: 20px;
       -webkit-font-smoothing: antialiased;
     }
-    .container { max-width: 100%; margin: 0 auto; }
+    .container { max-width: 1000px; margin: 0 auto; }
 
-    .target-bar {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px 18px;
-      margin-bottom: 14px;
-      animation: fadeInUp 0.4s var(--ease-soft) both;
+    .page-title {
+      text-align: center;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
     }
-    .target-bar .label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 10px;
-      letter-spacing: 0.5px;
+    .page-title h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
     }
-    .target-btns {
-      display: inline-flex;
-      gap: 6px;
-      padding: 6px;
-      background: rgba(220, 107, 130, 0.06);
-      border-radius: var(--radius-pill);
-      flex-wrap: wrap;
-      max-width: 100%;
-    }
-    .target-btn {
-      padding: 9px 20px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: transparent;
+    .page-title .subtitle {
       color: var(--text-light);
       font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: all 0.25s var(--ease-soft);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .target-btn:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
-    .target-btn:active { transform: scale(0.95); }
-    .target-btn.active {
-      background: var(--primary); color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
-    }
-
-    .target-sub {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--border);
-      display: none;
-      animation: fadeInUp 0.3s var(--ease-soft) both;
-    }
-    .target-sub.show { display: block; }
-    .target-sub-btns {
-      display: inline-flex;
-      gap: 6px;
-      padding: 6px;
-      background: rgba(220, 107, 130, 0.06);
-      border-radius: var(--radius-pill);
-      flex-wrap: wrap;
-      max-width: 100%;
-    }
-    .target-sub-btn {
-      padding: 8px 18px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: transparent;
-      color: var(--text-light);
-      font-size: 0.86rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: all 0.25s var(--ease-soft);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .target-sub-btn:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
-    .target-sub-btn:active { transform: scale(0.95); }
-    .target-sub-btn.active {
-      background: var(--primary); color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 18px;
-      margin-bottom: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
       animation: fadeInUp 0.5s var(--ease-soft) both;
     }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.20s; }
+
     .card h2 {
-      font-size: 1.05rem; font-weight: 700; color: var(--primary);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary);
       margin-bottom: 12px;
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
     }
 
+    /* ========== 目标页面选择 ========== */
+    .page-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .page-tab {
+      padding: 10px 20px;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      background: #fdf8fa;
+      color: var(--text-light);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft);
+    }
+    .page-tab:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .page-tab:active { transform: scale(0.95); }
+    .page-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.28);
+    }
+
+    /* 二级子标签 */
+    .page-sub-tabs {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      gap: 8px;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.3s var(--ease-soft) both;
+    }
+    .page-sub-tabs.show { display: flex; }
+    .page-sub-tabs .page-tab {
+      font-size: 0.85rem;
+      padding: 8px 16px;
+    }
+
+    /* ========== 表单 ========== */
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }
-    .form-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .form-group.full-width { grid-column: 1 / -1; }
     .form-group label {
-      font-size: 0.8rem; font-weight: 600; color: var(--text-light);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
     }
     .form-group input,
     .form-group select,
@@ -169,7 +169,6 @@
       resize: vertical;
       min-height: 120px;
       line-height: 1.7;
-      font-family: var(--font);
     }
     .form-group input:focus,
     .form-group select:focus,
@@ -178,22 +177,21 @@
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
       background: #fff;
     }
-
-    .form-group.full-width { grid-column: 1 / -1; }
-
     .form-tip {
-      font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
-    .canvas-preview-wrap {
+    /* ========== 预览 ========== */
+    .preview-wrap {
       width: 100%;
       overflow: hidden;
-      padding: 8px 0;
       display: flex;
       justify-content: center;
-      position: relative;
+      padding: 8px 0;
     }
-    .canvas-scaler {
+    .preview-scaler {
       width: 1200px;
       height: 300px;
       transform-origin: top center;
@@ -206,6 +204,7 @@
       position: relative;
       overflow: hidden;
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      border-radius: 12px;
     }
     #canvas.theme-pink { background:
       radial-gradient(ellipse 600px 400px at 15% 0%, rgba(255,255,255,0.20), transparent 70%),
@@ -375,18 +374,19 @@
         0 4px 16px rgba(0,0,0,0.28);
     }
 
-    .action-bar {
+    /* ========== 保存栏 ========== */
+    .save-bar {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 16px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
       align-items: center;
-      animation: fadeInUp 0.5s var(--ease-soft) both;
+      gap: 10px;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.2s both;
     }
-    .action-bar .btn-main {
+    .save-bar .btn-save {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -406,15 +406,16 @@
       white-space: nowrap;
       min-width: 220px;
     }
-    .action-bar .btn-main:hover {
+    .save-bar .btn-save:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 28px rgba(220, 107, 130, 0.42);
     }
-    .action-bar .btn-main:active { transform: scale(0.95); }
-    .action-bar .btn-main:disabled {
-      opacity: 0.6; cursor: not-allowed; transform: none !important;
+    .save-bar .btn-save:active { transform: scale(0.95); }
+    .save-bar .btn-save:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
     }
-
     .save-status {
       width: 100%;
       text-align: center;
@@ -429,22 +430,59 @@
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* ========== 响应式 ========== */
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .page-title h1 { font-size: 1.35rem; }
+      .page-title .subtitle { font-size: 0.82rem; }
+      .card { padding: 16px; margin-bottom: 12px; }
+      .card h2 { font-size: 1rem; }
+      .page-tab { padding: 8px 14px; font-size: 0.82rem; }
+      .page-sub-tabs .page-tab { font-size: 0.78rem; padding: 7px 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .save-bar .btn-save {
+        padding: 12px 30px;
+        font-size: 0.95rem;
+        min-width: 180px;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .page-title h1 { font-size: 1.15rem; }
+      .card { padding: 14px; }
+      .card h2 { font-size: 0.95rem; }
+      .page-tab { padding: 7px 12px; font-size: 0.78rem; }
+      .page-sub-tabs .page-tab { font-size: 0.74rem; padding: 6px 10px; }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <div class="target-bar">
-      <span class="label">📌 选择要更新的页面</span>
-      <div class="target-btns">
-        <button class="target-btn active" data-page="index">🏠 主页</button>
-        <button class="target-btn" data-page="feedback">💬 反馈页</button>
-        <button class="target-btn" data-page="card">🎮 卡片</button>
+    <div class="page-title">
+      <h1>📢 更新公告生成</h1>
+      <p class="subtitle">编辑内容 → 实时预览 → 保存，用户下次打开对应页面就会看到新弹窗</p>
+    </div>
+
+    <div class="card">
+      <h2>📌 选择目标页面</h2>
+      <p class="hint">选择要更新的页面，然后编辑下方内容</p>
+      <div class="page-tabs" id="pageTabs">
+        <button class="page-tab active" data-page="index">🏠 主页</button>
+        <button class="page-tab" data-page="feedback">💬 反馈</button>
+        <button class="page-tab" data-page="card">🎮 卡片</button>
       </div>
-      <div class="target-sub" id="cardSub">
-        <div class="target-sub-btns">
-          <button class="target-sub-btn active" data-page="roblox">🎵 卡片1 · Roblox ID 宝库</button>
-        </div>
+      <div class="page-sub-tabs" id="cardSubTabs">
+        <button class="page-tab active" data-page="roblox">🎵 Roblox ID 宝库</button>
       </div>
     </div>
 
@@ -487,8 +525,8 @@
 
     <div class="card">
       <h2>👀 实时预览</h2>
-      <div class="canvas-preview-wrap" id="canvasWrap">
-        <div class="canvas-scaler" id="canvasScaler">
+      <div class="preview-wrap" id="previewWrap">
+        <div class="preview-scaler" id="previewScaler">
           <div id="canvas" class="theme-pink">
             <div class="light-band"></div>
             <div class="strip strip-top" id="stripTop">织雾满穗 ZHIWU UPDATE</div>
@@ -510,8 +548,8 @@
       </div>
     </div>
 
-    <div class="action-bar">
-      <button class="btn-main" id="saveBtn">💾 保存并生效</button>
+    <div class="save-bar">
+      <button class="btn-save" id="saveBtn">💾 保存并生效</button>
       <div class="save-status" id="saveStatus"></div>
     </div>
 
@@ -520,11 +558,11 @@
   <script>
     const $ = id => document.getElementById(id);
     const canvas = $('canvas');
-    const cardSub = $('cardSub');
+    const previewWrap = $('previewWrap');
+    const previewScaler = $('previewScaler');
     const titlePreviewTip = $('titlePreviewTip');
     const linesTip = $('linesTip');
-    const canvasWrap = $('canvasWrap');
-    const canvasScaler = $('canvasScaler');
+    const cardSubTabs = $('cardSubTabs');
 
     let currentPage = 'index';
 
@@ -560,9 +598,6 @@
       lines: '🎨 更新弹窗全面升级\n✨ 5 种主题色可选\n📢 后台可直接生成公告图\n🐛 修复部分显示异常'
     };
 
-    /* ============================================================
-       ★ 向上报告自己的高度（给父页面 admin.html）
-       ============================================================ */
     function notifyParentHeight() {
       try {
         var h = Math.max(
@@ -575,6 +610,19 @@
           window.parent.postMessage({ type: 'iframe-resize', height: h }, '*');
         }
       } catch (e) {}
+    }
+
+    function fitCanvas() {
+      const w = previewWrap.clientWidth;
+      if (w <= 0) return;
+      const scale = Math.min(1, w / 1200);
+      previewScaler.style.transform = `scale(${scale})`;
+      previewScaler.style.transformOrigin = 'top center';
+      previewScaler.style.width = '1200px';
+      previewScaler.style.height = '300px';
+      previewWrap.style.height = (300 * scale) + 'px';
+      previewWrap.style.overflow = 'hidden';
+      notifyParentHeight();
     }
 
     function fillStrip(text) {
@@ -638,19 +686,23 @@
       notifyParentHeight();
     }
 
-    function fitCanvas() {
-      const w = canvasWrap.clientWidth;
-      if (w <= 0) return;
-      const scale = Math.min(1, w / 1200);
-      canvasScaler.style.transform = `scale(${scale})`;
-      canvasScaler.style.transformOrigin = 'top center';
-      canvasScaler.style.width = '1200px';
-      canvasScaler.style.height = '300px';
-      canvasWrap.style.height = (300 * scale) + 'px';
-      canvasWrap.style.overflow = 'hidden';
-
+    inputs.strip.addEventListener('input', function (e) {
+      fillStrip(e.target.value || DEFAULTS.strip);
+    });
+    inputs.logo.addEventListener('input', function (e) {
+      targets.logo.textContent = e.target.value || '穗';
+    });
+    inputs.version.addEventListener('input', function (e) {
+      targets.version.textContent = e.target.value || '';
+    });
+    inputs.lines.addEventListener('input', function (e) {
+      renderRightLines(e.target.value);
+    });
+    inputs.theme.addEventListener('change', function (e) {
+      applyTheme(e.target.value);
+      updateAutoTitle();
       notifyParentHeight();
-    }
+    });
 
     window.addEventListener('resize', function () {
       fitCanvas();
@@ -664,7 +716,6 @@
     setTimeout(function () { fitCanvas(); notifyParentHeight(); }, 200);
     setTimeout(function () { fitCanvas(); notifyParentHeight(); }, 600);
 
-    /* ResizeObserver 监听 body 高度变化，实时上报 */
     if (window.ResizeObserver) {
       try {
         var ro = new ResizeObserver(function () {
@@ -673,25 +724,6 @@
         ro.observe(document.body);
       } catch (e) {}
     }
-
-    inputs.strip.addEventListener('input', function (e) {
-      fillStrip(e.target.value || DEFAULTS.strip);
-    });
-    inputs.logo.addEventListener('input', function (e) {
-      targets.logo.textContent = e.target.value || '穗';
-    });
-    inputs.version.addEventListener('input', function (e) {
-      targets.version.textContent = e.target.value || '';
-    });
-    inputs.lines.addEventListener('input', function (e) {
-      renderRightLines(e.target.value);
-    });
-
-    inputs.theme.addEventListener('change', function (e) {
-      applyTheme(e.target.value);
-      updateAutoTitle();
-      notifyParentHeight();
-    });
 
     function collectConfig() {
       let linesValue = inputs.lines.value;
@@ -759,30 +791,40 @@
       }
     }
 
-    document.querySelectorAll('.target-btn').forEach(btn => {
+    /* ---------- 一级标签点击 ---------- */
+    document.querySelectorAll('#pageTabs .page-tab').forEach(btn => {
       btn.addEventListener('click', async () => {
-        document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#pageTabs .page-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+
         const page = btn.dataset.page;
+
         if (page === 'card') {
-          cardSub.classList.add('show');
-          document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
-          const firstSub = document.querySelector('.target-sub-btn');
-          if (firstSub) firstSub.classList.add('active');
-          currentPage = firstSub ? firstSub.dataset.page : 'roblox';
+          /* 展开二级子标签，默认选中第一个（roblox） */
+          cardSubTabs.classList.add('show');
+          const subBtns = cardSubTabs.querySelectorAll('.page-tab');
+          subBtns.forEach(b => b.classList.remove('active'));
+          const first = subBtns[0];
+          if (first) {
+            first.classList.add('active');
+            currentPage = first.dataset.page;
+          }
         } else {
-          cardSub.classList.remove('show');
+          /* 其它一级项：收起二级 */
+          cardSubTabs.classList.remove('show');
           currentPage = page;
         }
+
         setStatus('', '');
         const cfg = await loadConfigFromServer(currentPage);
         applyConfig(cfg || DEFAULTS);
       });
     });
 
-    document.querySelectorAll('.target-sub-btn').forEach(btn => {
+    /* ---------- 二级子标签点击 ---------- */
+    document.querySelectorAll('#cardSubTabs .page-tab').forEach(btn => {
       btn.addEventListener('click', async () => {
-        document.querySelectorAll('.target-sub-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#cardSubTabs .page-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentPage = btn.dataset.page;
         setStatus('', '');
@@ -820,7 +862,7 @@
         const data = await res.json();
 
         if (data.ok) {
-          const pageName = { index: '主页', feedback: '反馈页', roblox: '卡片1 · Roblox ID 宝库' }[currentPage] || currentPage;
+          const pageName = { index: '主页', feedback: '反馈', roblox: 'Roblox ID 宝库' }[currentPage] || currentPage;
           setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
         } else {
           setStatus('❌ 保存失败：' + (data.error || '未知错误'), 'err');

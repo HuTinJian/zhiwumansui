@@ -126,6 +126,8 @@ function showConfirm(title, message) {
 
 /* ============================================================
    检查页面版本更新（图片弹窗版）
+   桌面 / 平板：canvas 图片式弹窗
+   手机（< 640px）：简化纵向弹窗
    ============================================================ */
 async function checkPageUpdate(pageKey, options = {}) {
   const storageKey = `pageVersion_${pageKey}`;
@@ -169,11 +171,65 @@ async function checkPageUpdate(pageKey, options = {}) {
 
   injectUpdateImageCSS();
 
-  const modalId = 'updateModal';
-  const oldModal = document.getElementById(modalId);
-  if (oldModal) oldModal.remove();
+  if (window.innerWidth < 640) {
+    showSimpleUpdateModal(cfg, version, storageKey);
+  } else {
+    showCanvasUpdateModal(cfg, version, storageKey);
+  }
+}
 
-  /* ---- 解析右侧多行，空则用兜底内容 ---- */
+/* ============================================================
+   手机端：简化纵向弹窗
+   ============================================================ */
+function showSimpleUpdateModal(cfg, version, storageKey) {
+  const modalId = 'updateModal';
+  const old = document.getElementById(modalId);
+  if (old) old.remove();
+
+  let lines = String(cfg.lines || '')
+    .split('\n').map(s => s.trim()).filter(s => '');
+  if (lines.length === 0) lines.push('本次更新内容');
+  const display = lines.slice(0, 8);
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'modal update-image-modal';
+  modal.innerHTML = `
+    <div class="modal-content update-simple-content ${cfg.theme || 'theme-pink'}">
+      <div class="update-simple-header">
+        <span class="update-simple-badge">🎉 版本更新</span>
+        <button class="update-image-close" id="updateCloseBtn" aria-label="关闭">✕</button>
+      </div>
+      <div class="update-simple-title">${escapeHtml(cfg.title || '日常更新')}</div>
+      <div class="update-simple-version">${escapeHtml(cfg.version || version)}</div>
+      <div class="update-simple-body">
+        ${display.map(l => `<div class="update-simple-line">${escapeHtml(l)}</div>`).join('')}
+      </div>
+      <div class="update-simple-footer">
+        <button class="update-image-ok" id="updateOkBtn">我知道了</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  openModal(modalId);
+
+  const finish = () => {
+    localStorage.setItem(storageKey, version);
+    closeModal(modalId);
+  };
+  document.getElementById('updateOkBtn').onclick = finish;
+  document.getElementById('updateCloseBtn').onclick = finish;
+}
+
+/* ============================================================
+   桌面 / 平板：canvas 图片式弹窗
+   ============================================================ */
+function showCanvasUpdateModal(cfg, version, storageKey) {
+  const modalId = 'updateModal';
+  const old = document.getElementById(modalId);
+  if (old) old.remove();
+
   const FALLBACK_LINES = [
     '🎨 更新弹窗全面升级',
     '✨ 5 种主题色可选'
@@ -192,7 +248,6 @@ async function checkPageUpdate(pageKey, options = {}) {
                   : display.length === 3 ? 21
                   : 23;
 
-  /* ---- 创建弹窗 ---- */
   const modal = document.createElement('div');
   modal.id = modalId;
   modal.className = 'modal update-image-modal';
@@ -248,9 +303,29 @@ async function checkPageUpdate(pageKey, options = {}) {
 
   openModal(modalId);
 
+  const fitCanvas = () => {
+    const inner = modal.querySelector('.update-image-inner');
+    const scaler = modal.querySelector('.canvas-scaler');
+    if (!inner || !scaler) return;
+    const availW = inner.clientWidth - 32;
+    if (availW <= 0) return;
+    const scale = Math.min(1, availW / 1200);
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.transformOrigin = 'top left';
+    scaler.style.width = '1200px';
+    scaler.style.height = '300px';
+    scaler.style.marginLeft = 'auto';
+    scaler.style.marginRight = 'auto';
+    inner.style.height = (300 * scale + 32) + 'px';
+  };
+
+  requestAnimationFrame(fitCanvas);
+  window.addEventListener('resize', fitCanvas);
+
   const finish = () => {
     localStorage.setItem(storageKey, version);
     closeModal(modalId);
+    window.removeEventListener('resize', fitCanvas);
   };
 
   document.getElementById('updateOkBtn').onclick = finish;
@@ -359,6 +434,7 @@ function injectUpdateImageCSS() {
       justify-content: center;
       transition: all 0.25s;
       font-family: inherit;
+      flex-shrink: 0;
     }
     .update-image-modal .update-image-close:hover {
       background: #ffffff;
@@ -375,8 +451,10 @@ function injectUpdateImageCSS() {
       background: #fdf8fa;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       overflow: hidden;
+      position: relative;
+      transition: height 0.15s ease;
     }
     .update-image-modal .canvas-scaler {
       width: 1200px;
@@ -388,6 +466,7 @@ function injectUpdateImageCSS() {
         0 10px 30px rgba(0, 0, 0, 0.15),
         0 0 0 1px rgba(220, 107, 130, 0.1);
       background: #fdf2f5;
+      flex-shrink: 0;
     }
     .update-image-modal .update-canvas {
       width: 1200px;
@@ -591,12 +670,111 @@ function injectUpdateImageCSS() {
       transform: scale(0.95);
     }
 
-    @media (max-width: 1240px) {
-      .update-image-modal .canvas-scaler {
-        transform: scale(calc((92vw - 32px) / 1200));
-        width: calc(92vw - 32px);
-        height: calc(300px * (92vw - 32px) / 1200);
-      }
+    /* ---- 手机端简化弹窗 ---- */
+    .update-image-modal .update-simple-content {
+      max-width: 400px;
+      width: 92vw;
+      padding: 0;
+      overflow: hidden;
+      border: none;
+      border-radius: 22px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .update-image-modal .update-simple-content.theme-pink {
+      background: linear-gradient(135deg, #e8a2b0 0%, #c7546a 100%);
+    }
+    .update-image-modal .update-simple-content.theme-purple {
+      background: linear-gradient(135deg, #b6a8ee 0%, #6d5bc4 100%);
+    }
+    .update-image-modal .update-simple-content.theme-blue {
+      background: linear-gradient(135deg, #9ed2ee 0%, #3d8dc0 100%);
+    }
+    .update-image-modal .update-simple-content.theme-gold {
+      background: linear-gradient(135deg, #eed4a8 0%, #b8894f 100%);
+    }
+    .update-image-modal .update-simple-content.theme-green {
+      background: linear-gradient(135deg, #bcdccd 0%, #72a392 100%);
+    }
+    .update-image-modal .update-simple-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 0;
+    }
+    .update-image-modal .update-simple-badge {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.25);
+      padding: 4px 12px;
+      border-radius: 50px;
+    }
+    .update-image-modal .update-simple-content .update-image-close {
+      background: rgba(255,255,255,0.28);
+      color: #fff;
+    }
+    .update-image-modal .update-simple-content .update-image-close:hover {
+      background: rgba(255,255,255,0.5);
+      box-shadow: none;
+    }
+    .update-image-modal .update-simple-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      letter-spacing: 3px;
+      margin-top: 10px;
+      text-shadow: 0 4px 16px rgba(0,0,0,0.28);
+    }
+    .update-image-modal .update-simple-version {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      margin-bottom: 16px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    .update-image-modal .update-simple-body {
+      margin: 0 16px 16px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.96);
+      border-radius: 14px;
+      max-height: 46vh;
+      overflow-y: auto;
+    }
+    .update-image-modal .update-simple-line {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4a3f44;
+      line-height: 1.7;
+      padding: 4px 0;
+    }
+    .update-image-modal .update-simple-footer {
+      padding: 0 16px 16px;
+      text-align: center;
+    }
+    .update-image-modal .update-simple-footer .update-image-ok {
+      width: 100%;
+      padding: 12px;
+      border-radius: 50px;
+      background: #fff;
+      color: #c7546a;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 1px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      min-width: 0;
+    }
+    .update-image-modal .update-simple-footer .update-image-ok:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
   `;
   document.head.appendChild(style);

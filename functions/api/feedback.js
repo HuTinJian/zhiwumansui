@@ -4,7 +4,7 @@
 
 import { json } from './_utils.js';
 
-const VALID_TYPES = ['主页', '反馈页', '卡片1', '其他'];
+const VALID_TYPES = ['主页', '反馈', '卡片1', '其他'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
