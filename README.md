@@ -60,8 +60,7 @@
 │       ├── updates.js         版本公告（GET 公开，写需登录）
 │       └── risk.js            风险弹窗版本
 ├── schema.sql                 D1 建表语句（部署前执行一次）
-├── _headers                   Cloudflare Pages 静态资源响应头（安全头）
-├── wrangler.toml              Pages 项目 / D1 绑定（DB）/ 密钥说明
+├── _headers                   Cloudflare Pages 静态资源响应头（安全头 + 缓存策略）
 ├── .gitignore                 忽略 .dev.vars（本地密钥）等
 └── README.md                  本文件
 ```
@@ -118,10 +117,26 @@ npx wrangler d1 execute <数据库名> --local --file=./schema.sql
 npx wrangler d1 create zhimist-db
 ```
 
-命令会输出 `database_id`，把它填进 `wrangler.toml` 的
-`[[d1_databases]] database_id`（文件里目前是占位符 `REPLACE_WITH_YOUR_D1_DATABASE_ID`）。
-
 **绑定名必须是 `DB`**：`functions/` 下的代码统一通过 `env.DB` 访问数据库，改名会让所有接口 500。
+
+数据库建好之后，**在 Cloudflare 后台把这个数据库绑到 Pages 项目上**：
+
+```
+Workers & Pages → 你的 Pages 项目 → Settings → Functions
+  → D1 database bindings → 变量名填 DB → 选择你的数据库 → 保存
+```
+
+> ⚠️ **本项目故意不放 `wrangler.toml`，请不要自己新建一个。**
+>
+> Cloudflare 有个新功能会自动读取仓库里的 `wrangler.toml`。一旦这个文件存在，
+> 它就会**改用文件里的 D1 绑定**，而不是后台设置里的那一个。
+> 如果文件里的 `database_id` 是占位符或者填错了，部署会直接失败并报：
+>
+> ```
+> Error 8000022: Invalid database UUID (...)
+> ```
+>
+> 所以绑定只在后台配一次就够了，别写进文件里。
 
 ### 2. 执行 schema.sql 建表
 
@@ -258,8 +273,8 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 - **错误信息**：接口出错时只返回通用文案（如 `server error`），详细错误通过
   `console.error` 打到 Cloudflare 函数日志，避免把数据库结构、SQL 等信息泄露给访客。
 - **密钥管理**：`AUTH_HASH` / `AUTH_TOKEN` 一律用 Cloudflare 的加密变量（Secret）配置；
-  本地放 `.dev.vars`（已在 `.gitignore` 中忽略）；**永远不要**提交到 Git、不要写进
-  `wrangler.toml`、也不要贴到前端代码里。
+  本地放 `.dev.vars`（已在 `.gitignore` 中忽略）；**永远不要**提交到 Git、
+  也不要贴到前端代码里。本项目没有 `wrangler.toml`，所以也不存在「写进配置文件」这条路。
 - **数据边界**：`data/roblox_music.json` 是公开静态文件，任何人都能看到里面的 ID；
   后台的「隔离区」只影响本站展示与合并结果，不等于从游戏里删除任何东西。
 - **D1 数据**：没有导出/备份接口给访客；建议定期在 Cloudflare 控制台用 D1 的
@@ -394,17 +409,3 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 **只用了一张已有的表**（`hot_songs` / `visit_sources`），不需要新建表。
 唯一新增的后端文件是 `functions/api/hot/delete.js`（清空热度用），
 它同样带登录校验和同源校验，不需要改数据库结构。
-
-### ⚠️ 需要你确认的一件事：歌曲数量对不上
-
-| | 数量 |
-| --- | --- |
-| 档案里写的 | 「收录 **2000+** 音乐 ID」 |
-| `data/roblox_music.json` 实际 | **1515 条**（1473 个不同曲目、5 个分类） |
-
-差了大约 **500 条**。可能是当初导出时只导出了一部分，或者中间丢过一段。
-我没办法凭空把那 500 条变回来 —— **如果你手上还有更完整的原始文件，给我，我帮你合并进去**；
-首页卡片现在写的是「1500+」，等数据补齐了我再改成对应数字。
-
-（分类目前是：中文流行 / 英文热门 / Phonk-DJ / 搞笑音效 / 古风国风）
-
