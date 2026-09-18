@@ -24,6 +24,7 @@ export async function onRequestGet(context) {
 
     return json({ ok: true, data: list });
   } catch (err) {
+    console.error('[quarantine/list]', err);
     return json({ ok: false, data: [] }, 200);
   }
 }

@@ -2,21 +2,29 @@
    织雾满穗 · 移除隔离区（需认证，支持单个或批量）
    ============================================================ */
 
-import { json, checkAuth } from '../_utils.js';
+import { json, checkAuth, requireSameOrigin } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
   try {
     const body = await request.json();
 
-    let ids = [];
-    if (body.id) ids = [String(body.id)];
-    if (Array.isArray(body.ids)) ids = body.ids.map(String);
+    /* id 与 ids 合并处理（此前同时出现时 id 会被静默丢弃） */
+    const raw = [];
+    if (body.id) raw.push(String(body.id));
+    if (Array.isArray(body.ids)) {
+      for (const v of body.ids) raw.push(String(v));
+    }
+    const ids = raw.filter(Boolean).slice(0, 500);
 
     if (ids.length === 0) {
       return json({ ok: false, error: 'missing id' }, 400);
@@ -33,6 +41,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, deleted });
   } catch (err) {
+    console.error('[quarantine/delete]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

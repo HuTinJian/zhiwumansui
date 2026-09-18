@@ -5,7 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roblox ID 宝库 - 织雾满穗</title>
 
+  <meta name="description" content="收录 1500+ 个 Roblox 游戏内可用的音乐与音效 ID，支持关键词搜索、分类筛选、一键复制、收藏与个人隔离区，持续更新。">
+  <meta name="keywords" content="Roblox,音乐ID,音效ID,SoundId,Roblox 音乐,织雾满穗">
+  <meta name="theme-color" content="#fdf2f5">
+  <meta property="og:title" content="Roblox ID 宝库 - 织雾满穗">
+  <meta property="og:description" content="1500+ 个 Roblox 音乐 ID，一键复制，随取随用。">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zm_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
     .header-nav {
@@ -46,26 +65,12 @@
       transform: scale(0.92);
     }
     .header-nav .nav-btn.gold {
-      color: var(--gold);
+      color: var(--gold-ink);
       font-weight: 600;
     }
     .header-nav .nav-btn.gold:hover {
       background: rgba(212, 160, 106, 0.15);
-      color: #b8894f;
-    }
-    .header-nav .nav-divider {
-      width: 1px;
-      height: 18px;
-      background: rgba(220, 107, 130, 0.15);
-      margin: 0 2px;
-      flex-shrink: 0;
-    }
-    .header-nav .nav-divider-gold {
-      width: 1px;
-      height: 18px;
-      background: rgba(212, 160, 106, 0.3);
-      margin: 0 2px;
-      flex-shrink: 0;
+      color: var(--gold-ink);
     }
 
     .container {
@@ -109,7 +114,7 @@
       font-weight: 700;
     }
     .page-header .stats .fav-stat strong {
-      color: var(--gold);
+      color: var(--gold-ink);
     }
     .page-header .btns {
       display: flex;
@@ -146,7 +151,7 @@
       border: none;
       box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
       font-weight: 700;
-      animation: sourcePulse 2.5s ease-in-out infinite;
+      animation: sourcePulse 2.8s ease-in-out infinite;
     }
     .btn-source:hover {
       transform: translateY(-2px);
@@ -155,15 +160,13 @@
     }
     .btn-source:active {
       transform: scale(0.93);
+      animation: none;
     }
+    /* 用「轻微放大」代替「阴影呼吸」来做呼吸效果：
+       改 transform 由显卡直接处理，不重绘；改 box-shadow 则每帧都要重画一遍。 */
     @keyframes sourcePulse {
-      0%, 100% {
-        box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
-      }
-      50% {
-        box-shadow: 0 6px 24px rgba(107, 182, 232, 0.7),
-                    0 0 0 4px rgba(107, 182, 232, 0.15);
-      }
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.035); }
     }
 
     .search-row {
@@ -296,19 +299,19 @@
     .btn-fav-filter {
       border: 2px solid var(--gold-light);
       background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
-      color: #b8894f;
+      color: var(--gold-ink);
       box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
     }
     .btn-fav-filter:hover {
-      border-color: var(--gold);
-      color: #a07038;
+      border-color: var(--gold-ink);
+      color: var(--gold-ink);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
     }
     .btn-fav-filter:active { transform: scale(0.93); }
     .btn-fav-filter.active {
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      border-color: var(--gold);
+      border-color: var(--gold-ink);
       color: #fff;
       box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
     }
@@ -356,8 +359,13 @@
       margin-bottom: 10px;
       padding: 14px 18px;
       transition: transform 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
-      animation: groupIn 0.35s var(--ease-soft) both;
-      will-change: transform;
+      /* 入场动画：必须用 backwards，both 会把最终关键帧的 transform 锁死，
+         导致 :hover 的 translateX 完全失效 */
+      animation: groupIn 0.35s var(--ease-soft) backwards;
+      /* 性能：让浏览器跳过屏幕外那些分组的内容绘制。
+         1500 条数据下这一条能显著减少首屏和滚动开销。 */
+      content-visibility: auto;
+      contain-intrinsic-size: auto 110px;
     }
     .song-group:hover {
       border-color: rgba(220, 107, 130, 0.3);
@@ -497,11 +505,11 @@
       padding: 4px 8px;
     }
     .id-actions .btn-fav:hover {
-      color: var(--gold);
+      color: var(--gold-ink);
       background: rgba(212, 160, 106, 0.12);
     }
     .id-actions .btn-fav:active { transform: scale(0.85); }
-    .id-actions .btn-fav.active { color: var(--gold); }
+    .id-actions .btn-fav.active { color: var(--gold-ink); }
     .id-actions .btn-copy {
       background: var(--primary);
       color: #fff;
@@ -511,9 +519,9 @@
       transform: scale(1.06) rotate(-2deg);
     }
     .id-actions .btn-copy:active { transform: scale(0.9); }
-    .id-actions .btn-copy.copied { background: var(--success); }
+    .id-actions .btn-copy.copied { background: var(--success-strong); }
     .id-actions .btn-play {
-      background: var(--success);
+      background: var(--success-strong);
       color: #fff;
     }
     .id-actions .btn-play:hover {
@@ -575,6 +583,154 @@
       cursor: not-allowed;
       transform: none;
     }
+
+    /* ========== 工具栏分组 ========== */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .toolbar .tool-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .toolbar .tool-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+    .toolbar .tool-sep {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ========== 随机一首 ========== */
+    .btn-random {
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-light);
+    }
+    .btn-random:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px) rotate(-3deg);
+    }
+    .btn-random:active { transform: scale(0.93) rotate(3deg); }
+
+    /* 随机跳转的目标高亮 */
+    @keyframes targetFlash {
+      0%   { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0.55); background: rgba(253, 232, 239, 0.9); }
+      70%  { box-shadow: 0 0 0 14px rgba(220, 107, 130, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0); background: transparent; }
+    }
+    .song-group.flash-target {
+      animation: targetFlash 1.6s var(--ease-soft) 2;
+      border-color: var(--primary) !important;
+    }
+
+    /* ========== 结果计数 ========== */
+    .result-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0 0 12px;
+      min-height: 1.6em;
+    }
+    .result-info strong { color: var(--primary); font-weight: 700; }
+    .result-info .cleared {
+      border: none;
+      background: var(--bg-tint);
+      color: var(--primary);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
+    }
+    .result-info .cleared:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
+
+    /* ========== 分组头部的操作 ========== */
+    .group-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .group-actions button {
+      padding: 5px 13px;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-size: 0.76rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      background: var(--bg-tint);
+      color: var(--primary);
+      transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .group-actions button:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
+    .group-actions button:active { transform: scale(0.92); }
+    .group-actions button.copied { background: var(--success-strong); color: #fff; }
+
+    /* ========== 空状态增强 ========== */
+    .empty-state .big {
+      display: block;
+      font-size: 2.8rem;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      animation: floatY 3.6s ease-in-out infinite;
+    }
+    .empty-state .hint {
+      display: block;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* ========== 排序指示 ========== */
+    .sort-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* ========== 深色模式局部适配 ========== */
+    [data-theme="dark"] .id-row { background: rgba(255, 255, 255, 0.03); }
+    [data-theme="dark"] .id-row:hover { background: rgba(255, 255, 255, 0.07); }
+    [data-theme="dark"] .visit-source-btn { background: var(--bg-soft); }
+    [data-theme="dark"] .visit-source-btn:hover { background: var(--bg-card); }
+    [data-theme="dark"] .visit-source-btn.active-choice { background: rgba(239, 142, 164, 0.14); }
+    [data-theme="dark"] .visit-source-btn.active-choice .src-count { background: var(--bg-card); }
+    [data-theme="dark"] .visit-other-input { background: var(--bg-soft); }
+    [data-theme="dark"] .visit-other-input input { background: var(--bg-card); }
+    [data-theme="dark"] #quarantineModal .search-inline { background: var(--bg-soft); }
+    [data-theme="dark"] #riskModal .sub-warning { background: rgba(239, 125, 116, 0.14); }
+    [data-theme="dark"] #riskModal .redirect-notice { background: rgba(239, 125, 116, 0.12); }
+    [data-theme="dark"] .update-image-modal .modal-content { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.75); }
+    [data-theme="dark"] .song-group.flash-target {
+      animation-name: targetFlashDark;
+    }
+    @keyframes targetFlashDark {
+      0%   { box-shadow: 0 0 0 0 rgba(239, 142, 164, 0.6); background: rgba(239, 142, 164, 0.14); }
+      70%  { box-shadow: 0 0 0 14px rgba(239, 142, 164, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 142, 164, 0); background: transparent; }
+    }
+    [data-theme="dark"] .group-actions button { background: rgba(239, 142, 164, 0.16); }
 
     #riskModal .modal-content {
       max-width: 700px;
@@ -746,7 +902,7 @@
       padding: 5px 14px;
       border: none;
       border-radius: var(--radius-pill);
-      background: var(--success);
+      background: var(--success-strong);
       color: #fff;
       font-size: 0.8rem;
       font-weight: 600;
@@ -779,12 +935,12 @@
       border: 1px solid var(--gold-light);
     }
     #thanksModal h2 {
-      color: var(--gold);
+      color: var(--gold-ink);
       text-align: center;
     }
     #thanksModal .subtitle {
       text-align: center;
-      color: var(--gold);
+      color: var(--gold-ink);
       font-style: italic;
       font-size: 0.9rem;
       margin-bottom: 16px;
@@ -805,7 +961,7 @@
     .thanks-cat { margin-bottom: 14px; }
     .thanks-cat .cat-title {
       font-weight: 700;
-      color: #7a4a5a;
+      color: var(--text);
       font-size: 0.95rem;
       border-bottom: 1px solid var(--gold-light);
       padding-bottom: 4px;
@@ -822,7 +978,7 @@
     }
     .thanks-person .p-name {
       font-weight: 600;
-      color: #d4884a;
+      color: var(--gold-ink);
     }
     .thanks-person .p-platform {
       color: var(--text-muted);
@@ -1002,19 +1158,8 @@
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
-    @keyframes cardRise {
-      0% { opacity: 0; transform: translateY(20px) scale(0.96); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.5); }
-      70% { transform: scale(1.08); }
-      100% { opacity: 1; transform: scale(1); }
-    }
+    /* cardRise / fadeInUp / popIn 三个通用动画在 css/style.css 里统一维护，此处不再重复定义 */
+
     @keyframes groupIn {
       0% { opacity: 0; transform: translateY(8px); }
       100% { opacity: 1; transform: translateY(0); }
@@ -1024,6 +1169,27 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* 桌面端：搜索与筛选栏吸顶，滚动 1500 条数据时依然随手可及 */
+    @media (min-width: 769px) {
+      .search-row {
+        position: sticky;
+        top: 64px;
+        z-index: 60;
+        background: var(--bg-glass-strong);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        backdrop-filter: blur(12px) saturate(1.5);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+      }
+      .search-row.stuck {
+        box-shadow: 0 6px 20px rgba(220, 107, 130, 0.16);
+        border-color: var(--primary-light);
       }
     }
 
@@ -1059,41 +1225,62 @@
 </head>
 <body>
 
-  <div class="container">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <nav class="navbar has-brand" aria-label="站点导航">
+    <a class="nav-brand" href="index.html">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span class="brand-text">织雾满穗</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 首页</a></li>
+      <li><a href="feedback.html">💬 反馈</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" id="main">
     <header class="page-header">
       <div class="page-header-top">
         <h1>🎵 Roblox ID 宝库</h1>
-        <div class="stats">
+        <div class="stats" aria-live="polite">
           <span>📚 <strong id="statGroups">0</strong> 组</span>
           <span>🎶 <strong id="statIds">0</strong> 个 ID</span>
           <span>🔁 <strong id="statMulti">0</strong> 组多 ID</span>
           <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
         </div>
-        <nav class="header-nav" aria-label="主导航">
-          <a href="index.html" class="nav-btn">🏠 首页</a>
-          <span class="nav-divider" aria-hidden="true"></span>
-          <a href="feedback.html" class="nav-btn">📩 反馈</a>
-          <span class="nav-divider-gold" aria-hidden="true"></span>
+        <nav class="header-nav" aria-label="页面操作">
           <button type="button" class="nav-btn gold" id="openThanksBtn">❤️ 鸣谢名单</button>
         </nav>
       </div>
-      <div class="btns">
-        <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
-        <button class="btn btn-primary" id="batchToggleBtn">📦 批量隔离</button>
-        <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
-        <button class="btn btn-latest" id="latestToggleBtn">最新收录</button>
-        <button class="btn btn-hot" id="hotToggleBtn">热门推荐</button>
-        <button class="btn btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
+      <div class="btns toolbar">
+        <div class="tool-group">
+          <span class="tool-label">浏览</span>
+          <button class="btn btn-hot" id="hotToggleBtn" aria-pressed="false">🔥 热门推荐</button>
+          <button class="btn btn-latest" id="latestToggleBtn" aria-pressed="false">🆕 最新收录</button>
+          <button class="btn btn-fav-filter" id="favFilterBtn" aria-pressed="false">⭐ 我的收藏</button>
+          <button class="btn btn-random" id="randomBtn" title="随机挑一首歌">🎲 随机一首</button>
+        </div>
+        <span class="tool-sep" aria-hidden="true"></span>
+        <div class="tool-group">
+          <span class="tool-label">管理</span>
+          <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
+          <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">📦 批量隔离</button>
+          <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
+        </div>
       </div>
     </header>
 
     <div class="search-row">
-      <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID...">
-      <div class="filter-tabs" id="filterTabs">
+      <label class="sr-only" for="searchInput">搜索歌名或 Roblox ID</label>
+      <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID..." autocomplete="off" spellcheck="false">
+      <div class="filter-tabs" id="filterTabs" role="group" aria-label="按分类筛选">
         <button class="active" data-cat="all">全部</button>
       </div>
-      <button class="btn-multi" id="multiToggleBtn">🔁 多 ID</button>
+      <button class="btn-multi" id="multiToggleBtn" aria-pressed="false">🔁 多 ID</button>
     </div>
+
+    <div class="result-info" id="resultInfo" aria-live="polite"></div>
 
     <div class="batch-bar" id="batchBar">
       <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
@@ -1103,16 +1290,27 @@
       </div>
     </div>
 
-    <div id="songList"></div>
-    <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
-    <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+    <div id="loadingSkeleton" aria-hidden="true">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+
+    <div id="songList" aria-busy="false"></div>
+    <div class="empty-state" id="emptyState" hidden>😕 没有找到匹配的歌曲</div>
+    <div class="load-more-wrap" id="loadMoreWrap" hidden>
       <div class="info" id="loadMoreInfo"></div>
       <button class="btn-more" id="loadMoreBtn">加载更多</button>
     </div>
-  </div>
+  </main>
 
   <footer class="footer">
-    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+    <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <div class="footer-links">
+      <a href="index.html">首页</a>
+      <a href="feedback.html">意见反馈</a>
+    </div>
   </footer>
 
   <div class="modal" id="riskModal">
@@ -1262,7 +1460,38 @@
 
     let serverRiskVersion = null;
 
-    /* 热门计数：每个 ID 只上报一次（localStorage 持久保存） */
+    /* 风险告知的本地兜底版本号。
+       当 /api/risk 不可用（例如把站点部署在纯静态托管上）时，
+       仍然让“我已知晓，不再提示”能够生效，而不是每次试听都弹窗。 */
+    const RISK_FALLBACK_VERSION = 'local-1';
+
+    function riskVersion() {
+      return serverRiskVersion || RISK_FALLBACK_VERSION;
+    }
+
+    const prefersReducedMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ------------------------------------------------------------
+       中文排序
+       ------------------------------------------------------------
+       性能说明：直接写 a.localeCompare(b, 'zh') 时，每次比较浏览器内部都要
+       准备一遍中文排序规则。这里有一千四百多组要排，比较次数上万次，
+       每次都重来一遍会明显卡顿。
+       改成建一个共用的 Intl.Collator 反复使用，排序开销降一个档次。
+       ------------------------------------------------------------ */
+    const nameCollator = (typeof Intl !== 'undefined' && Intl.Collator)
+      ? new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' })
+      : null;
+
+    function compareName(a, b) {
+      if (nameCollator) return nameCollator.compare(a, b);
+      return a < b ? -1 : (a > b ? 1 : 0);
+    }
+
+    /* 热门计数：同一种行为对一个 ID 只上报一次（localStorage 持久保存）。
+       旧版只按 ID 去重，导致同一首歌上报过「复制」后永远无法再上报「试听 / 收藏」，
+       因此这里改为按「行为 + ID」去重。 */
     let countedIds = new Set();
     let countedIdsLoaded = false;
 
@@ -1278,32 +1507,57 @@
       countedIdsLoaded = true;
     }
 
-    function saveCountedIds() {
+    let countedSaveTimer = null;
+
+    /* 真正落盘（写 localStorage） */
+    function flushCountedIds() {
+      if (countedSaveTimer) { clearTimeout(countedSaveTimer); countedSaveTimer = null; }
       try {
         let arr = [...countedIds];
-        /* 加上限，只保留最近 1000 个，防止 localStorage 无限增长 */
-        if (arr.length > 1000) {
-          arr = arr.slice(-1000);
+        /* 加上限，只保留最近 3000 条，防止 localStorage 无限增长 */
+        if (arr.length > 3000) {
+          arr = arr.slice(-3000);
           countedIds = new Set(arr);
         }
         localStorage.setItem('hot_counted_ids', JSON.stringify(arr));
       } catch (e) {}
     }
 
+    /* 写 localStorage 是「同步磁盘操作」，会卡住页面。
+       每点一次复制/试听/收藏就写一次、每次还要把几千条序列化成字符串，
+       连续点几下就能感觉到顿。这里合并成 1.5 秒写一次，
+       离开页面时再补写一次，数据不会丢。 */
+    function saveCountedIds() {
+      if (countedSaveTimer) clearTimeout(countedSaveTimer);
+      countedSaveTimer = setTimeout(flushCountedIds, 1500);
+    }
+
+    /* 页面被关闭 / 切到后台时，把还没落盘的补上 */
+    window.addEventListener('pagehide', flushCountedIds);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushCountedIds();
+    });
+
     function reportHot(id, type) {
       loadCountedIds();
-      id = String(id);
-      if (countedIds.has(id)) return false;
-      countedIds.add(id);
+      const key = String(type || 'copy') + ':' + String(id);
+      if (countedIds.has(key)) return false;
+      countedIds.add(key);
       saveCountedIds();
 
       fetch('/api/hot/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type })
+        body: JSON.stringify({ id: String(id), type: type })
       }).catch(() => {});
 
       return true;
+    }
+
+    /* 本地热度 +1，让“热门推荐”当场就有反馈 */
+    function bumpHot(id) {
+      const key = String(id);
+      hotMap.set(key, (hotMap.get(key) || 0) + 1);
     }
 
     const PAGE_SIZE = 100;
@@ -1349,7 +1603,11 @@
       riskConfirmCancel: $('riskConfirmCancel'),
       loadMoreWrap: $('loadMoreWrap'),
       loadMoreBtn: $('loadMoreBtn'),
-      loadMoreInfo: $('loadMoreInfo')
+      loadMoreInfo: $('loadMoreInfo'),
+      resultInfo: $('resultInfo'),
+      loadingSkeleton: $('loadingSkeleton'),
+      randomBtn: $('randomBtn'),
+      footerYear: $('footerYear')
     };
 
     function cleanName(name) {
@@ -1404,28 +1662,33 @@
 
     async function loadServerRiskVersion() {
       try {
-        const res = await fetch('/api/risk?t=' + Date.now());
+        const res = await fetch('/api/risk?t=' + Date.now(), { cache: 'no-store' });
+        /* 纯静态托管（例如 GitHub Pages）下 /api 不存在，会返回 404 的 HTML，
+           这里先判断状态码，避免把 HTML 当 JSON 解析而抛错刷屏。 */
+        if (!res.ok) return;
         const data = await res.json();
-        if (data.ok && data.version) {
+        if (data && data.ok && data.version) {
           serverRiskVersion = data.version;
         }
       } catch (e) {
-        console.warn('获取风险版本失败', e);
+        /* 静默降级：使用 RISK_FALLBACK_VERSION */
       }
     }
 
     async function loadHotList() {
       try {
-        const res = await fetch('/api/hot/list?t=' + Date.now());
+        const res = await fetch('/api/hot/list?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
         const data = await res.json();
-        if (data.ok && Array.isArray(data.data)) {
+        if (data && data.ok && Array.isArray(data.data)) {
           hotMap.clear();
           data.data.forEach(item => {
+            if (!item || item.id === undefined) return;
             hotMap.set(String(item.id), Number(item.total) || 0);
           });
         }
       } catch (e) {
-        console.warn('加载热门列表失败', e);
+        /* 热门榜不可用时保持本地计数，不影响主列表 */
       }
     }
 
@@ -1439,12 +1702,13 @@
 
         if (!mainRes.ok) throw new Error('main HTTP ' + mainRes.status);
         const raw = await mainRes.json();
+        if (!Array.isArray(raw)) throw new Error('main data is not an array');
 
         let adminQuarantine = [];
         if (qRes && qRes.ok) {
           try {
             const qData = await qRes.json();
-            if (qData.ok && Array.isArray(qData.data)) {
+            if (qData && qData.ok && Array.isArray(qData.data)) {
               adminQuarantine = qData.data;
             }
           } catch (e) {}
@@ -1454,7 +1718,7 @@
         if (extraRes && extraRes.ok) {
           try {
             const eData = await extraRes.json();
-            if (eData.ok && Array.isArray(eData.data)) {
+            if (eData && eData.ok && Array.isArray(eData.data)) {
               extraSongs = eData.data;
             }
           } catch (e) {}
@@ -1470,6 +1734,7 @@
             lineIndex: i.lineIndex || 0
           });
         });
+        /* D1 里的新歌覆盖同 ID 的主数据条目，并标记为“最新收录” */
         extraSongs.forEach(i => {
           if (!i || !i.id) return;
           mergedMap.set(String(i.id), {
@@ -1488,20 +1753,20 @@
           .filter(i => !adminIds.has(i.id) && !guestIds.has(i.id))
           .map(i => ({ ...i, name: cleanName(i.name) }));
 
-        renderAll();
+        return true;
       } catch (err) {
         console.error('主数据加载失败:', err);
         songDatabase = [];
-        renderAll();
         showToast('⚠️ 数据加载失败，请稍后重试');
+        return false;
       }
     }
 
     function renderAll() {
       const uniqueNames = new Set(songDatabase.map(i => i.name));
-      dom.statGroups.textContent = uniqueNames.size;
-      dom.statIds.textContent = songDatabase.length;
-      dom.statFavs.textContent = favorites.size;
+      dom.statGroups.textContent = uniqueNames.size.toLocaleString('en-US');
+      dom.statIds.textContent = songDatabase.length.toLocaleString('en-US');
+      dom.statFavs.textContent = favorites.size.toLocaleString('en-US');
 
       const nameCount = {};
       songDatabase.forEach(i => nameCount[i.name] = (nameCount[i.name] || 0) + 1);
@@ -1513,27 +1778,43 @@
       const cats = [...new Set(songDatabase.map(i => i.category).filter(Boolean))];
       cats.forEach(cat => {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.dataset.cat = cat;
         btn.textContent = cat;
         dom.filterTabs.appendChild(btn);
       });
 
+      /* 若当前选中的分类已经不存在（例如该类别的歌全部被隔离），
+         必须回退到「全部」，否则会出现“列表空白且没有任何按钮高亮”的死局。 */
+      if (currentCategory !== 'all' && !cats.includes(currentCategory)) {
+        currentCategory = 'all';
+      }
+
       dom.filterTabs.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cat === currentCategory);
+        btn.setAttribute('aria-pressed', btn.dataset.cat === currentCategory ? 'true' : 'false');
         btn.onclick = () => {
           if (showFavOnly) {
             showFavOnly = false;
             dom.favFilterBtn.classList.remove('active');
+            dom.favFilterBtn.setAttribute('aria-pressed', 'false');
           }
           if (showLatestOnly) {
             showLatestOnly = false;
             dom.latestToggleBtn.classList.remove('active');
+            dom.latestToggleBtn.setAttribute('aria-pressed', 'false');
           }
           if (showHotOnly) {
             showHotOnly = false;
             dom.hotToggleBtn.classList.remove('active');
+            dom.hotToggleBtn.setAttribute('aria-pressed', 'false');
           }
-          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          dom.filterTabs.querySelectorAll('button').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
           btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
           currentCategory = btn.dataset.cat;
           renderList();
         };
@@ -1542,47 +1823,109 @@
       renderList();
     }
 
+    /* 当前生效的筛选条件（用于结果栏展示） */
+    function activeFilterLabels() {
+      const labels = [];
+      if (currentCategory !== 'all') labels.push(currentCategory);
+      if (currentKeyword.trim()) labels.push('关键词「' + currentKeyword.trim() + '」');
+      if (showMultiOnly) labels.push('仅多 ID');
+      if (showFavOnly) labels.push('仅收藏');
+      if (showLatestOnly) labels.push('最新收录');
+      if (showHotOnly) labels.push('热门推荐');
+      return labels;
+    }
+
+    function updateResultInfo(groups) {
+      if (!dom.resultInfo) return;
+
+      if (songDatabase.length === 0) {
+        dom.resultInfo.textContent = '';
+        return;
+      }
+
+      const idCount = groups.reduce((n, g) => n + g.ids.length, 0);
+      const labels = activeFilterLabels();
+
+      let html = '共 <strong>' + groups.length.toLocaleString('en-US') + '</strong> 组 · ' +
+                 '<strong>' + idCount.toLocaleString('en-US') + '</strong> 个 ID';
+
+      if (labels.length > 0) {
+        html += ' · 已筛选：' + labels.map(escapeHtml).join('、') +
+                ' <button type="button" class="cleared" id="clearFiltersBtn">清除筛选</button>';
+      }
+
+      dom.resultInfo.innerHTML = html;
+
+      const clearBtn = document.getElementById('clearFiltersBtn');
+      if (clearBtn) clearBtn.onclick = clearAllFilters;
+    }
+
+    function clearAllFilters() {
+      currentCategory = 'all';
+      currentKeyword = '';
+      showMultiOnly = false;
+      showFavOnly = false;
+      showLatestOnly = false;
+      showHotOnly = false;
+
+      dom.searchInput.value = '';
+      dom.multiToggleBtn.classList.remove('active');
+      dom.favFilterBtn.classList.remove('active');
+      dom.latestToggleBtn.classList.remove('active');
+      dom.hotToggleBtn.classList.remove('active');
+      [dom.multiToggleBtn, dom.favFilterBtn, dom.latestToggleBtn, dom.hotToggleBtn]
+        .forEach(b => b.setAttribute('aria-pressed', 'false'));
+
+      dom.filterTabs.querySelectorAll('button').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === 'all');
+        b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
+      });
+
+      renderList();
+    }
+
     function renderList() {
       const keyword = currentKeyword.trim().toLowerCase();
 
-      let filtered = songDatabase.filter(item => {
+      const filtered = songDatabase.filter(item => {
         const catMatch = currentCategory === 'all' || item.category === currentCategory;
-        const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
+        const name = (item.name || '').toLowerCase();
+        const kwMatch = !keyword || name.includes(keyword) || String(item.id).includes(keyword);
         const latestMatch = !showLatestOnly || item._fromD1 === true;
         const hotMatch = !showHotOnly || hotMap.has(String(item.id));
         return catMatch && kwMatch && latestMatch && hotMatch;
       });
 
-      const groupMap = {};
+      const groupMap = new Map();
       filtered.forEach(item => {
-        if (!groupMap[item.name]) {
-          groupMap[item.name] = {
-            name: item.name,
+        const key = item.name;
+        if (!groupMap.has(key)) {
+          groupMap.set(key, {
+            name: key,
             ids: [],
             categories: new Set(),
             maxLineIndex: 0,
             maxHot: 0
-          };
+          });
         }
-        groupMap[item.name].ids.push(item.id);
-        groupMap[item.name].categories.add(item.category);
-        if ((item.lineIndex || 0) > groupMap[item.name].maxLineIndex) {
-          groupMap[item.name].maxLineIndex = item.lineIndex || 0;
+        const g = groupMap.get(key);
+        g.ids.push(item.id);
+        g.categories.add(item.category);
+        if ((item.lineIndex || 0) > g.maxLineIndex) {
+          g.maxLineIndex = item.lineIndex || 0;
         }
         const h = hotMap.get(String(item.id)) || 0;
-        if (h > groupMap[item.name].maxHot) {
-          groupMap[item.name].maxHot = h;
-        }
+        if (h > g.maxHot) g.maxHot = h;
       });
 
-      let groups = Object.values(groupMap);
+      let groups = [...groupMap.values()];
 
       if (showHotOnly) {
-        groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0));
+        groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0) || compareName(a.name, b.name));
       } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
       } else {
-        groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+        groups.sort((a, b) => compareName(a.name, b.name));
       }
       if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
       if (showFavOnly) {
@@ -1593,25 +1936,61 @@
 
       currentGroups = groups;
       renderedGroupCount = 0;
-
-      if (groups.length === 0) {
-        dom.songList.innerHTML = '';
-        dom.emptyState.style.display = 'block';
-        dom.loadMoreWrap.style.display = 'none';
-        if (showFavOnly) {
-          dom.emptyState.textContent = '⭐ 暂无收藏的歌曲';
-        } else if (showLatestOnly) {
-          dom.emptyState.textContent = '目前还没有新收录的歌曲，敬请期待';
-        } else if (showHotOnly) {
-          dom.emptyState.textContent = '🔥 暂时还没有热门数据，快来复制/试听吧';
-        } else {
-          dom.emptyState.textContent = '😕 没有找到匹配的歌曲';
-        }
-        return;
-      }
-      dom.emptyState.style.display = 'none';
       dom.songList.innerHTML = '';
 
+      updateResultInfo(groups);
+
+      if (groups.length === 0) {
+        dom.emptyState.hidden = false;
+        dom.loadMoreWrap.hidden = true;
+
+        let icon = '😕';
+        let title = '没有找到匹配的歌曲';
+        let hint = '试试更短的关键词，或点上面的「全部」重置分类';
+        if (songDatabase.length === 0) {
+          icon = '🌫️';
+          title = '数据暂时没有加载出来';
+          hint = '请检查网络后刷新页面重试';
+        } else if (showFavOnly) {
+          icon = '⭐';
+          title = '还没有收藏任何歌曲';
+          hint = '在列表里点歌曲左侧的 ☆ 就能收藏';
+        } else if (showLatestOnly) {
+          icon = '🆕';
+          title = '目前还没有新收录的歌曲';
+          hint = '开发者录入新歌后会出现在这里';
+        } else if (showHotOnly) {
+          icon = '🔥';
+          title = '暂时还没有热门数据';
+          hint = '复制或试听任意 ID 后，热门榜就会开始累积';
+        } else if (currentKeyword.trim()) {
+          /* 关键词在别的分类里可能有结果，只是被当前分类挡住 —— 直接告诉用户 */
+          const kw = currentKeyword.trim().toLowerCase();
+          const elsewhere = songDatabase.some(item =>
+            (currentCategory === 'all' || item.category !== currentCategory) &&
+            ((item.name || '').toLowerCase().includes(kw) || String(item.id).includes(kw))
+          );
+          if (elsewhere && currentCategory !== 'all') {
+            hint = '「' + currentCategory + '」分类下没有和「' + currentKeyword.trim() +
+                   '」相关的曲目，但它可能在别的分类里 —— 试试切回「全部」';
+          } else {
+            hint = '没有和「' + currentKeyword.trim() + '」相关的曲目，换个关键词试试';
+          }
+        }
+
+        dom.emptyState.innerHTML = '<span class="big" aria-hidden="true">' + icon + '</span>' +
+          escapeHtml(title) +
+          '<span class="hint">' + escapeHtml(hint) + '</span>' +
+          (activeFilterLabels().length > 0
+            ? '<div style="margin-top:14px;"><button type="button" class="btn btn-primary" id="emptyClearBtn">清除全部筛选</button></div>'
+            : '');
+
+        const emptyClearBtn = document.getElementById('emptyClearBtn');
+        if (emptyClearBtn) emptyClearBtn.onclick = clearAllFilters;
+        return;
+      }
+
+      dom.emptyState.hidden = true;
       renderPage();
     }
 
@@ -1619,132 +1998,202 @@
       if (isLoadingMore) return;
       isLoadingMore = true;
 
-      const start = renderedGroupCount;
-      const end = Math.min(start + PAGE_SIZE, currentGroups.length);
-      const pageGroups = currentGroups.slice(start, end);
+      try {
+        const start = renderedGroupCount;
+        const end = Math.min(start + PAGE_SIZE, currentGroups.length);
+        const pageGroups = currentGroups.slice(start, end);
 
-      if (pageGroups.length === 0) {
-        isLoadingMore = false;
-        updateLoadMoreUI();
-        return;
-      }
-
-      let html = '';
-      pageGroups.forEach((group) => {
-        group.ids.sort((a, b) => Number(a) - Number(b));
-        const catStr = [...group.categories].join(' / ');
-        const safeName = escapeHtml(group.name);
-        const isMulti = group.ids.length > 1;
-
-        let nameHtml = safeName;
-        if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
-        if (showHotOnly && group.maxHot > 0) {
-          nameHtml += ' <span class="badge-hot">🔥 ' + group.maxHot + '</span>';
+        if (pageGroups.length === 0) {
+          updateLoadMoreUI();
+          return;
         }
 
-        let rowsHtml = '';
-        group.ids.forEach(id => {
-          const checked = selectedIds.has(id) ? 'checked' : '';
-          const faved = favorites.has(id) ? 'active' : '';
-          const favIcon = favorites.has(id) ? '⭐' : '☆';
-          rowsHtml += `
+        const fragment = document.createDocumentFragment();
+        pageGroups.forEach(group => fragment.appendChild(buildGroupElement(group)));
+        dom.songList.appendChild(fragment);
+
+        renderedGroupCount = end;
+
+        if (batchMode) syncBatchCheckboxes();
+        updateLoadMoreUI();
+      } finally {
+        isLoadingMore = false;
+      }
+    }
+
+    /* 构建单个歌曲分组（含事件绑定）。
+       旧实现用 querySelectorAll('.song-group').slice(startIndex) 去“猜”哪些是新节点，
+       依赖节点顺序且每翻一页都要重新遍历全部节点；这里直接只处理本次新建的子树。 */
+    function buildGroupElement(group) {
+      group.ids.sort((a, b) => Number(a) - Number(b));
+
+      const catStr = [...group.categories].join(' / ');
+      const safeName = escapeHtml(group.name);
+      const isMulti = group.ids.length > 1;
+
+      let nameHtml = safeName;
+      if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
+      if (showHotOnly && group.maxHot > 0) {
+        nameHtml += ' <span class="badge-hot">🔥 ' + group.maxHot + '</span>';
+      }
+
+      let rowsHtml = '';
+      group.ids.forEach(id => {
+        const sid = escapeHtml(id);
+        const isFav = favorites.has(id);
+        rowsHtml += `
             <div class="id-row">
-              <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
-              <span class="id-number">${escapeHtml(id)}</span>
+              <input type="checkbox" class="id-checkbox" data-id="${sid}" ${selectedIds.has(id) ? 'checked' : ''} aria-label="选择 ID ${sid}">
+              <span class="id-number">${sid}</span>
               <div class="id-actions">
-                <button class="btn-fav ${faved}" data-id="${escapeHtml(id)}" title="收藏">${favIcon}</button>
-                <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
-                <button class="btn-copy" data-id="${escapeHtml(id)}">📋 复制</button>
-                <button class="btn-quarantine" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+                <button type="button" class="btn-fav ${isFav ? 'active' : ''}" data-id="${sid}" title="收藏" aria-label="收藏 ${sid}" aria-pressed="${isFav}">${isFav ? '⭐' : '☆'}</button>
+                <button type="button" class="btn-play" data-id="${sid}" aria-label="试听 ${sid}">🔗 试听</button>
+                <button type="button" class="btn-copy" data-id="${sid}" aria-label="复制 ID ${sid}">📋 复制</button>
+                <button type="button" class="btn-quarantine" data-name="${safeName}" data-id="${sid}" title="移入隔离区" aria-label="移入隔离区">✕</button>
               </div>
             </div>
           `;
-        });
-
-        html += `
-          <div class="song-group">
-            <div class="group-header">
-              <div class="group-name">${nameHtml}</div>
-              <span class="group-category">${escapeHtml(catStr)}</span>
-            </div>
-            ${rowsHtml}
-          </div>
-        `;
       });
 
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      const fragment = document.createDocumentFragment();
-      while (temp.firstChild) fragment.appendChild(temp.firstChild);
-      dom.songList.appendChild(fragment);
+      const el = document.createElement('div');
+      el.className = 'song-group';
+      el.dataset.name = group.name;
+      el.innerHTML = `
+          <div class="group-header">
+            <div class="group-name">${nameHtml}</div>
+            <div class="group-actions">
+              <button type="button" class="btn-copy-group" title="复制该组全部 ID">📋 复制全部</button>
+            </div>
+            <span class="group-category">${escapeHtml(catStr)}</span>
+          </div>
+          ${rowsHtml}
+        `;
 
-      renderedGroupCount = end;
+      /* 事件不在这里逐个绑定：
+         1500 条数据下，逐节点绑定会产生上千个监听器，
+         改成在 #songList 上用「事件委托」统一处理（见 bindListDelegation）。 */
+      return el;
+    }
 
-      bindNewElements(start);
-      isLoadingMore = false;
-      updateLoadMoreUI();
+    /* 复制单个 ID */
+    async function copyOneId(btn) {
+      const id = btn.dataset.id;
+      const ok = await copyText(id);
+      if (!ok) {
+        showToast('复制失败，请手动选择后再复制');
+        return;
+      }
+      if (reportHot(id, 'copy')) bumpHot(id);
+      btn.textContent = '✅ 已复制';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 复制';
+        btn.classList.remove('copied');
+      }, 1500);
+      showToast('✅ 已复制 ID ' + id);
+    }
+
+    /* 复制整组的 ID（换行分隔） */
+    async function copyGroupIds(btn) {
+      const groupEl = btn.closest('.song-group');
+      if (!groupEl) return;
+
+      const ids = Array.prototype.map
+        .call(groupEl.querySelectorAll('.id-number'), el => el.textContent.trim())
+        .filter(Boolean);
+      if (ids.length === 0) return;
+
+      const ok = await copyText(ids.join('\n'));
+      if (!ok) {
+        showToast('复制失败，请手动选择后再复制');
+        return;
+      }
+      btn.textContent = '✅ 已复制 ' + ids.length + ' 个';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 复制全部';
+        btn.classList.remove('copied');
+      }, 1600);
+      showToast('✅ 已复制 ' + ids.length + ' 个 ID（换行分隔）');
+    }
+
+    /* 整个列表只绑一次监听器：新增节点自动生效，不用反复绑定 */
+    function bindListDelegation() {
+      dom.songList.addEventListener('change', e => {
+        const cb = e.target.closest ? e.target.closest('.id-checkbox') : null;
+        if (!cb) return;
+        if (cb.checked) selectedIds.add(cb.dataset.id);
+        else selectedIds.delete(cb.dataset.id);
+        updateSelectedCount();
+      });
+
+      dom.songList.addEventListener('click', e => {
+        const btn = e.target.closest ? e.target.closest('button') : null;
+        if (!btn || !dom.songList.contains(btn)) return;
+
+        if (btn.classList.contains('btn-fav')) { toggleFavorite(btn.dataset.id, btn); return; }
+        if (btn.classList.contains('btn-play')) { previewId(btn.dataset.id); return; }
+        if (btn.classList.contains('btn-quarantine')) { quarantineSingle(btn.dataset.name, btn.dataset.id); return; }
+        if (btn.classList.contains('btn-copy')) { copyOneId(btn); return; }
+        if (btn.classList.contains('btn-copy-group')) { copyGroupIds(btn); }
+      });
+    }
+
+    function syncBatchCheckboxes() {
+      dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
+        cb.checked = selectedIds.has(cb.dataset.id);
+      });
     }
 
     function updateLoadMoreUI() {
       if (renderedGroupCount >= currentGroups.length) {
-        dom.loadMoreWrap.style.display = 'none';
+        dom.loadMoreWrap.hidden = true;
         return;
       }
-      dom.loadMoreWrap.style.display = 'block';
-      dom.loadMoreInfo.textContent = `已显示 ${renderedGroupCount} / ${currentGroups.length} 组`;
+      dom.loadMoreWrap.hidden = false;
+      dom.loadMoreInfo.textContent =
+        `已显示 ${renderedGroupCount.toLocaleString('en-US')} / ${currentGroups.length.toLocaleString('en-US')} 组`;
     }
 
-    function bindNewElements(startIndex) {
-      const allGroups = dom.songList.querySelectorAll('.song-group');
-      const newGroups = Array.from(allGroups).slice(startIndex);
-
-      newGroups.forEach(group => {
-        group.querySelectorAll('.id-checkbox').forEach(cb => {
-          cb.onchange = function () {
-            const id = this.dataset.id;
-            if (this.checked) selectedIds.add(id);
-            else selectedIds.delete(id);
-            updateSelectedCount();
-          };
-        });
-        group.querySelectorAll('.btn-fav').forEach(btn => {
-          btn.onclick = () => toggleFavorite(btn.dataset.id, btn);
-        });
-        group.querySelectorAll('.btn-play').forEach(btn => {
-          btn.onclick = () => previewId(btn.dataset.id);
-        });
-        group.querySelectorAll('.btn-copy').forEach(btn => {
-          btn.onclick = async () => {
-            const id = btn.dataset.id;
-            const ok = await copyText(id);
-            if (ok) {
-              if (reportHot(id, 'copy')) {
-                const oldTotal = hotMap.get(String(id)) || 0;
-                hotMap.set(String(id), oldTotal + 1);
-              }
-              btn.textContent = '✅ 已复制';
-              btn.classList.add('copied');
-              setTimeout(() => {
-                btn.textContent = '📋 复制';
-                btn.classList.remove('copied');
-              }, 1500);
-              showToast('✅ 已复制 ID');
-            } else {
-              showToast('复制失败');
-            }
-          };
-        });
-        group.querySelectorAll('.btn-quarantine').forEach(btn => {
-          btn.onclick = () => quarantineSingle(btn.dataset.name, btn.dataset.id);
-        });
-      });
-
-      if (batchMode) {
-        dom.songList.classList.add('batch-mode');
-        dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
-          if (selectedIds.has(cb.dataset.id)) cb.checked = true;
-        });
+    /* 随机挑一首：必要时先把目标所在的那一页渲染出来 */
+    function randomPick() {
+      if (currentGroups.length === 0) {
+        showToast('😕 当前没有可以随机的歌曲');
+        return;
       }
+
+      const index = Math.floor(Math.random() * currentGroups.length);
+
+      let guard = 0;
+      while (renderedGroupCount <= index && renderedGroupCount < currentGroups.length && guard < 500) {
+        renderPage();
+        guard++;
+      }
+
+      const nodes = dom.songList.querySelectorAll('.song-group');
+      const target = nodes[index];
+      if (!target) return;
+
+      const scrollToTarget = behavior => {
+        target.scrollIntoView({ behavior: behavior, block: 'center' });
+      };
+
+      scrollToTarget(prefersReducedMotion ? 'auto' : 'smooth');
+      /* content-visibility 会让屏幕外的分组先用「估算高度」占位，
+         第一次滚动可能略有偏差，等它真正渲染出来后再校准一次。 */
+      setTimeout(() => scrollToTarget('auto'), improvedScrollDelay());
+
+      target.classList.remove('flash-target');
+      void target.offsetWidth;
+      target.classList.add('flash-target');
+      setTimeout(() => target.classList.remove('flash-target'), 3400);
+
+      const name = target.dataset.name || currentGroups[index].name;
+      showToast('🎲 随机到：' + name);
+    }
+
+    function improvedScrollDelay() {
+      return prefersReducedMotion ? 60 : 420;
     }
 
     function updateSelectedCount() {
@@ -1755,39 +2204,53 @@
       if (favorites.has(id)) {
         favorites.delete(id);
         btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
         btn.textContent = '☆';
       } else {
         favorites.add(id);
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         btn.textContent = '⭐';
-        if (reportHot(id, 'fav')) {
-          const oldTotal = hotMap.get(String(id)) || 0;
-          hotMap.set(String(id), oldTotal + 1);
-        }
+        if (reportHot(id, 'fav')) bumpHot(id);
       }
       saveFavorites();
-      dom.statFavs.textContent = favorites.size;
+      dom.statFavs.textContent = favorites.size.toLocaleString('en-US');
 
       if (showFavOnly && !favorites.has(id)) {
         renderList();
       }
     }
 
-    function previewId(id) {
-      if (reportHot(id, 'play')) {
-        const oldTotal = hotMap.get(String(id)) || 0;
-        hotMap.set(String(id), oldTotal + 1);
+    /* 打开 Roblox 官方资产页。
+       必须在用户手势的同一个调用栈里直接 window.open——
+       旧实现把它放在 3 秒倒计时之后，会被浏览器当成非用户触发的弹窗拦截，
+       表现为“点了确认却什么都没发生”。 */
+    function openRobloxAsset(id) {
+      const url = 'https://create.roblox.com/store/asset/' + encodeURIComponent(id);
+      let win = null;
+      try { win = window.open(url, '_blank'); } catch (e) { win = null; }
+
+      if (win) {
+        try { win.opener = null; } catch (e) {}
+        showNotice('🚀 已在新标签页打开 Roblox 官方页面（访问可能需要加速器）');
+        return;
       }
+
+      /* 仍然被拦截时给出可点击的兜底入口，而不是静默失败 */
+      showToast('⚠️ 新标签页被浏览器拦截，正在当前页打开…');
+      setTimeout(() => { window.location.href = url; }, 800);
+    }
+
+    function previewId(id) {
+      if (reportHot(id, 'play')) bumpHot(id);
 
       pendingRedirectId = id;
 
       const ackVersion = localStorage.getItem('riskAckVersion');
-      if (ackVersion && serverRiskVersion && ackVersion === serverRiskVersion) {
+      if (ackVersion && ackVersion === riskVersion()) {
         const targetId = pendingRedirectId;
         pendingRedirectId = null;
-        showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
-          window.open(`https://create.roblox.com/store/asset/${targetId}`, '_blank');
-        });
+        openRobloxAsset(targetId);
         return;
       }
 
@@ -1800,6 +2263,7 @@
       const btn = dom.riskConfirmBtn;
       btn.disabled = true;
       btn.classList.remove('active');
+      btn.setAttribute('aria-disabled', 'true');
       btn.textContent = '确认跳转 (10s)';
 
       openModal('riskModal');
@@ -1815,6 +2279,7 @@
           btn.textContent = '确认跳转';
           btn.disabled = false;
           btn.classList.add('active');
+          btn.setAttribute('aria-disabled', 'false');
           timerId = null;
         }
       };
@@ -1824,6 +2289,17 @@
         if (timerId) { clearTimeout(timerId); timerId = null; }
       };
     }
+
+    /* 弹窗被 ESC / 点遮罩关闭时，同步清理倒计时与待跳转状态 */
+    document.addEventListener('zm:modalclose', e => {
+      if (e.detail.id === 'riskModal') {
+        if (riskCountdownCleanup) {
+          riskCountdownCleanup();
+          riskCountdownCleanup = null;
+        }
+        pendingRedirectId = null;
+      }
+    });
 
     dom.riskConfirmBtn.onclick = () => {
       if (dom.riskConfirmBtn.disabled) return;
@@ -1846,45 +2322,22 @@
 
     dom.riskConfirmOk.onclick = () => {
       closeModal('riskConfirmModal');
-      if (serverRiskVersion) {
-        localStorage.setItem('riskAckVersion', serverRiskVersion);
-      }
+      /* 记住“不再提示”时使用与判定相同的版本号：
+         /api/risk 不可用时退化为本地常量，避免每次试听都重新弹窗 */
+      try { localStorage.setItem('riskAckVersion', riskVersion()); } catch (e) {}
+
       const id = pendingRedirectId;
       pendingRedirectId = null;
       if (!id) return;
 
-      showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
-        window.open(`https://create.roblox.com/store/asset/${id}`, '_blank');
-      });
+      /* 这里仍在用户点击的调用栈内，window.open 不会被拦截 */
+      openRobloxAsset(id);
     };
 
     dom.riskConfirmCancel.onclick = () => {
       closeModal('riskConfirmModal');
       pendingRedirectId = null;
     };
-
-    function showCountdownNotice(msg, seconds, callback) {
-      let el = document.getElementById('globalNotice');
-      if (!el) {
-        el = document.createElement('div');
-        el.id = 'globalNotice';
-        el.className = 'notice-bar';
-        document.body.appendChild(el);
-      }
-      el.classList.add('show');
-      let remaining = seconds;
-      const update = () => {
-        if (remaining > 0) {
-          el.textContent = `${msg} · ${remaining}s`;
-          remaining--;
-          setTimeout(update, 1000);
-        } else {
-          el.classList.remove('show');
-          if (callback) callback();
-        }
-      };
-      update();
-    }
 
     async function quarantineSingle(name, id) {
       const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
@@ -1929,48 +2382,49 @@
     function toggleBatchMode(force) {
       batchMode = typeof force === 'boolean' ? force : !batchMode;
 
+      dom.batchToggleBtn.setAttribute('aria-pressed', batchMode ? 'true' : 'false');
+      dom.batchBar.classList.toggle('show', batchMode);
+
       if (batchMode) {
-        dom.batchBar.classList.add('show');
         dom.batchToggleBtn.textContent = '📦 退出批量';
         dom.batchToggleBtn.classList.remove('btn-primary');
         dom.batchToggleBtn.classList.add('btn-secondary');
+        dom.songList.classList.add('batch-mode');
+        syncBatchCheckboxes();
       } else {
-        dom.batchBar.classList.remove('show');
         dom.batchToggleBtn.textContent = '📦 批量隔离';
         dom.batchToggleBtn.classList.remove('btn-secondary');
         dom.batchToggleBtn.classList.add('btn-primary');
+        dom.songList.classList.remove('batch-mode');
         selectedIds.clear();
         updateSelectedCount();
-      }
-
-      if (batchMode) {
-        dom.songList.classList.add('batch-mode');
-        dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
-          if (selectedIds.has(cb.dataset.id)) cb.checked = true;
-        });
-      } else {
-        dom.songList.classList.remove('batch-mode');
       }
     }
 
     function renderQuarantineList() {
       const keyword = dom.quarantineSearch.value.trim().toLowerCase();
       let list = quarantineGuest;
+
       if (keyword) {
-        list = list.filter(i =>
-          i.name.toLowerCase().includes(keyword) || i.id.includes(keyword)
-        );
+        /* 防御式读取：隔离区数据来自 localStorage，历史版本可能缺字段 */
+        list = list.filter(i => {
+          const name = i && i.name != null ? String(i.name).toLowerCase() : '';
+          const id = i && i.id != null ? String(i.id) : '';
+          return name.includes(keyword) || id.includes(keyword);
+        });
       }
 
       if (list.length === 0) {
-        dom.quarantineList.innerHTML = '<div class="empty-state">隔离区是空的 ⛔</div>';
+        dom.quarantineList.innerHTML = keyword
+          ? '<div class="empty-state"><span class="big" aria-hidden="true">🔍</span>隔离区里没有匹配的条目</div>'
+          : '<div class="empty-state"><span class="big" aria-hidden="true">⛔</span>隔离区是空的<span class="hint">在歌曲列表点右侧的 ✕ 就能把不需要的 ID 收进来</span></div>';
         return;
       }
 
       const sorted = [...list].sort((a, b) => {
-        const ta = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
-        const tb = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
-        return tb - ta;
+        const ta = a.quarantinedAt ? new Date(a.quarantinedAt).getTime() : 0;
+        const tb = b.quarantinedAt ? new Date(b.quarantinedAt).getTime() : 0;
+        return (tb || 0) - (ta || 0);
       });
 
       let html = '';
@@ -1978,12 +2432,12 @@
         html += `
           <div class="quarantine-item">
             <div class="info">
-              <span class="name">${escapeHtml(item.name)}</span>
+              <span class="name">${escapeHtml(item.name || '未知歌名')}</span>
               <span class="q-id">${escapeHtml(item.id)}</span>
               <span class="time">⛔ ${escapeHtml(item.quarantinedAt || '未知')}</span>
             </div>
             <div class="q-actions">
-              <button data-id="${escapeHtml(item.id)}">🔓 恢复</button>
+              <button type="button" data-id="${escapeHtml(item.id)}" aria-label="恢复 ID ${escapeHtml(item.id)}">🔓 恢复</button>
             </div>
           </div>
         `;
@@ -2047,7 +2501,11 @@
     async function loadThanks() {
       dom.thanksList.innerHTML = '<div class="empty-state">加载中...</div>';
       try {
-        const res = await fetch('/api/thanks?t=' + Date.now());
+        const res = await fetch('/api/thanks?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) {
+          dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
+          return;
+        }
         const data = await res.json();
         if (!Array.isArray(data) || data.length === 0) {
           dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
@@ -2055,7 +2513,7 @@
         }
         let html = '';
         data.forEach(cat => {
-          if (!cat.people || cat.people.length === 0) return;
+          if (!cat || !cat.people || cat.people.length === 0) return;
           html += '<div class="thanks-cat">';
           html += `<div class="cat-title">${escapeHtml(cat.category)}</div>`;
           cat.people.forEach(p => {
@@ -2073,118 +2531,161 @@
       }
     }
 
+    /* 只保留一个“特殊视图”（收藏 / 最新 / 热门 / 多 ID），避免多个筛选互相打架 */
+    function resetViewFilters(keep) {
+      if (keep !== 'fav' && showFavOnly) {
+        showFavOnly = false;
+        dom.favFilterBtn.classList.remove('active');
+        dom.favFilterBtn.setAttribute('aria-pressed', 'false');
+      }
+      if (keep !== 'latest' && showLatestOnly) {
+        showLatestOnly = false;
+        dom.latestToggleBtn.classList.remove('active');
+        dom.latestToggleBtn.setAttribute('aria-pressed', 'false');
+      }
+      if (keep !== 'hot' && showHotOnly) {
+        showHotOnly = false;
+        dom.hotToggleBtn.classList.remove('active');
+        dom.hotToggleBtn.setAttribute('aria-pressed', 'false');
+      }
+      if (keep !== 'multi' && showMultiOnly) {
+        showMultiOnly = false;
+        dom.multiToggleBtn.classList.remove('active');
+        dom.multiToggleBtn.setAttribute('aria-pressed', 'false');
+      }
+      if (keep !== 'category') {
+        currentCategory = 'all';
+        dom.filterTabs.querySelectorAll('button').forEach(b => {
+          b.classList.toggle('active', b.dataset.cat === 'all');
+          b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
+        });
+      } else {
+        const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
+        if (allBtn) {
+          dom.filterTabs.querySelectorAll('button').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          allBtn.classList.add('active');
+          allBtn.setAttribute('aria-pressed', 'true');
+        }
+        currentCategory = 'all';
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
-      await loadServerRiskVersion();
-      checkPageUpdate('roblox');
+      if (dom.footerYear) dom.footerYear.textContent = new Date().getFullYear();
+
+      /* 加载骨架屏 */
+      if (dom.loadingSkeleton) dom.loadingSkeleton.hidden = false;
+      dom.songList.setAttribute('aria-busy', 'true');
 
       loadQuarantine();
       loadFavorites();
       loadCountedIds();
+
+      await loadServerRiskVersion();
+      checkPageUpdate('roblox');
 
       await Promise.all([
         loadData(),
         loadHotList()
       ]);
 
-      renderAll();
+      if (dom.loadingSkeleton) dom.loadingSkeleton.hidden = true;
+      dom.songList.setAttribute('aria-busy', 'false');
 
-      dom.loadMoreBtn.onclick = () => {
-        renderPage();
-      };
+      renderAll();
+      bindControls();
+    });
+
+    function bindControls() {
+      bindListDelegation();
+
+      dom.loadMoreBtn.onclick = () => renderPage();
 
       dom.searchInput.addEventListener('input', debounce(() => {
         currentKeyword = dom.searchInput.value;
         renderList();
-      }, 250));
+      }, 220));
+
+      dom.searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          dom.searchInput.value = '';
+          currentKeyword = '';
+          renderList();
+          dom.searchInput.blur();
+        }
+      });
+
+      /* 快捷键：/ 或 Ctrl/Cmd+K 聚焦搜索 */
+      document.addEventListener('keydown', e => {
+        const tag = (document.activeElement && document.activeElement.tagName) || '';
+        const typing = tag === 'INPUT' || tag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable);
+        if (document.querySelector('.modal.show')) return;
+
+        if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          dom.searchInput.focus();
+          dom.searchInput.select();
+          return;
+        }
+        if (e.key === '/' && !typing) {
+          e.preventDefault();
+          dom.searchInput.focus();
+        }
+      });
 
       dom.multiToggleBtn.onclick = () => {
-        if (showFavOnly) {
-          showFavOnly = false;
-          dom.favFilterBtn.classList.remove('active');
-        }
-        if (showLatestOnly) {
-          showLatestOnly = false;
-          dom.latestToggleBtn.classList.remove('active');
-        }
-        if (showHotOnly) {
-          showHotOnly = false;
-          dom.hotToggleBtn.classList.remove('active');
-        }
-        showMultiOnly = !showMultiOnly;
+        const willActivate = !showMultiOnly;
+        resetViewFilters(willActivate ? 'multi' : 'none');
+        showMultiOnly = willActivate;
         dom.multiToggleBtn.classList.toggle('active', showMultiOnly);
+        dom.multiToggleBtn.setAttribute('aria-pressed', showMultiOnly ? 'true' : 'false');
         renderList();
       };
 
       dom.favFilterBtn.onclick = () => {
         const willActivate = !showFavOnly;
-        if (willActivate) {
-          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          dom.multiToggleBtn.classList.remove('active');
-          dom.latestToggleBtn.classList.remove('active');
-          dom.hotToggleBtn.classList.remove('active');
-          showMultiOnly = false;
-          showLatestOnly = false;
-          showHotOnly = false;
-          currentCategory = 'all';
-        }
+        resetViewFilters(willActivate ? 'fav' : 'none');
         showFavOnly = willActivate;
         dom.favFilterBtn.classList.toggle('active', showFavOnly);
-        if (!showFavOnly) {
-          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
-          if (allBtn) allBtn.classList.add('active');
-        }
+        dom.favFilterBtn.setAttribute('aria-pressed', showFavOnly ? 'true' : 'false');
         renderList();
       };
 
       dom.latestToggleBtn.onclick = () => {
         const willActivate = !showLatestOnly;
-        if (willActivate) {
-          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          dom.multiToggleBtn.classList.remove('active');
-          dom.favFilterBtn.classList.remove('active');
-          dom.hotToggleBtn.classList.remove('active');
-          showMultiOnly = false;
-          showFavOnly = false;
-          showHotOnly = false;
-          currentCategory = 'all';
-        }
+        resetViewFilters(willActivate ? 'latest' : 'none');
         showLatestOnly = willActivate;
         dom.latestToggleBtn.classList.toggle('active', showLatestOnly);
-        if (!showLatestOnly) {
-          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
-          if (allBtn) allBtn.classList.add('active');
-        }
+        dom.latestToggleBtn.setAttribute('aria-pressed', showLatestOnly ? 'true' : 'false');
         renderList();
       };
 
       dom.hotToggleBtn.onclick = async () => {
         const willActivate = !showHotOnly;
         if (willActivate) {
+          /* 点开热门榜时先拉一次最新数据 */
+          dom.hotToggleBtn.disabled = true;
           await loadHotList();
-          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          dom.multiToggleBtn.classList.remove('active');
-          dom.favFilterBtn.classList.remove('active');
-          dom.latestToggleBtn.classList.remove('active');
-          showMultiOnly = false;
-          showFavOnly = false;
-          showLatestOnly = false;
-          currentCategory = 'all';
+          dom.hotToggleBtn.disabled = false;
         }
+        resetViewFilters(willActivate ? 'hot' : 'none');
         showHotOnly = willActivate;
         dom.hotToggleBtn.classList.toggle('active', showHotOnly);
-        if (!showHotOnly) {
-          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
-          if (allBtn) allBtn.classList.add('active');
-        }
+        dom.hotToggleBtn.setAttribute('aria-pressed', showHotOnly ? 'true' : 'false');
         renderList();
       };
+
+      if (dom.randomBtn) dom.randomBtn.onclick = randomPick;
 
       dom.batchToggleBtn.onclick = () => toggleBatchMode();
 
       dom.batchClearBtn.onclick = () => {
         selectedIds.clear();
         updateSelectedCount();
-        document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
+        syncBatchCheckboxes();
       };
       dom.batchQuarantineBtn.onclick = batchQuarantine;
 
@@ -2202,7 +2703,7 @@
         loadThanks();
       };
       dom.closeThanksBtn.onclick = () => closeModal('thanksModal');
-    });
+    }
   </script>
 
   <script>

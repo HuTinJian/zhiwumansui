@@ -2,15 +2,27 @@
    织雾满穗 · 提交反馈
    ============================================================ */
 
-import { json } from './_utils.js';
+import { json, clientIp, createRateLimiter, readJsonBody, requireSameOrigin } from './_utils.js';
 
 const VALID_TYPES = ['主页', '反馈', '卡片1', '其他'];
+
+/* 单 IP 10 分钟最多 5 条反馈，避免被刷屏 */
+const limiter = createRateLimiter(5, 10 * 60 * 1000);
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  const limit = limiter.check(clientIp(request));
+  if (!limit.ok) {
+    return json({ ok: false, error: 'too_many_requests', wait: limit.wait }, 429);
+  }
+
   try {
-    const body = await request.json();
+    const body = await readJsonBody(request);
 
     const type = String(body.type || '').trim();
     const name = String(body.name || '').trim();
@@ -43,6 +55,7 @@ export async function onRequestPost(context) {
     if (finalUploadQuarantine === 1 && quarantineIds.length > 0) {
       const cleaned = quarantineIds
         .slice(0, 500)
+        .filter(i => i && typeof i === 'object')
         .map(i => ({
           id: String(i.id || '').slice(0, 30),
           name: String(i.name || '').slice(0, 100),
@@ -59,6 +72,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true });
   } catch (err) {
+    console.error('[feedback]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

@@ -2,12 +2,16 @@
    织雾满穗 · 从反馈导入隔离区（需认证）
    ============================================================ */
 
-import { json, checkAuth, safeParse } from '../_utils.js';
+import { json, checkAuth, requireSameOrigin, safeParse } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -58,6 +62,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, added, skipped, total: toImport.length });
   } catch (err) {
+    console.error('[feedback/import-quarantine]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

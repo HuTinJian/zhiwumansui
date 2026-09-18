@@ -2,12 +2,16 @@
    织雾满穗 · 添加歌曲（需认证，自动分配 lineIndex）
    ============================================================ */
 
-import { json, checkAuth } from '../_utils.js';
+import { json, checkAuth, requireSameOrigin } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -24,25 +28,18 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too long' }, 400);
     }
 
-    const row = await env.DB.prepare(
-      `SELECT COALESCE(MAX(line_index), 100000) AS max_line FROM songs_extra`
-    ).first();
-    const nextLine = (row && row.max_line ? row.max_line : 100000) + 1;
-
+    /* line_index 在单条 INSERT 内用子查询计算，避免「先读后写」竞态 */
     await env.DB.prepare(
       `INSERT INTO songs_extra (music_id, name, category, line_index)
-       VALUES (?, ?, ?, ?)
+       VALUES (?, ?, ?, (SELECT COALESCE(MAX(line_index), 99999) + 1 FROM songs_extra))
        ON CONFLICT(music_id) DO UPDATE SET
          name = excluded.name,
          category = excluded.category`
-    ).bind(musicId, name, category, nextLine).run();
+    ).bind(musicId, name, category).run();
 
     return json({ ok: true });
   } catch (err) {
-    return json({
-      ok: false,
-      error: 'server error',
-      message: String((err && err.message) || err)
-    }, 500);
+    console.error('[songs/add]', err);
+    return json({ ok: false, error: 'server error' }, 500);
   }
 }

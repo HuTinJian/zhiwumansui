@@ -4,7 +4,7 @@
    POST 更新（需认证）
    ============================================================ */
 
-import { json, checkAuth, safeParse } from './_utils.js';
+import { json, checkAuth, requireSameOrigin, safeParse } from './_utils.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -14,7 +14,7 @@ export async function onRequestGet(context) {
 
   try {
     if (all === '1') {
-      if (!checkAuth(request, env)) {
+      if (!(await checkAuth(request, env))) {
         return json({ ok: false, error: 'unauthorized' }, 401);
       }
 
@@ -65,18 +65,19 @@ export async function onRequestGet(context) {
       }
     });
   } catch (err) {
-    return json({
-      ok: false,
-      error: 'server error',
-      message: String((err && err.message) || err)
-    }, 500);
+    console.error('[updates GET]', err);
+    return json({ ok: false, error: 'server error' }, 500);
   }
 }
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -95,7 +96,14 @@ export async function onRequestPost(context) {
     if (updates.length === 0) {
       return json({ ok: false, error: 'updates required' }, 400);
     }
-    if (updates.some(u => typeof u !== 'string' || u.length > 200)) {
+    if (updates.length > 50) {
+      return json({ ok: false, error: 'too many updates' }, 400);
+    }
+    /* 单条上限 2000 字符：
+       更新公告生成器会把整个配置对象打包成一个 JSON 字符串提交
+       （{"theme":...,"lines":"..."} 光外壳就约 90 字符）。
+       最早是 200 —— 连稍微长一点的公告都会被拒，这里放宽到 2000。 */
+    if (updates.some(u => typeof u !== 'string' || u.length > 2000)) {
       return json({ ok: false, error: 'invalid updates' }, 400);
     }
 
@@ -116,6 +124,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, date });
   } catch (err) {
+    console.error('[updates POST]', err);
     return json({
       ok: false,
       error: 'server error',

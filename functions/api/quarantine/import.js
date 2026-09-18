@@ -2,12 +2,16 @@
    织雾满穗 · 批量导入隔离区（需认证，最多 500 条）
    ============================================================ */
 
-import { json, checkAuth } from '../_utils.js';
+import { json, checkAuth, requireSameOrigin } from '../_utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -28,7 +32,7 @@ export async function onRequestPost(context) {
     const stmts = [];
 
     for (const item of items) {
-      const id = String(item.id || '').trim();
+      const id = String(item.id || '').trim().slice(0, 30);
       const name = String(item.name || '').trim().slice(0, 100);
       const category = String(item.category || '').trim().slice(0, 30);
       if (!id) { skipped++; continue; }
@@ -51,6 +55,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, added, skipped, total: items.length });
   } catch (err) {
+    console.error('[quarantine/import]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

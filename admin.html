@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-notice="off">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -107,7 +107,7 @@
       font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
       background: #fde8ef; color: var(--primary); font-weight: 600;
     }
-    .list-item .type-tag.gold { background: var(--gold-bg); color: var(--gold); }
+    .list-item .type-tag.gold { background: var(--gold-bg); color: var(--gold-ink); }
     .list-item .type-tag.blue { background: #e6f0ff; color: #4a7fdd; }
     .list-item .meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
     .list-item .message {
@@ -152,7 +152,7 @@
     .fb-quarantine .q-head .q-actions .btn-sel-all:hover { background: var(--primary); }
     .fb-quarantine .q-head .q-actions .btn-sel-none { background: var(--border); color: var(--text); }
     .fb-quarantine .q-head .q-actions .btn-sel-none:hover { background: #e6c9cf; }
-    .fb-quarantine .q-head .q-actions .btn-import-sel { background: var(--success); color: #fff; }
+    .fb-quarantine .q-head .q-actions .btn-import-sel { background: var(--success-strong); color: #fff; }
     .fb-quarantine .q-head .q-actions .btn-import-sel:hover {
       background: var(--success-dark); transform: translateY(-1px);
     }
@@ -197,16 +197,81 @@
       gap: 14px; margin-bottom: 20px;
     }
     .stat-card {
-      background: linear-gradient(135deg, #fde8ef, #f8d0db);
+      background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft));
+      border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: 18px; text-align: center;
-      transition: transform 0.35s var(--ease-bounce);
+      transition: transform 0.35s var(--ease-bounce), border-color 0.25s var(--ease-soft);
     }
-    .stat-card:hover { transform: translateY(-4px) rotate(-1deg); }
-    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1.2; }
+    .stat-card:hover { transform: translateY(-4px) rotate(-1deg); border-color: var(--primary-light); }
+    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: var(--primary-ink); line-height: 1.2; }
     .stat-card .label { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
 
+    /* ========== 数据统计面板 ========== */
+    .stats-sub {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      margin: 22px 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .stats-sub .sub-hint { font-size: 0.78rem; font-weight: 400; color: var(--text-muted); }
+
+    /* 热门榜 */
+    .rank-list {
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 480px; overflow-y: auto; padding-right: 4px;
+    }
+    .rank-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      background: var(--bg-soft); border: 1px solid var(--border);
+      transition: transform 0.25s var(--ease-bounce), border-color 0.25s var(--ease-soft);
+    }
+    .rank-item:hover { transform: translateX(3px); border-color: var(--primary-light); }
+    .rank-no {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.76rem; font-weight: 800;
+      background: var(--bg-tint); color: var(--primary-ink);
+    }
+    .rank-item.top1 .rank-no { background: linear-gradient(135deg, var(--gold-strong), var(--gold)); color: #fff; }
+    .rank-item.top2 .rank-no { background: linear-gradient(135deg, #8d9aab, #bcc6d2); color: #fff; }
+    .rank-item.top3 .rank-no { background: linear-gradient(135deg, #a06f42, #c8945f); color: #fff; }
+    .rank-id {
+      font-family: monospace; font-size: 0.84rem; color: var(--primary-ink);
+      flex: 1 1 auto; min-width: 0; word-break: break-all;
+    }
+    .rank-counts {
+      display: flex; gap: 8px; flex-shrink: 0;
+      font-size: 0.74rem; color: var(--text-muted); white-space: nowrap;
+    }
+    .rank-counts b { color: var(--text); font-weight: 700; }
+    .rank-total {
+      flex-shrink: 0; min-width: 46px; text-align: right;
+      font-weight: 800; font-size: 0.92rem; color: var(--primary-ink);
+    }
+    .rank-del {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text-muted); font-size: 0.72rem; line-height: 1;
+      cursor: pointer; font-family: var(--font);
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+    .rank-del:hover { background: var(--danger); border-color: var(--danger); color: #fff; transform: scale(1.1) rotate(-8deg); }
+    .rank-del:active { transform: scale(0.9); }
+
+    /* 访问渠道 */
+    .source-list { display: flex; flex-direction: column; gap: 12px; }
+    .source-row { display: flex; flex-direction: column; gap: 5px; }
+    .source-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.86rem; }
+    .source-name { font-weight: 600; color: var(--text); word-break: break-word; }
+    .source-num { color: var(--primary-ink); font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
+    .source-bar { height: 8px; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--border); overflow: hidden; }
+    .source-bar i {
+      display: block; height: 100%; border-radius: 6px;
+      background: linear-gradient(90deg, var(--primary-btn-a), var(--accent));
+      transition: width 0.7s var(--ease-out);
+    }
+
     .loading { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.9; }
 
     .song-add-form {
       display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
@@ -410,6 +475,7 @@
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
+      <button class="tab" data-panel="panel-stats">📊 数据统计</button>
     </div>
 
     <!-- 反馈管理 -->
@@ -429,7 +495,7 @@
     <div class="panel" id="panel-updates">
       <div class="panel-card" style="padding:0;overflow:hidden;">
         <div class="tool-iframe-wrap">
-          <iframe src="tools/update-notice.html" data-tool-frame scrolling="no"></iframe>
+          <iframe data-src="tools/update-notice.html" data-tool-frame scrolling="no" title="更新公告生成工具"></iframe>
         </div>
       </div>
     </div>
@@ -526,12 +592,62 @@
         <div class="subpanel" id="card1-json-merge">
           <div class="panel-card" style="padding:0;overflow:hidden;">
             <div class="tool-iframe-wrap">
-              <iframe src="tools/json-merge.html" data-tool-frame scrolling="no"></iframe>
+              <iframe data-src="tools/json-merge.html" data-tool-frame scrolling="no" title="JSON 合并工具"></iframe>
             </div>
           </div>
         </div>
       </div>
 
+    </div>
+
+    <!-- 数据统计 -->
+    <div class="panel" id="panel-stats">
+      <div class="panel-card">
+        <h2>
+          📊 站内数据总览
+          <span class="head-actions">
+            <button class="btn btn-secondary" id="refreshStatsBtn">🔄 刷新</button>
+          </span>
+        </h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+          这些数字全部来自 D1 数据库，是访客真实操作累积出来的。想清空某条热度可以在下面直接删除。
+        </p>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="num" id="statHotCount">-</div>
+            <div class="label">有热度的曲目</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statHotTotal">-</div>
+            <div class="label">总互动次数</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statSourceCount">-</div>
+            <div class="label">已记录渠道数</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statVisitorCount">-</div>
+            <div class="label">回答过来源的人数</div>
+          </div>
+        </div>
+
+        <div class="stats-sub">
+          🔥 热门 Top 100
+          <span class="sub-hint">按「复制 + 试听 + 收藏」总次数排序</span>
+        </div>
+        <div id="hotRankList" class="rank-list">
+          <div class="loading">加载中...</div>
+        </div>
+
+        <div class="stats-sub">
+          📢 访问渠道来源
+          <span class="sub-hint">访客在「告诉我们你从哪来」里填的答案</span>
+        </div>
+        <div id="sourceStats" class="source-list">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -646,6 +762,7 @@ See You Again 2456502348
     }
 
     window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin) return;
       if (!e.data || e.data.type !== 'iframe-resize') return;
       var h = Number(e.data.height);
       if (!h || h < 100) return;
@@ -659,12 +776,29 @@ See You Again 2456502348
       });
     });
 
+    /* ------------------------------------------------------------
+       工具 iframe 改成「用到才加载」
+       ------------------------------------------------------------
+       以前两个工具 iframe 写死了 src，一打开后台就会把它们全部加载：
+       两个页面加起来约 6 万字符的 HTML/CSS/JS 都要解析一遍，
+       更新公告工具还会顺便发一次网络请求 —— 而你可能根本不会点进去。
+       现在 src 先放在 data-src 里，等真的切到那个面板时才加载。 */
+    function lazyLoadIframe(iframe) {
+      if (!iframe || iframe.dataset.loaded === '1') return;
+      var src = iframe.getAttribute('data-src');
+      if (!src) return;
+      iframe.dataset.loaded = '1';
+      iframe.setAttribute('src', src);
+    }
+
     function bindIframe(iframe) {
       iframe.addEventListener('load', function () {
         setTimeout(function () { fitIframe(iframe); }, 200);
         setTimeout(function () { fitIframe(iframe); }, 800);
       });
-      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      /* 已经加载完成的（例如浏览器缓存直接命中）也补一次高度自适应 */
+      if (iframe.getAttribute('src') && iframe.contentDocument &&
+          iframe.contentDocument.readyState === 'complete') {
         setTimeout(function () { fitIframe(iframe); }, 200);
         setTimeout(function () { fitIframe(iframe); }, 800);
       }
@@ -672,8 +806,19 @@ See You Again 2456502348
 
     document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframe);
 
+    /* 一级 / 二级 / 三级标签切换时，把对应面板里的 iframe 唤醒 */
+    function activateIframesIn(el) {
+      if (!el) return;
+      el.querySelectorAll('iframe[data-tool-frame]').forEach(lazyLoadIframe);
+    }
+
+    /* 供 js/admin.js 里的一级标签切换调用 */
+    window.__zmLoadPanelIframes = activateIframesIn;
+
     document.querySelectorAll('[data-tabs-group]').forEach(function (group) {
-      var buttons = group.querySelectorAll('.subtab');
+      /* 只绑定本组的直接子按钮：外层组用后代选择器会连内层的三级 tab 一起绑上，
+         导致点三级 tab 把一级 tab 的 .active 也一起清掉 */
+      var buttons = group.querySelectorAll(':scope > .subtab');
       buttons.forEach(function (btn) {
         btn.addEventListener('click', function () {
           var targetId = btn.dataset.subpanel;
@@ -689,7 +834,10 @@ See You Again 2456502348
           target.classList.add('active');
 
           var iframe = target.querySelector('iframe[data-tool-frame]');
-          if (iframe) setTimeout(function () { fitIframe(iframe); }, 300);
+          if (iframe) {
+            lazyLoadIframe(iframe);
+            setTimeout(function () { fitIframe(iframe); }, 300);
+          }
         });
       });
     });
@@ -704,8 +852,12 @@ See You Again 2456502348
     const SOUND_KEYWORDS = [
       '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
       '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
-      '啊', '哦', '嗯', '欸', '喂', '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
+      '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
     ];
+
+    /* 单字关键词（啊/哦/嗯/欸/喂）命中面太大：一条「周杰伦 - 喂」也会被它判成搞笑音效，
+       所以挪到所有分类之后，只当最后兜底 */
+    const SOUND_KEYWORDS_SINGLE = ['啊', '哦', '嗯', '欸', '喂'];
 
     function cleanName(name) {
       if (!name) return '未知歌名';
@@ -730,6 +882,7 @@ See You Again 2456502348
       ) return '古风国风';
       if (lower.includes('周杰伦') || lower.includes('杰伦')) return '周杰伦';
       if (lower.includes('英文') || (/[a-zA-Z]/.test(name) && !lower.includes('中文'))) return '英文热门';
+      if (SOUND_KEYWORDS_SINGLE.some(k => lower.includes(k))) return '搞笑音效';
       return '中文流行';
     }
 

@@ -2,7 +2,7 @@
    织雾满穗 · 风险弹窗版本
    ============================================================ */
 
-import { json, checkAuth } from './_utils.js';
+import { json, checkAuth, requireSameOrigin } from './_utils.js';
 
 /* 获取当前风险版本（公开） */
 export async function onRequestGet(context) {
@@ -13,6 +13,7 @@ export async function onRequestGet(context) {
     ).first();
     return json({ ok: true, version: (row && row.version) || 'v1.0.0' });
   } catch (err) {
+    console.error('[risk GET]', err);
     return json({ ok: true, version: 'v1.0.0' });
   }
 }
@@ -21,7 +22,11 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -43,6 +48,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: true, version: newVersion });
   } catch (err) {
+    console.error('[risk POST]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON 合并工具 - 织雾满穗</title>
+
+  <!-- 登录保护：先藏起来，确认已登录再显示，避免未登录时闪一下工具界面 -->
+  <style>html.auth-pending body { visibility: hidden; }</style>
+  <script>document.documentElement.classList.add('auth-pending');</script>
+
   <style>
     :root {
       --primary: #dc6b82;
@@ -93,6 +98,7 @@
       background: #fdf8fa;
       margin-bottom: 12px;
       display: block;
+      position: relative;
     }
     .upload-box:hover {
       border-color: var(--primary-light);
@@ -119,7 +125,15 @@
       font-weight: 600;
       min-height: 18px;
     }
-    .upload-box input[type="file"] { display: none; }
+    /* 视觉隐藏但保留在 Tab 顺序与无障碍树里（display:none 会把 input 整个摘掉） */
+    .upload-box input[type="file"] {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap;
+    }
+    .upload-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220,107,130,.12);
+    }
 
     .preview {
       font-family: 'Courier New', monospace;
@@ -320,8 +334,22 @@
 
     function handleFileA(file) {
       readFile(file, function (err, data) {
-        if (err) { alert('❌ 原有数据文件解析失败：' + err.message); return; }
-        if (!Array.isArray(data)) { alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）'); return; }
+        if (err) {
+          dataA = null;
+          fileInfoA.textContent = '';
+          previewA.textContent = '等待上传...';
+          checkReady();
+          alert('❌ 原有数据文件解析失败：' + err.message);
+          return;
+        }
+        if (!Array.isArray(data)) {
+          dataA = null;
+          fileInfoA.textContent = '';
+          previewA.textContent = '等待上传...';
+          checkReady();
+          alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）');
+          return;
+        }
         dataA = data;
         fileInfoA.textContent = '✅ 已加载 ' + data.length + ' 条';
         previewA.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
@@ -331,8 +359,22 @@
 
     function handleFileB(file) {
       readFile(file, function (err, data) {
-        if (err) { alert('❌ 新歌文件解析失败：' + err.message); return; }
-        if (!Array.isArray(data)) { alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）'); return; }
+        if (err) {
+          dataB = null;
+          fileInfoB.textContent = '';
+          previewB.textContent = '等待上传...';
+          checkReady();
+          alert('❌ 新歌文件解析失败：' + err.message);
+          return;
+        }
+        if (!Array.isArray(data)) {
+          dataB = null;
+          fileInfoB.textContent = '';
+          previewB.textContent = '等待上传...';
+          checkReady();
+          alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）');
+          return;
+        }
         dataB = data;
         fileInfoB.textContent = '✅ 已加载 ' + data.length + ' 条';
         previewB.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
@@ -341,11 +383,19 @@
     }
 
     function checkReady() {
-      if (dataA && dataB) mergeBtn.disabled = false;
+      mergeBtn.disabled = !(dataA && dataB);
     }
 
-    fileA.addEventListener('change', function () { if (this.files[0]) handleFileA(this.files[0]); });
-    fileB.addEventListener('change', function () { if (this.files[0]) handleFileB(this.files[0]); });
+    fileA.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = ''; /* 先清空，重新选同一个文件时才还会触发 change */
+      if (file) handleFileA(file);
+    });
+    fileB.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = '';
+      if (file) handleFileB(file);
+    });
 
     function setupDragDrop(box, handler) {
       ['dragenter', 'dragover'].forEach(function (evt) {
@@ -385,11 +435,13 @@
 
       const originalCount = map.size;
       let overwritten = 0;
+      const inB = new Set(); /* B 文件内部重复的 id 不该算成"覆盖了 A" */
 
       dataB.forEach(function (item) {
         if (!item || !item.id) return;
         const id = String(item.id);
-        if (map.has(id)) overwritten++;
+        if (map.has(id) && !inB.has(id)) overwritten++;
+        inB.add(id);
         map.set(id, {
           id: id,
           name: item.name || '未知歌名',
@@ -403,7 +455,7 @@
       });
 
       document.getElementById('statOriginal').textContent = originalCount;
-      document.getElementById('statExtra').textContent = dataB.length;
+      document.getElementById('statExtra').textContent = inB.size;
       document.getElementById('statMerged').textContent = merged.length;
       document.getElementById('statOverwritten').textContent = overwritten;
 
@@ -413,17 +465,93 @@
     });
 
     downloadBtn.addEventListener('click', function () {
-      if (!merged) return;
+      if (!merged || merged.length === 0) { alert('❌ 合并结果为空，已取消下载'); return; }
+      if (!confirm('确定下载并覆盖 data/roblox_music.json 吗？共 ' + merged.length + ' 条')) return;
       const content = JSON.stringify(merged, null, 2);
       const blob = new Blob([content], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'roblox_music.json';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新上传整个网站到 Cloudflare');
     });
+  </script>
+
+  <!-- ============================================================
+       登录保护：本工具属于后台功能。
+       即使有人直接猜到 tools/ 下的地址打开，没登录也只会看到一句提示，
+       拿不到工具界面。
+       ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* 未登录时用一个友好提示替换整个页面（在后台的 iframe 里也一样适用） */
+    function showGate(title, detail) {
+      document.documentElement.classList.remove('auth-pending');
+      document.body.innerHTML = '';
+
+      var wrap = document.createElement('div');
+      wrap.setAttribute('style',
+        'min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'text-align:center;padding:40px 24px;line-height:1.8;' +
+        "font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#4a3f44;");
+
+      var icon = document.createElement('div');
+      icon.setAttribute('style', 'font-size:2.6rem;margin-bottom:10px;');
+      icon.textContent = '🔒';
+
+      var t = document.createElement('div');
+      t.setAttribute('style', 'font-size:1.05rem;font-weight:700;margin-bottom:8px;');
+      t.textContent = title;
+
+      var d = document.createElement('div');
+      d.setAttribute('style', 'font-size:0.86rem;color:#8d7c86;max-width:380px;margin-bottom:18px;');
+      d.textContent = detail;
+
+      var link = document.createElement('a');
+      link.href = '/index.html';
+      link.setAttribute('style',
+        'display:inline-block;padding:10px 26px;border-radius:50px;text-decoration:none;' +
+        'font-weight:600;font-size:0.9rem;color:#fff;' +
+        'background:linear-gradient(135deg,#c7546a,#b84460);');
+      link.textContent = '返回首页';
+
+      wrap.appendChild(icon);
+      wrap.appendChild(t);
+      wrap.appendChild(d);
+      wrap.appendChild(link);
+      document.body.appendChild(wrap);
+    }
+
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+
+    fetch('/api/auth/check', {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (timer) clearTimeout(timer);
+        if (data && data.ok === true) {
+          document.documentElement.classList.remove('auth-pending');
+          return;
+        }
+        showGate('这个工具需要先登录后台',
+                 '它是后台专用的数据整理工具，请从「后台管理」页进入。');
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        showGate('暂时无法确认登录状态',
+                 '可能是网络问题，或者当前部署没有启用后端接口。');
+      });
+  })();
   </script>
 </body>
 </html>

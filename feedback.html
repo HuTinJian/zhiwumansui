@@ -5,10 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>意见反馈 - 织雾满穗</title>
 
+  <meta name="description" content="向织雾满穗提交意见反馈：报告失效 ID、补充新歌、申请加入鸣谢名单。无需注册，留下称呼即可提交。">
+  <meta name="theme-color" content="#fdf2f5">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
 
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zm_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
   <style>
-    /* ========== 主内容 ========== */
+    /* ========== 布局 ========== */
     .main-content {
       display: flex;
       flex-direction: column;
@@ -19,15 +35,25 @@
 
     /* ========== 反馈卡片 ========== */
     .feedback-card {
+      position: relative;
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 28px 32px;
+      padding: 30px 32px;
       width: 100%;
-      max-width: 600px;
+      max-width: 620px;
       border-left: 5px solid var(--primary);
-      animation: cardRise 0.55s var(--ease-bounce) both;
-      will-change: transform;
+      animation: cardRise 0.6s var(--ease-out) backwards;
+      overflow: hidden;
+    }
+    /* 卡片顶部渐变描边 */
+    .feedback-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
+      opacity: 0.85;
     }
 
     .feedback-card h2 {
@@ -35,19 +61,19 @@
       font-weight: 700;
       margin-bottom: 6px;
       color: var(--primary);
-      animation: fadeInUp 0.4s var(--ease-soft) 0.15s both;
+      animation: fadeInUp 0.5s var(--ease-out) 0.1s backwards;
     }
 
     .feedback-card .desc {
       color: var(--text-light);
       font-size: 0.95rem;
       margin-bottom: 22px;
-      animation: fadeInUp 0.4s var(--ease-soft) 0.2s both;
+      animation: fadeInUp 0.5s var(--ease-out) 0.16s backwards;
     }
 
     .form-group { margin-bottom: 16px; }
 
-    /* ========== 自定义下拉 ========== */
+    /* ========== 自定义下拉（可键盘操作） ========== */
     .select-wrapper {
       position: relative;
       margin-top: 4px;
@@ -58,7 +84,7 @@
       padding: 12px 16px;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      background: #fdf8fa;
+      background: var(--bg-soft);
       color: var(--text-muted);
       font-size: 0.95rem;
       font-family: var(--font);
@@ -68,48 +94,35 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: border-color 0.3s var(--ease-soft), background 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
+      gap: 8px;
+      transition: border-color var(--dur) var(--ease-soft), background var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
     }
-
-    .select-trigger.selected {
-      color: var(--text);
-    }
-
-    .select-trigger:hover {
-      border-color: var(--primary-light);
-      transform: translateY(-1px);
-    }
-
-    .select-trigger:active {
-      transform: scale(0.97);
-      transition: transform 0.1s var(--ease-soft);
-    }
-
+    .select-trigger.selected { color: var(--text); }
+    .select-trigger:hover { border-color: var(--primary-light); transform: translateY(-1px); }
+    .select-trigger:active { transform: scale(0.98); }
     .select-trigger.open {
       border-color: var(--primary);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-glow);
     }
-
     .select-trigger .arrow {
       color: var(--primary);
       font-size: 0.9rem;
+      flex-shrink: 0;
       transition: transform 0.35s var(--ease-bounce);
     }
-
-    .select-trigger.open .arrow {
-      transform: rotate(180deg);
-    }
+    .select-trigger.open .arrow { transform: rotate(180deg); }
 
     .select-dropdown {
       position: absolute;
       top: calc(100% + 6px);
       left: 0;
       right: 0;
-      background: #fff;
+      background: var(--bg-card);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       box-shadow: var(--shadow-hover);
+      list-style: none;
       overflow: hidden;
       max-height: 0;
       opacity: 0;
@@ -117,9 +130,9 @@
       transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 10;
     }
-
     .select-dropdown.open {
-      max-height: 400px;
+      max-height: 340px;
+      overflow-y: auto;
       opacity: 1;
       pointer-events: auto;
     }
@@ -129,24 +142,19 @@
       font-size: 0.95rem;
       color: var(--text);
       cursor: pointer;
-      transition: background 0.2s var(--ease-soft), padding-left 0.25s var(--ease-bounce), transform 0.15s var(--ease-soft);
+      outline-offset: -3px;
+      transition: background var(--dur) var(--ease-soft), padding-left 0.25s var(--ease-bounce);
     }
-
-    .select-option:hover {
+    .select-option:hover,
+    .select-option:focus-visible {
       background: rgba(220, 107, 130, 0.08);
       padding-left: 24px;
     }
-
-    .select-option:active {
-      transform: scale(0.97);
-    }
-
     .select-option.active {
-      background: rgba(220, 107, 130, 0.12);
+      background: var(--bg-tint);
       color: var(--primary);
       font-weight: 600;
     }
-
     .select-option.active::after {
       content: '✓';
       float: right;
@@ -165,7 +173,6 @@
       border-radius: var(--radius-sm);
       margin-top: 4px;
     }
-
     .checkbox-list.show {
       display: flex;
       animation: checkboxSlide 0.35s var(--ease-bounce) both;
@@ -179,27 +186,24 @@
       user-select: none;
       padding: 4px 0;
     }
-
     .custom-checkbox input {
       position: absolute;
       opacity: 0;
       pointer-events: none;
     }
-
     .custom-checkbox .box {
       width: 22px;
       height: 22px;
       border: 2px solid var(--primary-light);
       border-radius: 50%;
-      background: #fff;
+      background: var(--bg-card);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s var(--ease-bounce);
+      transition: all var(--dur) var(--ease-bounce);
       flex-shrink: 0;
       position: relative;
     }
-
     .custom-checkbox .box::after {
       content: '';
       width: 6px;
@@ -208,35 +212,42 @@
       border-bottom: 2.5px solid #fff;
       transform: rotate(45deg) scale(0);
       margin-top: -3px;
-      transition: transform 0.3s var(--ease-bounce);
+      transition: transform var(--dur) var(--ease-bounce);
     }
-
     .custom-checkbox:hover .box {
       transform: scale(1.08);
       border-color: var(--primary);
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.2);
     }
-
-    .custom-checkbox:active .box {
-      transform: scale(0.92);
-    }
-
+    .custom-checkbox:active .box { transform: scale(0.92); }
     .custom-checkbox input:checked + .box {
       background: var(--primary);
       border-color: var(--primary);
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
     }
-
-    .custom-checkbox input:checked + .box::after {
-      transform: rotate(45deg) scale(1);
+    .custom-checkbox input:checked + .box::after { transform: rotate(45deg) scale(1); }
+    /* 键盘聚焦时给出可见反馈 */
+    .custom-checkbox input:focus-visible + .box {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
     }
-
     .custom-checkbox .label-text {
       font-size: 0.9rem;
       color: var(--text);
       font-weight: 500;
       line-height: 1.4;
     }
+
+    /* ========== 字数统计 ========== */
+    .char-count {
+      display: block;
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .char-count.warn { color: var(--danger); font-weight: 600; }
 
     /* ========== 提交按钮 ========== */
     .btn-submit {
@@ -245,12 +256,7 @@
       padding: 14px 32px;
       font-size: 1rem;
     }
-
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
+    .btn-submit[aria-busy="true"] { opacity: 0.75; cursor: progress; }
 
     .back-link {
       display: inline-block;
@@ -259,26 +265,17 @@
       text-decoration: none;
       font-weight: 500;
       font-size: 0.9rem;
-      transition: color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce);
+      transition: color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
     }
-
-    .back-link:hover {
-      text-decoration: underline;
-      transform: translateX(-4px) scale(1.05);
-    }
-
-    .back-link:active {
-      transform: translateX(-2px) scale(0.95);
-      transition: transform 0.1s var(--ease-soft);
-    }
+    .back-link:hover { text-decoration: underline; transform: translateX(-4px) scale(1.05); }
+    .back-link:active { transform: translateX(-2px) scale(0.95); }
 
     /* ========== 感谢信息 ========== */
     .success-message {
       display: none;
       text-align: center;
-      padding: 30px 0;
+      padding: 30px 0 10px;
     }
-
     .success-message.show { display: block; }
 
     .success-message .success-icon {
@@ -287,212 +284,124 @@
       display: inline-block;
       animation: successBounce 0.9s var(--ease-bounce) both;
     }
-
     .success-message h2 {
       font-size: 1.6rem;
       color: var(--primary);
       margin-bottom: 8px;
-      animation: fadeInUp 0.5s var(--ease-soft) 0.15s both;
+      animation: fadeInUp 0.5s var(--ease-out) 0.15s backwards;
     }
-
     .success-message p {
       color: var(--text-light);
       margin-bottom: 12px;
       font-size: 1rem;
-      animation: fadeInUp 0.5s var(--ease-soft) 0.25s both;
+      animation: fadeInUp 0.5s var(--ease-out) 0.25s backwards;
     }
-
     .success-message .extra-info {
       font-size: 0.9rem;
-      color: var(--gold);
+      color: var(--gold-ink);
       background: var(--gold-bg);
       padding: 10px 18px;
       border-radius: var(--radius-sm);
       margin: 12px auto 20px;
       max-width: 400px;
       border: 1px solid var(--gold-light);
-      animation: fadeInUp 0.5s var(--ease-soft) 0.4s both;
+      animation: fadeInUp 0.5s var(--ease-out) 0.35s backwards;
     }
-
     .success-message .btn {
       padding: 12px 28px;
-      animation: popIn 0.45s var(--ease-bounce) 0.5s both;
+      animation: popIn 0.45s var(--ease-bounce) 0.45s backwards;
     }
 
-    /* ========== 开发者与支持者 ========== */
-    .credits-section {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin: 40px auto 20px;
-      max-width: 800px;
-      padding: 0 20px;
-      width: 100%;
+    /* ========== 彩带特效 ========== */
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1200;
     }
-
-    .credits-card {
-      background: var(--bg-card);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow);
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
-      border: 2px solid transparent;
-      min-width: 220px;
-      animation: cardRise 0.55s var(--ease-bounce) 0.4s both;
-      will-change: transform;
+    .confetti-piece {
+      position: absolute;
+      top: -16px;
+      width: 9px;
+      height: 14px;
+      opacity: 0.95;
+      border-radius: 2px;
+      animation: confettiFall linear forwards;
     }
-
-    .credits-card:nth-child(2) { animation-delay: 0.5s; }
-
-    .credits-card:hover {
-      border-color: rgba(220, 107, 130, 0.3);
-      box-shadow: var(--shadow-hover);
-      transform: translateY(-5px) rotate(-2deg) scale(1.03);
-    }
-
-    .credits-card:nth-child(even):hover {
-      transform: translateY(-5px) rotate(2deg) scale(1.03);
-    }
-
-    .credits-card:active {
-      transform: translateY(2px) rotate(0) scale(0.96);
-      transition: transform 0.12s var(--ease-soft);
-    }
-
-    .credits-card:hover .credits-icon {
-      transform: rotate(15deg) scale(1.12);
-    }
-
-    .credits-icon {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      flex-shrink: 0;
-      border-radius: 50%;
-      transition: transform 0.35s var(--ease-bounce);
-    }
-
-    .credits-info {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.4;
-    }
-
-    .credits-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .credits-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .credits-en {
-      font-size: 0.85rem;
-      color: var(--text-light);
+    @keyframes confettiFall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(102vh) rotate(720deg); opacity: 0; }
     }
 
     /* ========== 动画 ========== */
-    @keyframes cardRise {
-      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
     @keyframes checkboxSlide {
-      0% { opacity: 0; transform: translateY(-6px); }
-      60% { opacity: 1; transform: translateY(2px); }
+      0%   { opacity: 0; transform: translateY(-6px); }
+      60%  { opacity: 1; transform: translateY(2px); }
       100% { transform: translateY(0); }
     }
-
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.5); }
-      70% { transform: scale(1.08); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
     @keyframes successBounce {
-      0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
-      50% { opacity: 1; transform: scale(1.15) rotate(8deg); }
-      70% { transform: scale(0.97) rotate(-4deg); }
+      0%   { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+      50%  { opacity: 1; transform: scale(1.15) rotate(8deg); }
+      70%  { transform: scale(0.97) rotate(-4deg); }
       100% { transform: scale(1) rotate(0); }
     }
 
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* 开发者与支持者卡片：样式在 css/style.css 里统一维护（首页与反馈页共用） */
 
     /* ========== 响应式 ========== */
     @media (max-width: 768px) {
       .main-content { padding: 20px 16px 0; }
       .feedback-card { padding: 22px 20px; }
       .feedback-card h2 { font-size: 1.35rem; }
-      .credits-section {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-      }
-      .credits-card { min-width: 100%; justify-content: center; }
     }
 
     @media (max-width: 480px) {
       .feedback-card { padding: 18px 16px; }
       .feedback-card h2 { font-size: 1.2rem; }
-      .credits-card { padding: 16px; }
-      .credits-icon { width: 40px; height: 40px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
     }
   </style>
 </head>
 <body>
 
-  <!-- ==================== 导航栏 ==================== -->
-  <nav class="navbar">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <nav class="navbar has-brand" aria-label="站点导航">
+    <a class="nav-brand" href="index.html">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span class="brand-text">织雾满穗</span>
+    </a>
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
-      <li><a href="feedback.html" class="active">💬 反馈</a></li>
+      <li><a href="feedback.html" class="active" aria-current="page">💬 反馈</a></li>
     </ul>
   </nav>
 
   <!-- ==================== 主内容 ==================== -->
-  <div class="main-content">
+  <main class="main-content" id="main">
     <div class="feedback-card">
       <!-- 表单区域 -->
       <div id="formContainer">
         <h2>💬 意见反馈</h2>
-        <p class="desc">我们重视你的每一个建议</p>
+        <p class="desc">我们重视你的每一个建议 —— 发现失效 ID、想补充新歌、或是对网站有想法，都可以在这里告诉我们。</p>
 
-        <form id="feedbackForm">
+        <form id="feedbackForm" novalidate>
           <!-- 反馈类型 -->
           <div class="form-group">
-            <label>反馈类型</label>
+            <label id="feedbackTypeLabel">反馈类型 <span style="color:var(--danger)">*</span></label>
             <div class="select-wrapper" id="selectWrapper">
-              <button type="button" class="select-trigger" id="selectTrigger">
+              <button type="button" class="select-trigger" id="selectTrigger"
+                      aria-haspopup="listbox" aria-expanded="false" aria-labelledby="feedbackTypeLabel">
                 <span id="selectedType">请选择反馈类型</span>
-                <span class="arrow">▾</span>
+                <span class="arrow" aria-hidden="true">▾</span>
               </button>
-              <div class="select-dropdown" id="selectDropdown">
-                <div class="select-option" data-value="主页">主页</div>
-                <div class="select-option" data-value="反馈">反馈</div>
-                <div class="select-option" data-value="卡片1">卡片1 —— Roblox ID 宝库</div>
-                <div class="select-option" data-value="其他">其他</div>
-              </div>
+              <ul class="select-dropdown" id="selectDropdown" role="listbox" aria-labelledby="feedbackTypeLabel">
+                <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="主页">主页</li>
+                <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="反馈">反馈</li>
+                <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="卡片1">卡片1 —— Roblox ID 宝库</li>
+                <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="其他">其他</li>
+              </ul>
             </div>
           </div>
 
@@ -500,35 +409,36 @@
           <div class="checkbox-list" id="extraOptions">
             <label class="custom-checkbox">
               <input type="checkbox" id="wantThanks">
-              <span class="box"></span>
+              <span class="box" aria-hidden="true"></span>
               <span class="label-text">加入鸣谢名单</span>
             </label>
             <label class="custom-checkbox">
               <input type="checkbox" id="uploadQuarantine">
-              <span class="box"></span>
-              <span class="label-text">上传隔离区ID</span>
+              <span class="box" aria-hidden="true"></span>
+              <span class="label-text">上传隔离区 ID（把你在宝库里隔离掉的 ID 一并提交给我们复核）</span>
             </label>
           </div>
 
           <!-- 称呼 -->
           <div class="form-group">
-            <label for="feedbackName">你的称呼</label>
-            <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40">
+            <label for="feedbackName">你的称呼 <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40" autocomplete="nickname">
           </div>
 
           <!-- 邮箱 -->
           <div class="form-group">
             <label for="feedbackEmail">你的邮箱（选填）</label>
-            <input type="email" id="feedbackEmail" placeholder="如需回复可留下邮箱">
+            <input type="email" id="feedbackEmail" placeholder="如需回复可留下邮箱" maxlength="120" autocomplete="email">
           </div>
 
           <!-- 内容 -->
           <div class="form-group">
-            <label for="feedbackMessage">反馈内容</label>
+            <label for="feedbackMessage">反馈内容 <span style="color:var(--danger)">*</span></label>
             <textarea id="feedbackMessage" placeholder="请详细描述你的建议、问题或想法..." required maxlength="1000"></textarea>
+            <span class="char-count" id="charCount">0 / 1000</span>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+          <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" aria-busy="false">
             🚀 提交反馈
           </button>
         </form>
@@ -537,11 +447,11 @@
       </div>
 
       <!-- 感谢信息 -->
-      <div class="success-message" id="successMessage">
+      <div class="success-message" id="successMessage" role="status">
         <div class="success-icon">🎉</div>
         <h2>提交成功！</h2>
         <p>感谢你的反馈，我们会认真查看每一条建议</p>
-        <div class="extra-info" id="extraInfo" style="display:none;"></div>
+        <div class="extra-info" id="extraInfo" hidden></div>
         <a href="index.html" class="btn btn-primary">🏠 返回首页</a>
       </div>
     </div>
@@ -549,7 +459,7 @@
     <!-- 开发者与支持者 -->
     <div class="credits-section">
       <div class="credits-card">
-        <img class="credits-icon" src="images/developer.png" alt="开发者图标">
+        <img class="credits-icon" src="images/developer.png" alt="开发者图标" width="48" height="48" loading="lazy">
         <div class="credits-info">
           <span class="credits-label">开发者</span>
           <span class="credits-name">织雾满穗</span>
@@ -557,69 +467,92 @@
         </div>
       </div>
       <div class="credits-card">
-        <img class="credits-icon" src="images/deepseek.png" alt="支持者图标">
+        <img class="credits-icon" src="images/whale-girl.svg" alt="支持者图标 · 鲸鱼娘" width="48" height="48" loading="lazy">
         <div class="credits-info">
           <span class="credits-label">支持者</span>
-          <span class="credits-name">DeepSeek</span>
+          <span class="credits-name">DeepSeek V4.1-Flash</span>
           <span class="credits-en">AI Assistant</span>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
-    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+    <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <div class="footer-links">
+      <a href="index.html">首页</a>
+      <a href="roblox_music.html">ID 宝库</a>
+    </div>
   </footer>
 
   <script src="js/common.js"></script>
-
   <script>
-    /* 版本更新检查 */
-    checkPageUpdate('feedback');
+    (function () {
+      'use strict';
 
-    const selectWrapper = document.getElementById('selectWrapper');
-    const selectTrigger = document.getElementById('selectTrigger');
-    const selectDropdown = document.getElementById('selectDropdown');
-    const selectedTypeEl = document.getElementById('selectedType');
-    const extraOptions = document.getElementById('extraOptions');
-    const wantThanks = document.getElementById('wantThanks');
-    const uploadQuarantine = document.getElementById('uploadQuarantine');
-    const form = document.getElementById('feedbackForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const formContainer = document.getElementById('formContainer');
-    const successMessage = document.getElementById('successMessage');
-    const extraInfo = document.getElementById('extraInfo');
+      var $ = function (id) { return document.getElementById(id); };
 
-    let currentType = '';
+      $('footerYear').textContent = new Date().getFullYear();
 
-    /* 下拉展开/收起 */
-    selectTrigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      selectTrigger.classList.toggle('open');
-      selectDropdown.classList.toggle('open');
-    });
+      /* 版本更新检查 */
+      checkPageUpdate('feedback');
 
-    document.addEventListener('click', (e) => {
-      if (!selectWrapper.contains(e.target)) {
-        selectTrigger.classList.remove('open');
-        selectDropdown.classList.remove('open');
+      var selectWrapper = $('selectWrapper');
+      var selectTrigger = $('selectTrigger');
+      var selectDropdown = $('selectDropdown');
+      var selectedTypeEl = $('selectedType');
+      var extraOptions = $('extraOptions');
+      var wantThanks = $('wantThanks');
+      var uploadQuarantine = $('uploadQuarantine');
+      var form = $('feedbackForm');
+      var submitBtn = $('submitBtn');
+      var formContainer = $('formContainer');
+      var successMessage = $('successMessage');
+      var extraInfo = $('extraInfo');
+      var messageInput = $('feedbackMessage');
+      var charCount = $('charCount');
+
+      var options = Array.prototype.slice.call(selectDropdown.querySelectorAll('.select-option'));
+      var currentType = '';
+
+      /* ============================================================
+         自定义下拉：完整键盘支持 + ARIA 状态
+         ============================================================ */
+      function openDropdown() {
+        selectTrigger.classList.add('open');
+        selectTrigger.setAttribute('aria-expanded', 'true');
+        selectDropdown.classList.add('open');
+        var active = options.find(function (o) { return o.classList.contains('active'); }) || options[0];
+        if (active) setTimeout(function () { active.focus(); }, 60);
       }
-    });
 
-    /* 选择类型 */
-    selectDropdown.querySelectorAll('.select-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        selectDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
+      function closeDropdown(returnFocus) {
+        selectTrigger.classList.remove('open');
+        selectTrigger.setAttribute('aria-expanded', 'false');
+        selectDropdown.classList.remove('open');
+        if (returnFocus) selectTrigger.focus();
+      }
+
+      function isOpen() {
+        return selectDropdown.classList.contains('open');
+      }
+
+      function chooseOption(opt) {
+        options.forEach(function (o) {
+          o.classList.remove('active');
+          o.setAttribute('aria-selected', 'false');
+        });
         opt.classList.add('active');
+        opt.setAttribute('aria-selected', 'true');
+
         currentType = opt.dataset.value;
-        selectedTypeEl.textContent = opt.textContent;
+        selectedTypeEl.textContent = opt.dataset.value === '卡片1' ? opt.textContent : opt.dataset.value;
         selectTrigger.classList.add('selected');
 
-        selectTrigger.classList.remove('open');
-        selectDropdown.classList.remove('open');
+        closeDropdown(true);
 
-        /* 仅"卡片1"显示附加选项 */
+        /* 仅“卡片1”显示附加选项 */
         if (currentType === '卡片1') {
           extraOptions.classList.add('show');
         } else {
@@ -627,98 +560,219 @@
           wantThanks.checked = false;
           uploadQuarantine.checked = false;
         }
+      }
+
+      selectTrigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (isOpen()) closeDropdown(false);
+        else openDropdown();
       });
-    });
 
-    /* 邮箱校验 */
-    function isValidEmail(email) {
-      if (!email) return true;
-      return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(email);
-    }
+      selectTrigger.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          openDropdown();
+        }
+      });
 
-    /* 读取游客隔离区 */
-    function getGuestQuarantine() {
-      try {
-        const raw = localStorage.getItem('roblox_quarantine_guest');
-        if (!raw) return [];
-        const arr = JSON.parse(raw);
-        if (!Array.isArray(arr)) return [];
-        return arr
-          .filter(i => i && i.id)
-          .map(i => ({
-            id: String(i.id),
-            name: String(i.name || '未知歌名').slice(0, 100),
-            category: String(i.category || '未分类').slice(0, 30)
-          }))
-          .slice(0, 500);
-      } catch {
-        return [];
+      selectDropdown.addEventListener('keydown', function (e) {
+        var idx = options.indexOf(document.activeElement);
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          options[Math.min(options.length - 1, idx + 1)].focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          options[Math.max(0, idx - 1)].focus();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          options[0].focus();
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          options[options.length - 1].focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (idx >= 0) chooseOption(options[idx]);
+        } else if (e.key === 'Escape' || e.key === 'Tab') {
+          closeDropdown(true);
+        }
+      });
+
+      options.forEach(function (opt) {
+        opt.addEventListener('click', function () { chooseOption(opt); });
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!selectWrapper.contains(e.target)) closeDropdown(false);
+      });
+
+      /* 兜底：即使焦点还没落到选项上（例如刚点开就按 ESC），也要能收起下拉 */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!isOpen()) return;
+        if (document.querySelector('.modal.show')) return;   /* ESC 优先交给弹窗 */
+        e.preventDefault();
+        closeDropdown(true);
+      });
+
+      /* ============================================================
+         字数统计
+         ============================================================ */
+      function updateCharCount() {
+        var len = messageInput.value.length;
+        var max = Number(messageInput.getAttribute('maxlength')) || 1000;
+        charCount.textContent = len + ' / ' + max;
+        charCount.classList.toggle('warn', len > max * 0.9);
       }
-    }
+      messageInput.addEventListener('input', updateCharCount);
+      updateCharCount();
 
-    /* 提交反馈 */
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+      /* ============================================================
+         校验
+         ============================================================ */
+      function isValidEmail(email) {
+        if (!email) return true;
+        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(email);
+      }
 
-      const name = document.getElementById('feedbackName').value.trim();
-      const email = document.getElementById('feedbackEmail').value.trim();
-      const message = document.getElementById('feedbackMessage').value.trim();
-
-      if (!currentType) { showToast('请选择反馈类型'); return; }
-      if (!name) { showToast('请填写你的称呼'); return; }
-      if (!message) { showToast('请填写反馈内容'); return; }
-      if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); return; }
-
-      let quarantineIds = [];
-      const willUpload = currentType === '卡片1' && uploadQuarantine.checked;
-      if (willUpload) {
-        quarantineIds = getGuestQuarantine();
-        if (quarantineIds.length === 0) {
-          showToast('你的隔离区是空的，无法上传');
-          uploadQuarantine.checked = false;
-          return;
+      /* 读取游客隔离区（防御式解析，坏数据直接丢弃而不是让整页崩掉） */
+      function getGuestQuarantine() {
+        try {
+          var raw = localStorage.getItem('roblox_quarantine_guest');
+          if (!raw) return [];
+          var arr = JSON.parse(raw);
+          if (!Array.isArray(arr)) return [];
+          return arr
+            .filter(function (i) { return i && i.id; })
+            .map(function (i) {
+              return {
+                id: String(i.id).slice(0, 30),
+                name: String(i.name || '未知歌名').slice(0, 100),
+                category: String(i.category || '未分类').slice(0, 30)
+              };
+            })
+            .slice(0, 500);
+        } catch (e) {
+          return [];
         }
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = '提交中...';
+      /* ============================================================
+         彩带特效
+         ============================================================ */
+      function celebrating() {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      try {
-        const res = await fetch('/api/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: currentType,
-            name,
-            email,
-            message,
-            wantThanks: currentType === '卡片1' && wantThanks.checked ? 1 : 0,
-            uploadQuarantine: willUpload ? 1 : 0,
-            quarantineIds
-          })
-        });
+        var colors = ['#dc6b82', '#e88da1', '#d4a06a', '#e8c49a', '#8cb8a8', '#f0a3b4'];
+        var layer = document.createElement('div');
+        layer.className = 'confetti-layer';
+        layer.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(layer);
 
-        const data = await res.json();
-
-        if (data.ok) {
-          formContainer.style.display = 'none';
-          successMessage.classList.add('show');
-
-          if (willUpload && quarantineIds.length > 0) {
-            extraInfo.textContent = `📦 已上传 ${quarantineIds.length} 个隔离区 ID，感谢你的贡献！`;
-            extraInfo.style.display = 'block';
-          }
-        } else {
-          showToast('提交失败，请稍后重试');
-          submitBtn.disabled = false;
-          submitBtn.textContent = '🚀 提交反馈';
+        for (var i = 0; i < 46; i++) {
+          var piece = document.createElement('span');
+          piece.className = 'confetti-piece';
+          piece.style.left = Math.random() * 100 + 'vw';
+          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.animationDuration = (1.7 + Math.random() * 1.3) + 's';
+          piece.style.animationDelay = (Math.random() * 0.5) + 's';
+          piece.style.width = (6 + Math.random() * 6) + 'px';
+          piece.style.height = (10 + Math.random() * 8) + 'px';
+          layer.appendChild(piece);
         }
-      } catch (err) {
-        showToast('网络异常，请稍后重试');
+
+        setTimeout(function () { layer.remove(); }, 3800);
+      }
+
+      /* ============================================================
+         提交
+         ============================================================ */
+      var submitting = false;
+
+      function resetSubmitBtn() {
+        submitting = false;
         submitBtn.disabled = false;
+        submitBtn.setAttribute('aria-busy', 'false');
         submitBtn.textContent = '🚀 提交反馈';
       }
-    });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (submitting) return;
+
+        var name = $('feedbackName').value.trim();
+        var email = $('feedbackEmail').value.trim();
+        var message = messageInput.value.trim();
+
+        if (!currentType) { showToast('请先选择反馈类型'); selectTrigger.focus(); return; }
+        if (!name) { showToast('请填写你的称呼'); $('feedbackName').focus(); return; }
+        if (!message) { showToast('请填写反馈内容'); messageInput.focus(); return; }
+        if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); $('feedbackEmail').focus(); return; }
+
+        var quarantineIds = [];
+        var willUpload = currentType === '卡片1' && uploadQuarantine.checked;
+        if (willUpload) {
+          quarantineIds = getGuestQuarantine();
+          if (quarantineIds.length === 0) {
+            showToast('你的隔离区是空的，无法上传');
+            uploadQuarantine.checked = false;
+            return;
+          }
+        }
+
+        submitting = true;
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.textContent = '⏳ 提交中...';
+
+        try {
+          var res = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: currentType,
+              name: name,
+              email: email,
+              message: message,
+              wantThanks: currentType === '卡片1' && wantThanks.checked ? 1 : 0,
+              uploadQuarantine: willUpload ? 1 : 0,
+              quarantineIds: quarantineIds
+            })
+          });
+
+          var contentType = res.headers.get('content-type') || '';
+          if (contentType.indexOf('application/json') === -1) {
+            /* 静态托管（例如 GitHub Pages）下 /api 不存在，会返回 404 页面 */
+            throw new Error('non-json');
+          }
+
+          var data = await res.json();
+
+          if (data && data.ok) {
+            formContainer.style.display = 'none';
+            successMessage.classList.add('show');
+
+            if (willUpload && quarantineIds.length > 0) {
+              extraInfo.textContent = '📦 已上传 ' + quarantineIds.length + ' 个隔离区 ID，感谢你的贡献！';
+              extraInfo.hidden = false;
+            }
+
+            celebrating();
+            successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            showToast('提交失败：' + ((data && data.error) ? data.error : '请稍后重试'));
+            resetSubmitBtn();
+          }
+        } catch (err) {
+          if (err && err.message === 'non-json') {
+            showToast('⚠️ 反馈服务暂不可用（当前部署未启用后端接口）');
+          } else {
+            showToast('网络异常，请稍后重试');
+          }
+          resetSubmitBtn();
+        }
+      });
+    })();
   </script>
 </body>
 </html>

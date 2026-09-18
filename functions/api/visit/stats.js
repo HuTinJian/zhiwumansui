@@ -17,6 +17,7 @@ export async function onRequestGet(context) {
 
     return json({ ok: true, data: result.results || [] });
   } catch (err) {
-    return json({ ok: true, data: [] }, 200);
+    console.error('[visit/stats]', err);
+    return json({ ok: false, error: 'server error' }, 500);
   }
 }

@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>更新公告生成 - 织雾满穗</title>
+
+  <!-- 登录保护：先藏起来，确认已登录再显示，避免未登录时闪一下工具界面 -->
+  <style>html.auth-pending body { visibility: hidden; }</style>
+  <script>document.documentElement.classList.add('auth-pending');</script>
+
   <style>
     :root {
       --primary: #dc6b82;
@@ -246,28 +251,30 @@
       z-index: 2;
     }
 
-    /* ---- 两处光晕 ---- */
+    /* ---- 两处光晕 ----
+       不用 filter: blur()：大面积高斯模糊很吃性能。
+       这两处本来就是径向渐变，把渐变的"透明过渡"拉长一点，
+       效果几乎一样，但不需要额外一层模糊运算。 */
     .glow {
       position: absolute;
       border-radius: 50%;
       pointer-events: none;
       z-index: 0;
-      filter: blur(40px);
     }
     .glow-left {
-      width: 220px;
-      height: 220px;
-      left: 30px;
+      width: 260px;
+      height: 260px;
+      left: 10px;
       top: 50%;
       transform: translateY(-50%);
-      background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 45%, transparent 78%);
     }
     .glow-right {
-      width: 280px;
-      height: 280px;
-      right: -60px;
-      bottom: -60px;
-      background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
+      width: 320px;
+      height: 320px;
+      right: -80px;
+      bottom: -80px;
+      background: radial-gradient(circle, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.05) 45%, transparent 78%);
     }
 
     /* ---- 内边框 + 角部装饰 ---- */
@@ -365,7 +372,7 @@
       pointer-events: none;
       color: #fff;
       opacity: 0.13;
-      filter: blur(0.3px);
+      /* 去掉无意义的 0.3px 模糊：看不出差别，但会白白多一层合成 */
     }
     .wheat-deco.left {
       left: -12px;
@@ -770,6 +777,7 @@
     const cardSubTabs = $('cardSubTabs');
 
     let currentPage = 'index';
+    let dirty = false; /* 有未保存的编辑时为 true */
 
     const inputs = {
       theme:   $('themeInput'),
@@ -808,7 +816,7 @@
           document.documentElement.offsetHeight
         );
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: 'iframe-resize', height: h }, '*');
+          window.parent.postMessage({ type: 'iframe-resize', height: h }, location.origin);
         }
       } catch (e) {}
     }
@@ -821,7 +829,7 @@
       previewScaler.style.transformOrigin = 'top center';
       previewScaler.style.width = '960px';
       previewScaler.style.height = '340px';
-      previewWrap.style.height = (340 * scale) + 'px';
+      previewWrap.style.height = (340 * scale + 16) + 'px'; /* +16 = .preview-wrap 的 padding: 8px 0，否则底部会被裁掉 */
       previewWrap.style.overflow = 'hidden';
       notifyParentHeight();
     }
@@ -882,15 +890,20 @@
     }
 
     inputs.logo.addEventListener('input', function (e) {
+      dirty = true;
       targets.logo.textContent = e.target.value || '穗';
     });
     inputs.version.addEventListener('input', function (e) {
-      targets.version.textContent = e.target.value || '';
+      dirty = true;
+      /* 清空输入框时回落到默认版本号，预览里的版本胶囊才不会是空的 */
+      targets.version.textContent = e.target.value || DEFAULTS.version;
     });
     inputs.lines.addEventListener('input', function (e) {
+      dirty = true;
       renderRightLines(e.target.value);
     });
     inputs.theme.addEventListener('change', function (e) {
+      dirty = true;
       applyTheme(e.target.value);
       updateAutoTitle();
       notifyParentHeight();
@@ -927,7 +940,7 @@
       return {
         theme: inputs.theme.value,
         logo: inputs.logo.value,
-        version: inputs.version.value,
+        version: inputs.version.value || DEFAULTS.version,
         title: targets.title.textContent,
         lines: linesValue
       };
@@ -958,6 +971,7 @@
         updateAutoTitle();
       }
 
+      dirty = false; /* 表单已经被服务端配置覆盖，没有未保存的修改了 */
       setTimeout(function () { fitCanvas(); notifyParentHeight(); }, 50);
     }
 
@@ -982,6 +996,8 @@
 
     document.querySelectorAll('#pageTabs .page-tab').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (dirty && !confirm('切换页面会丢弃未保存的修改，确定继续？')) return;
+
         document.querySelectorAll('#pageTabs .page-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
@@ -1002,18 +1018,25 @@
         }
 
         setStatus('', '');
-        const cfg = await loadConfigFromServer(currentPage);
+        /* 请求发出后用户可能又切了页面，回来时用它判断这次结果是否已经过期 */
+        const requested = currentPage;
+        const cfg = await loadConfigFromServer(requested);
+        if (requested !== currentPage) return;
         applyConfig(cfg || DEFAULTS);
       });
     });
 
     document.querySelectorAll('#cardSubTabs .page-tab').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (dirty && !confirm('切换页面会丢弃未保存的修改，确定继续？')) return;
+
         document.querySelectorAll('#cardSubTabs .page-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentPage = btn.dataset.page;
         setStatus('', '');
-        const cfg = await loadConfigFromServer(currentPage);
+        const requested = currentPage;
+        const cfg = await loadConfigFromServer(requested);
+        if (requested !== currentPage) return;
         applyConfig(cfg || DEFAULTS);
       });
     });
@@ -1033,6 +1056,15 @@
       const cfg = collectConfig();
       const realVersion = 'v' + Date.now();
 
+      /* 服务端对 updates 单条有长度上限（目前 2000），先在前端拦下，避免只看到保存失败 */
+      const payload = JSON.stringify(cfg);
+      if (payload.length > 2000) {
+        setStatus('❌ 内容过长（' + payload.length + '/2000），请精简更新内容', 'err');
+        btn.disabled = false;
+        btn.textContent = '💾 保存并生效';
+        return;
+      }
+
       try {
         const res = await fetch('/api/updates', {
           method: 'POST',
@@ -1041,12 +1073,13 @@
           body: JSON.stringify({
             page: currentPage,
             version: realVersion,
-            updates: [JSON.stringify(cfg)]
+            updates: [payload]
           })
         });
         const data = await res.json();
 
         if (data.ok) {
+          dirty = false;
           const pageName = { index: '主页', feedback: '反馈', roblox: 'Roblox ID 宝库' }[currentPage] || currentPage;
           setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
         } else {
@@ -1062,10 +1095,85 @@
 
     (async function init() {
       applyConfig(DEFAULTS);
-      const cfg = await loadConfigFromServer('index');
+      const requested = currentPage;
+      const cfg = await loadConfigFromServer(requested);
+      if (requested !== currentPage) return;
       if (cfg) applyConfig(cfg);
       setTimeout(function () { fitCanvas(); notifyParentHeight(); }, 100);
     })();
+  </script>
+
+  <!-- ============================================================
+       登录保护：本工具属于后台功能。
+       即使有人直接猜到 tools/ 下的地址打开，没登录也只会看到一句提示，
+       拿不到工具界面。
+       ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* 未登录时用一个友好提示替换整个页面（在后台的 iframe 里也一样适用） */
+    function showGate(title, detail) {
+      document.documentElement.classList.remove('auth-pending');
+      document.body.innerHTML = '';
+
+      var wrap = document.createElement('div');
+      wrap.setAttribute('style',
+        'min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'text-align:center;padding:40px 24px;line-height:1.8;' +
+        "font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#4a3f44;");
+
+      var icon = document.createElement('div');
+      icon.setAttribute('style', 'font-size:2.6rem;margin-bottom:10px;');
+      icon.textContent = '🔒';
+
+      var t = document.createElement('div');
+      t.setAttribute('style', 'font-size:1.05rem;font-weight:700;margin-bottom:8px;');
+      t.textContent = title;
+
+      var d = document.createElement('div');
+      d.setAttribute('style', 'font-size:0.86rem;color:#8d7c86;max-width:380px;margin-bottom:18px;');
+      d.textContent = detail;
+
+      var link = document.createElement('a');
+      link.href = '/index.html';
+      link.setAttribute('style',
+        'display:inline-block;padding:10px 26px;border-radius:50px;text-decoration:none;' +
+        'font-weight:600;font-size:0.9rem;color:#fff;' +
+        'background:linear-gradient(135deg,#c7546a,#b84460);');
+      link.textContent = '返回首页';
+
+      wrap.appendChild(icon);
+      wrap.appendChild(t);
+      wrap.appendChild(d);
+      wrap.appendChild(link);
+      document.body.appendChild(wrap);
+    }
+
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+
+    fetch('/api/auth/check', {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (timer) clearTimeout(timer);
+        if (data && data.ok === true) {
+          document.documentElement.classList.remove('auth-pending');
+          return;
+        }
+        showGate('这个工具需要先登录后台',
+                 '它是后台专用的数据整理工具，请从「后台管理」页进入。');
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        showGate('暂时无法确认登录状态',
+                 '可能是网络问题，或者当前部署没有启用后端接口。');
+      });
+  })();
   </script>
 </body>
 </html>

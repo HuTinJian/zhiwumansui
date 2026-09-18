@@ -1,2 +1,42 @@
+# 织雾满穗 · 静态资源响应头
+# 注意：本文件只作用于静态文件；Functions（functions/ 下的 API）的响应头由
+# functions/api/_utils.js 里的 json() 设置（Cache-Control / nosniff 等）。
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/admin.html
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+
+# ------------------------------------------------------------
+# 缓存策略
+# ------------------------------------------------------------
+# 这里的目标只有一个：**让「改了代码却不生效」这件事不再发生**。
+#
+# 唯一的例外是歌曲数据，它比较大，缓存久一点更划算。
+
+# 歌曲主数据：5 分钟缓存。
+# 你改了 data/roblox_music.json 推上去之后，访客最多 5 分钟就能看到新版。
+# （想在电脑上立刻看到，按 Ctrl + F5 强制刷新即可）
 /data/roblox_music.json
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+# CSS / JS：只缓存 60 秒。
+# 为什么不用更长的缓存？因为这是你自己在维护的网站，
+# 「改完看不到效果」比「多几次请求」麻烦得多。
+# 60 秒之后浏览器会自动去问一句「有没有变」，没变就返回 304，几乎不花流量。
+# 想立刻看到：Ctrl + F5。
+/css/*
+  Cache-Control: public, max-age=60
+
+/js/*
+  Cache-Control: public, max-age=60
+
+# 图片：5 分钟。换图标之后最多等 5 分钟，或者 Ctrl + F5。
+/images/*
+  Cache-Control: public, max-age=300
+
+# HTML 页面本身【不在这里设缓存】—— 必须是每次都拿最新的，
+# 否则你改了页面内容，别人却还看到旧的。

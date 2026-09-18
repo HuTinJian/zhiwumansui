@@ -22,7 +22,20 @@ let feedbackCache = [];
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById(tab.dataset.panel).classList.add('active');
+      const panel = document.getElementById(tab.dataset.panel);
+      if (!panel) return;
+      panel.classList.add('active');
+
+      /* 面板里如果嵌了工具页面，这时候才真正去加载它
+         （打开后台时不加载，省掉几万字符的解析和一次网络请求） */
+      if (typeof window.__zmLoadPanelIframes === 'function') {
+        window.__zmLoadPanelIframes(panel);
+      }
+
+      /* 数据统计面板：切过去时才去拉数据 */
+      if (tab.dataset.panel === 'panel-stats' && typeof window.loadStatsPanel === 'function') {
+        window.loadStatsPanel();
+      }
     });
   });
 
@@ -51,12 +64,38 @@ let feedbackCache = [];
   const addThanksTrigger = document.getElementById('addThanksSelectTrigger');
   const addThanksDropdown = document.getElementById('addThanksSelectDropdown');
 
+  /* 自定义下拉不是原生控件，aria 状态要自己维护 */
+  addThanksTrigger.setAttribute('aria-haspopup', 'listbox');
+  addThanksTrigger.setAttribute('aria-expanded', 'false');
+  addThanksDropdown.setAttribute('role', 'listbox');
+
+  function setAddThanksOpen(open) {
+    addThanksTrigger.classList.toggle('open', open);
+    addThanksDropdown.classList.toggle('open', open);
+    addThanksTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function selectAddThanksOption(opt) {
+    addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
+      o.classList.remove('active');
+      o.setAttribute('aria-selected', 'false');
+    });
+    opt.classList.add('active');
+    opt.setAttribute('aria-selected', 'true');
+    document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
+    addThanksTrigger.classList.add('selected');
+    setAddThanksOpen(false);
+    addThanksTrigger.focus();
+  }
+
   document.getElementById('openAddThanksBtn').onclick = () => {
     document.getElementById('addThanksSelectedCat').textContent = '请选择类别';
     addThanksTrigger.classList.remove('selected');
-    addThanksDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
-    addThanksDropdown.classList.remove('open');
-    addThanksTrigger.classList.remove('open');
+    addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
+      o.classList.remove('active');
+      o.setAttribute('aria-selected', 'false');
+    });
+    setAddThanksOpen(false);
     document.getElementById('addThanksName').value = '';
     document.getElementById('addThanksPlatform').value = '';
     document.getElementById('addThanksMessage').value = '';
@@ -67,18 +106,19 @@ let feedbackCache = [];
 
   addThanksTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    addThanksTrigger.classList.toggle('open');
-    addThanksDropdown.classList.toggle('open');
+    setAddThanksOpen(!addThanksDropdown.classList.contains('open'));
   });
 
   addThanksDropdown.querySelectorAll('.select-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      addThanksDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
-      opt.classList.add('active');
-      document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
-      addThanksTrigger.classList.add('selected');
-      addThanksTrigger.classList.remove('open');
-      addThanksDropdown.classList.remove('open');
+    opt.tabIndex = 0;
+    opt.setAttribute('role', 'option');
+    opt.setAttribute('aria-selected', opt.classList.contains('active') ? 'true' : 'false');
+    opt.addEventListener('click', () => selectAddThanksOption(opt));
+    opt.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        selectAddThanksOption(opt);
+      }
     });
   });
 
@@ -86,8 +126,7 @@ let feedbackCache = [];
   document.addEventListener('click', (e) => {
     const wrapper = document.getElementById('addThanksSelectWrapper');
     if (wrapper && !wrapper.contains(e.target)) {
-      addThanksTrigger.classList.remove('open');
-      addThanksDropdown.classList.remove('open');
+      setAddThanksOpen(false);
     }
   });
 })();
@@ -102,24 +141,39 @@ async function loadFeedback() {
 
   try {
     const res = await fetch('/api/feedback/list', { credentials: 'include' });
+    if (!res.ok) {
+      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
+      countEl.textContent = '-';
+      return;
+    }
     const data = await res.json();
+    if (data && data.ok === false) {
+      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
+      countEl.textContent = '-';
+      return;
+    }
 
-    if (!Array.isArray(data)) {
+    /* 后端返回 { ok:true, data:[...], total }；同时兼容早期的裸数组格式 */
+    const list = Array.isArray(data)
+      ? data
+      : (data && Array.isArray(data.data) ? data.data : null);
+
+    if (list === null) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
       countEl.textContent = '0';
       return;
     }
 
-    feedbackCache = data;
-    countEl.textContent = data.length;
+    feedbackCache = list;
+    countEl.textContent = (data && typeof data.total === 'number') ? data.total : list.length;
 
-    if (data.length === 0) {
+    if (list.length === 0) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
       return;
     }
 
     container.innerHTML = '';
-    data.forEach(item => {
+    list.forEach(item => {
       const el = document.createElement('div');
       el.className = 'list-item';
 
@@ -143,7 +197,7 @@ async function loadFeedback() {
         <div class="message">${escapeHtml(item.message)}</div>
         <div class="actions">
           ${hasQ ? '<button class="btn-expand" data-id="' + itemId + '">📦 展开隔离区</button>' : ''}
-          ${item.want_thanks === 1 ? '<button class="btn-approve" data-id="' + itemId + '">❤️ 加入鸣谢</button>' : ''}
+          ${item.want_thanks === 1 && item.status !== 'approved' ? '<button class="btn-approve" data-id="' + itemId + '">❤️ 加入鸣谢</button>' : ''}
           <button class="btn-delete" data-id="${itemId}">🗑️ 删除</button>
         </div>
         ${hasQ ? '<div class="fb-quarantine" id="fbQ-' + itemId + '"></div>' : ''}
@@ -283,13 +337,15 @@ async function approveToThanks(feedbackId) {
 
     if (addData.ok) {
       showToast('✅ 已加入鸣谢名单');
-      await fetch('/api/feedback/status', {
+      const st = await fetch('/api/feedback/status', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: item.id, status: 'approved' })
       });
+      if (!st.ok) showToast('⚠️ 状态更新失败');
       loadThanks();
+      loadFeedback();
     } else {
       showToast('加入失败');
     }
@@ -335,22 +391,47 @@ async function loadRobloxStats() {
     const res1 = await fetch('data/roblox_music.json?t=' + Date.now());
     const musicData = await res1.json();
 
-    let extraCount = 0;
+    let extraData = [];
+    let extraOk = false;
     try {
       const extraRes = await fetch('/api/songs/list?t=' + Date.now());
-      const extraData = await extraRes.json();
-      if (extraData.ok && Array.isArray(extraData.data)) {
-        extraCount = extraData.data.length;
+      if (extraRes.ok) {
+        const extraJson = await extraRes.json();
+        if (extraJson && extraJson.ok && Array.isArray(extraJson.data)) {
+          extraData = extraJson.data;
+          extraOk = true;
+        }
       }
     } catch (e) {}
 
-    const total = musicData.length + extraCount;
-    const uniqueNames = new Set(musicData.map(i => i.name));
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statGroup').textContent = uniqueNames.size;
+    /* 总 ID 数 / 歌曲组数：两份数据先合并再按 id、name 去重，避免两边都有的被算两次；
+       D1 没读到时显示 '-'，而不是看起来像 0 条 */
+    const seenIds = new Set();
+    const seenNames = new Set();
+    musicData.concat(extraData).forEach(item => {
+      if (!item) return;
+      if (item.id) seenIds.add(String(item.id));
+      if (item.name) seenNames.add(item.name);
+    });
+    document.getElementById('statTotal').textContent = extraOk ? seenIds.size : '-';
+    document.getElementById('statGroup').textContent = extraOk ? seenNames.size : '-';
 
     const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
+    const container = document.getElementById('quarantineList');
+    const countEl = document.getElementById('quarantineCount');
+    if (!res2.ok) {
+      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res2.status + '）· 登录可能已过期，请重新登录</div>';
+      countEl.textContent = '-';
+      document.getElementById('statQuarantine').textContent = '-';
+      return;
+    }
     const qData = await res2.json();
+    if (qData && qData.ok === false) {
+      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(qData.error || '未知错误') + '</div>';
+      countEl.textContent = '-';
+      document.getElementById('statQuarantine').textContent = '-';
+      return;
+    }
 
     let quarantine = [];
     if (qData.ok && Array.isArray(qData.data)) {
@@ -358,9 +439,6 @@ async function loadRobloxStats() {
     }
 
     document.getElementById('statQuarantine').textContent = quarantine.length;
-
-    const container = document.getElementById('quarantineList');
-    const countEl = document.getElementById('quarantineCount');
     countEl.textContent = quarantine.length;
 
     if (quarantine.length === 0) {
@@ -453,8 +531,9 @@ async function handleImportQuarantine() {
   }
 
   const valid = [];
+  let dropped = 0;
   for (const it of items) {
-    if (!it || !it.id) continue;
+    if (!it || !it.id) { dropped++; continue; }
     valid.push({
       id: String(it.id).trim(),
       name: String(it.name || '').trim().slice(0, 100),
@@ -464,11 +543,20 @@ async function handleImportQuarantine() {
 
   if (valid.length === 0) {
     status.classList.add('err');
-    status.textContent = '⚠️ 没有有效的记录（每条必须包含 id）';
+    status.textContent = '⚠️ 没有有效的记录（每条必须包含 id）'
+      + (dropped > 0 ? `，已跳过 ${dropped} 条缺少 id 的记录` : '');
     return;
   }
 
-  status.textContent = `正在导入 ${valid.length} 条...`;
+  /* 服务端单次上限 500 条，先在前端拦下，避免只看到原始报错 */
+  if (valid.length > 500) {
+    status.classList.add('err');
+    status.textContent = `⚠️ 一次最多 500 条，请分批导入（当前 ${valid.length} 条）`;
+    return;
+  }
+
+  status.textContent = `正在导入 ${valid.length} 条...`
+    + (dropped > 0 ? `（已跳过 ${dropped} 条缺少 id 的记录）` : '');
 
   try {
     const res = await fetch('/api/quarantine/import', {
@@ -481,7 +569,8 @@ async function handleImportQuarantine() {
 
     if (data.ok) {
       status.classList.add('ok');
-      status.textContent = `✅ 导入完成：新增 ${data.added} 条，跳过 ${data.skipped} 条（已存在）`;
+      status.textContent = `✅ 导入完成：新增 ${data.added} 条，跳过 ${data.skipped} 条（已存在）`
+        + (dropped > 0 ? `，另有 ${dropped} 条缺少 id 未导入` : '');
       loadRobloxStats();
       setTimeout(() => closeModal('importQuarantineModal'), 2000);
     } else {
@@ -504,7 +593,17 @@ async function loadSongs() {
 
   try {
     const res = await fetch('/api/songs/list?t=' + Date.now());
+    if (!res.ok) {
+      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
+      countEl.textContent = '-';
+      return;
+    }
     const data = await res.json();
+    if (data && data.ok === false) {
+      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
+      countEl.textContent = '-';
+      return;
+    }
 
     let list = [];
     if (data.ok && Array.isArray(data.data)) {
@@ -627,7 +726,9 @@ async function handleClearSongs() {
   try {
     const res = await fetch('/api/songs/clear', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: 'DELETE_ALL' })
     });
     const data = await res.json();
     if (data.ok) {
@@ -658,7 +759,7 @@ async function handleExportSongs() {
 
     const confirmed = await showConfirm(
       '导出歌曲',
-      `即将导出 ${data.data.length} 条歌曲。\n\n导出后，用 merge.html 工具合并到 roblox_music.json 中。\n\n是否下载？`
+      `即将导出 ${data.data.length} 条歌曲。\n\n导出后，用 tools/json-merge.html 工具合并到 roblox_music.json 中。\n\n是否下载？`
     );
     if (!confirmed) return;
 
@@ -667,8 +768,10 @@ async function handleExportSongs() {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'songs_extra_' + Date.now() + '.json';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     showToast('📤 已下载');
   } catch (err) {
@@ -686,7 +789,17 @@ async function loadThanks() {
 
   try {
     const res = await fetch('/api/thanks?t=' + Date.now());
+    if (!res.ok) {
+      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
+      countEl.textContent = '-';
+      return;
+    }
     const data = await res.json();
+    if (data && data.ok === false) {
+      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
+      countEl.textContent = '-';
+      return;
+    }
 
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
@@ -720,7 +833,7 @@ async function loadThanks() {
           </div>
           ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
           <div class="actions">
-            <button class="btn-delete" data-id="${person.id}">🗑️ 删除</button>
+            <button class="btn-delete" data-id="${escapeHtml(person.id)}">🗑️ 删除</button>
           </div>
         `;
         container.appendChild(el);
@@ -802,8 +915,235 @@ async function deleteThanks(id) {
 }
 
 /* ============================================================
+   📊 数据统计面板
+   ------------------------------------------------------------
+   数据本来就存在 D1 里（hot_songs 热度表 / visit_sources 渠道表），
+   接口也早就有了，只是后台一直没有页面把它们显示出来 —— 这里补上。
+   ============================================================ */
+
+let statsLoading = false;
+
+async function loadStatsPanel() {
+  if (statsLoading) return;
+  statsLoading = true;
+  try {
+    await Promise.all([loadHotRank(), loadSourceStats()]);
+  } finally {
+    statsLoading = false;
+  }
+}
+
+/* 热门榜：/api/hot/list 已经返回 copy / play / fav 分项 + total */
+async function loadHotRank() {
+  const box = document.getElementById('hotRankList');
+  if (!box) return;
+
+  box.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch('/api/hot/list?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) {
+      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）</div>';
+      return;
+    }
+    const data = await res.json();
+    if (!data || data.ok !== true || !Array.isArray(data.data)) {
+      box.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '未知错误') + '</div>';
+      return;
+    }
+
+    const list = data.data;
+
+    /* 概览卡片 */
+    const totalInteractions = list.reduce((sum, x) => sum + (Number(x.total) || 0), 0);
+    const elHotCount = document.getElementById('statHotCount');
+    const elHotTotal = document.getElementById('statHotTotal');
+    if (elHotCount) elHotCount.textContent = list.length.toLocaleString('en-US');
+    if (elHotTotal) elHotTotal.textContent = totalInteractions.toLocaleString('en-US');
+
+    if (list.length === 0) {
+      box.innerHTML = '<div class="empty-state">还没有热门数据。<br>访客复制 / 试听 / 收藏 ID 之后，这里就会开始累积。</div>';
+      return;
+    }
+
+    box.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    list.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'rank-item' + (idx < 3 ? ' top' + (idx + 1) : '');
+
+      const no = document.createElement('span');
+      no.className = 'rank-no';
+      no.textContent = String(idx + 1);
+
+      const id = document.createElement('span');
+      id.className = 'rank-id';
+      id.textContent = item.id;
+
+      const counts = document.createElement('span');
+      counts.className = 'rank-counts';
+      counts.append(
+        document.createTextNode('📋 '), strong(String(item.copy || 0)),
+        document.createTextNode(' · 🔗 '), strong(String(item.play || 0)),
+        document.createTextNode(' · ⭐ '), strong(String(item.fav || 0))
+      );
+
+      const total = document.createElement('span');
+      total.className = 'rank-total';
+      total.textContent = String(item.total || 0);
+
+      /* 删除这一条热度（例如被刷了、或这首歌已经不收录了） */
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'rank-del';
+      del.textContent = '✕';
+      del.title = '清空这条热度';
+      del.setAttribute('aria-label', '清空 ID ' + item.id + ' 的热度');
+      del.dataset.id = item.id;
+      del.addEventListener('click', () => deleteHotRecord(item.id));
+
+      row.append(no, id, counts, total, del);
+      frag.appendChild(row);
+    });
+
+    box.appendChild(frag);
+  } catch (err) {
+    console.error('[stats] hot/list', err);
+    box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+  }
+}
+
+/* 清空某条热度 */
+async function deleteHotRecord(id) {
+  const ok = await showConfirm(
+    '清空热度',
+    '确定要清空 ID ' + id + ' 的热度记录吗？\n\n' +
+    '清空后它的「复制 / 试听 / 收藏」计数都会归零，' +
+    '宝库页的热门榜里也会消失。这个操作不能撤销。'
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch('/api/hot/delete', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: String(id) })
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data && data.ok) {
+      showToast('🗑️ 已清空该条热度');
+      loadHotRank();
+    } else {
+      showToast('清空失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+    }
+  } catch (err) {
+    console.error('[stats] hot/delete', err);
+    showToast('网络异常，请稍后重试');
+  }
+}
+
+function strong(text) {
+  const b = document.createElement('b');
+  b.textContent = text;
+  return b;
+}
+
+/* 访问渠道：/api/visit/stats 返回 [{source, count}] */
+async function loadSourceStats() {
+  const box = document.getElementById('sourceStats');
+  if (!box) return;
+
+  box.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch('/api/visit/stats?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) {
+      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）</div>';
+      return;
+    }
+    const data = await res.json();
+    if (!data || data.ok !== true || !Array.isArray(data.data)) {
+      box.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '未知错误') + '</div>';
+      return;
+    }
+
+    const list = data.data
+      .map(x => ({ source: String(x.source || '未填写'), count: Number(x.count) || 0 }))
+      .filter(x => x.count > 0)
+      .sort((a, b) => b.count - a.count);
+
+    const visitors = list.reduce((sum, x) => sum + x.count, 0);
+    const elSrcCount = document.getElementById('statSourceCount');
+    const elVisitor = document.getElementById('statVisitorCount');
+    if (elSrcCount) elSrcCount.textContent = list.length.toLocaleString('en-US');
+    if (elVisitor) elVisitor.textContent = visitors.toLocaleString('en-US');
+
+    if (list.length === 0) {
+      box.innerHTML = '<div class="empty-state">还没有人回答过来源。<br>访客在宝库页点「📢 告诉我们你从哪来」就会记录在这里。</div>';
+      return;
+    }
+
+    const max = list[0].count || 1;
+    box.innerHTML = '';
+
+    const frag = document.createDocumentFragment();
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'source-row';
+
+      const top = document.createElement('div');
+      top.className = 'source-top';
+
+      const name = document.createElement('span');
+      name.className = 'source-name';
+      name.textContent = item.source;
+
+      const num = document.createElement('span');
+      num.className = 'source-num';
+      num.textContent = item.count + ' 人 · ' + Math.round((item.count / visitors) * 100) + '%';
+
+      top.append(name, num);
+
+      const bar = document.createElement('div');
+      bar.className = 'source-bar';
+      const fill = document.createElement('i');
+      fill.style.width = Math.max(3, Math.round((item.count / max) * 100)) + '%';
+      bar.appendChild(fill);
+
+      row.append(top, bar);
+      frag.appendChild(row);
+    });
+
+    box.appendChild(frag);
+  } catch (err) {
+    console.error('[stats] visit/stats', err);
+    box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+  }
+}
+
+/* 点「刷新」按钮时重新拉一次 */
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('refreshStatsBtn');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = '⏳ 刷新中...';
+      await loadStatsPanel();
+      btn.disabled = false;
+      btn.textContent = '🔄 刷新';
+      showToast('✅ 统计已刷新');
+    });
+  }
+});
+
+/* ============================================================
    全局暴露（供 admin.html 内联脚本批量导入使用）
    ============================================================ */
 window.loadSongs = loadSongs;
 window.loadRobloxStats = loadRobloxStats;
 window.addSongToServer = addSongToServer;
+window.loadStatsPanel = loadStatsPanel;

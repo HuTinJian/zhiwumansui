@@ -7,7 +7,7 @@ import { json, checkAuth } from '../_utils.js';
 export async function onRequestGet(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -27,6 +27,7 @@ export async function onRequestGet(context) {
 
     return json({ ok: true, data: list });
   } catch (err) {
+    console.error('[songs/export]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }

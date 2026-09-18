@@ -3,7 +3,7 @@
    GET 公开；POST add / delete / update（需认证）
    ============================================================ */
 
-import { json, checkAuth } from './_utils.js';
+import { json, checkAuth, requireSameOrigin, tooLong } from './_utils.js';
 
 export async function onRequestGet(context) {
   const { env } = context;
@@ -35,6 +35,7 @@ export async function onRequestGet(context) {
 
     return json(grouped);
   } catch (err) {
+    console.error('[thanks GET]', err);
     return json([], 200);
   }
 }
@@ -42,7 +43,11 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!checkAuth(request, env)) {
+  if (!requireSameOrigin(request)) {
+    return json({ ok: false, error: 'bad origin' }, 403);
+  }
+
+  if (!(await checkAuth(request, env))) {
     return json({ ok: false, error: 'unauthorized' }, 401);
   }
 
@@ -55,12 +60,13 @@ export async function onRequestPost(context) {
       const name = String(body.name || '').trim();
       const platform = String(body.platform || '').trim();
       const message = String(body.message || '').trim();
-      const feedbackId = body.feedbackId ? Number(body.feedbackId) : null;
+      const fbIdNum = Number(body.feedbackId);
+      const feedbackId = Number.isSafeInteger(fbIdNum) && fbIdNum > 0 ? fbIdNum : null;
 
       if (!category || !name) {
         return json({ ok: false, error: 'missing fields' }, 400);
       }
-      if (name.length > 40 || category.length > 30 || platform.length > 30 || message.length > 200) {
+      if (tooLong(name, 40) || tooLong(category, 30) || tooLong(platform, 30) || tooLong(message, 200)) {
         return json({ ok: false, error: 'too long' }, 400);
       }
 
@@ -74,7 +80,7 @@ export async function onRequestPost(context) {
 
     if (action === 'delete') {
       const id = Number(body.id);
-      if (!id) return json({ ok: false, error: 'invalid id' }, 400);
+      if (!Number.isSafeInteger(id) || id <= 0) return json({ ok: false, error: 'invalid id' }, 400);
       await env.DB.prepare('DELETE FROM thanks WHERE id = ?').bind(id).run();
       return json({ ok: true });
     }
@@ -86,8 +92,11 @@ export async function onRequestPost(context) {
       const platform = String(body.platform || '').trim();
       const message = String(body.message || '').trim();
 
-      if (!id || !category || !name) {
+      if (!Number.isSafeInteger(id) || id <= 0 || !category || !name) {
         return json({ ok: false, error: 'missing fields' }, 400);
+      }
+      if (tooLong(name, 40) || tooLong(category, 30) || tooLong(platform, 30) || tooLong(message, 200)) {
+        return json({ ok: false, error: 'too long' }, 400);
       }
 
       await env.DB.prepare(
@@ -101,6 +110,7 @@ export async function onRequestPost(context) {
 
     return json({ ok: false, error: 'unknown action' }, 400);
   } catch (err) {
+    console.error('[thanks POST]', err);
     return json({ ok: false, error: 'server error' }, 500);
   }
 }
