@@ -519,7 +519,7 @@
         </div>
       </div>
       <div class="credits-card">
-        <img class="credits-icon" src="images/whale-girl.svg" alt="支持者图标 · 鲸鱼娘" width="48" height="48" loading="lazy">
+        <img class="credits-icon" src="images/deepseek.png" alt="支持者图标" width="48" height="48" loading="lazy">
         <div class="credits-info">
           <span class="credits-label">支持者</span>
           <span class="credits-name">DeepSeek V4.1-Flash</span>
@@ -642,17 +642,27 @@
           page.className = 'u-page';
           page.textContent = PAGE_NAMES[item.page] || item.page;
 
-          var ver = document.createElement('span');
-          ver.className = 'u-ver';
-          ver.textContent = 'v' + String(item.version || '').replace(/^v/i, '');
+          head.appendChild(page);
+
+          /* 版本号：老数据存的是「v + 一长串时间戳」，
+             formatVersion 会把它转成 v2026.09.19 这样正常的样子。
+             万一没有版本号，这块就不显示，不留下一个空胶囊。 */
+          var verText = typeof formatVersion === 'function'
+            ? formatVersion(item.version)
+            : String(item.version || '');
+
+          if (verText) {
+            var ver = document.createElement('span');
+            ver.className = 'u-ver';
+            ver.textContent = verText;
+            head.appendChild(ver);
+          }
 
           var date = document.createElement('span');
           date.className = 'u-date';
           date.textContent = '📅 ' + (item.date || '—');
-
-          head.appendChild(page);
-          head.appendChild(ver);
           head.appendChild(date);
+
           card.appendChild(head);
 
           var ul = document.createElement('ul');

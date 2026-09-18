@@ -9,20 +9,49 @@
   <style>html.auth-pending body { visibility: hidden; }</style>
   <script>document.documentElement.classList.add('auth-pending');</script>
 
+  <!-- 主题：这个工具常被嵌在后台里，跟父页面同源，所以能直接读到同一个 zm_theme -->
+  <script>
+    (function () {
+      var KEY = 'zm_theme';
+      function apply(t) {
+        document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+      }
+      function read() {
+        var t = null;
+        try { t = localStorage.getItem(KEY); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        return t;
+      }
+      apply(read());
+      /* 父页面切换主题时，localStorage 变化会在本页触发 storage 事件 → 跟着变 */
+      window.addEventListener('storage', function (e) {
+        if (!e || e.key === KEY) apply(read());
+      });
+    })();
+  </script>
+
   <style>
     :root {
       --primary: #dc6b82;
+      --primary-ink: #a83c56;
+      --primary-btn-a: #c7546a;
+      --primary-btn-b: #b84460;
       --primary-dark: #c7546a;
       --primary-light: #f0a3b4;
       --accent: #e88da1;
       --bg: #fdf2f5;
+      --bg-soft: #fdf8fa;
+      --bg-tint: #fde8ef;
       --bg-card: #ffffff;
       --text: #4a3f44;
       --text-light: #6e5f65;
-      --text-muted: #b5a1a8;
+      --text-muted: #7d6972;
       --border: #f0d9de;
       --success: #8cb8a8;
       --success-dark: #72a392;
+      --success-strong: #55806f;
       --danger: #c0392b;
       --radius: 20px;
       --radius-sm: 14px;
@@ -30,6 +59,34 @@
       --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
       --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+      color-scheme: light;
+    }
+
+    /* ---------- 暗色模式（跟随站点的主题开关） ----------
+       注意：下面 #canvas 里的那几套配色是「更新公告的预览图」，
+       它本身就该是彩色的，所以不受这里影响。 */
+    [data-theme="dark"] {
+      --primary: #ef8ea4;
+      --primary-ink: #ffa9bd;
+      --primary-btn-a: #d0617a;
+      --primary-btn-b: #bf4f67;
+      --primary-dark: #e0748d;
+      --primary-light: #b8657a;
+      --accent: #f2a0b3;
+      --bg: #17121a;
+      --bg-soft: #1f1822;
+      --bg-tint: #2b1f28;
+      --bg-card: #241c2a;
+      --text: #f2e9ee;
+      --text-light: #cdbcc5;
+      --text-muted: #a4909a;
+      --border: #3a2c36;
+      --success: #7fb39f;
+      --success-dark: #96c6b2;
+      --success-strong: #3f6b5b;
+      --danger: #ef7d74;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { overflow-x: hidden; }
@@ -52,7 +109,7 @@
     .page-title h1 {
       font-size: 1.6rem;
       font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -79,7 +136,7 @@
     .card h2 {
       font-size: 1.05rem;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--primary-ink);
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -100,7 +157,7 @@
       padding: 10px 20px;
       border: 2px solid var(--border);
       border-radius: 50px;
-      background: #fdf8fa;
+      background: var(--bg-soft);
       color: var(--text-light);
       font-family: var(--font);
       font-size: 0.9rem;
@@ -110,13 +167,13 @@
     }
     .page-tab:hover {
       border-color: var(--primary-light);
-      color: var(--primary);
+      color: var(--primary-ink);
       transform: translateY(-2px);
     }
     .page-tab:active { transform: scale(0.95); }
     .page-tab.active {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      border-color: var(--primary-ink);
       color: #fff;
       box-shadow: 0 6px 16px rgba(220, 107, 130, 0.28);
     }
@@ -161,7 +218,7 @@
       border-radius: 10px;
       font-family: var(--font);
       font-size: 0.88rem;
-      background: #fdf8fa;
+      background: var(--bg-soft);
       color: var(--text);
       outline: none;
       transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
@@ -174,9 +231,9 @@
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
-      border-color: var(--primary);
+      border-color: var(--primary-ink);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
-      background: #fff;
+      background: var(--bg-card);
     }
     .form-tip {
       font-size: 0.76rem;
@@ -597,7 +654,7 @@
       font-weight: 800;
       letter-spacing: 1px;
       cursor: pointer;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       color: #fff;
       box-shadow: 0 8px 22px rgba(220, 107, 130, 0.32);
       transition: all 0.3s var(--ease-bounce);
@@ -946,10 +1003,29 @@
       };
     }
 
+    /* 把老数据里的 "v+毫秒时间戳" 也转成好看的版本号（和主站同一套规则） */
+    function formatVersion(version) {
+      const raw = String(version === undefined || version === null ? '' : version).trim();
+      if (!raw) return '';
+      const digits = raw.replace(/^v/i, '');
+      if (/^\d{10,}$/.test(digits)) {
+        let ms = Number(digits);
+        if (!Number.isFinite(ms)) return raw;
+        if (digits.length <= 11) ms *= 1000;
+        const d = new Date(ms);
+        if (d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+          const pad = function (n) { return String(n).padStart(2, '0'); };
+          return 'v' + d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate());
+        }
+        return raw;
+      }
+      return /^v/i.test(raw) ? raw : 'v' + raw;
+    }
+
     function applyConfig(cfg) {
       inputs.theme.value   = cfg.theme   || DEFAULTS.theme;
       inputs.logo.value    = cfg.logo    || DEFAULTS.logo;
-      inputs.version.value = cfg.version || DEFAULTS.version;
+      inputs.version.value = formatVersion(cfg.version) || DEFAULTS.version;
 
       if (cfg.lines && String(cfg.lines).trim()) {
         inputs.lines.value = cfg.lines;
@@ -1054,7 +1130,14 @@
       setStatus('', '');
 
       const cfg = collectConfig();
-      const realVersion = 'v' + Date.now();
+
+      /* 版本号：以前直接存 "v" + 毫秒时间戳，界面上会显示成一长串数字，很难看。
+         现在改成 v2026.09.19-1830（日期 + 时分）——
+         既好看，又依然足够唯一（同一分钟内连存两次才会撞上）。 */
+      const now = new Date();
+      const pad = function (n) { return String(n).padStart(2, '0'); };
+      const realVersion = 'v' + now.getFullYear() + '.' + pad(now.getMonth() + 1) + '.' + pad(now.getDate()) +
+                          '-' + pad(now.getHours()) + pad(now.getMinutes());
 
       /* 服务端对 updates 单条有长度上限（目前 2000），先在前端拦下，避免只看到保存失败 */
       const payload = JSON.stringify(cfg);

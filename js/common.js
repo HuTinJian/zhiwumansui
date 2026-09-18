@@ -120,6 +120,41 @@
     return debounced;
   }
 
+  /* ------------------------------------------------------------
+     版本号排版
+     ------------------------------------------------------------
+     背景：公告工具早年是把版本号存成 "v" + 毫秒时间戳的，
+     于是页面上会显示成一长串数字（v1758212345678），很难看。
+     这个函数负责把它变回「像版本号的样子」：
+
+       v1758212345678     → v2026.09.19   （老数据：时间戳转日期）
+       v2026.09.19-1830   → 原样显示       （新数据：本身就可读）
+       v1.5.0 / 1.5.0     → v1.5.0         （手写的：只补一个 v）
+     ------------------------------------------------------------ */
+  function formatVersion(version) {
+    const raw = String(version === undefined || version === null ? '' : version).trim();
+    if (!raw) return '';
+
+    const digits = raw.replace(/^v/i, '');
+
+    /* 纯数字且够长 → 当成时间戳 */
+    if (/^\d{10,}$/.test(digits)) {
+      let ms = Number(digits);
+      if (!Number.isFinite(ms)) return raw;
+      if (digits.length <= 11) ms *= 1000;      /* 10~11 位按「秒」处理 */
+      const d = new Date(ms);
+      /* 合理性检查：落在 2001~2100 之间才认 */
+      if (d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return 'v' + d.getFullYear() + '.' + mm + '.' + dd;
+      }
+      return raw;
+    }
+
+    return /^v/i.test(raw) ? raw : 'v' + raw;
+  }
+
   /* 节流（用于滚动 / 鼠标事件） */
   function throttle(fn, wait = 100) {
     let last = 0;
@@ -856,7 +891,7 @@
           <button class="update-image-close" id="updateCloseBtn" aria-label="关闭">✕</button>
         </div>
         <div class="update-simple-title">${escapeHtml(cfg.title || '日常更新')}</div>
-        <div class="update-simple-version">${escapeHtml(cfg.version || version)}</div>
+        <div class="update-simple-version">${escapeHtml(formatVersion(cfg.version || version))}</div>
         <div class="update-simple-body">
           ${display.map(l => `<div class="update-simple-line">${escapeHtml(l)}</div>`).join('')}
         </div>
@@ -979,7 +1014,7 @@
     const logoEl = modal.querySelector('.logo-circle');
     const rightEl = modal.querySelector('.right-block');
     if (titleEl) titleEl.textContent = cfg.title || '日常更新';
-    if (pillEl) pillEl.textContent = cfg.version || '';
+    if (pillEl) pillEl.textContent = formatVersion(cfg.version || '');
     if (logoEl) logoEl.textContent = cfg.logo || '穗';
 
     display.forEach(line => {
@@ -1155,6 +1190,7 @@
     copyText,         // 复制到剪贴板
     debounce,         // 防抖
     escapeHtml,       // 转义，防 XSS
+    formatVersion,    // 把版本号排成好看的样子
     checkPageUpdate   // 检查该页面是否有新版本公告
   });
 })();

@@ -158,6 +158,9 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: 80px;
+  /* 预先给滚动条留位置：这样打开弹窗（页面滚动被锁住、滚动条消失）时，
+     页面不会整体往右跳一下 */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -204,9 +207,17 @@ img { max-width: 100%; }
 /* 弹窗打开时锁住页面滚动 */
 body.modal-open {
   overflow: hidden;
-  touch-action: none;
   overscroll-behavior: none;
 }
+/* 注意：这里【不能】写 touch-action: none。
+   touch-action 会「传染」给所有子元素 —— 一旦写在 body 上，
+   弹窗内部那些可以滚动的区域（更新公告正文、风险告知正文）
+   在手机上就滑不动了，摸起来像卡死。挡住背景滚动靠 overflow: hidden 就够了。 */
+
+/* 弹窗打开时，把背景里那些「一直在跑」的特效暂停，把显卡让给弹窗。
+   用 paused 而不是 none，这样关掉弹窗后动画会从原处继续，不会跳一下。 */
+body.modal-open .aurora-bg span { animation-play-state: paused; }
+body.modal-open .cursor-glow { opacity: 0; }
 
 /* 供屏幕阅读器使用但对视觉隐藏 */
 .sr-only {
@@ -620,14 +631,18 @@ html.lite .navbar {
 
 /* ============================================================
    8. 弹窗系统
+   ------------------------------------------------------------
+   ⚠️ 这里刻意【不给遮罩加 backdrop-filter（毛玻璃）】。
+   原因：毛玻璃是「把遮罩背后那一整屏重新模糊一遍」，
+   而弹窗出现时还有缩放动画、打开后还要在里面滚动 ——
+   每动一下就要重算一次全屏模糊，这正是「弹窗特别卡」的根源。
+   改用「加深的半透明纯色」，观感几乎一样，但几乎不花性能。
    ============================================================ */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(74, 63, 68, 0.55);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+  background: rgba(58, 48, 54, 0.62);
   justify-content: center;
   align-items: center;
   z-index: 999;
@@ -635,15 +650,7 @@ html.lite .navbar {
   overscroll-behavior: contain;
 }
 
-[data-theme="dark"] .modal { background: rgba(8, 5, 10, 0.72); }
-
-/* 手机 / 低配设备：遮罩不做磨砂，改成加深颜色，效果相近但省性能 */
-html.lite .modal {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: rgba(74, 63, 68, 0.68);
-}
-html.lite[data-theme="dark"] .modal { background: rgba(8, 5, 10, 0.82); }
+[data-theme="dark"] .modal { background: rgba(6, 4, 8, 0.78); }
 
 .modal.show { display: flex; }
 
@@ -658,8 +665,7 @@ html.lite[data-theme="dark"] .modal { background: rgba(8, 5, 10, 0.82); }
   flex-direction: column;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border);
-  animation: modalIn 0.28s var(--ease-out) both;
-  will-change: transform, opacity;
+  animation: modalIn 0.22s var(--ease-out) both;
   overflow-y: auto;
 }
 

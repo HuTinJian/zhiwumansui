@@ -4,11 +4,14 @@
    这份样式只在「有新版本公告要弹给用户看」时才会被加载，
    所以单独放一个文件 —— 平时访问页面根本不会下载它，
    页面也就少了几万字符要解析。
+
+   性能提醒：这个弹窗以前是全场最卡的一个 —— 遮罩有毛玻璃、
+   卡片带了 100px 半径的巨大阴影、还有十个一直在闪的光点。
+   现在全部精简过了，观感基本没变，但打开和滚动都顺很多。
    ============================================================ */
 .update-image-modal {
-  background: rgba(74, 63, 68, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* 不用 backdrop-filter：全屏毛玻璃 + 动画 = 弹窗卡顿的头号原因 */
+  background: rgba(58, 48, 54, 0.66);
 }
 .update-image-modal .modal-content {
   max-width: 1000px;
@@ -18,7 +21,10 @@
   background: #ffffff;
   border: none;
   border-radius: 20px;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+  /* 阴影半径从 100px 降到 48px：
+     超大半径的阴影每次重绘都要重新模糊一大片，代价很高，
+     48px 在视觉上几乎看不出差别。 */
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
 }
@@ -140,28 +146,29 @@
   z-index: 2;
 }
 
-/* ---- 两处光晕 ---- */
+/* ---- 两处光晕 ----
+   不用 filter: blur()：这两块本来就是径向渐变，
+   把透明过渡拉长一点效果几乎一样，但省掉一层模糊运算。 */
 .update-image-modal .glow {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  filter: blur(40px);
 }
 .update-image-modal .glow-left {
-  width: 220px;
-  height: 220px;
-  left: 30px;
+  width: 260px;
+  height: 260px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 46%, transparent 78%);
 }
 .update-image-modal .glow-right {
-  width: 280px;
-  height: 280px;
-  right: -60px;
-  bottom: -60px;
-  background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
+  width: 320px;
+  height: 320px;
+  right: -80px;
+  bottom: -80px;
+  background: radial-gradient(circle, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 46%, transparent 78%);
 }
 
 /* ---- 内边框 + 角部装饰 ---- */
@@ -258,7 +265,8 @@
   pointer-events: none;
   color: #fff;
   opacity: 0.13;
-  filter: blur(0.3px);
+  /* 原来这里有 filter: blur(0.3px) —— 肉眼完全看不出差别，
+     却会让元素单独开一层合成层，纯粹浪费，已去掉 */
 }
 .update-image-modal .wheat-deco.left {
   left: -12px;
@@ -273,7 +281,10 @@
   transform-origin: top right;
 }
 
-/* ---- 漂浮光点 ---- */
+/* ---- 漂浮光点 ----
+   原来有 10 个一直在闪的光点，每个都会单独占一个合成层。
+   现在只留 4 个，剩下的用 display:none 直接不渲染 ——
+   视觉上仍然是「几点微光在飘」，但显存占用少了一半多。 */
 .update-image-modal .sparkle {
   position: absolute;
   width: 3px;
@@ -290,12 +301,12 @@
 .update-image-modal .sparkle.s2  { top: 55px;    left: 360px;  animation-delay: 0.4s;  }
 .update-image-modal .sparkle.s3  { top: 48px;    right: 130px; animation-delay: 0.8s;  }
 .update-image-modal .sparkle.s4  { top: 58px;    right: 280px; animation-delay: 1.2s;  }
-.update-image-modal .sparkle.s5  { bottom: 42px; left: 200px;  animation-delay: 1.6s;  }
-.update-image-modal .sparkle.s6  { bottom: 55px; left: 380px;  animation-delay: 2.0s;  }
-.update-image-modal .sparkle.s7  { bottom: 48px; right: 140px; animation-delay: 2.4s;  }
-.update-image-modal .sparkle.s8  { bottom: 58px; right: 300px; animation-delay: 2.8s;  }
-.update-image-modal .sparkle.s9  { top: 155px;   left: 34px;   animation-delay: 3.2s;  }
-.update-image-modal .sparkle.s10 { top: 165px;   right: 34px;  animation-delay: 3.6s;  }
+.update-image-modal .sparkle.s5,
+.update-image-modal .sparkle.s6,
+.update-image-modal .sparkle.s7,
+.update-image-modal .sparkle.s8,
+.update-image-modal .sparkle.s9,
+.update-image-modal .sparkle.s10 { display: none; }
 @keyframes updateSparkle {
   0%, 100% { opacity: 0; transform: scale(0.4); }
   50%      { opacity: 1; transform: scale(1); }
@@ -595,9 +606,9 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-/* 手机 / 低配设备：遮罩不做磨砂，改成加深颜色，效果相近但省性能 */
+/* 手机 / 低配设备：连漂浮光点和旋转外环也一起停掉 */
+html.lite .update-image-modal .sparkle { display: none; }
+html.lite .update-image-modal .logo-ring { animation: none; }
 html.lite .update-image-modal {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: rgba(74, 63, 68, 0.78);
+  background: rgba(58, 48, 54, 0.78);
 }
