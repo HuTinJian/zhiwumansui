@@ -440,7 +440,8 @@
       -webkit-appearance: none;
       border: 2px solid var(--primary-light);
       border-radius: 50%;
-      background: #fff;
+      /* 原来是写死的 #fff，深色主题下会变成一个扎眼的白圆点 */
+      background: var(--bg-card);
       cursor: pointer;
       flex-shrink: 0;
       position: relative;
@@ -463,8 +464,8 @@
       top: 50%;
       width: 5px;
       height: 10px;
-      border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
+      border-right: 2px solid var(--text-on-accent);
+      border-bottom: 2px solid var(--text-on-accent);
       transform: translate(-50%, -60%) rotate(45deg);
     }
     .batch-mode .id-checkbox {
@@ -779,14 +780,14 @@
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--danger);
-      background: #fdf0ed;
+      background: var(--danger-bg);
       padding: 3px 12px;
       border-radius: 20px;
       border: 1px solid var(--danger-light);
       margin-bottom: 10px;
     }
     #riskModal .redirect-notice {
-      background: #fdf0ed;
+      background: var(--danger-bg);
       border-left: 4px solid var(--danger);
       padding: 8px 14px;
       margin-bottom: 10px;
@@ -878,7 +879,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius-pill);
       font-size: 0.9rem;
-      background: #fdf8fa;
+      background: var(--bg-soft);
       color: var(--text);
       outline: none;
       margin-bottom: 12px;
@@ -1054,7 +1055,7 @@
       padding: 13px 18px;
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      background: #fdf8fa;
+      background: var(--bg-soft);
       color: var(--text);
       font-size: 0.95rem;
       font-weight: 600;
@@ -1065,7 +1066,7 @@
     .visit-source-btn:hover {
       border-color: var(--primary-light);
       color: var(--primary);
-      background: #fff;
+      background: var(--bg-card);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(220, 107, 130, 0.12);
     }
@@ -1100,7 +1101,7 @@
       left: 12px;
       font-size: 0.68rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--text-on-accent);
       background: var(--primary);
       padding: 1px 8px;
       border-radius: 10px;
@@ -1108,13 +1109,13 @@
     }
     .visit-source-btn.active-choice .src-count {
       color: var(--primary);
-      background: #fff;
+      background: var(--bg-card);
     }
 
     .visit-other-input {
       margin-top: 12px;
       padding: 14px;
-      background: #fdf8fa;
+      background: var(--bg-soft);
       border: 2px dashed var(--primary-light);
       border-radius: var(--radius-sm);
       animation: fadeInUp 0.25s var(--ease-soft) both;
@@ -1126,7 +1127,7 @@
       border-radius: 10px;
       font-family: var(--font);
       font-size: 0.92rem;
-      background: #fff;
+      background: var(--bg-card);
       color: var(--text);
       outline: none;
       margin-bottom: 10px;

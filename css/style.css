@@ -45,6 +45,7 @@
   --gold-ink: #8a5a1c;         /* 浅底上的金色文字（对比度 ≈5.2:1） */
   --info-bg: #e6f0ff;          /* 信息类标签的浅蓝底 */
   --info-ink: #3a6ec4;         /* 对应文字色 */
+  --danger-bg: #fdf0ed;        /* 危险 / 警告类标签的浅红底（与 --info-bg 同一套约定） */
 
   /* 表面与文字 */
   --bg: #fdf2f5;
@@ -129,6 +130,7 @@
   --gold-ink: #eec48d;
   --info-bg: #1e2a3f;
   --info-ink: #93b9ee;
+  --danger-bg: #3a2220;
 
   --bg: #17121a;
   --bg-soft: #1f1822;
