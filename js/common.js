@@ -121,38 +121,34 @@
   }
 
   /* ------------------------------------------------------------
-     版本号排版
+     版本号排版：统一成 V1.0.0 这种三段式
      ------------------------------------------------------------
-     背景：公告工具早年是把版本号存成 "v" + 毫秒时间戳的，
-     于是页面上会显示成一长串数字（v1758212345678），很难看。
-     这个函数负责把它变回「像版本号的样子」：
+     历史遗留：公告工具早年把版本号存成 "v" + 毫秒时间戳（v1758212345678），
+     界面上就是一长串数字，很难看。这个函数负责统一：
 
-       v1758212345678     → v2026.09.19   （老数据：时间戳转日期）
-       v2026.09.19-1830   → 原样显示       （新数据：本身就可读）
-       v1.5.0 / 1.5.0     → v1.5.0         （手写的：只补一个 v）
+       v1758212345678     → V1.0.0   （老的时间戳：没有可读版本，从头编号）
+       v2026.09.19-1830   → V1.0.0   （短暂的日期式，同样归零）
+       v1.5.0 / V1.5.0    → V1.5.0
+       1.5                → V1.5.0
+       V2.0-beta          → V2.0-beta（自己写的就保留，只把 v 统一成大写）
      ------------------------------------------------------------ */
   function formatVersion(version) {
     const raw = String(version === undefined || version === null ? '' : version).trim();
     if (!raw) return '';
 
-    const digits = raw.replace(/^v/i, '');
+    const clean = raw.replace(/^[vV]/, '');
 
-    /* 纯数字且够长 → 当成时间戳 */
-    if (/^\d{10,}$/.test(digits)) {
-      let ms = Number(digits);
-      if (!Number.isFinite(ms)) return raw;
-      if (digits.length <= 11) ms *= 1000;      /* 10~11 位按「秒」处理 */
-      const d = new Date(ms);
-      /* 合理性检查：落在 2001~2100 之间才认 */
-      if (d.getFullYear() > 2000 && d.getFullYear() < 2100) {
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return 'v' + d.getFullYear() + '.' + mm + '.' + dd;
-      }
-      return raw;
-    }
+    let m = clean.match(/^(\d+)\.(\d+)\.(\d+)$/);
+    if (m) return 'V' + m[1] + '.' + m[2] + '.' + m[3];
 
-    return /^v/i.test(raw) ? raw : 'v' + raw;
+    m = clean.match(/^(\d+)\.(\d+)$/);
+    if (m) return 'V' + m[1] + '.' + m[2] + '.0';
+
+    /* 纯数字（含老时间戳）或日期式 → 没有可读版本号，统一从 V1.0.0 起 */
+    if (/^\d+$/.test(clean)) return 'V1.0.0';
+    if (/^\d{4}\.\d{2}\.\d{2}(-\d+)?$/.test(clean)) return 'V1.0.0';
+
+    return 'V' + clean;
   }
 
   /* 节流（用于滚动 / 鼠标事件） */
@@ -470,57 +466,70 @@
     if (isLiteMode()) document.documentElement.classList.add('lite');
   }
 
+  /* ------------------------------------------------------------
+     小粒子背景
+     ------------------------------------------------------------
+     以前这里是一团「跟着鼠标跑的光」，用得不多、还一直占着一块合成层。
+     现在换成十几个慢慢飘的小光点：
+       · 纯 CSS 动画，只改 transform / opacity → 全部由显卡处理，不重绘；
+       · 元素非常小（2~4px），显存占用可以忽略；
+       · 精简模式下完全不生成；
+       · 标签页切到后台时浏览器会自动暂停动画，不费电。
+     ------------------------------------------------------------ */
+  const PARTICLE_COUNT = 16;
+
+  function injectParticles() {
+    if (!FX_ENABLED() || !hasSharedStyles()) return;
+    if (document.querySelector('.particles')) return;
+    if (document.documentElement.classList.contains('lite')) return;
+
+    const box = document.createElement('div');
+    box.className = 'particles';
+    box.setAttribute('aria-hidden', 'true');
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const dot = document.createElement('i');
+
+      /* 位置、大小、速度都错开，看起来才自然；用取模保证每次刷新都一样，
+         不会出现「这次粒子全挤在一边」的情况 */
+      const left = (i * 37 + 11) % 100;
+      const top = (i * 53 + 7) % 100;
+      const size = 4 + (i % 3);                    /* 4 / 5 / 6 px */
+      const dur = 16 + (i % 5) * 5;                /* 16 ~ 36 秒 */
+      const delay = -(i * 2.7).toFixed(1);         /* 负延迟：一开始就散开 */
+      /* 透明度不能太低：之前用 0.25~0.61，再乘上颜色自身的透明度，
+         实际只剩一成多，在浅粉背景上基本看不见（实测对比度仅 1.8:1）。
+         现在颜色是不透明的，柔不柔就靠这个值，实测对比度 3.4~5.5:1。 */
+      const opacity = 0.75 + (i % 4) * 0.09;       /* 0.75 / 0.84 / 0.93 / 1.00 */
+
+      dot.style.left = left + '%';
+      dot.style.top = top + '%';
+      dot.style.width = size + 'px';
+      dot.style.height = size + 'px';
+      dot.style.opacity = String(opacity.toFixed(2));
+      dot.style.animationDuration = dur + 's';
+      dot.style.animationDelay = delay + 's';
+
+      box.appendChild(dot);
+    }
+
+    document.body.appendChild(box);
+  }
+
   function injectAtmosphere() {
     if (!FX_ENABLED() || !hasSharedStyles()) return;
 
-    /* 极光背景：纯 CSS 渐变，不用 filter:blur（大范围模糊在手机上非常吃性能） */
+    /* 背景：一块静态的柔和渐变。
+       以前这里还有三个「一直在飘」的大色斑 —— 那是三块接近半屏大小的合成层，
+       每帧都要交给显卡合成，收益（几乎看不出来的缓慢移动）远小于代价，已经去掉。 */
     if (!document.querySelector('.aurora-bg')) {
       const aurora = document.createElement('div');
       aurora.className = 'aurora-bg';
       aurora.setAttribute('aria-hidden', 'true');
-      aurora.innerHTML = '<span class="a1"></span><span class="a2"></span><span class="a3"></span>';
       document.body.appendChild(aurora);
     }
 
-    const lite = document.documentElement.classList.contains('lite');
-
-    /* 颗粒纹理：手机上直接不做 */
-    if (!lite && !document.querySelector('.grain-overlay')) {
-      const grain = document.createElement('div');
-      grain.className = 'grain-overlay';
-      grain.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(grain);
-    }
-
-    /* 跟随鼠标的柔光：只在「电脑 + 精确指针 + 非精简模式」下启用。
-       这里用 transform 移动一个固定大小的圆，而不是每帧重画整屏渐变，
-       所以滚动和移动鼠标都不会触发重绘。 */
-    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (!lite && finePointer && !document.querySelector('.cursor-glow')) {
-      const glow = document.createElement('div');
-      glow.className = 'cursor-glow';
-      glow.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(glow);
-
-      let shown = false;
-      let x = -9999;
-      let y = -9999;
-      let queued = false;
-
-      const flush = () => {
-        queued = false;
-        glow.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
-      };
-
-      window.addEventListener('mousemove', e => {
-        x = e.clientX;
-        y = e.clientY;
-        if (!shown) { glow.classList.add('active'); shown = true; }
-        if (!queued) { queued = true; requestAnimationFrame(flush); }
-      }, { passive: true });
-
-      window.addEventListener('mouseleave', () => glow.classList.remove('active'));
-    }
+    injectParticles();
   }
 
   function injectThemeToggle() {
@@ -638,16 +647,40 @@
     const topBtn = injectBackToTop();
     const navbar = document.querySelector('.navbar');
 
+    let lastPct = -1;
+    let lastScrolled = null;
+    let lastTopShown = null;
+
     const onScroll = throttle(() => {
       const y = window.scrollY || document.documentElement.scrollTop || 0;
 
-      if (navbar) navbar.classList.toggle('scrolled', y > 8);
-      if (topBtn) topBtn.classList.toggle('show', y > 360);
+      /* 每一项都先比较再写：避免「值没变还去改样式」白白触发一次样式重算 */
+      if (navbar) {
+        const scrolled = y > 8;
+        if (scrolled !== lastScrolled) {
+          navbar.classList.toggle('scrolled', scrolled);
+          lastScrolled = scrolled;
+        }
+      }
+
+      if (topBtn) {
+        const shown = y > 360;
+        if (shown !== lastTopShown) {
+          topBtn.classList.toggle('show', shown);
+          lastTopShown = shown;
+        }
+      }
 
       if (bar) {
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         const pct = docHeight > 0 ? Math.min(100, Math.max(0, (y / docHeight) * 100)) : 0;
-        bar.style.width = pct + '%';
+        /* 用 scaleX 代替 width：改 width 要重新排版，scaleX 只是图形变换。
+           再取整到 0.5%，省掉大量几乎看不见的微小更新。 */
+        const rounded = Math.round(pct * 2) / 2;
+        if (rounded !== lastPct) {
+          bar.style.transform = 'scaleX(' + (rounded / 100) + ')';
+          lastPct = rounded;
+        }
       }
     }, 60);
 

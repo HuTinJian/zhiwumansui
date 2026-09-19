@@ -145,28 +145,23 @@
       transform: translateY(-2px);
     }
 
+    /* 这个按钮原来带一个「一直轻微放大」的循环动画。
+       它虽然只动 transform（不算贵），但页面放着不动也在持续耗电，
+       而收益只是「看起来在呼吸」。为了整体流畅度，改成静态按钮，
+       靠颜色和阴影本身就已经够醒目了。 */
     .btn-source {
       background: linear-gradient(135deg, #6bb6e8, #4a9dd8);
       color: #fff;
       border: none;
       box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
       font-weight: 700;
-      animation: sourcePulse 2.8s ease-in-out infinite;
     }
     .btn-source:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(107, 182, 232, 0.6);
-      animation: none;
     }
     .btn-source:active {
       transform: scale(0.93);
-      animation: none;
-    }
-    /* 用「轻微放大」代替「阴影呼吸」来做呼吸效果：
-       改 transform 由显卡直接处理，不重绘；改 box-shadow 则每帧都要重画一遍。 */
-    @keyframes sourcePulse {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.035); }
     }
 
     .search-row {
@@ -1172,20 +1167,19 @@
       }
     }
 
-    /* 桌面端：搜索与筛选栏吸顶，滚动 1500 条数据时依然随手可及 */
+    /* 桌面端：搜索与筛选栏吸顶，滚动 1500 条数据时依然随手可及。
+       吸顶元素【不用毛玻璃】—— 它每滚动一帧就要把背后那条重新模糊一遍，
+       这里换成不透明底色，几乎看不出差别，但省掉大量重复计算。 */
     @media (min-width: 769px) {
       .search-row {
         position: sticky;
         top: 64px;
         z-index: 60;
-        background: var(--bg-glass-strong);
-        -webkit-backdrop-filter: blur(12px) saturate(1.5);
-        backdrop-filter: blur(12px) saturate(1.5);
+        background: var(--bg);
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         padding: 10px 12px;
         margin-bottom: 12px;
-        box-shadow: var(--shadow-sm);
       }
       .search-row.stuck {
         box-shadow: 0 6px 20px rgba(220, 107, 130, 0.16);

@@ -62,10 +62,26 @@
       animation: fadeInUp 0.6s var(--ease-out) backwards;
     }
     .hero-eyebrow .dot {
+      position: relative;
       width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--success);
-      animation: pulseRing 2.6s ease-out infinite;
+      flex-shrink: 0;
+    }
+    /* 呼吸的光圈改用「缩放的伪元素」，不再动画 box-shadow ——
+       改 box-shadow 每帧都要重绘，改 transform 则由显卡处理。 */
+    .hero-eyebrow .dot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--success);
+      animation: dotPulse 2.6s ease-out infinite;
+    }
+    @keyframes dotPulse {
+      0%   { transform: scale(1);   opacity: 0.7; }
+      70%  { transform: scale(3.4); opacity: 0; }
+      100% { transform: scale(3.4); opacity: 0; }
     }
 
     .hero h1 {

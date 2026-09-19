@@ -860,7 +860,7 @@
     const DEFAULTS = {
       theme: 'theme-pink',
       logo: '穗',
-      version: 'v1.5.0 → v1.6.0',
+      version: 'V1.0.0',
       lines: '🎨 更新弹窗全面升级\n✨ 5 种主题色可选\n📢 后台可直接生成公告图\n🐛 修复部分显示异常'
     };
 
@@ -1003,23 +1003,43 @@
       };
     }
 
-    /* 把老数据里的 "v+毫秒时间戳" 也转成好看的版本号（和主站同一套规则） */
+    /* ------------------------------------------------------------
+       版本号统一成 V1.0.0 这种三段式
+       ------------------------------------------------------------
+       历史遗留：老数据存的是「v + 一长串毫秒时间戳」，
+       后来还短暂用过「v2026.09.19-1830」这种日期式。
+       这两种都没法直接读，一律归到 V1.0.0 重新开始编号。
+       ------------------------------------------------------------ */
     function formatVersion(version) {
       const raw = String(version === undefined || version === null ? '' : version).trim();
       if (!raw) return '';
-      const digits = raw.replace(/^v/i, '');
-      if (/^\d{10,}$/.test(digits)) {
-        let ms = Number(digits);
-        if (!Number.isFinite(ms)) return raw;
-        if (digits.length <= 11) ms *= 1000;
-        const d = new Date(ms);
-        if (d.getFullYear() > 2000 && d.getFullYear() < 2100) {
-          const pad = function (n) { return String(n).padStart(2, '0'); };
-          return 'v' + d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate());
-        }
-        return raw;
-      }
-      return /^v/i.test(raw) ? raw : 'v' + raw;
+
+      const clean = raw.replace(/^[vV]/, '');
+
+      /* 已经是三段式 → 统一成大写 V */
+      let m = clean.match(/^(\d+)\.(\d+)\.(\d+)$/);
+      if (m) return 'V' + m[1] + '.' + m[2] + '.' + m[3];
+
+      /* 两段式 → 补一个 .0 */
+      m = clean.match(/^(\d+)\.(\d+)$/);
+      if (m) return 'V' + m[1] + '.' + m[2] + '.0';
+
+      /* 一段纯数字（含老的时间戳、日期式）→ 没有可读版本，从头开始 */
+      if (/^\d+$/.test(clean)) return 'V1.0.0';
+      if (/^\d{4}\.\d{2}\.\d{2}(-\d+)?$/.test(clean)) return 'V1.0.0';
+
+      /* 其它（例如自己写的 V2.0-beta）→ 只把开头的 v 统一成大写 V */
+      return 'V' + clean;
+    }
+
+    /* 在现有版本号上加一位：V1.0.0 → V1.0.1 */
+    function nextVersion(version) {
+      const clean = String(version === undefined || version === null ? '' : version).trim().replace(/^[vV]/, '');
+      let m = clean.match(/^(\d+)\.(\d+)\.(\d+)$/);
+      if (m) return 'V' + m[1] + '.' + m[2] + '.' + (Number(m[3]) + 1);
+      m = clean.match(/^(\d+)\.(\d+)$/);
+      if (m) return 'V' + m[1] + '.' + (Number(m[2]) + 1) + '.0';
+      return 'V1.0.0';
     }
 
     function applyConfig(cfg) {
@@ -1051,13 +1071,18 @@
       setTimeout(function () { fitCanvas(); notifyParentHeight(); }, 50);
     }
 
+    /* 记录服务端当前存的版本号，用来算出「下一个版本号」 */
+    let currentStoredVersion = '';
+
     async function loadConfigFromServer(pageKey) {
       try {
         const res = await fetch('/api/updates?page=' + pageKey + '&t=' + Date.now());
         const data = await res.json();
         if (!data.ok || !data.data || !Array.isArray(data.data.updates) || data.data.updates.length === 0) {
+          currentStoredVersion = (data && data.data && data.data.version) || '';
           return null;
         }
+        currentStoredVersion = data.data.version || '';
         const first = data.data.updates[0];
         if (typeof first !== 'string') return null;
         try {
@@ -1131,13 +1156,10 @@
 
       const cfg = collectConfig();
 
-      /* 版本号：以前直接存 "v" + 毫秒时间戳，界面上会显示成一长串数字，很难看。
-         现在改成 v2026.09.19-1830（日期 + 时分）——
-         既好看，又依然足够唯一（同一分钟内连存两次才会撞上）。 */
-      const now = new Date();
-      const pad = function (n) { return String(n).padStart(2, '0'); };
-      const realVersion = 'v' + now.getFullYear() + '.' + pad(now.getMonth() + 1) + '.' + pad(now.getDate()) +
-                          '-' + pad(now.getHours()) + pad(now.getMinutes());
+      /* 版本号：V1.0.0 三段式，自动在上一版基础上 +1（V1.0.0 → V1.0.1）。
+         之所以要自动加，是因为「用户有没有看过这条公告」就是靠版本号判断的 ——
+         版本号不变得话，改完内容大家也不会看到新弹窗。 */
+      const realVersion = nextVersion(currentStoredVersion || cfg.version);
 
       /* 服务端对 updates 单条有长度上限（目前 2000），先在前端拦下，避免只看到保存失败 */
       const payload = JSON.stringify(cfg);

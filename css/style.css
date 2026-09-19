@@ -43,6 +43,8 @@
   --gold-light: #e8c49a;
   --gold-strong: #9c6822;      /* 白字按钮底色（对比度 ≈4.7:1） */
   --gold-ink: #8a5a1c;         /* 浅底上的金色文字（对比度 ≈5.2:1） */
+  --info-bg: #e6f0ff;          /* 信息类标签的浅蓝底 */
+  --info-ink: #3a6ec4;         /* 对应文字色 */
 
   /* 表面与文字 */
   --bg: #fdf2f5;
@@ -87,10 +89,15 @@
 
   /* 氛围层 */
   --aurora-opacity: 1;
-  --grain-opacity: 0.032;
   --aurora-1: rgba(240, 163, 180, 0.62);
   --aurora-2: rgba(232, 196, 154, 0.5);
   --aurora-3: rgba(176, 212, 232, 0.45);
+  /* 小粒子的颜色。要点：颜色本身要够浓 ——
+     之前用 50% 透明度，再乘上元素自身的透明度，实际只剩一成多，
+     在浅粉底上等于隐形（实测对比度只有 1.8:1）。
+     现在颜色不透明，柔不柔由元素的 opacity 控制。 */
+  --particle: rgb(178, 52, 88);
+  --particle-glow: rgba(178, 52, 88, 0.45);
 
   color-scheme: light;
 }
@@ -115,6 +122,8 @@
   --gold-light: #8a6a45;
   --gold-strong: #7d5220;
   --gold-ink: #eec48d;
+  --info-bg: #1e2a3f;
+  --info-ink: #93b9ee;
 
   --bg: #17121a;
   --bg-soft: #1f1822;
@@ -137,10 +146,11 @@
   --shadow-glow: 0 0 0 4px rgba(239, 142, 164, 0.18);
 
   --aurora-opacity: 0.9;
-  --grain-opacity: 0.05;
   --aurora-1: rgba(178, 74, 106, 0.55);
   --aurora-2: rgba(150, 108, 58, 0.45);
   --aurora-3: rgba(58, 92, 134, 0.5);
+  --particle: rgb(255, 232, 240);
+  --particle-glow: rgba(255, 232, 240, 0.5);
 
   color-scheme: dark;
 }
@@ -214,10 +224,9 @@ body.modal-open {
    弹窗内部那些可以滚动的区域（更新公告正文、风险告知正文）
    在手机上就滑不动了，摸起来像卡死。挡住背景滚动靠 overflow: hidden 就够了。 */
 
-/* 弹窗打开时，把背景里那些「一直在跑」的特效暂停，把显卡让给弹窗。
+/* 弹窗打开时，把背景里还在跑的小粒子暂停，把显卡让给弹窗。
    用 paused 而不是 none，这样关掉弹窗后动画会从原处继续，不会跳一下。 */
-body.modal-open .aurora-bg span { animation-play-state: paused; }
-body.modal-open .cursor-glow { opacity: 0; }
+body.modal-open .particles i { animation-play-state: paused; }
 
 /* 供屏幕阅读器使用但对视觉隐藏 */
 .sr-only {
@@ -285,19 +294,6 @@ body.modal-open .cursor-glow { opacity: 0; }
   to   { transform: rotate(360deg); }
 }
 
-@keyframes pulseRing {
-  0%   { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0.45); }
-  70%  { box-shadow: 0 0 0 12px rgba(220, 107, 130, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0); }
-}
-
-@keyframes auroraShift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  33%  { transform: translate3d(3%, -4%, 0) scale(1.08); }
-  66%  { transform: translate3d(-3%, 3%, 0) scale(0.95); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
-
 @keyframes modalIn {
   from { opacity: 0; transform: scale(0.96) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -315,9 +311,12 @@ body.modal-open .cursor-glow { opacity: 0; }
 /* ============================================================
    4. 氛围特效层
    ------------------------------------------------------------
-   性能说明：这里刻意【不使用 filter: blur()】。
-   大面积高斯模糊在手机上会明显拖慢滚动，而径向渐变本身就是柔和的，
-   视觉几乎一样，但渲染成本低得多。
+   性能取向：这一层只保留「画一次就不动」和「只动 transform」的东西。
+   已经去掉的（收益远小于代价）：
+     · 三个接近半屏大小、一直在飘的色斑 —— 三块大合成层，几乎看不出来
+     · 全屏颗粒纹理层 —— 3% 不透明度基本看不见，却占一整块显存
+     · 跟随鼠标的光晕 —— 用不上，还一直占一层
+   现在只留下一块静态渐变 + 十几个小光点。
    ============================================================ */
 .aurora-bg {
   position: fixed;
@@ -325,81 +324,56 @@ body.modal-open .cursor-glow { opacity: 0; }
   z-index: -2;
   pointer-events: none;
   opacity: var(--aurora-opacity);
-  transition: opacity 0.6s var(--ease-soft);
   background:
     radial-gradient(60vw 60vw at 12% 12%, var(--aurora-1), transparent 62%),
     radial-gradient(52vw 52vw at 88% 26%, var(--aurora-2), transparent 64%),
     radial-gradient(58vw 58vw at 46% 96%, var(--aurora-3), transparent 64%);
 }
 
-/* 三个会缓慢漂移的色斑（只动 transform，由显卡处理，不触发重绘） */
-.aurora-bg span {
-  position: absolute;
-  display: block;
-  border-radius: 50%;
-  animation: auroraShift 30s ease-in-out infinite;
-  will-change: transform;
-}
-
-.aurora-bg .a1 {
-  width: 58vw; height: 58vw; left: -8%; top: -10%;
-  background: radial-gradient(circle, var(--aurora-1), transparent 68%);
-  animation-duration: 26s;
-}
-.aurora-bg .a2 {
-  width: 52vw; height: 52vw; right: -10%; top: 8%;
-  background: radial-gradient(circle, var(--aurora-2), transparent 70%);
-  animation-duration: 34s; animation-delay: -8s;
-}
-.aurora-bg .a3 {
-  width: 56vw; height: 56vw; left: 22%; bottom: -18%;
-  background: radial-gradient(circle, var(--aurora-3), transparent 70%);
-  animation-duration: 40s; animation-delay: -18s;
-}
-
-/* 极细颗粒纹理，消除大面积渐变的塑料感（手机上不生成） */
-.grain-overlay {
+/* ---------- 小粒子 ----------
+   球很小（2~4px），只做「上下轻飘 + 明暗呼吸」，
+   全都由显卡处理，不触发重绘。*/
+.particles {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  overflow: hidden;
 }
 
-/* 跟随鼠标的柔光：一个固定大小的圆，靠 transform 移动。
-   因为只改变 transform，浏览器可以直接用显卡挪动它，不重绘整屏。 */
-.cursor-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 520px;
-  height: 520px;
-  margin: -260px 0 0 -260px;
+.particles i {
+  position: absolute;
+  display: block;
   border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0;
-  transform: translate3d(-9999px, -9999px, 0);
+  background: var(--particle);
+  /* 一圈柔光，让小点看起来像「发光」而不是「脏点」；
+     这是静态光栅，只在创建时画一次，之后靠显卡平移，不花钱 */
+  box-shadow: 0 0 7px 2px var(--particle-glow);
+  animation-name: particleFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   will-change: transform;
-  transition: opacity 0.5s var(--ease-soft);
-  background: radial-gradient(circle, rgba(220, 107, 130, 0.16), transparent 68%);
 }
-.cursor-glow.active { opacity: 1; }
-[data-theme="dark"] .cursor-glow {
-  background: radial-gradient(circle, rgba(239, 142, 164, 0.18), transparent 68%);
+
+@keyframes particleFloat {
+  0%   { transform: translate3d(0, 0, 0) scale(0.85); }
+  50%  { transform: translate3d(10px, -22px, 0) scale(1.15); }
+  100% { transform: translate3d(0, 0, 0) scale(0.85); }
 }
 
 /* ============================================================
    5. 导航栏
+   ------------------------------------------------------------
+   这里【不用 backdrop-filter（毛玻璃）】。
+   导航栏是吸顶的、永远可见 —— 毛玻璃意味着「每滚动一帧，
+   就把背后那一条重新模糊一遍」。而它的底色本来就有 92% 不透明，
+   那点模糊几乎看不出来，纯属白花钱。现在用不透明底色。
    ============================================================ */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-glass-strong);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5);
-  backdrop-filter: blur(12px) saturate(1.5);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 10px rgba(220, 107, 130, 0.05);
   padding: 0 24px;
@@ -410,14 +384,7 @@ body.modal-open .cursor-glow { opacity: 0; }
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
-  transition: background-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
-}
-
-/* 手机上不用毛玻璃：磨砂每次滚动都要重新计算，是移动端卡顿的常见元凶 */
-html.lite .navbar {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: var(--bg);
+  transition: box-shadow var(--dur) var(--ease-soft);
 }
 
 /* 带站点品牌时左右分栏 */
@@ -881,17 +848,20 @@ html.lite .navbar {
 }
 .theme-toggle:active { transform: scale(0.9); }
 
-/* ---------- 阅读进度条 ---------- */
+/* ---------- 阅读进度条 ----------
+   用 transform: scaleX 而不是改 width：
+   改 width 会触发「重新排版」，而 scaleX 只动图形，交给显卡就行。
+   滚动时每一帧都在更新，这个差别很明显。 */
 .scroll-progress {
   position: fixed;
   top: 0;
   left: 0;
+  width: 100%;
   height: 3px;
-  width: 0%;
   z-index: 1100;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
   background: linear-gradient(90deg, var(--primary), var(--gold), var(--accent));
-  box-shadow: 0 0 10px rgba(220, 107, 130, 0.5);
-  transition: width 0.1s linear, opacity 0.3s var(--ease-soft);
   pointer-events: none;
 }
 
@@ -1040,7 +1010,8 @@ html.lite .navbar {
   border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 4px 14px;
   border-radius: var(--radius-pill);
-  animation: pulseRing 2.8s ease-out infinite;
+  /* 这里原来有个一直「呼吸」的 box-shadow 动画。
+     弹窗本来就在做动画，再叠一个每帧重绘的阴影只会拖慢它，已去掉。 */
 }
 
 .preview-notice-ver {
@@ -1104,23 +1075,19 @@ html.lite .navbar {
 
 /* ============================================================
    12.6 精简模式（手机上自动生效）
+   ------------------------------------------------------------
+   注意：小粒子在精简模式下是【根本不生成】，不靠这里隐藏 ——
+   少走一遍「创建 DOM 再 display:none」的流程。
    ============================================================ */
-html.lite .aurora-bg span { animation: none; }
-html.lite .grain-overlay { display: none; }
-html.lite .cursor-glow { display: none; }
+html.lite .particles { display: none; }
 
-/* 宝库页那个吸顶搜索栏也用毛玻璃，手机上同样要关掉 */
+/* 吸顶搜索栏在手机上也不做毛玻璃 */
 html.lite .search-row {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   background: var(--bg);
   box-shadow: none;
 }
-
-/* 常驻的"呼吸"动画在手机上停掉（一直跑很费电） */
-html.lite .btn-source { animation: none !important; }
-html.lite .aurora-bg,
-html.lite .cursor-glow { will-change: auto; }
 
 /* 关掉入场动画：少一次全屏合成，打开更快、滚动更稳 */
 html.lite .card,
@@ -1224,7 +1191,7 @@ html.lite .reveal {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .aurora-bg span { animation: none; }
+  .particles { display: none; }
   .reveal { opacity: 1; transform: none; }
 }
 
@@ -1234,8 +1201,7 @@ html.lite .reveal {
   .scroll-progress,
   .theme-toggle,
   .aurora-bg,
-  .grain-overlay,
-  .cursor-glow,
+  .particles,
   .footer { display: none !important; }
   body { background: #fff; color: #000; }
 }
