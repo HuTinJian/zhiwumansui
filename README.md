@@ -30,7 +30,7 @@
 .
 ├── index.html                 主页（只放一张卡片，其余入口在导航栏）
 ├── feedback.html              反馈提交页
-├── roblox_music.html          Roblox ID 宝库页（搜索 / 随机 / 复制 / 收藏 / 隔离区）
+├── roblox_music.html          Roblox ID 宝库页（搜索 / 分页 / 随机 / 复制 / 收藏 / 隔离区）
 ├── admin.html                 后台管理页（需登录，4 个标签：反馈 / 更新 / 卡片 / 数据统计）
 ├── 404.html                   找不到页面时显示的页面（Cloudflare Pages 会自动使用它）
 ├── css/                       样式
@@ -298,6 +298,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **主色 / 配色** | `css/style.css` 最上面的 `:root` | `--primary` 是主色，`--gold` 是金色点缀；深色模式在同文件的 `[data-theme="dark"]` |
 | **手机上关掉的特效** | `css/style.css` | 搜 `html.lite`；`js/common.js` 里的 `isLiteMode()` 决定什么时候进入精简模式 |
 | **宝库里的歌** | 后台「卡片管理」 | 增删都会写进 D1；也可以直接改 `data/roblox_music.json`（改完要重新部署） |
+| **每页显示多少组** | `roblox_music.html` | 搜 `const PAGE_SIZE`，默认 100 组一页；改完分页器会自己重算页数 |
 | **更新公告** | 后台「更新管理」 | 填好内容点保存，访客下次打开对应页面就会看到弹窗 |
 | **看热门榜 / 访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来；点「🔄 刷新」重新拉一次 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |

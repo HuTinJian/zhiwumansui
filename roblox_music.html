@@ -546,37 +546,67 @@
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
 
-    .load-more-wrap {
-      text-align: center;
-      padding: 20px 0 40px;
+    /* ========== 分页 ========== */
+    .pager {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 0 16px;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
-    .load-more-wrap .info {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-bottom: 12px;
-    }
-    .load-more-wrap .btn-more {
-      padding: 10px 32px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
+    .pager-bottom { padding: 24px 0 40px; }
+    .pager[hidden] { display: none; }
+
+    /* 触控目标统一 40px 高，手机上不用眯着眼点 */
+    .pager button {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-light);
       border-radius: var(--radius-pill);
-      font-size: 0.92rem;
+      font-family: var(--font);
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      font-family: var(--font);
-      transition: transform 0.25s var(--ease-bounce), background 0.25s var(--ease-soft);
+      transition: transform 0.22s var(--ease-bounce), background 0.22s var(--ease-soft),
+                  color 0.22s var(--ease-soft), border-color 0.22s var(--ease-soft);
     }
-    .load-more-wrap .btn-more:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px) scale(1.03);
+    .pager button:hover:not(:disabled) {
+      background: var(--bg-tint);
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
     }
-    .load-more-wrap .btn-more:active { transform: scale(0.95); }
-    .load-more-wrap .btn-more:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .pager button:active:not(:disabled) { transform: scale(0.93); }
+    .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
+    .pager button.current {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      opacity: 1;
       transform: none;
+    }
+    .pager .pager-gap {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      padding: 0 2px;
+      user-select: none;
+    }
+    .pager .pager-info {
+      flex: 1 0 100%;
+      text-align: center;
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    /* 窄屏上「首页 / 末页」用不上（有上一页下一页和页码就够），
+       让出来给页码，分页器就不会挤成两排 */
+    @media (max-width: 519px) {
+      .pager .pager-edge { display: none; }
     }
 
     /* ========== 工具栏分组 ========== */
@@ -1291,12 +1321,11 @@
       <div class="skeleton skeleton-card"></div>
     </div>
 
+    <nav class="pager" id="pagerTop" aria-label="分页导航" hidden></nav>
+
     <div id="songList" aria-busy="false"></div>
     <div class="empty-state" id="emptyState" hidden>😕 没有找到匹配的歌曲</div>
-    <div class="load-more-wrap" id="loadMoreWrap" hidden>
-      <div class="info" id="loadMoreInfo"></div>
-      <button class="btn-more" id="loadMoreBtn">加载更多</button>
-    </div>
+    <nav class="pager pager-bottom" id="pagerBottom" aria-label="分页导航" hidden></nav>
   </main>
 
   <footer class="footer">
@@ -1554,10 +1583,33 @@
       hotMap.set(key, (hotMap.get(key) || 0) + 1);
     }
 
+    /* ============================================================
+       分页：每页固定 100 组，只把当前页放进 DOM。
+       ------------------------------------------------------------
+       原来用「加载更多」把分组一路往后堆，最后 DOM 里会有 1400 多个分组；
+       配合下面的 content-visibility，屏幕外的分组只有 110px 的估算高度，
+       累计误差极大（详见 focusGroup 的注释）。分页之后 DOM 里最多 100 组，
+       既省内存，也让定位算法的误差小了一个数量级。
+       ============================================================ */
     const PAGE_SIZE = 100;
     let currentGroups = [];
-    let renderedGroupCount = 0;
+    let currentPage = 1;
     let isLoadingMore = false;
+
+    const totalPages = () => Math.max(1, Math.ceil(currentGroups.length / PAGE_SIZE));
+
+    /* 全站 CSS 上有 html { scroll-behavior: smooth }，想把"瞬移"和"动画"分开，
+       就必须显式写 behavior:'instant'；写 'auto' 只会继承成平滑滚动。
+       很老的浏览器不认识 'instant'（非法枚举值会直接抛错），先探测一次。 */
+    const CAN_SCROLL_INSTANT = (() => {
+      try {
+        document.createElement('div').scrollIntoView({ behavior: 'instant' });
+        return true;
+      } catch (e) {
+        return false;
+      }
+    })();
+    const INSTANT = CAN_SCROLL_INSTANT ? 'instant' : 'auto';
 
     const $ = id => document.getElementById(id);
     const dom = {
@@ -1595,9 +1647,8 @@
       riskConfirmModal: $('riskConfirmModal'),
       riskConfirmOk: $('riskConfirmOk'),
       riskConfirmCancel: $('riskConfirmCancel'),
-      loadMoreWrap: $('loadMoreWrap'),
-      loadMoreBtn: $('loadMoreBtn'),
-      loadMoreInfo: $('loadMoreInfo'),
+      pagerTop: $('pagerTop'),
+      pagerBottom: $('pagerBottom'),
       resultInfo: $('resultInfo'),
       loadingSkeleton: $('loadingSkeleton'),
       randomBtn: $('randomBtn'),
@@ -1756,7 +1807,7 @@
       }
     }
 
-    function renderAll() {
+    function renderAll(options) {
       const uniqueNames = new Set(songDatabase.map(i => i.name));
       dom.statGroups.textContent = uniqueNames.size.toLocaleString('en-US');
       dom.statIds.textContent = songDatabase.length.toLocaleString('en-US');
@@ -1875,10 +1926,12 @@
         b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
       });
 
-      renderList();
+      renderList(options);
     }
 
-    function renderList() {
+    /* keepPage: 数据增删（收藏 / 隔离）后重绘时留在当前页，不要甩回第 1 页 */
+    function renderList(options) {
+      const keepPage = !!(options && options.keepPage);
       const keyword = currentKeyword.trim().toLowerCase();
 
       const filtered = songDatabase.filter(item => {
@@ -1929,14 +1982,15 @@
       }
 
       currentGroups = groups;
-      renderedGroupCount = 0;
+      /* 筛选条件变了就回到第 1 页；只是数据增删（收藏 / 隔离）则留在原页 */
+      if (!keepPage) currentPage = 1;
       dom.songList.innerHTML = '';
 
       updateResultInfo(groups);
 
       if (groups.length === 0) {
         dom.emptyState.hidden = false;
-        dom.loadMoreWrap.hidden = true;
+        updatePager();
 
         let icon = '😕';
         let title = '没有找到匹配的歌曲';
@@ -1988,31 +2042,135 @@
       renderPage();
     }
 
+    /* 渲染「当前页」。分页版是替换而不是追加 —— DOM 里始终只有一页的量。 */
     function renderPage() {
       if (isLoadingMore) return;
       isLoadingMore = true;
 
       try {
-        const start = renderedGroupCount;
+        const pages = totalPages();
+        if (currentPage > pages) currentPage = pages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * PAGE_SIZE;
         const end = Math.min(start + PAGE_SIZE, currentGroups.length);
         const pageGroups = currentGroups.slice(start, end);
 
-        if (pageGroups.length === 0) {
-          updateLoadMoreUI();
-          return;
+        dom.songList.innerHTML = '';
+
+        if (pageGroups.length > 0) {
+          const fragment = document.createDocumentFragment();
+          pageGroups.forEach(group => fragment.appendChild(buildGroupElement(group)));
+          dom.songList.appendChild(fragment);
         }
 
-        const fragment = document.createDocumentFragment();
-        pageGroups.forEach(group => fragment.appendChild(buildGroupElement(group)));
-        dom.songList.appendChild(fragment);
-
-        renderedGroupCount = end;
-
         if (batchMode) syncBatchCheckboxes();
-        updateLoadMoreUI();
+        updatePager();
       } finally {
         isLoadingMore = false;
       }
+    }
+
+    /* 翻到指定页（越界会自动夹到有效范围） */
+    function goToPage(page) {
+      const pages = totalPages();
+      const next = Math.min(Math.max(1, page), pages);
+      if (next === currentPage) return;
+
+      currentPage = next;
+      renderPage();
+      scrollBackToList();
+    }
+
+    /* 翻页后把视线带回列表顶部。
+       距离近就平滑滑过去；距离远（比如从第 1 页底部翻页）直接瞬移 ——
+       横跨一万多像素的平滑滚动只会让人眼花，还白烧性能。 */
+    function scrollBackToList() {
+      const top = Math.max(0, dom.songList.getBoundingClientRect().top + window.pageYOffset - 12);
+      const far = Math.abs(top - window.pageYOffset) > window.innerHeight * 1.5;
+      window.scrollTo({
+        top: top,
+        behavior: (far || prefersReducedMotion) ? INSTANT : 'smooth'
+      });
+    }
+
+    /* 页码按钮：页数少就全列出来，页数多就只列当前页附近的一段。
+       手机上横向空间紧张，只留「首页 / 当前页 / 末页」，免得挤成两排。 */
+    function pagerNumbers(page, pages) {
+      const span = window.innerWidth < 520 ? 0 : 1;
+
+      if (pages <= span * 2 + 5) {
+        const all = [];
+        for (let i = 1; i <= pages; i++) all.push(i);
+        return all;
+      }
+
+      const list = [1];
+      const from = Math.max(2, page - span);
+      const to = Math.min(pages - 1, page + span);
+      if (from > 2) list.push('…');
+      for (let p = from; p <= to; p++) list.push(p);
+      if (to < pages - 1) list.push('…');
+      list.push(pages);
+
+      /* 首/末页紧挨着时那个省略号是多余的，去掉 */
+      return list.filter((n, i, arr) => {
+        if (n !== '…') return true;
+        const prev = arr[i - 1];
+        const next = arr[i + 1];
+        return typeof prev === 'number' && typeof next === 'number' && next - prev > 1;
+      });
+    }
+
+    function updatePager() {
+      const pages = totalPages();
+      const show = currentGroups.length > PAGE_SIZE;
+      const nums = show ? pagerNumbers(currentPage, pages) : [];
+
+      [dom.pagerTop, dom.pagerBottom].forEach(box => {
+        if (!box) return;
+
+        box.hidden = !show;
+        box.innerHTML = '';
+        if (!show) return;
+
+        const mk = (label, page, opts) => {
+          const o = opts || {};
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = label;
+          btn.dataset.page = String(page);
+          if (o.disabled) btn.disabled = true;
+          if (o.current) btn.classList.add('current');
+          if (o.edge) btn.classList.add('pager-edge');
+          if (o.aria) btn.setAttribute('aria-label', o.aria);
+          if (o.current) btn.setAttribute('aria-current', 'page');
+          return btn;
+        };
+
+        box.appendChild(mk('«', 1, { disabled: currentPage === 1, aria: '第一页', edge: true }));
+        box.appendChild(mk('‹', currentPage - 1, { disabled: currentPage === 1, aria: '上一页' }));
+
+        nums.forEach(n => {
+          if (n === '…') {
+            const gap = document.createElement('span');
+            gap.className = 'pager-gap';
+            gap.textContent = '…';
+            box.appendChild(gap);
+          } else {
+            box.appendChild(mk(String(n), n, { current: n === currentPage, disabled: n === currentPage }));
+          }
+        });
+
+        box.appendChild(mk('›', currentPage + 1, { disabled: currentPage === pages, aria: '下一页' }));
+        box.appendChild(mk('»', pages, { disabled: currentPage === pages, aria: '最后一页', edge: true }));
+
+        const info = document.createElement('span');
+        info.className = 'pager-info';
+        info.textContent = '第 ' + currentPage + ' / ' + pages + ' 页 · 每页 ' + PAGE_SIZE + ' 组 · 共 ' +
+                           currentGroups.length.toLocaleString('en-US') + ' 组';
+        box.appendChild(info);
+      });
     }
 
     /* 构建单个歌曲分组（含事件绑定）。
@@ -2139,17 +2297,83 @@
       });
     }
 
-    function updateLoadMoreUI() {
-      if (renderedGroupCount >= currentGroups.length) {
-        dom.loadMoreWrap.hidden = true;
-        return;
-      }
-      dom.loadMoreWrap.hidden = false;
-      dom.loadMoreInfo.textContent =
-        `已显示 ${renderedGroupCount.toLocaleString('en-US')} / ${currentGroups.length.toLocaleString('en-US')} 组`;
+    /* ============================================================
+       随机挑一首 → 精准定位
+       ------------------------------------------------------------
+       定位只做三步，全程只有一次真正看得见的动画：
+         ① instant 对齐：真正瞬移到位（不能写 'auto'！），同时逼浏览器把
+            目标附近的分组真实布局出来 —— 这一段的高度就不再是
+            content-visibility 的估算值了。
+         ② instant 回退 0.75 屏：和 ① 在同一个任务里，浏览器要等这一帧
+            画完才绘制，所以用户看不到中间那一跳，只会看到随后从上方滑下来。
+         ③ smooth 滑完最后这一段：路程短、而且已经被量准，落点天然精确。
+
+       为什么原来的写法一定会偏：全站 CSS 上有 html { scroll-behavior: smooth }，
+       scrollIntoView({behavior:'auto'}) 会继承它，于是"等渲染完再校准一次"
+       实际上是【又发起一次平滑滚动】，把第一次动画中途打断。
+       实测落点偏 1900~18800px（桌面 3~7 屏、手机最高约 20 屏）。
+       ============================================================ */
+    function focusGroup(target) {
+      target.scrollIntoView({ behavior: INSTANT, block: 'center' });
+
+      flashGroup(target);
+
+      if (prefersReducedMotion) return;
+
+      window.scrollBy({ top: -Math.round(window.innerHeight * 0.75), behavior: INSTANT });
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      /* 兜底：只有目标【整个被甩出屏幕】时才补一次瞬移。
+         目标只要还看得见就绝不插手，免得跟用户自己的滚动打架；
+         用户一旦动手（滚轮 / 触摸 / 按键）立刻放弃这次兜底。 */
+      lockIfLost(target);
     }
 
-    /* 随机挑一首：必要时先把目标所在的那一页渲染出来 */
+    function flashGroup(target) {
+      target.classList.remove('flash-target');
+      void target.offsetWidth;
+      target.classList.add('flash-target');
+      setTimeout(() => target.classList.remove('flash-target'), 3400);
+    }
+
+    function lockIfLost(target) {
+      let settleTimer = 0;
+      let hardStop = 0;
+      let stopped = false;
+
+      const cleanup = () => {
+        clearTimeout(settleTimer);
+        clearTimeout(hardStop);
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('wheel', giveUp);
+        window.removeEventListener('touchstart', giveUp);
+        window.removeEventListener('keydown', giveUp);
+        window.removeEventListener('scrollend', check);
+      };
+      const giveUp = () => { stopped = true; cleanup(); };
+      const check = () => {
+        if (stopped) return;
+        stopped = true;
+        cleanup();
+        const rect = target.getBoundingClientRect();
+        if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+          target.scrollIntoView({ behavior: INSTANT, block: 'center' });
+        }
+      };
+      const onScroll = () => {
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(check, 150);
+      };
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('wheel', giveUp, { passive: true });
+      window.addEventListener('touchstart', giveUp, { passive: true });
+      window.addEventListener('keydown', giveUp);
+      if ('onscrollend' in window) window.addEventListener('scrollend', check);
+      hardStop = setTimeout(check, 6000);
+    }
+
+    /* 随机挑一首：目标可能不在当前页，先翻过去再定位 */
     function randomPick() {
       if (currentGroups.length === 0) {
         showToast('😕 当前没有可以随机的歌曲');
@@ -2157,37 +2381,22 @@
       }
 
       const index = Math.floor(Math.random() * currentGroups.length);
+      const page = Math.floor(index / PAGE_SIZE) + 1;
 
-      let guard = 0;
-      while (renderedGroupCount <= index && renderedGroupCount < currentGroups.length && guard < 500) {
+      /* 这里不滚到列表顶 —— 位置交给 focusGroup 决定 */
+      if (page !== currentPage) {
+        currentPage = page;
         renderPage();
-        guard++;
       }
 
       const nodes = dom.songList.querySelectorAll('.song-group');
-      const target = nodes[index];
+      const target = nodes[index - (currentPage - 1) * PAGE_SIZE];
       if (!target) return;
 
-      const scrollToTarget = behavior => {
-        target.scrollIntoView({ behavior: behavior, block: 'center' });
-      };
-
-      scrollToTarget(prefersReducedMotion ? 'auto' : 'smooth');
-      /* content-visibility 会让屏幕外的分组先用「估算高度」占位，
-         第一次滚动可能略有偏差，等它真正渲染出来后再校准一次。 */
-      setTimeout(() => scrollToTarget('auto'), improvedScrollDelay());
-
-      target.classList.remove('flash-target');
-      void target.offsetWidth;
-      target.classList.add('flash-target');
-      setTimeout(() => target.classList.remove('flash-target'), 3400);
+      focusGroup(target);
 
       const name = target.dataset.name || currentGroups[index].name;
       showToast('🎲 随机到：' + name);
-    }
-
-    function improvedScrollDelay() {
-      return prefersReducedMotion ? 60 : 420;
     }
 
     function updateSelectedCount() {
@@ -2211,7 +2420,7 @@
       dom.statFavs.textContent = favorites.size.toLocaleString('en-US');
 
       if (showFavOnly && !favorites.has(id)) {
-        renderList();
+        renderList({ keepPage: true });
       }
     }
 
@@ -2343,7 +2552,7 @@
       quarantineGuest.push({ ...item, quarantinedAt: nowStr() });
       saveQuarantine();
       showToast('⛔ 已移入隔离区');
-      renderAll();
+      renderAll({ keepPage: true });
     }
 
     async function batchQuarantine() {
@@ -2370,7 +2579,7 @@
       updateSelectedCount();
       toggleBatchMode(false);
       showToast(`⛔ 已隔离 ${toRemove.length} 个 ID`);
-      renderAll();
+      renderAll({ keepPage: true });
     }
 
     function toggleBatchMode(force) {
@@ -2455,7 +2664,7 @@
         songDatabase.push(item);
       }
       showToast('✅ 已恢复');
-      renderAll();
+      renderAll({ keepPage: true });
       renderQuarantineList();
     }
 
@@ -2488,7 +2697,7 @@
       quarantineGuest = [];
       saveQuarantine();
       showToast(`🔄 已恢复 ${added} 个 ID（跳过 ${restoredCount - added} 个已存在的）`);
-      renderAll();
+      renderAll({ keepPage: true });
       renderQuarantineList();
     }
 
@@ -2596,7 +2805,24 @@
     function bindControls() {
       bindListDelegation();
 
-      dom.loadMoreBtn.onclick = () => renderPage();
+      /* 分页按钮是每次重绘动态生成的，所以用事件委托绑在容器上 */
+      [dom.pagerTop, dom.pagerBottom].forEach(box => {
+        if (!box) return;
+        box.addEventListener('click', e => {
+          const btn = e.target.closest ? e.target.closest('button[data-page]') : null;
+          if (!btn || !box.contains(btn)) return;
+          goToPage(Number(btn.dataset.page));
+        });
+      });
+
+      /* 屏幕宽度变了（手机横竖屏切换、桌面拖窗口），页码按钮的数量要跟着调整。
+         只在宽度真的变了时才重建，免得手机地址栏一收一放就白干一次。 */
+      let pagerWidth = window.innerWidth;
+      window.addEventListener('resize', debounce(() => {
+        if (window.innerWidth === pagerWidth) return;
+        pagerWidth = window.innerWidth;
+        updatePager();
+      }, 200));
 
       dom.searchInput.addEventListener('input', debounce(() => {
         currentKeyword = dom.searchInput.value;

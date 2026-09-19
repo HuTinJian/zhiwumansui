@@ -1,0 +1,12 @@
+# 本地开发密钥（切勿提交到 Git）
+.dev.vars
+.dev.vars.*
+
+# Wrangler / 依赖 / 构建产物
+.wrangler/
+node_modules/
+dist/
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
