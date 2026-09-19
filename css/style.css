@@ -60,6 +60,11 @@
   --text-on-accent: #ffffff;
   --border: #f0d9de;
   --border-strong: #e6c9cf;
+  /* 页面顶部标题栏（.page-header）的渐变底色。
+     原来这个渐变的两个色值是写死在 roblox_music.html 里的，
+     切到深色主题时依然是浅粉，跟周围的黑底撞在一起。 */
+  --header-grad-a: #f8d7de;
+  --header-grad-b: #f0c4cd;
 
   /* 阴影 */
   --shadow-sm: 0 2px 8px rgba(220, 107, 130, 0.06);
@@ -138,6 +143,9 @@
   --text-on-accent: #1a1218;
   --border: #3a2c36;
   --border-strong: #4c3a46;
+  /* 深色下标题栏比卡片底稍亮一点的暖紫，保住"粉色系"的辨识度 */
+  --header-grad-a: #3a2733;
+  --header-grad-b: #2e2029;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
