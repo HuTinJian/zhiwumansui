@@ -44,7 +44,9 @@
 │   └── roblox_music.json      站点内置的歌曲数据（静态、只读）
 ├── tools/
 │   ├── update-notice.html     更新公告配置工具（**仅后台可用**，内部 iframe）
-│   └── json-merge.html        JSON 合并工具（**仅后台可用**，内部 iframe）
+│   ├── json-merge.html        JSON 合并工具（**仅后台可用**，内部 iframe）
+│   ├── rollback.bat           版本回退小工具（本地双击运行，和网站本身无关）
+│   └── rollback.ps1           上面那个小工具的实现
 ├── images/                    图片资源
 ├── functions/
 │   └── api/                   Cloudflare Pages Functions（后端 API）
@@ -236,6 +238,52 @@ npx wrangler pages deploy .
 
 所以本项目的正确用法是：**代码推到 GitHub，Cloudflare 从 GitHub 拉取并部署**。
 改完代码 push 上去，Cloudflare 会自动重新部署，不需要手动上传。
+
+### 改坏了怎么退回去？
+
+两条路，建议都记住：一条救急，一条治本。
+
+**① 救急（最快，几秒钟）：Cloudflare 面板一键回滚**
+
+Cloudflare 会保存**每一次**部署，所以线上出问题时：
+
+> Cloudflare 面板 → **Workers & Pages** → 选中本项目 → **Deployments** →
+> 在 **All deployments** 列表里找到上一个正常的版本 → 点它右侧的三个点 →
+> **Rollback to this deployment** → 确认。
+
+线上立刻就切回那个版本，不用等重新构建，也不用碰代码。
+（注意：只有**生产部署**能作为回滚目标，预览部署不行。）
+
+**② 治本（让仓库里的代码也退回去）：双击 `tools/rollback.bat`**
+
+面板回滚只是把线上切回旧版，仓库里的代码还是坏的 —— 下次一 push，
+坏版本又会被部署上去。所以彻底修复要走 Git，直接**双击 `tools/rollback.bat`**，
+按菜单提示操作：
+
+| 菜单 | 什么时候用 |
+| --- | --- |
+| 【1】查看历史 | 看看最近都改了什么、有哪些安全点 |
+| 【2】撤销最近一次提交 | **最常见**：刚推的那版坏了，一键退回去 |
+| 【3】撤销指定的某一次提交 | 坏的只是中间某一次改动 |
+| 【4】整体回到某个安全点 | 想整体退回到某个已知良好的状态 |
+| 【5】打一个安全点 | **大改动之前先打一个**，以后随时能回来 |
+| 【6】把本地改动提交并推送 | 以后直接用 Git 管理，不必再走网页上传 |
+| 【7】从 GitHub 拉取最新 | 换电脑或在网页上改过之后，先把最新代码同步下来 |
+
+它背后用的是 `git revert`：**生成一个「反向提交」，把那次改动原样撤销掉**，
+然后推送到 GitHub，Cloudflare 自动重新部署回正常版本。
+`git revert` **不会改写历史**，所以它永远安全、不会丢东西 ——
+这也是它比 `git reset --hard` 更适合新手的原因。
+
+> 第一次推送时可能会弹出 GitHub 登录窗口，登录一次之后就不用再登了。
+> 想更省事的话，也可以装 **GitHub Desktop**，用图形界面做同样的事。
+
+> ⚠️ 这台电脑上 git 走的是 SteamTools / Watt Toolkit 的加速通道，
+> 它的根证书已经合并进 `%LOCALAPPDATA%\git-ca-bundle.crt`，
+> 并写在**本仓库**的 `http.sslCAInfo` 里（没有动全局配置）。
+> 如果哪天 git 报证书错误（例如换了加速器、重装了 Git），把这个文件重新生成一遍即可：
+> 把 Git 自带的 `mingw64\etc\ssl\certs\ca-bundle.crt` 和当前加速器的根证书
+> （Windows 证书库里搜 `SteamTools`）拼在一起，写成无 BOM 的 UTF-8 就行。
 
 ### 如果哪天顺手开了 GitHub Pages 会怎样？
 
