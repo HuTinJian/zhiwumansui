@@ -132,6 +132,8 @@
     .card:nth-child(2) { animation-delay: 0.05s; }
     .card:nth-child(3) { animation-delay: 0.10s; }
     .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.20s; }
+    .card:nth-child(6) { animation-delay: 0.25s; }
 
     .card h2 {
       font-size: 1.05rem;
@@ -253,6 +255,22 @@
       transform: translateY(-2px);
       box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
     }
+    /* 次要按钮：给「读取」这类辅助动作用，不跟主按钮抢视线 */
+    .btn-secondary {
+      background: var(--bg-tint);
+      color: var(--primary-ink);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(220, 107, 130, 0.22);
+    }
+    .btn-success:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none;
+    }
 
     .result-stats {
       display: grid;
@@ -300,39 +318,39 @@
 
     <div class="page-title">
       <h1>📦 JSON 合并工具</h1>
-      <p class="subtitle">把 D1 里的新歌合并到主数据 roblox_music.json</p>
+      <p class="subtitle">读取线上数据 → 合并或导出 → 放进网站的 data/ 目录</p>
     </div>
 
     <div class="card">
       <h2>📁 原有数据（data/roblox_music.json）</h2>
-      <p class="hint">点下面方框，选择你网站文件夹里的 roblox_music.json；也可以直接把文件拖进去。</p>
-      <div class="actions" style="margin:0 0 14px;">
-        <button class="btn btn-secondary" id="loadSiteJsonBtn">📥 直接读网站上的 roblox_music.json</button>
+      <p class="hint">点按钮直接读网站上的那份；也可以手动选文件，或者把文件拖进方框。</p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="loadSiteJsonBtn">📥 读取网站上的 roblox_music.json</button>
       </div>
       <label class="upload-box" id="uploadBoxA">
         <input type="file" id="fileA" accept=".json,application/json">
         <div class="upload-icon">📂</div>
-        <div class="upload-text">点击这里选择 <strong>roblox_music.json</strong></div>
+        <div class="upload-text">或者点击这里选择 <strong>roblox_music.json</strong></div>
         <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
         <div class="file-info" id="fileInfoA"></div>
       </label>
-      <div class="preview" id="previewA">等待上传...</div>
+      <div class="preview" id="previewA">等待读取...</div>
     </div>
 
     <div class="card">
-      <h2>📁 D1 导出的新歌（songs_extra_xxx.json）</h2>
-      <p class="hint">点下面方框，选择后台刚导出的 songs_extra_xxx.json；也可以直接把文件拖进去。</p>
-      <div class="actions" style="margin:0 0 14px;">
-        <button class="btn btn-secondary" id="loadD1SongsBtn">📥 直接读线上 D1 里的新歌</button>
+      <h2>📁 D1 里的新歌（songs_extra）</h2>
+      <p class="hint">点按钮直接读线上数据库；也可以手动选后台导出的 songs_extra_xxx.json。</p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="loadD1SongsBtn">📥 读取线上 D1 里的新歌</button>
       </div>
       <label class="upload-box" id="uploadBoxB">
         <input type="file" id="fileB" accept=".json,application/json">
         <div class="upload-icon">📂</div>
-        <div class="upload-text">点击这里选择 <strong>songs_extra_xxx.json</strong></div>
+        <div class="upload-text">或者点击这里选择 <strong>songs_extra_xxx.json</strong></div>
         <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
         <div class="file-info" id="fileInfoB"></div>
       </label>
-      <div class="preview" id="previewB">等待上传...</div>
+      <div class="preview" id="previewB">等待读取...</div>
     </div>
 
     <div class="actions">
@@ -341,6 +359,7 @@
 
     <div class="card" id="resultCard" style="display:none;">
       <h2>✅ 合并结果</h2>
+      <p class="hint">下载后覆盖网站里的 data/roblox_music.json，重新部署一次就生效。</p>
       <div class="result-stats">
         <div class="stat-item">
           <div class="num" id="statOriginal">0</div>
@@ -365,13 +384,11 @@
       </div>
     </div>
 
-    <!-- 管理员隔离区导出 -->
     <div class="card">
-      <h2>⛔ 导出管理员隔离区（admin_quarantine.json）</h2>
+      <h2>⛔ 管理员隔离区（data/admin_quarantine.json）</h2>
       <p class="hint">
-        把后台「开发者隔离区」里的 ID 导出成 <b>data/admin_quarantine.json</b>，跟着网站一起上传。
-        <br>这样访客打开宝库页时，这份名单走 CDN 静态缓存直接读，不用干等接口返回，首页更快。
-        <br>之后新导入的隔离区 ID 仍由接口实时返回，两边会自动取并集，不会漏掉。
+        读取后导出成文件，放进网站的 data/ 目录一起上传。宝库页会优先读这份静态文件
+        （走 CDN 缓存，几乎瞬间到），新导入的 ID 再由接口实时补齐 —— 既快又不会漏。
       </p>
       <div class="result-stats">
         <div class="stat-item">
@@ -379,10 +396,10 @@
           <div class="label">隔离区条数</div>
         </div>
       </div>
-      <div class="preview" id="qPreview" style="max-height:160px;"></div>
+      <div class="preview" id="qPreview" style="max-height:160px;">等待读取...</div>
       <div class="actions" style="margin-bottom:0;">
         <button class="btn btn-secondary" id="qLoadBtn">🔄 读取当前隔离区</button>
-        <button class="btn btn-success" id="qDownloadBtn" disabled>💾 下载 admin_quarantine.json</button>
+        <button class="btn btn-success" id="qDownloadBtn" disabled>💾 导出 admin_quarantine.json</button>
       </div>
     </div>
 
@@ -564,7 +581,7 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-      alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新上传整个网站到 Cloudflare');
+      alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新部署一次网站');
     });
 
     /* ============================================================
@@ -608,7 +625,7 @@
             '\n\n（用 file:// 直接打开这个工具页时会读不到，请用 wrangler 本地预览，或手动选文件）');
         }
       }
-      if (!silent) { loadSiteJsonBtn.disabled = false; loadSiteJsonBtn.textContent = '📥 直接读网站上的 roblox_music.json'; }
+      if (!silent) { loadSiteJsonBtn.disabled = false; loadSiteJsonBtn.textContent = '📥 读取网站上的 roblox_music.json'; }
     }
 
     async function fetchD1Songs(silent) {
@@ -623,7 +640,7 @@
           alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
         }
       }
-      if (!silent) { loadD1SongsBtn.disabled = false; loadD1SongsBtn.textContent = '📥 直接读线上 D1 里的新歌'; }
+      if (!silent) { loadD1SongsBtn.disabled = false; loadD1SongsBtn.textContent = '📥 读取线上 D1 里的新歌'; }
     }
 
     loadSiteJsonBtn.addEventListener('click', function () { fetchSiteJson(false); });
@@ -699,7 +716,7 @@
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 
-      alert('✅ 已下载！\n\n接下来：\n1. 把它放进网站文件夹的 data/ 目录（覆盖旧的 admin_quarantine.json）\n2. 重新上传网站到 Cloudflare');
+      alert('✅ 已下载！\n\n接下来：\n1. 把它放进网站文件夹的 data/ 目录（覆盖旧的 admin_quarantine.json）\n2. 重新部署一次网站');
     });
 
     /* 打开工具时自动读一次，省得每次都要点一下 */

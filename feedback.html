@@ -184,18 +184,6 @@
       padding-left: 38px;
     }
 
-    /* 「不用留邮箱」的说明条 */
-    .no-email-tip {
-      margin: -4px 0 18px;
-      padding: 11px 14px;
-      font-size: 0.8rem;
-      line-height: 1.7;
-      color: var(--text-light);
-      background: var(--bg-tint);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-
     /* ========== 自定义圆形复选框 ========== */
     .checkbox-list {
       display: none;
@@ -462,12 +450,6 @@
             <label for="feedbackName">你的称呼 <span style="color:var(--danger)">*</span></label>
             <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40" autocomplete="nickname">
           </div>
-
-          <!-- 邮箱已取消：管理员在后台直接处理，处理结果会回传到对应页面 -->
-          <p class="no-email-tip">
-            🔒 不用留邮箱 —— 提交后我们会在这里记录你的浏览器身份，
-            管理员受理或拒绝之后，你下次打开对应页面会收到提示。
-          </p>
 
           <!-- 内容 -->
           <div class="form-group">
