@@ -14,6 +14,47 @@ CREATE TABLE IF NOT EXISTS feedback (
   upload_quarantine INTEGER DEFAULT 0,
   quarantine_ids TEXT,
   status TEXT DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  client_id TEXT,
+  reply TEXT,
+  decided_at TEXT
+);
+
+-- 博客（卡片2 · 玩家交流）
+-- parent_id 为 NULL 是主帖，否则是对某条主帖的回复（只做一层嵌套）
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  parent_id INTEGER,
+  name TEXT NOT NULL,
+  title TEXT,
+  content TEXT NOT NULL,
+  client_id TEXT,
+  likes INTEGER DEFAULT 0,
+  reports INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'visible',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+-- 每人每帖只能点一次赞
+CREATE TABLE IF NOT EXISTS blog_likes (
+  post_id INTEGER NOT NULL,
+  client_id TEXT NOT NULL,
+  PRIMARY KEY (post_id, client_id)
+);
+
+-- 每人每帖只能举报一次
+CREATE TABLE IF NOT EXISTS blog_reports (
+  post_id INTEGER NOT NULL,
+  client_id TEXT NOT NULL,
+  reason TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  PRIMARY KEY (post_id, client_id)
+);
+
+-- 博客封禁名单（按浏览器身份 client_id 拉黑）
+CREATE TABLE IF NOT EXISTS blog_bans (
+  client_id TEXT PRIMARY KEY,
+  reason TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 

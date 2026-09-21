@@ -162,6 +162,40 @@
       font-weight: 700;
     }
 
+    /* 「卡片」是一个分类而不是可选项，所以它只是一行说明文字 */
+    .select-group {
+      padding: 10px 16px 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: default;
+      user-select: none;
+      border-top: 1px dashed var(--border);
+      margin-top: 4px;
+    }
+    /* 分类下面的具体卡片缩进一级，一眼能看出从属关系 */
+    .select-option.sub {
+      padding-left: 30px;
+      font-size: 0.9rem;
+    }
+    .select-option.sub:hover,
+    .select-option.sub:focus-visible {
+      padding-left: 38px;
+    }
+
+    /* 「不用留邮箱」的说明条 */
+    .no-email-tip {
+      margin: -4px 0 18px;
+      padding: 11px 14px;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: var(--text-light);
+      background: var(--bg-tint);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
     /* ========== 自定义圆形复选框 ========== */
     .checkbox-list {
       display: none;
@@ -374,6 +408,8 @@
     </a>
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
+      <li><a href="roblox_music.html">🎵 ID 宝库</a></li>
+      <li><a href="blog.html">📝 博客</a></li>
       <li><a href="feedback.html" class="active" aria-current="page">💬 反馈</a></li>
     </ul>
   </nav>
@@ -399,7 +435,11 @@
               <ul class="select-dropdown" id="selectDropdown" role="listbox" aria-labelledby="feedbackTypeLabel">
                 <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="主页">主页</li>
                 <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="反馈">反馈</li>
-                <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="卡片1">卡片1 —— Roblox ID 宝库</li>
+                <li class="select-group" role="presentation">卡片 —— 请选择具体是哪一张</li>
+                <li class="select-option sub" role="option" tabindex="-1" aria-selected="false"
+                    data-value="卡片1" data-label="卡片1 —— Roblox ID 宝库">🎵 Roblox ID 宝库</li>
+                <li class="select-option sub" role="option" tabindex="-1" aria-selected="false"
+                    data-value="卡片2" data-label="卡片2 —— 玩家博客">📝 玩家博客</li>
                 <li class="select-option" role="option" tabindex="-1" aria-selected="false" data-value="其他">其他</li>
               </ul>
             </div>
@@ -425,11 +465,11 @@
             <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40" autocomplete="nickname">
           </div>
 
-          <!-- 邮箱 -->
-          <div class="form-group">
-            <label for="feedbackEmail">你的邮箱（选填）</label>
-            <input type="email" id="feedbackEmail" placeholder="如需回复可留下邮箱" maxlength="120" autocomplete="email">
-          </div>
+          <!-- 邮箱已取消：管理员在后台直接处理，处理结果会回传到对应页面 -->
+          <p class="no-email-tip">
+            🔒 不用留邮箱 —— 提交后我们会在这里记录你的浏览器身份，
+            管理员受理或拒绝之后，你下次打开对应页面会收到提示。
+          </p>
 
           <!-- 内容 -->
           <div class="form-group">
@@ -483,6 +523,7 @@
     <div class="footer-links">
       <a href="index.html">首页</a>
       <a href="roblox_music.html">ID 宝库</a>
+      <a href="blog.html">玩家博客</a>
     </div>
   </footer>
 
@@ -547,7 +588,8 @@
         opt.setAttribute('aria-selected', 'true');
 
         currentType = opt.dataset.value;
-        selectedTypeEl.textContent = opt.dataset.value === '卡片1' ? opt.textContent : opt.dataset.value;
+        /* 卡片类显示成「卡片1 —— Roblox ID 宝库」，让人一眼看出选的是哪一张 */
+        selectedTypeEl.textContent = opt.dataset.label || opt.dataset.value;
         selectTrigger.classList.add('selected');
 
         closeDropdown(true);
@@ -630,11 +672,6 @@
       /* ============================================================
          校验
          ============================================================ */
-      function isValidEmail(email) {
-        if (!email) return true;
-        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(email);
-      }
-
       /* 读取游客隔离区（防御式解析，坏数据直接丢弃而不是让整页崩掉） */
       function getGuestQuarantine() {
         try {
@@ -701,13 +738,11 @@
         if (submitting) return;
 
         var name = $('feedbackName').value.trim();
-        var email = $('feedbackEmail').value.trim();
         var message = messageInput.value.trim();
 
         if (!currentType) { showToast('请先选择反馈类型'); selectTrigger.focus(); return; }
         if (!name) { showToast('请填写你的称呼'); $('feedbackName').focus(); return; }
         if (!message) { showToast('请填写反馈内容'); messageInput.focus(); return; }
-        if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); $('feedbackEmail').focus(); return; }
 
         var quarantineIds = [];
         var willUpload = currentType === '卡片1' && uploadQuarantine.checked;
@@ -732,8 +767,9 @@
             body: JSON.stringify({
               type: currentType,
               name: name,
-              email: email,
               message: message,
+              /* 浏览器身份：管理员受理/拒绝后，靠它把结果回传给提出的人 */
+              clientId: getClientId(),
               wantThanks: currentType === '卡片1' && wantThanks.checked ? 1 : 0,
               uploadQuarantine: willUpload ? 1 : 0,
               quarantineIds: quarantineIds

@@ -181,28 +181,54 @@ async function loadFeedback() {
       const qCount = hasQ ? item.quarantine_ids.length : 0;
       const itemId = Number(item.id) || 0;
 
+      /* 处理状态徽标 */
+      const statusTag = item.status === 'approved'
+        ? '<span class="type-tag green" style="margin-left:6px;">✅ 已受理</span>'
+        : (item.status === 'rejected'
+          ? '<span class="type-tag red" style="margin-left:6px;">🚫 已拒绝</span>'
+          : '<span class="type-tag" style="margin-left:6px;">⏳ 待处理</span>');
+
+      /* 有没有可回传的浏览器身份：老数据没有，就说明回执送不到 */
+      const idHint = item.client_id
+        ? ' · 🔑 ' + escapeHtml(String(item.client_id).slice(0, 8)) + '…'
+        : ' · ⚠️ 旧数据无身份（回执送不到）';
+
       el.innerHTML = `
         <div class="row1">
           <span class="name">${escapeHtml(item.name)}</span>
           <span>
             <span class="type-tag">${escapeHtml(item.type)}</span>
+            ${statusTag}
             ${hasQ ? '<span class="type-tag blue" style="margin-left:6px;">📦 ' + qCount + ' 个隔离区 ID</span>' : ''}
           </span>
         </div>
         <div class="meta">
-          ${item.email ? '📧 ' + escapeHtml(item.email) + ' · ' : ''}
-          🕒 ${escapeHtml(item.created_at)}
+          🕒 ${escapeHtml(item.created_at)}${idHint}
+          ${item.decided_at ? ' · 处理于 ' + escapeHtml(item.decided_at) : ''}
           ${item.want_thanks === 1 ? ' · ❤️ 愿意加入鸣谢' : ''}
         </div>
         <div class="message">${escapeHtml(item.message)}</div>
+        <div class="fb-decide">
+          <input type="text" class="fb-reply" data-id="${itemId}" maxlength="200"
+                 placeholder="给访客的一句话说明（选填，会显示在他下次打开对应页面时的回执弹窗里）">
+        </div>
         <div class="actions">
           ${hasQ ? '<button class="btn-expand" data-id="' + itemId + '">📦 展开隔离区</button>' : ''}
           ${item.want_thanks === 1 && item.status !== 'approved' ? '<button class="btn-approve" data-id="' + itemId + '">❤️ 加入鸣谢</button>' : ''}
+          <button class="btn-accept" data-id="${itemId}"${item.status === 'approved' ? ' disabled' : ''}>✅ 受理</button>
+          <button class="btn-reject" data-id="${itemId}"${item.status === 'rejected' ? ' disabled' : ''}>🚫 拒绝</button>
+          <button class="btn-reset" data-id="${itemId}"${item.status === 'pending' ? ' disabled' : ''}>↩️ 退回待处理</button>
           <button class="btn-delete" data-id="${itemId}">🗑️ 删除</button>
         </div>
         ${hasQ ? '<div class="fb-quarantine" id="fbQ-' + itemId + '"></div>' : ''}
       `;
       container.appendChild(el);
+    });
+
+    /* 已填过的说明用 JS 回填，避免把用户输入拼进 HTML 属性里 */
+    container.querySelectorAll('.fb-reply').forEach(inp => {
+      const item = list.find(i => String(i.id) === inp.dataset.id);
+      if (item && item.reply) inp.value = item.reply;
     });
 
     container.querySelectorAll('.btn-approve').forEach(btn => {
@@ -214,8 +240,58 @@ async function loadFeedback() {
     container.querySelectorAll('.btn-expand').forEach(btn => {
       btn.addEventListener('click', () => toggleFeedbackQuarantine(Number(btn.dataset.id), btn));
     });
+    container.querySelectorAll('.btn-accept').forEach(btn => {
+      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'approved'));
+    });
+    container.querySelectorAll('.btn-reject').forEach(btn => {
+      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'rejected'));
+    });
+    container.querySelectorAll('.btn-reset').forEach(btn => {
+      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'pending'));
+    });
   } catch (err) {
     container.innerHTML = '<div class="empty-state">加载失败</div>';
+  }
+}
+
+/* 受理 / 拒绝 / 退回一条反馈。
+   写在输入框里的说明会一起存下来，访客下次打开他当初选择的那个页面时，
+   会看到一个回执弹窗，里面就带着这句话。 */
+async function decideFeedback(id, status) {
+  const item = feedbackCache.find(i => Number(i.id) === id);
+  const input = document.querySelector('.fb-reply[data-id="' + id + '"]');
+  const reply = input ? input.value.trim() : '';
+
+  const label = status === 'approved' ? '受理' : (status === 'rejected' ? '拒绝' : '退回待处理');
+
+  /* 老数据没有浏览器身份，回执送不到 —— 先跟管理员确认一下 */
+  if (status !== 'pending' && (!item || !item.client_id)) {
+    const go = await showConfirm(
+      '这条反馈没有浏览器身份',
+      '它是「回执功能」上线之前提交的老数据，处理结果没法自动通知到对方。仍然要标记为「' + label + '」吗？'
+    );
+    if (!go) return;
+  }
+
+  try {
+    const res = await fetch('/api/feedback/status', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, status: status, reply: reply })
+    });
+    const data = await res.json();
+
+    if (data && data.ok) {
+      if (status === 'approved') showToast('✅ 已受理，访客下次打开对应页面会看到提示');
+      else if (status === 'rejected') showToast('🚫 已拒绝，访客下次打开对应页面会看到提示');
+      else showToast('↩️ 已退回待处理');
+      loadFeedback();
+    } else {
+      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+    }
+  } catch (err) {
+    showToast('网络异常');
   }
 }
 
@@ -1141,9 +1217,199 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================================
+   博客管理（卡片2 · 玩家交流）
+   ------------------------------------------------------------
+   玩家发的帖子都在这里。处置手段分四种：
+     隐藏 / 恢复  —— 单条上下线
+     误报复位     —— 被误举报时清空举报数并恢复显示
+     拉黑作者     —— 按「浏览器身份」拉黑：他名下帖子全部下线且不能再发
+     删除         —— 连同它的回复一起永久删除
+   ============================================================ */
+let blogCache = [];
+
+function blogStatusTag(item) {
+  if (item.status !== 'visible') return '<span class="type-tag red" style="margin-left:6px;">🙈 已隐藏</span>';
+  if (item.reports >= 3) return '<span class="type-tag gold" style="margin-left:6px;">⚠️ 举报较多</span>';
+  return '<span class="type-tag green" style="margin-left:6px;">👁️ 显示中</span>';
+}
+
+async function loadBlogPanel() {
+  const box = document.getElementById('blogList');
+  const banBox = document.getElementById('blogBanList');
+  if (!box) return;
+
+  box.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch('/api/blog/admin-list', { credentials: 'include' });
+    const data = await res.json();
+
+    if (!data || !data.ok) {
+      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，或数据库还没跑迁移</div>';
+      return;
+    }
+
+    const list = Array.isArray(data.data) ? data.data : [];
+    blogCache = list;
+    document.getElementById('blogCount').textContent = list.length;
+
+    renderBlogBans(Array.isArray(data.bans) ? data.bans : []);
+
+    if (list.length === 0) {
+      box.innerHTML = '<div class="empty-state">还没有人发帖</div>';
+      return;
+    }
+
+    box.innerHTML = '';
+    list.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'list-item';
+
+      const hidden = item.status !== 'visible';
+      const title = item.title ? escapeHtml(item.title) : '<span style="color:var(--text-muted)">（无标题）</span>';
+
+      el.innerHTML = `
+        <div class="row1">
+          <span class="name">${title}</span>
+          <span>
+            <span class="type-tag">👤 ${escapeHtml(item.name)}</span>
+            ${blogStatusTag(item)}
+          </span>
+        </div>
+        <div class="meta">
+          🕒 ${escapeHtml(item.createdAt)}
+          · 🔑 ${item.clientId ? escapeHtml(item.clientId.slice(0, 8)) + '…' : '无身份'}
+          · 👍 ${item.likes} · 💬 ${item.replies} · ⚠️ ${item.reports}
+        </div>
+        <div class="message">${escapeHtml(item.content)}</div>
+        <div class="actions">
+          ${hidden
+            ? '<button class="btn-show" data-id="' + item.id + '">👁️ 恢复显示</button>'
+            : '<button class="btn-hide" data-id="' + item.id + '">🙈 隐藏</button>'}
+          <button class="btn-unreport" data-id="${item.id}">🔁 误报复位</button>
+          <button class="btn-ban" data-id="${item.id}">🚫 拉黑作者</button>
+          <button class="btn-delete" data-id="${item.id}">🗑️ 删除</button>
+        </div>
+      `;
+      box.appendChild(el);
+    });
+
+    box.querySelectorAll('.btn-hide').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'hide')));
+    box.querySelectorAll('.btn-show').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'show')));
+    box.querySelectorAll('.btn-unreport').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'resetReports')));
+    box.querySelectorAll('.btn-ban').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'ban')));
+    box.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'delete')));
+  } catch (err) {
+    box.innerHTML = '<div class="empty-state">加载失败</div>';
+  }
+}
+
+function renderBlogBans(bans) {
+  const box = document.getElementById('blogBanList');
+  if (!box) return;
+
+  if (!bans.length) {
+    box.innerHTML = '<div class="empty-state">暂无限制记录</div>';
+    return;
+  }
+
+  box.innerHTML = '';
+  bans.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">🔑 ${escapeHtml(String(b.clientId).slice(0, 10))}…</span>
+        <span><span class="type-tag red">🚫 已限制发言</span></span>
+      </div>
+      <div class="meta">🕒 ${escapeHtml(b.createdAt)}${b.reason ? ' · 原因：' + escapeHtml(b.reason) : ''}</div>
+      <div class="actions">
+        <button class="btn-unban" data-client="${escapeHtml(b.clientId)}">✅ 解除限制</button>
+      </div>
+    `;
+    box.appendChild(el);
+  });
+
+  box.querySelectorAll('.btn-unban').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const clientId = btn.dataset.client;
+      const ok = await showConfirm('解除限制', '解除后这个人可以重新发帖，之前被隐藏的帖子仍需要你手动恢复显示。确定吗？');
+      if (!ok) return;
+
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/blog/moderate', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unban', clientId: clientId })
+        });
+        const data = await res.json();
+        if (data && data.ok) { showToast('✅ 已解除限制'); loadBlogPanel(); }
+        else { btn.disabled = false; showToast('操作失败'); }
+      } catch (e) {
+        btn.disabled = false;
+        showToast('网络异常');
+      }
+    });
+  });
+}
+
+async function moderateBlog(id, action) {
+  const item = blogCache.find(i => Number(i.id) === id);
+
+  const CONFIRM = {
+    hide: '隐藏这条帖子？玩家端立刻看不到，但数据保留，随时可以恢复。',
+    delete: '永久删除这条帖子？它下面的回复、点赞、举报记录都会一起消失，无法恢复。',
+    ban: '拉黑作者？他名下所有帖子会全部下线，并且这台浏览器再也发不了帖。',
+    resetReports: '把举报数清零并恢复显示？用在确认是误报的时候。'
+  };
+
+  if (CONFIRM[action]) {
+    const ok = await showConfirm('确认操作', CONFIRM[action]);
+    if (!ok) return;
+  }
+
+  const payload = { action: action, id: id };
+  if (action === 'ban' && item) payload.reason = '管理员在博客管理中限制发言';
+
+  try {
+    const res = await fetch('/api/blog/moderate', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data && data.ok) {
+      if (action === 'delete') showToast('🗑️ 已删除');
+      else if (action === 'hide') showToast('🙈 已隐藏');
+      else if (action === 'show') showToast('👁️ 已恢复显示');
+      else if (action === 'ban') showToast('🚫 已拉黑，下线了 ' + (data.hidden || 0) + ' 条帖子');
+      else showToast('🔁 已复位');
+      loadBlogPanel();
+    } else if (data && data.error === 'no_client_id') {
+      showToast('这条帖子没有浏览器身份（旧数据），改用「删除」处理吧');
+    } else {
+      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+    }
+  } catch (e) {
+    showToast('网络异常');
+  }
+}
+
+/* 刷新按钮 */
+(function () {
+  const btn = document.getElementById('refreshBlogBtn');
+  if (btn) btn.addEventListener('click', loadBlogPanel);
+})();
+
+/* ============================================================
    全局暴露（供 admin.html 内联脚本批量导入使用）
    ============================================================ */
 window.loadSongs = loadSongs;
 window.loadRobloxStats = loadRobloxStats;
 window.addSongToServer = addSongToServer;
 window.loadStatsPanel = loadStatsPanel;
+window.loadBlogPanel = loadBlogPanel;

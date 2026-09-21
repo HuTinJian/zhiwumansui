@@ -28,9 +28,10 @@
 
 ```
 .
-├── index.html                 主页（只放一张卡片，其余入口在导航栏）
-├── feedback.html              反馈提交页
-├── roblox_music.html          Roblox ID 宝库页（搜索 / 分页 / 随机 / 复制 / 收藏 / 隔离区）
+├── index.html                 主页（卡片入口 + 站点介绍）
+├── roblox_music.html          卡片1 · Roblox ID 宝库（搜索 / 分页 / 随机 / 复制 / 收藏 / 隔离区）
+├── blog.html                  卡片2 · 玩家博客（发帖 / 回复 / 点赞 / 举报）
+├── feedback.html              反馈提交页（去掉了邮箱，改成后台处理 + 回执弹窗）
 ├── admin.html                 后台管理页（需登录，4 个标签：反馈 / 更新 / 卡片 / 数据统计）
 ├── 404.html                   找不到页面时显示的页面（Cloudflare Pages 会自动使用它）
 ├── css/                       样式
@@ -38,13 +39,15 @@
 │   └── update-modal.css       版本更新弹窗专用（只在要弹公告时才加载）
 ├── js/
 │   ├── auth.js                登录弹窗、登录态检查、后台入口（连点标题 3 次）
-│   ├── admin.js               后台各模块逻辑（反馈 / 鸣谢 / 隔离区 / 歌曲 / 导出）
+│   ├── admin.js               后台各模块逻辑（反馈 / 鸣谢 / 隔离区 / 歌曲 / 博客 / 导出）
+│   ├── common.js              全站共用：弹窗、提示、主题、浏览器身份、反馈回执
 │   └── ...                    其它页面脚本
 ├── data/
-│   └── roblox_music.json      站点内置的歌曲数据（静态、只读）
+│   ├── roblox_music.json      站点内置的歌曲数据（静态、只读）
+│   └── admin_quarantine.json  管理员隔离区的静态快照（由 JSON 合并工具导出，见第五节）
 ├── tools/
 │   ├── update-notice.html     更新公告配置工具（**仅后台可用**，内部 iframe）
-│   ├── json-merge.html        JSON 合并工具（**仅后台可用**，内部 iframe）
+│   ├── json-merge.html        JSON 合并工具 + 隔离区导出（**仅后台可用**，内部 iframe）
 │   ├── rollback.bat           版本回退小工具（本地双击运行，和网站本身无关）
 │   └── rollback.ps1           上面那个小工具的实现
 ├── images/                    图片资源
@@ -54,14 +57,16 @@
 │       ├── auth/              login.js（登录）/ check.js（登录态）/ logout.js（退出）
 │       ├── songs/             list.js / add.js / delete.js / clear.js / export.js
 │       ├── quarantine/        list.js / import.js / delete.js
-│       ├── feedback.js        公开提交反馈
-│       ├── feedback/          list.js / delete.js / status.js / import-quarantine.js
+│       ├── feedback.js        公开提交反馈（无需邮箱，带浏览器身份）
+│       ├── feedback/          list.js / delete.js / status.js（受理·拒绝）/ mine.js（查自己的）/ import-quarantine.js
+│       ├── blog/              list.js / add.js / like.js / report.js / remove.js（自删）/ moderate.js（后台处置）/ admin-list.js / _moderation.js（敏感词）
 │       ├── hot/               list.js（公开榜单）/ report.js（上报）
 │       ├── visit/             stats.js（渠道统计）/ report.js（上报）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
 │       ├── updates.js         版本公告（GET 公开，写需登录）
 │       └── risk.js            风险弹窗版本
-├── schema.sql                 D1 建表语句（部署前执行一次）
+├── schema.sql                 D1 建表语句（**全新部署**跑这个）
+├── migrations.sql             D1 增量迁移（**老库补字段 / 补表**跑这个，见第五节）
 ├── _headers                   Cloudflare Pages 静态资源响应头（安全头 + 缓存策略）
 ├── .gitignore                 忽略 .dev.vars（本地密钥）等
 └── README.md                  本文件
@@ -155,8 +160,31 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 ```
 
 `schema.sql` 会创建：`feedback`、`quarantine_admin`、`songs_extra`、`thanks`、
-`page_updates`、`hot_songs`、`visit_sources` 以及 3 个索引，语句都是
-`CREATE TABLE IF NOT EXISTS`，重复执行安全。
+`page_updates`、`hot_songs`、`visit_sources`、`blog_posts`、`blog_likes`、`blog_reports`、
+`blog_bans` 以及若干索引，语句都是 `CREATE TABLE IF NOT EXISTS`，重复执行安全。
+
+### 2.5 老库要补跑一次 migrations.sql ⚠️
+
+**如果你的数据库是之前建的、`feedback` 表已经在用了**，光重跑 `schema.sql` 是不够的 ——
+`CREATE TABLE IF NOT EXISTS` 见到表已存在就直接跳过，**不会给已有的表补新字段**。
+
+新功能（反馈回执、博客）需要几个新字段和新表，所以老库要再跑一次 `migrations.sql`：
+
+```bash
+npx wrangler d1 execute zhimist-db --remote --file=./migrations.sql
+```
+
+```
+# 或者控制台：D1 → Console → 把 migrations.sql 的内容逐条粘进去执行
+```
+
+它做两件事：
+
+1. 给 `feedback` 表补上 `client_id`、`reply`、`decided_at` 三个字段（反馈回执靠它们）；
+2. 建好 `blog_posts`、`blog_likes`、`blog_reports`、`blog_bans` 四张博客表。
+
+> 某条语句报 `duplicate column name: xxx` 是**正常的**，说明那个字段之前已经加过了，
+> 跳过它继续执行后面的就行。全新部署的库不用管这个文件。
 
 ### 3. 生成 AUTH_HASH（管理员密码的哈希）
 
@@ -332,6 +360,52 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 
 ---
 
+## 附一：博客、反馈回执与隔离区快照
+
+### 1）玩家博客（卡片2 · `blog.html`）
+
+玩家交流用的留言板：**不需要注册**，填个昵称就能发帖、回复、点赞。
+
+- **回复**只做一层：主帖下面可以回复，回复的回复会归到同一条主帖下，不会无限套娃。
+- **自己发的帖子**可以在帖子上直接删掉。靠的是浏览器本地那串随机身份（见下），
+  换台电脑就认不出来了 —— 这是"轻量身份"，不是真的账号密码。
+- **违规内容处理**（三层）：
+  1. **敏感词**：发帖时先过一遍词表，命中就直接拒收并告诉你哪个词。
+     词表在 `functions/api/blog/_moderation.js` 里，想加词直接往数组里塞。
+  2. **举报**：每人对同一条只能举报一次；**被 3 个人举报就自动隐藏**，等管理员复核。
+     阈值是同一个文件里的 `AUTO_HIDE_REPORTS`。
+  3. **后台处置**：后台 → 卡片管理 → 📝 玩家博客，可以
+     `隐藏 / 恢复显示`、`误报复位`、`删除`、以及 **`拉黑作者`**。
+     拉黑是按浏览器身份生效的 —— 换个昵称照样发不出来，他名下已有的帖子也会一起下线。
+
+### 2）反馈：不用留邮箱了
+
+- 表单里的**邮箱字段已删除**。改用浏览器身份 + 后台处理 + 回执弹窗：
+  1. 访客提交反馈时，前端会带上本机随机生成的一串身份（存在 `localStorage`）。
+  2. 你在后台每条反馈下面写一句说明（选填），点 **✅ 受理** 或 **🚫 拒绝**。
+  3. 访客**下次打开他当初选择的那个页面**时，会看到一个弹窗告诉他结果，
+     里面带着你写的那句话。同一条只提示一次。
+- 反馈类型改成了两级：**主页 / 反馈 / 卡片（▸ Roblox ID 宝库、▸ 玩家博客）/ 其他**。
+- 老反馈没有浏览器身份，回执送不到 —— 后台会标一句"旧数据无身份"，处理时也会先问一下你。
+- 界面上那串身份只是 32 位随机十六进制，**不含任何个人信息**，也猜不到别人的。
+
+### 3）管理员隔离区快照（让宝库页打开更快）
+
+- 后台 → 卡片管理 → 🎵 Roblox ID 宝库 → 📦 JSON 合并工具，底部多了一个
+  **「导出管理员隔离区」**：点一下就会下载 `admin_quarantine.json`。
+- 把它放进网站的 `data/` 目录（覆盖旧文件）一起上传即可。
+- 之后宝库页会**先读这份静态文件**（走 CDN 缓存，几乎瞬间到），
+  再和接口返回的实时名单**取并集** —— 所以既快，又不会漏掉刚导入的新 ID。
+- 数据量大了以后建议时不时重新导出一份，静态那份覆盖掉大多数记录，接口只需回很少的新数据。
+
+### 4）游客隔离区会自动跟着管理员隔离区走
+
+某条 ID 一旦被导入管理员隔离区，就属于"全站已处理"。其他访客的本地隔离区里如果还留着它，
+**下次打开宝库页时会自动删掉**，并提示一句"已被全站处理，已自动移除"。
+这样同一条 ID 不会在每个人的隔离区里各留一份、越攒越多。
+
+---
+
 ## 六、想改点什么？先看这张表
 
 不用懂代码也能大致找到地方，改完推到 GitHub，Cloudflare 会自动重新部署。
@@ -347,6 +421,10 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **手机上关掉的特效** | `css/style.css` | 搜 `html.lite`；`js/common.js` 里的 `isLiteMode()` 决定什么时候进入精简模式 |
 | **宝库里的歌** | 后台「卡片管理」 | 增删都会写进 D1；也可以直接改 `data/roblox_music.json`（改完要重新部署） |
 | **每页显示多少组** | `roblox_music.html` | 搜 `const PAGE_SIZE`，默认 100 组一页；改完分页器会自己重算页数 |
+| **博客的敏感词** | `functions/api/blog/_moderation.js` | 搜 `BLOCKED_WORDS`，往数组里加词即可（会自动做去空格、全角转半角） |
+| **举报几条自动隐藏** | `functions/api/blog/_moderation.js` | 搜 `AUTO_HIDE_REPORTS`，默认 3 |
+| **博客昵称/正文长度** | `functions/api/blog/_moderation.js` | 搜 `LIMITS`；前端 `blog.html` 里的 `maxlength` 要一起改 |
+| **反馈处理结果的提示文案** | `js/common.js` | 搜 `showDecisionModal`，受理/拒绝两段话都在里面 |
 | **更新公告** | 后台「更新管理」 | 填好内容点保存，访客下次打开对应页面就会看到弹窗 |
 | **看热门榜 / 访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来；点「🔄 刷新」重新拉一次 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
@@ -464,7 +542,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 
 | 档案里写的 | 现状 |
 | --- | --- |
-| D1 共 7 张表 | `schema.sql` 里 7 张全在，字段一致 |
+| D1 表结构 | `schema.sql` 里全套都在（原 7 张 + 博客 4 张），字段一致 |
 | 20 个 API 接口 | 实际有 **24 个**（档案少算了 3 个，另外这次新加了 `hot/delete`），全部存在且可用 |
 | 三层隔离机制（开发者 / 游客 / 反馈上传） | 完整保留 |
 | 宝库页数据合并逻辑（JSON + D1 − 两种隔离区） | 完整保留 |

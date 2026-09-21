@@ -31,9 +31,9 @@ export async function onRequestGet(context) {
     const total = (countRow && countRow.total) || 0;
 
     const result = await env.DB.prepare(
-      `SELECT id, type, name, email, message,
+      `SELECT id, type, name, message,
               want_thanks, upload_quarantine, quarantine_ids,
-              status, created_at
+              status, created_at, client_id, reply, decided_at
        FROM feedback
        ORDER BY id DESC
        LIMIT ? OFFSET ?`
@@ -43,13 +43,16 @@ export async function onRequestGet(context) {
       id: r.id,
       type: r.type,
       name: r.name,
-      email: r.email || '',
       message: r.message,
       want_thanks: r.want_thanks || 0,
       upload_quarantine: r.upload_quarantine || 0,
       quarantine_ids: safeParse(r.quarantine_ids, []),
       status: r.status || 'pending',
-      created_at: r.created_at
+      created_at: r.created_at,
+      /* 回执相关：处理结果靠 client_id 找到提出的人 */
+      client_id: r.client_id || '',
+      reply: r.reply || '',
+      decided_at: r.decided_at || ''
     }));
 
     return json({ ok: true, data: list, total });

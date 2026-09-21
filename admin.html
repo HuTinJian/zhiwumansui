@@ -128,6 +128,29 @@
     .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-2px); }
     .list-item .actions button:active { transform: scale(0.92); }
 
+    /* ---------- 反馈处理结果 ---------- */
+    .list-item .type-tag.green { background: var(--success-strong); color: #fff; }
+    .list-item .type-tag.red { background: var(--danger); color: #fff; }
+    .list-item .actions .btn-accept { background: var(--success-strong); color: #fff; }
+    .list-item .actions .btn-accept:hover:not([disabled]) { background: #35604f; transform: translateY(-2px); }
+    .list-item .actions .btn-reject { background: var(--danger); color: #fff; }
+    .list-item .actions .btn-reject:hover:not([disabled]) { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-reset {
+      background: var(--bg-soft); color: var(--text-light); border: 1px solid var(--border);
+    }
+    .list-item .actions .btn-reset:hover:not([disabled]) { background: var(--bg-tint); color: var(--primary); }
+    .list-item .actions button[disabled] { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+    /* 给访客的一句话说明（会显示在他的回执弹窗里） */
+    .list-item .fb-decide { margin-bottom: 10px; }
+    .list-item .fb-reply {
+      width: 100%; padding: 9px 15px; font-size: 0.85rem; font-family: var(--font);
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      background: var(--bg); color: var(--text); outline: none;
+      transition: border-color var(--dur) var(--ease-soft);
+    }
+    .list-item .fb-reply:focus { border-color: var(--primary); }
+
     .fb-quarantine {
       display: none; margin-top: 12px; padding: 12px 14px;
       background: var(--bg-card); border: 1px solid var(--border);
@@ -505,6 +528,7 @@
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 Roblox ID 宝库</button>
+        <button class="subtab" data-subpanel="card2-panel">📝 玩家博客</button>
       </div>
 
       <div class="subpanel active" id="card1-panel">
@@ -598,6 +622,34 @@
         </div>
       </div>
 
+      <!-- 卡片2 · 玩家博客 -->
+      <div class="subpanel" id="card2-panel">
+
+        <div class="panel-card">
+          <h2>
+            📝 博客帖子管理
+            <span class="count" id="blogCount">0</span>
+            <span class="head-actions">
+              <button class="btn btn-secondary" id="refreshBlogBtn">🔄 刷新</button>
+            </span>
+          </h2>
+          <p class="desc" style="margin:-6px 0 14px;font-size:0.85rem;color:var(--text-muted);line-height:1.8;">
+            玩家发的帖子都在这里。被 3 个人举报会自动隐藏等你复核；
+            <b>拉黑</b>是按「浏览器身份」生效的 —— 换个昵称照样发不出来，他名下已有的帖子也会一起下线。
+          </p>
+          <div id="blogList">
+            <div class="loading">加载中...</div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h2>🚫 已限制发言的浏览器身份</h2>
+          <div id="blogBanList">
+            <div class="empty-state">暂无限制记录</div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- 数据统计 -->
@@ -837,6 +889,11 @@ See You Again 2456502348
           if (iframe) {
             lazyLoadIframe(iframe);
             setTimeout(function () { fitIframe(iframe); }, 300);
+          }
+
+          /* 博客管理：第一次切到这个面板时才去拉数据 */
+          if (targetId === 'card2-panel' && typeof window.loadBlogPanel === 'function') {
+            window.loadBlogPanel();
           }
         });
       });

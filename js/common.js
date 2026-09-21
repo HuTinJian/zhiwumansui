@@ -827,6 +827,9 @@
 
     /* 稍微延后一点弹，先让页面画出来，避免「白屏等弹窗」的感觉 */
     setTimeout(showPreviewNotice, document.documentElement.classList.contains('lite') ? 300 : 700);
+
+    /* 反馈处理回执：接口不可用时会被内部 try/catch 静默跳过，不影响页面 */
+    checkFeedbackDecision();
   }
 
   if (document.readyState === 'loading') {
@@ -1208,6 +1211,181 @@
   }
 
   /* ============================================================
+     10.5 浏览器身份 & 反馈回执
+     ------------------------------------------------------------
+     · getClientId()：给每个浏览器生成一串随机身份存在本地。
+       它不是账号、不含任何个人信息，只在两处用到：
+         ① 提交反馈时带上，管理员受理/拒绝后才能找到"是谁提的"
+         ② 博客里区分"哪些帖是我发的 / 我赞过的 / 我举报过的"
+     · 管理员处理完一条反馈后，访客下次进入他当初选择的那个页面，
+       会看到一次回执弹窗。同一条反馈只提示一次（状态记在本地）。
+     ============================================================ */
+
+  const CLIENT_ID_KEY = 'zm_client_id';
+  const FEEDBACK_SEEN_KEY = 'zm_feedback_seen';
+
+  /* 反馈类型 → 该去哪一页提示（和后台的页面划分一致） */
+  const TYPE_PAGE = {
+    '主页': 'index',
+    '反馈': 'feedback',
+    '卡片1': 'roblox',
+    '卡片2': 'blog',
+    '其他': 'feedback'
+  };
+
+  function getClientId() {
+    let id = null;
+    try { id = localStorage.getItem(CLIENT_ID_KEY); } catch (e) {}
+
+    if (id && /^[a-z0-9]{16,40}$/.test(id)) return id;
+
+    /* 用 crypto 生成 32 位十六进制；极老的浏览器退回 Math.random */
+    let next = '';
+    try {
+      const buf = new Uint8Array(16);
+      (window.crypto || window.msCrypto).getRandomValues(buf);
+      next = Array.prototype.map.call(buf, b => ('0' + b.toString(16)).slice(-2)).join('');
+    } catch (e) {
+      next = '';
+      for (let i = 0; i < 32; i++) next += Math.floor(Math.random() * 16).toString(16);
+    }
+
+    try { localStorage.setItem(CLIENT_ID_KEY, next); } catch (e) {}
+    return next;
+  }
+
+  /* 当前页面属于哪一个反馈页面键 */
+  function currentPageKey() {
+    const path = (window.location.pathname || '').toLowerCase();
+    if (path.indexOf('roblox_music') !== -1) return 'roblox';
+    if (path.indexOf('feedback') !== -1) return 'feedback';
+    if (path.indexOf('blog') !== -1) return 'blog';
+    if (path.indexOf('admin') !== -1 || path.indexOf('404') !== -1) return '';
+    return 'index';
+  }
+
+  function readSeen() {
+    try {
+      const raw = localStorage.getItem(FEEDBACK_SEEN_KEY);
+      const obj = raw ? JSON.parse(raw) : {};
+      return (obj && typeof obj === 'object') ? obj : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeSeen(seen) {
+    try { localStorage.setItem(FEEDBACK_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+  }
+
+  /* 展示处理结果。文案分「受理」和「拒绝」两种，另附管理员可选的说明 */
+  function showDecisionModal(item) {
+    const PAGE_LABEL = { index: '首页', feedback: '反馈页', roblox: 'Roblox ID 宝库', blog: '玩家博客' };
+    const pageLabel = PAGE_LABEL[TYPE_PAGE[item.type] || ''] || '本站';
+    const approved = item.status === 'approved';
+
+    const modalId = 'feedbackDecisionModal';
+    const old = document.getElementById(modalId);
+    if (old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', modalId + 'Title');
+
+    const icon = approved ? '✅' : '🙏';
+    const title = approved ? '你提的建议已受理' : '你提的建议暂时没法采纳';
+    const lead = approved
+      ? '你在「' + pageLabel + '」提交的那条反馈，我们看过并且已经受理了。'
+      : '你在「' + pageLabel + '」提交的那条反馈，我们认真看过了，很遗憾这次没能采纳。';
+
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2 id="${modalId}Title" style="display:flex;align-items:center;gap:8px;">
+          <span aria-hidden="true">${icon}</span>${escapeHtml(title)}
+        </h2>
+        <p style="margin:10px 0 6px;color:var(--text-light);line-height:1.8;font-size:0.92rem;">
+          ${escapeHtml(lead)}
+        </p>
+        <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg-tint);border:1px solid var(--border);">
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">
+            📌 你当时提交的内容${item.createdAt ? '（' + escapeHtml(item.createdAt) + '）' : ''}
+          </div>
+          <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.excerpt || '')}</div>
+        </div>
+        ${item.reply ? `
+          <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg-soft);border:1px dashed var(--border-strong);">
+            <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">💬 站长说明</div>
+            <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.reply)}</div>
+          </div>` : ''}
+        <div style="margin-top:16px;text-align:center;font-size:0.82rem;color:var(--text-muted);">
+          感谢你的反馈，它真的帮到了这个站点 ❤️
+        </div>
+        <div class="update-footer" style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" id="${modalId}Ok">我知道了</button>
+          <a class="btn btn-secondary" href="feedback.html">💬 再提一条</a>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    openModal(modalId);
+
+    const ok = document.getElementById(modalId + 'Ok');
+    if (ok) ok.onclick = () => closeModal(modalId);
+  }
+
+  /* 查一次"我提过的反馈有没有被处理"，有新的结果就弹窗。
+     用 try/catch 包住：接口不可用（比如本地没有后端）时静默跳过，不影响页面。 */
+  async function checkFeedbackDecision() {
+    const pageKey = currentPageKey();
+    if (!pageKey) return;
+    if (document.documentElement.getAttribute('data-notice') === 'off') return;
+
+    const clientId = getClientId();
+
+    let list = null;
+    try {
+      const res = await fetch('/api/feedback/mine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId })
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !data.ok || !Array.isArray(data.data)) return;
+      list = data.data;
+    } catch (e) {
+      return;
+    }
+
+    const seen = readSeen();
+    let changed = false;
+    let target = null;
+
+    list.forEach(item => {
+      /* 只关心已经出结果、且属于当前这个页面的 */
+      if (item.status !== 'approved' && item.status !== 'rejected') return;
+      if (TYPE_PAGE[item.type] !== pageKey) return;
+      if (seen[item.id] === item.status) return;
+
+      seen[item.id] = item.status;
+      changed = true;
+      /* 一次只弹一条，最新的优先（接口已按 id 倒序） */
+      if (!target) target = item;
+    });
+
+    if (changed) writeSeen(seen);
+    if (!target) return;
+
+    /* 等「预览版告知」和「版本更新」两个弹窗先处理完，避免三个撞在一起 */
+    await noticeGate;
+    setTimeout(() => showDecisionModal(target), 300);
+  }
+
+  /* ============================================================
      11. 导出到全局
      ------------------------------------------------------------
      只导出「页面脚本真的会用到」的这几个。其余函数（限速、主题切换、
@@ -1224,6 +1402,7 @@
     debounce,         // 防抖
     escapeHtml,       // 转义，防 XSS
     formatVersion,    // 把版本号排成好看的样子
-    checkPageUpdate   // 检查该页面是否有新版本公告
+    checkPageUpdate,  // 检查该页面是否有新版本公告
+    getClientId       // 本浏览器的随机身份（反馈回执 / 博客归属都用它）
   });
 })();

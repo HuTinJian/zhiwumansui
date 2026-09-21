@@ -359,6 +359,27 @@
       </div>
     </div>
 
+    <!-- 管理员隔离区导出 -->
+    <div class="card">
+      <h2>⛔ 导出管理员隔离区（admin_quarantine.json）</h2>
+      <p class="hint">
+        把后台「开发者隔离区」里的 ID 导出成 <b>data/admin_quarantine.json</b>，跟着网站一起上传。
+        <br>这样访客打开宝库页时，这份名单走 CDN 静态缓存直接读，不用干等接口返回，首页更快。
+        <br>之后新导入的隔离区 ID 仍由接口实时返回，两边会自动取并集，不会漏掉。
+      </p>
+      <div class="result-stats">
+        <div class="stat-item">
+          <div class="num" id="qCount">-</div>
+          <div class="label">隔离区条数</div>
+        </div>
+      </div>
+      <div class="preview" id="qPreview" style="max-height:160px;"></div>
+      <div class="actions" style="margin-bottom:0;">
+        <button class="btn btn-secondary" id="qLoadBtn">🔄 读取当前隔离区</button>
+        <button class="btn btn-success" id="qDownloadBtn" disabled>💾 下载 admin_quarantine.json</button>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -539,6 +560,78 @@
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新上传整个网站到 Cloudflare');
     });
+
+    /* ============================================================
+       管理员隔离区导出
+       ------------------------------------------------------------
+       作用：把隔离区名单固化成 data/admin_quarantine.json。
+       宝库页会先读这份静态文件（CDN 缓存，几乎瞬间到），
+       再和接口返回的实时名单取并集 —— 所以既快又不会漏新数据。
+       ============================================================ */
+    const qLoadBtn = document.getElementById('qLoadBtn');
+    const qDownloadBtn = document.getElementById('qDownloadBtn');
+    const qCountEl = document.getElementById('qCount');
+    const qPreview = document.getElementById('qPreview');
+    let quarantineList = null;
+
+    async function loadQuarantine(silent) {
+      qLoadBtn.disabled = true;
+      qLoadBtn.textContent = '⏳ 读取中…';
+      try {
+        const res = await fetch('/api/quarantine/list?t=' + Date.now(), { credentials: 'include' });
+        const data = await res.json();
+        if (!data || !data.ok || !Array.isArray(data.data)) throw new Error('bad response');
+
+        quarantineList = data.data.map(function (i) {
+          return {
+            id: String(i.id || ''),
+            name: String(i.name || ''),
+            category: String(i.category || '未分类'),
+            source: String(i.source || '')
+          };
+        }).filter(function (i) { return i.id; });
+
+        qCountEl.textContent = quarantineList.length;
+        qPreview.textContent = JSON.stringify(quarantineList.slice(0, 5), null, 2) +
+          (quarantineList.length > 5 ? '\n...' : '');
+        qDownloadBtn.disabled = quarantineList.length === 0;
+
+        if (!silent && quarantineList.length === 0) {
+          alert('隔离区现在是空的，先去后台「开发者隔离区」加几条再来导出。');
+        }
+      } catch (e) {
+        if (!silent) alert('❌ 读取失败：请确认已经登录后台（未登录会返回 401）');
+        qCountEl.textContent = '-';
+      }
+      qLoadBtn.disabled = false;
+      qLoadBtn.textContent = '🔄 读取当前隔离区';
+    }
+
+    qLoadBtn.addEventListener('click', function () { loadQuarantine(false); });
+
+    qDownloadBtn.addEventListener('click', function () {
+      if (!quarantineList || quarantineList.length === 0) {
+        alert('❌ 还没有读到数据，先点「读取当前隔离区」');
+        return;
+      }
+      if (!confirm('确定下载吗？共 ' + quarantineList.length + ' 条隔离区记录')) return;
+
+      const content = JSON.stringify(quarantineList, null, 2);
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'admin_quarantine.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+      alert('✅ 已下载！\n\n接下来：\n1. 把它放进网站文件夹的 data/ 目录（覆盖旧的 admin_quarantine.json）\n2. 重新上传网站到 Cloudflare');
+    });
+
+    /* 打开工具时自动读一次，省得每次都要点一下 */
+    loadQuarantine(true);
   </script>
 
   <!-- ============================================================

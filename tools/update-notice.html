@@ -736,6 +736,7 @@
       </div>
       <div class="page-sub-tabs" id="cardSubTabs">
         <button class="page-tab active" data-page="roblox">🎵 Roblox ID 宝库</button>
+        <button class="page-tab" data-page="blog">📝 玩家博客</button>
       </div>
     </div>
 
@@ -1185,7 +1186,7 @@
 
         if (data.ok) {
           dirty = false;
-          const pageName = { index: '主页', feedback: '反馈', roblox: 'Roblox ID 宝库' }[currentPage] || currentPage;
+          const pageName = { index: '主页', feedback: '反馈', roblox: 'Roblox ID 宝库', blog: '玩家博客' }[currentPage] || currentPage;
           setStatus('✅ 已保存到「' + pageName + '」，用户下次打开会看到新弹窗', 'ok');
         } else {
           setStatus('❌ 保存失败：' + (data.error || '未知错误'), 'err');
