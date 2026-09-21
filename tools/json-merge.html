@@ -306,6 +306,9 @@
     <div class="card">
       <h2>📁 原有数据（data/roblox_music.json）</h2>
       <p class="hint">点下面方框，选择你网站文件夹里的 roblox_music.json；也可以直接把文件拖进去。</p>
+      <div class="actions" style="margin:0 0 14px;">
+        <button class="btn btn-secondary" id="loadSiteJsonBtn">📥 直接读网站上的 roblox_music.json</button>
+      </div>
       <label class="upload-box" id="uploadBoxA">
         <input type="file" id="fileA" accept=".json,application/json">
         <div class="upload-icon">📂</div>
@@ -319,6 +322,9 @@
     <div class="card">
       <h2>📁 D1 导出的新歌（songs_extra_xxx.json）</h2>
       <p class="hint">点下面方框，选择后台刚导出的 songs_extra_xxx.json；也可以直接把文件拖进去。</p>
+      <div class="actions" style="margin:0 0 14px;">
+        <button class="btn btn-secondary" id="loadD1SongsBtn">📥 直接读线上 D1 里的新歌</button>
+      </div>
       <label class="upload-box" id="uploadBoxB">
         <input type="file" id="fileB" accept=".json,application/json">
         <div class="upload-icon">📂</div>
@@ -560,6 +566,72 @@
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/roblox_music.json\n2. 重新上传整个网站到 Cloudflare');
     });
+
+    /* ============================================================
+       一键读取：不用再手动导文件了
+       ------------------------------------------------------------
+       两边数据其实都够得着，所以做成和「隔离区导出」一样的自动读取：
+         A 边 = 网站上的 data/roblox_music.json（公开静态文件）
+         B 边 = /api/songs/list（D1 里后台新增的歌，需登录）
+       打开工具时会自动读一次，读完直接点「合并」就行；
+       手动选文件/拖拽的老路子仍然保留，作为兜底。
+       ============================================================ */
+    const loadSiteJsonBtn = document.getElementById('loadSiteJsonBtn');
+    const loadD1SongsBtn = document.getElementById('loadD1SongsBtn');
+
+    function showLoadedA(data, source) {
+      dataA = data;
+      fileInfoA.textContent = '✅ ' + source + '：' + data.length + ' 条';
+      previewA.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
+      checkReady();
+    }
+
+    function showLoadedB(data, source) {
+      dataB = data;
+      fileInfoB.textContent = '✅ ' + source + '：' + data.length + ' 条';
+      previewB.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
+      checkReady();
+    }
+
+    async function fetchSiteJson(silent) {
+      if (!silent) { loadSiteJsonBtn.disabled = true; loadSiteJsonBtn.textContent = '⏳ 读取中…'; }
+      try {
+        /* 相对路径：工具页在 /tools/ 下，往上一级才是网站的 data/ */
+        const res = await fetch('../data/roblox_music.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('内容不是数组');
+        showLoadedA(data, '已从网站读取');
+      } catch (e) {
+        if (!silent) {
+          alert('❌ 读取失败：' + e.message +
+            '\n\n（用 file:// 直接打开这个工具页时会读不到，请用 wrangler 本地预览，或手动选文件）');
+        }
+      }
+      if (!silent) { loadSiteJsonBtn.disabled = false; loadSiteJsonBtn.textContent = '📥 直接读网站上的 roblox_music.json'; }
+    }
+
+    async function fetchD1Songs(silent) {
+      if (!silent) { loadD1SongsBtn.disabled = true; loadD1SongsBtn.textContent = '⏳ 读取中…'; }
+      try {
+        const res = await fetch('/api/songs/list?t=' + Date.now(), { credentials: 'include' });
+        const data = await res.json();
+        if (!data || !data.ok || !Array.isArray(data.data)) throw new Error('接口未返回有效数据');
+        showLoadedB(data.data, '已从 D1 读取');
+      } catch (e) {
+        if (!silent) {
+          alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
+        }
+      }
+      if (!silent) { loadD1SongsBtn.disabled = false; loadD1SongsBtn.textContent = '📥 直接读线上 D1 里的新歌'; }
+    }
+
+    loadSiteJsonBtn.addEventListener('click', function () { fetchSiteJson(false); });
+    loadD1SongsBtn.addEventListener('click', function () { fetchD1Songs(false); });
+
+    /* 打开工具就自动读一次（静默失败，不弹窗打扰） */
+    fetchSiteJson(true);
+    fetchD1Songs(true);
 
     /* ============================================================
        管理员隔离区导出

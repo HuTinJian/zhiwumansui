@@ -46,6 +46,11 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too_long', max: maxLen }, 400);
     }
 
+    /* 博客是「文章制」：主帖必须有标题；评论（回复）才不需要 */
+    if (!isReply && !title) {
+      return json({ ok: false, error: 'empty title' }, 400);
+    }
+
     if (await isBanned(env, clientId)) {
       return json({ ok: false, error: 'banned' }, 403);
     }
