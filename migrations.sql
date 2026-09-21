@@ -8,28 +8,44 @@
 --   那么单纯重跑 schema.sql 不会给已有的表补上新字段
 --   （CREATE TABLE IF NOT EXISTS 见到表存在就跳过了）。
 --
--- 【怎么跑】
---   Cloudflare 控制台 → D1 → 选中你的库 → Console（查询编辑器）
---   把下面语句一条一条粘进去执行即可。
+-- 【⚠️ 怎么跑 —— 这里最容易搞错】
+--   Cloudflare 网页上的 D1 Console 是一个【SQL 查询框】，只认 SQL 语句。
+--   所以千万不要把 `npx wrangler ...` 那种命令行粘进去，
+--   那样只会得到一句 `near "npx": syntax error`。
 --
---   ⚠️ 如果某条报 `duplicate column name: xxx`，说明这个字段之前已经加过了，
---      直接跳过它、继续执行下一条就行，不影响其它语句。
+--   两种正确做法，选一种：
+--
+--   ① 网页版（推荐，什么都不用装）
+--      Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
+--        · 先一条一条执行下面第 1 组的 3 条 ALTER
+--        · 再整个执行第 2 组（建表 + 索引）
+--      某条报 `duplicate column name: xxx` 是正常的，说明那个字段之前加过了，
+--      跳过它继续执行后面的就行。
+--
+--   ② 命令行版（要在你自己电脑的终端里跑，不是在 Cloudflare 网页里）
+--      需要先装 Node.js，然后在项目根目录执行：
+--        npx wrangler d1 execute <你的库名> --remote --file=./migrations.sql
 -- ============================================================
 
 
--- ---------- 1. 反馈：浏览器身份 + 处理结果回执 ----------
--- client_id：游客浏览器的稳定标识，用来把「处理结果」回传给提出问题的那个人
--- reply    ：管理员给的一句话说明（选填）
+-- ---------- 第 1 组：给 feedback 补三个字段（请一条一条执行） ----------
+-- client_id ：游客浏览器的稳定标识，用来把「处理结果」回传给提出问题的那个人
+-- reply     ：管理员给的一句话说明（选填）
 -- decided_at：受理 / 拒绝的时间
 ALTER TABLE feedback ADD COLUMN client_id TEXT;
+
 ALTER TABLE feedback ADD COLUMN reply TEXT;
+
 ALTER TABLE feedback ADD COLUMN decided_at TEXT;
+
+
+-- ---------- 第 2 组：索引与博客表（可以整段一起执行） ----------
 
 -- 加速「查我自己的反馈」这个查询
 CREATE INDEX IF NOT EXISTS idx_feedback_client ON feedback(client_id);
 
-
--- ---------- 2. 博客（卡片2 · 玩家交流） ----------
+-- 博客（卡片2 · 玩家交流）
+-- parent_id 为 NULL 是主帖（文章），否则是对某篇文章的评论（只做一层嵌套）
 CREATE TABLE IF NOT EXISTS blog_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   parent_id INTEGER,
@@ -49,7 +65,7 @@ CREATE TABLE IF NOT EXISTS blog_likes (
   PRIMARY KEY (post_id, client_id)
 );
 
--- 每人每帖只能举报一次（防止一个人连点三次就把别人的帖子刷下线）
+-- 每人每篇只能举报一次（防止一个人连点三次就把别人的文章刷下线）
 CREATE TABLE IF NOT EXISTS blog_reports (
   post_id INTEGER NOT NULL,
   client_id TEXT NOT NULL,
@@ -66,3 +82,4 @@ CREATE TABLE IF NOT EXISTS blog_bans (
 
 CREATE INDEX IF NOT EXISTS idx_blog_parent ON blog_posts(parent_id, id DESC);
 CREATE INDEX IF NOT EXISTS idx_blog_status ON blog_posts(status, id DESC);
+

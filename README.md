@@ -168,23 +168,30 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 **如果你的数据库是之前建的、`feedback` 表已经在用了**，光重跑 `schema.sql` 是不够的 ——
 `CREATE TABLE IF NOT EXISTS` 见到表已存在就直接跳过，**不会给已有的表补新字段**。
 
-新功能（反馈回执、博客）需要几个新字段和新表，所以老库要再跑一次 `migrations.sql`：
+新功能（反馈回执、博客）需要几个新字段和新表，所以老库要再跑一次 `migrations.sql`。
+
+> **⚠️ 这里最容易踩的坑**：Cloudflare 网页上的 D1 Console 是一个 **SQL 查询框**，
+> 只认 SQL 语句。**千万不要把 `npx wrangler ...` 那种命令行粘进去** ——
+> 那样只会得到一句 `near "npx": syntax error`。
+
+**方式 A：网页版（推荐，什么都不用装）**
+
+```
+Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
+```
+
+然后把 `migrations.sql` 里的内容分两批粘进去执行：
+
+1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...` —— 建议**一条一条**执行；
+   某条报 `duplicate column name: xxx` 是正常的（说明那个字段之前加过了），跳过它继续下一条。
+2. **第 2 组**：若干 `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX` —— 可以**整段一起**执行。
+
+**方式 B：命令行版（要装 Node.js，而且要在你自己电脑的终端里跑）**
 
 ```bash
+# 注意：这是在【你自己电脑的终端】里执行，不是在 Cloudflare 网页里
 npx wrangler d1 execute zhimist-db --remote --file=./migrations.sql
 ```
-
-```
-# 或者控制台：D1 → Console → 把 migrations.sql 的内容逐条粘进去执行
-```
-
-它做两件事：
-
-1. 给 `feedback` 表补上 `client_id`、`reply`、`decided_at` 三个字段（反馈回执靠它们）；
-2. 建好 `blog_posts`、`blog_likes`、`blog_reports`、`blog_bans` 四张博客表。
-
-> 某条语句报 `duplicate column name: xxx` 是**正常的**，说明那个字段之前已经加过了，
-> 跳过它继续执行后面的就行。全新部署的库不用管这个文件。
 
 ### 3. 生成 AUTH_HASH（管理员密码的哈希）
 
