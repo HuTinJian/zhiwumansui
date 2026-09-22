@@ -66,20 +66,26 @@
     .blog-nav .nav-item:hover { background: var(--bg-tint); color: var(--primary); }
     .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
 
-    /* 「写文章」是这页唯一的主操作，做成实心按钮，
-       和左边「浏览类」的导航区分开：左边是去哪儿看，这个是动手写。
+    /* 「写文章」是这页唯一的主操作，用描边突出。
+       （踩过的坑：一开始做成实心粉底，结果它一直看着像「被选中」——
+        因为本页实心粉底的含义就是「你现在在这里」。两个含义撞在一起，
+        就分不清哪个是当前页、哪个只是按钮。所以改成：
+        描边 = 主操作（一直在）；实心 = 当前页（只有真进去才亮）。）
        放在 .nav-links 外面，手机上横向滚动导航时它也不会被滚走。 */
     .blog-nav .nav-cta {
       margin-left: 8px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-      color: #fff; font-weight: 700;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, .26);
+      border: 1px solid var(--primary-light);
+      background: var(--bg-tint); color: var(--primary);
+      font-weight: 700;
     }
-    .blog-nav .nav-cta:hover,
+    .blog-nav .nav-cta:hover {
+      border-color: var(--primary); background: var(--bg-card);
+      color: var(--primary-ink);
+    }
+    /* 真进到「写文章」这一页了，才和别的导航项一样变成实心粉。 */
     .blog-nav .nav-cta.active {
-      background: linear-gradient(135deg, var(--primary-btn-b), var(--primary-btn-a));
-      color: #fff; transform: translateY(-1px);
-      box-shadow: 0 7px 16px rgba(220, 107, 130, .36);
+      background: var(--primary); border-color: var(--primary);
+      color: #fff; box-shadow: 0 3px 10px rgba(220, 107, 130, .28);
     }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
@@ -105,6 +111,9 @@
     .btn-n.fill:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(220,107,130,.35); }
     .btn-n.line { background: var(--bg); color: var(--text-light); border: 1px solid var(--border); }
     .btn-n.line:hover { border-color: var(--primary-light); color: var(--primary); }
+    /* 停在登录页时，右上角那颗「登录」也要亮起来 —— 和导航项同一个含义：
+       实心粉 = 你现在在这里。以前登录页上没有任何「你在这」的提示。 */
+    .btn-n.line.on { background: var(--primary); border-color: var(--primary); color: #fff; }
     .btn-n[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
     /* 登录后右上角的自己：以前是个「看着像按钮但点不动」的装饰。
@@ -442,7 +451,6 @@
     @media (prefers-reduced-motion: reduce) {
       .hero .logo, .board { animation: none; }
       .board:hover, .board .cover img, .board .cover .wm, .home-fab:hover { transform: none; }
-      .blog-nav .nav-cta:hover { transform: none; }
       .nav-user:active { transform: none; }
     }
   </style>
@@ -849,6 +857,8 @@
         } else {
           var b = el('button', 'btn-n line', '👤 登录');
           b.type = 'button';
+          // 已经在登录页了，就把它点亮（和导航项一样的「你在这」提示）。
+          if (String(location.hash || '').replace(/^#\/?/, '') === 'auth') b.classList.add('on');
           b.onclick = function () { location.hash = '#/auth'; setAuthMode('login'); };
           area.appendChild(b);
         }
@@ -1311,7 +1321,9 @@
           currentId = Number(h.slice(5)) || 0;
           showView('viewPost');
           document.title = '文章 - 织雾满穗';
-          setNavActive('');
+          // 看文章也还在「文章」这一块里，所以点亮「全部文章」，
+          // 免得点进文章后导航栏整个暗下来、又不知道自己在哪。
+          setNavActive('all');
           renderPost();
         } else if (h === 'write') {
           showView('viewWrite');
@@ -1327,12 +1339,16 @@
           document.title = '玩家博客 - 织雾满穗';
           setNavActive(navKeyForScope());
           syncSortChips();
-          // 从文章页返回时也要对上：右上角头像的选中态、
-          // 侧边栏那颗按钮写「我的文章」还是「看全部」。
-          renderNavUser();
+          // 从文章页返回时，侧边栏那颗按钮的文字也要对上
+          //（「我的文章」还是「看全部」）。
           renderLoginCard();
           renderGrid(true);
         }
+
+        // 右上角那颗「登录」亮不亮，只取决于当前是不是登录页。
+        // 统一放在最后处理：不然每条分支都得记着调一次，
+        // 漏掉哪条就会一直亮着（比如从登录页走到文章页）。
+        renderNavUser();
       }
 
       window.addEventListener('hashchange', function () {
