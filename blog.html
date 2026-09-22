@@ -64,29 +64,11 @@
       transition: all var(--dur) var(--ease-soft);
     }
     .blog-nav .nav-item:hover { background: var(--bg-tint); color: var(--primary); }
+    /* 实心粉底在本页只有一个含义：「你现在在这里」。
+       所以导航栏里所有按钮一律平等，只有当前那一个会变成实心粉。
+       （「写文章」也不特殊化：之前给它加过实心、又加过描边，
+        都因为和「当前页」这个含义撞车而让人看错，已改回普通按钮。） */
     .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
-
-    /* 「写文章」是这页唯一的主操作，用描边突出。
-       （踩过的坑：一开始做成实心粉底，结果它一直看着像「被选中」——
-        因为本页实心粉底的含义就是「你现在在这里」。两个含义撞在一起，
-        就分不清哪个是当前页、哪个只是按钮。所以改成：
-        描边 = 主操作（一直在）；实心 = 当前页（只有真进去才亮）。）
-       放在 .nav-links 外面，手机上横向滚动导航时它也不会被滚走。 */
-    .blog-nav .nav-cta {
-      margin-left: 8px; flex-shrink: 0;
-      border: 1px solid var(--primary-light);
-      background: var(--bg-tint); color: var(--primary);
-      font-weight: 700;
-    }
-    .blog-nav .nav-cta:hover {
-      border-color: var(--primary); background: var(--bg-card);
-      color: var(--primary-ink);
-    }
-    /* 真进到「写文章」这一页了，才和别的导航项一样变成实心粉。 */
-    .blog-nav .nav-cta.active {
-      background: var(--primary); border-color: var(--primary);
-      color: #fff; box-shadow: 0 3px 10px rgba(220, 107, 130, .28);
-    }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     .nav-search { position: relative; }
@@ -436,9 +418,7 @@
       .blog-nav .nav-inner { padding: 0 14px; height: 54px; }
       .blog-nav .brand .txt { display: none; }
       .blog-nav .brand { margin-right: 4px; }
-      .blog-nav .nav-links { gap: 0; }
       .blog-nav .nav-item { padding: 7px 10px; font-size: .8rem; }
-      .blog-nav .nav-cta { margin-left: 4px; padding: 7px 11px; font-size: .8rem; }
       .nav-search { display: none; }
       .hero { padding: 30px 18px 28px; margin: 14px 0 12px; }
       .hero .logo { width: 52px; height: 52px; font-size: 1.4rem; }
@@ -473,9 +453,8 @@
       <div class="nav-links">
         <button type="button" class="nav-item active" data-go="all">📚 全部文章</button>
         <button type="button" class="nav-item" data-go="hot">🔥 热门</button>
+        <button type="button" class="nav-item" data-go="write">✍️ 写文章</button>
       </div>
-
-      <button type="button" class="nav-item nav-cta" data-go="write">✍️ 写文章</button>
 
       <div class="nav-right">
         <div class="nav-search">
