@@ -65,9 +65,21 @@
     }
     .blog-nav .nav-item:hover { background: var(--bg-tint); color: var(--primary); }
     .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
-    .blog-nav .nav-item .fire {
-      font-size: .62rem; background: var(--danger); color: #fff;
-      padding: 1px 5px; border-radius: 8px; font-weight: 800;
+
+    /* 「写文章」是这页唯一的主操作，做成实心按钮，
+       和左边「浏览类」的导航区分开：左边是去哪儿看，这个是动手写。
+       放在 .nav-links 外面，手机上横向滚动导航时它也不会被滚走。 */
+    .blog-nav .nav-cta {
+      margin-left: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      color: #fff; font-weight: 700;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, .26);
+    }
+    .blog-nav .nav-cta:hover,
+    .blog-nav .nav-cta.active {
+      background: linear-gradient(135deg, var(--primary-btn-b), var(--primary-btn-a));
+      color: #fff; transform: translateY(-1px);
+      box-shadow: 0 7px 16px rgba(220, 107, 130, .36);
     }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
@@ -95,7 +107,19 @@
     .btn-n.line:hover { border-color: var(--primary-light); color: var(--primary); }
     .btn-n[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
-    .nav-user { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px 5px 5px; border-radius: var(--radius-pill); background: var(--bg-tint); }
+    /* 登录后右上角的自己：以前是个「看着像按钮但点不动」的装饰。
+       现在它能点，点进去看自己写的文章 —— 所以这里的「我的」
+       从导航栏搬到了账号区，导航栏只留浏览内容。 */
+    .nav-user {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 12px 5px 5px; border-radius: var(--radius-pill);
+      background: var(--bg-tint); border: 1px solid transparent;
+      font-family: var(--font); cursor: pointer;
+      transition: all var(--dur) var(--ease-soft);
+    }
+    .nav-user:hover { background: var(--bg-card); border-color: var(--primary-light); }
+    .nav-user:active { transform: scale(.96); }
+    .nav-user.on { border-color: var(--primary); background: var(--bg-card); }
     .nav-user .av {
       width: 26px; height: 26px; border-radius: 50%; font-size: .8rem; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; background: var(--bg-card); border: 1px solid var(--border);
@@ -235,6 +259,7 @@
     .login-card .hi { font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
     .login-card .sub { font-size: .8rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
     .login-card .btns { display: flex; gap: 8px; justify-content: center; }
+    .login-card .btns + .btns { margin-top: 8px; }
     .login-card .btns .btn-n { flex: 1; justify-content: center; }
     .login-card .me-av {
       width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 50%; font-size: 1.5rem;
@@ -401,7 +426,10 @@
       .blog-shell { padding: 0 14px 96px; }
       .blog-nav .nav-inner { padding: 0 14px; height: 54px; }
       .blog-nav .brand .txt { display: none; }
+      .blog-nav .brand { margin-right: 4px; }
+      .blog-nav .nav-links { gap: 0; }
       .blog-nav .nav-item { padding: 7px 10px; font-size: .8rem; }
+      .blog-nav .nav-cta { margin-left: 4px; padding: 7px 11px; font-size: .8rem; }
       .nav-search { display: none; }
       .hero { padding: 30px 18px 28px; margin: 14px 0 12px; }
       .hero .logo { width: 52px; height: 52px; font-size: 1.4rem; }
@@ -414,6 +442,8 @@
     @media (prefers-reduced-motion: reduce) {
       .hero .logo, .board { animation: none; }
       .board:hover, .board .cover img, .board .cover .wm, .home-fab:hover { transform: none; }
+      .blog-nav .nav-cta:hover { transform: none; }
+      .nav-user:active { transform: none; }
     }
   </style>
 </head>
@@ -434,10 +464,10 @@
 
       <div class="nav-links">
         <button type="button" class="nav-item active" data-go="all">📚 全部文章</button>
-        <button type="button" class="nav-item" data-go="hot">🔥 热门<span class="fire">火</span></button>
-        <button type="button" class="nav-item" data-go="mine">👤 我的</button>
-        <button type="button" class="nav-item" data-go="write">✍️ 写文章</button>
+        <button type="button" class="nav-item" data-go="hot">🔥 热门</button>
       </div>
+
+      <button type="button" class="nav-item nav-cta" data-go="write">✍️ 写文章</button>
 
       <div class="nav-right">
         <div class="nav-search">
@@ -688,6 +718,11 @@
       }
       function setErr(id, msg) { var b = $(id); if (!b) return; b.textContent = msg || ''; b.classList.toggle('show', !!msg); }
 
+      // 「热门」的算法：浏览量 + 点赞×3。右侧栏「热门文章」用的是同一个，
+      // 这样选项卡和侧边栏不会各说各话。
+      // 它跟排序条里的「👁 最多浏览」也就成了两件事，不是重复按钮。
+      function hotScore(p) { return (p.views || 0) + (p.likes || 0) * 3; }
+
       function scopeList() {
         var kw = keyword.trim().toLowerCase();
         var list = posts.filter(function (p) {
@@ -700,7 +735,8 @@
         });
 
         list.sort(function (a, b) {
-          if (scope === 'hot' || sortMode === 'views') return (b.views || 0) - (a.views || 0) || b.id - a.id;
+          if (scope === 'hot') return hotScore(b) - hotScore(a) || b.id - a.id;
+          if (sortMode === 'views') return (b.views || 0) - (a.views || 0) || b.id - a.id;
           if (sortMode === 'likes') return (b.likes || 0) - (a.likes || 0) || b.id - a.id;
           if (sortMode === 'comments') return (b.replies || 0) - (a.replies || 0) || b.id - a.id;
           return b.id - a.id;
@@ -743,7 +779,7 @@
       function renderSidebar() {
         var box = $('hotList');
         var top = posts.slice().sort(function (a, b) {
-          return ((b.views || 0) + (b.likes || 0) * 3) - ((a.views || 0) + (a.likes || 0) * 3) || b.id - a.id;
+          return hotScore(b) - hotScore(a) || b.id - a.id;
         }).slice(0, 5);
 
         box.innerHTML = '';
@@ -772,10 +808,19 @@
           var bs = el('div', 'btns');
           var w = el('button', 'btn-n fill', '✍️ 写文章');
           w.type = 'button'; w.onclick = function () { location.hash = '#/write'; };
+          bs.appendChild(w);
+          box.appendChild(bs);
+
+          // 「我的文章」从导航栏搬到这里：它属于账号，不属于浏览内容。
+          // 再点一次就回到全部（按钮文字跟着变），省得去找返回。
+          var bs2 = el('div', 'btns');
+          var mine = el('button', 'btn-n line', scope === 'mine' ? '← 看全部' : '📄 我的文章');
+          mine.type = 'button';
+          mine.onclick = function () { goScope(scope === 'mine' ? 'all' : 'mine'); };
           var o = el('button', 'btn-n line', '退出');
           o.type = 'button'; o.onclick = doLogout;
-          bs.appendChild(w); bs.appendChild(o);
-          box.appendChild(bs);
+          bs2.appendChild(mine); bs2.appendChild(o);
+          box.appendChild(bs2);
         } else {
           box.appendChild(el('div', 'hi', 'HI! 请登录'));
           box.appendChild(el('div', 'sub', '登录后就能发文章和评论了。'));
@@ -793,10 +838,13 @@
         var area = $('userArea');
         area.innerHTML = '';
         if (me) {
-          var chip = el('span', 'nav-user');
+          var chip = el('button', 'nav-user');
+          chip.type = 'button';
           chip.appendChild(el('span', 'av', avatarOf(me.username)));
           chip.appendChild(el('span', 'nm', me.username));
-          chip.title = me.username;
+          chip.classList.toggle('on', scope === 'mine');
+          chip.title = scope === 'mine' ? '回到全部文章' : '看我自己写的文章';
+          chip.onclick = function () { goScope(scope === 'mine' ? 'all' : 'mine'); };
           area.appendChild(chip);
         } else {
           var b = el('button', 'btn-n line', '👤 登录');
@@ -1201,7 +1249,10 @@
       async function doLogout() {
         try { await fetch('/api/blog/auth/logout', { method: 'POST' }); } catch (e) {}
         me = null;
+        // 退出后「我的文章」就没意义了，回到全部，免得看到一片空白。
+        if (scope === 'mine') scope = 'all';
         renderNavUser(); renderLoginCard();
+        setNavActive(navKeyForScope());
         showToast('👋 已退出登录');
         location.hash = '#/';
       }
@@ -1274,7 +1325,12 @@
         } else {
           showView('viewList');
           document.title = '玩家博客 - 织雾满穗';
-          setNavActive(scope === 'mine' ? 'mine' : (scope === 'hot' ? 'hot' : 'all'));
+          setNavActive(navKeyForScope());
+          syncSortChips();
+          // 从文章页返回时也要对上：右上角头像的选中态、
+          // 侧边栏那颗按钮写「我的文章」还是「看全部」。
+          renderNavUser();
+          renderLoginCard();
           renderGrid(true);
         }
       }
@@ -1303,24 +1359,52 @@
         $('postCounter').style.color = n > 900 ? 'var(--danger)' : '';
       });
 
+      // ==================== 切「在看哪一批文章」 ====================
+      // 三个入口共用这一套：导航栏（全部 / 热门）、右上角头像、侧边栏「我的文章」。
+      // 注意「热门」有自己的算法，不再顺手把排序改成「最多浏览」。
+      function navKeyForScope() {
+        return scope === 'all' ? 'all' : (scope === 'hot' ? 'hot' : '');
+      }
+
+      function syncSortChips() {
+        document.querySelectorAll('.sort-chip[data-sort]').forEach(function (c) {
+          // 看「热门」时排序条不生效（热门有固定的排法），
+          // 所以不点亮任何一个 —— 免得界面说的和实际排的不一样。
+          c.classList.toggle('active', scope !== 'hot' && c.dataset.sort === sortMode);
+        });
+      }
+
+      function afterScopeChange() {
+        setNavActive(navKeyForScope());
+        syncSortChips();
+        renderNavUser();
+        renderLoginCard();
+        renderGrid(true);
+      }
+
+      function goScope(next) {
+        if (next === 'mine' && !me) { requireLogin(); return; }
+        scope = next;
+        keyword = ''; $('searchInput').value = '';
+        if (String(location.hash || '').replace(/^#\/?/, '') !== '') location.hash = '#/';
+        else afterScopeChange();
+      }
+
       document.querySelectorAll('.blog-nav .nav-item').forEach(function (b) {
         b.addEventListener('click', function () {
           var go = b.dataset.go;
           if (go === 'write') { location.hash = '#/write'; return; }
-          if (go === 'mine' && !me) { requireLogin(); return; }
-          scope = (go === 'mine') ? 'mine' : (go === 'hot' ? 'hot' : 'all');
-          if (go === 'hot') sortMode = 'views';
-          keyword = ''; $('searchInput').value = '';
-          if (String(location.hash || '').replace(/^#\/?/, '') !== '') location.hash = '#/';
-          else { setNavActive(go); renderGrid(true); }
+          goScope(go);
         });
       });
 
       document.querySelectorAll('.sort-chip[data-sort]').forEach(function (chip) {
         chip.addEventListener('click', function () {
-          document.querySelectorAll('.sort-chip[data-sort]').forEach(function (c) { c.classList.remove('active'); });
-          chip.classList.add('active');
+          // 在「热门」里点排序 ＝ 不想只看热门了：自动回到「全部」再按你选的排。
+          // （以前这里改了排序却被「热门」盖掉，点了像没反应。）
+          if (scope === 'hot') { scope = 'all'; setNavActive('all'); }
           sortMode = chip.dataset.sort;
+          syncSortChips();
           renderGrid(true);
         });
       });
