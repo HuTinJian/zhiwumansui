@@ -24,96 +24,241 @@
   </script>
 
   <style>
-    .blog-wrap { max-width: 760px; margin: 0 auto; padding: 26px 18px 64px; }
+    .blog-wrap { max-width: 1060px; margin: 0 auto; padding: 24px 20px 64px; }
 
-    /* ========== 博客头部 ========== */
+    /* ========== Hero ========== */
     .blog-hero {
+      position: relative;
+      overflow: hidden;
       text-align: center;
-      padding: 18px 0 26px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      padding: 38px 24px 34px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(150deg, var(--header-grad-a), var(--header-grad-b));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
     }
+    .blog-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
+    }
+    .blog-avatar {
+      width: 88px; height: 88px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      padding: 4px;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; justify-content: center;
+      animation: heroPop 0.7s var(--ease-bounce) backwards;
+    }
+    .blog-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+    @keyframes heroPop {
+      0% { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+      60% { opacity: 1; transform: scale(1.06) rotate(4deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
     .blog-hero h1 {
-      font-size: clamp(1.5rem, 4.5vw, 2rem);
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.8px;
       margin-bottom: 8px;
-      background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 50%, var(--gold) 100%);
+      background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 40%, var(--gold) 75%, var(--primary) 100%);
+      background-size: 220% auto;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       display: inline-block;
     }
-    .blog-hero p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; }
+    .blog-hero h1:hover { background-position: 100% center; transition: background-position 0.8s var(--ease-soft); }
 
-    /* ========== 工具栏 ========== */
-    .blog-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
-    .blog-bar .count { font-size: 0.82rem; color: var(--text-muted); margin-left: auto; }
+    /* 轮播状态语（对应原站那句「在干嘛呢？」） */
+    .blog-status {
+      min-height: 1.9em;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary-ink);
+      letter-spacing: 0.4px;
+      margin-bottom: 12px;
+    }
+    .blog-status .caret {
+      display: inline-block; width: 2px; height: 1.05em;
+      vertical-align: -0.16em; margin-left: 3px;
+      background: var(--primary);
+      animation: caretBlink 1s steps(1) infinite;
+    }
+    @keyframes caretBlink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+    .blog-hero .bio {
+      font-size: 0.9rem; color: var(--text-light); line-height: 1.9;
+      max-width: 520px; margin: 0 auto 20px;
+    }
+    .blog-hero .hero-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .blog-hero .hero-actions .btn { padding: 10px 24px; font-size: 0.9rem; }
+
+    /* ========== 统计条 ========== */
+    .blog-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .blog-stats .s-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--dur) var(--ease-bounce), border-color var(--dur) var(--ease-soft);
+    }
+    .blog-stats .s-item:hover { transform: translateY(-3px); border-color: var(--primary-light); }
+    .blog-stats .s-num {
+      font-size: 1.35rem; font-weight: 800; color: var(--primary-ink); line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+    .blog-stats .s-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ========== 两栏布局 ========== */
+    .blog-cols { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 22px; align-items: start; }
+    .blog-main { min-width: 0; }
+    .blog-side { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 16px; }
+
+    .widget {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 16px 18px;
+    }
+    .widget h3 {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    }
+    .widget h3::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+    .widget .w-list { display: flex; flex-direction: column; gap: 4px; }
+    .widget .w-item {
+      display: flex; gap: 9px; align-items: center;
+      padding: 7px 8px; border-radius: var(--radius-xs);
+      font-size: 0.83rem; color: var(--text-light); line-height: 1.6;
+      text-decoration: none; cursor: pointer;
+      transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft);
+    }
+    .widget .w-item:hover { background: var(--bg-tint); color: var(--primary); }
+    .widget .w-rank {
+      flex-shrink: 0; width: 18px; height: 18px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 800;
+      background: var(--bg-soft); color: var(--text-muted);
+    }
+    .widget .w-item:nth-child(1) .w-rank { background: var(--primary); color: #fff; }
+    .widget .w-item:nth-child(2) .w-rank { background: var(--gold); color: #fff; }
+    .widget .w-item:nth-child(3) .w-rank { background: var(--primary-light); color: #fff; }
+    .widget .w-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .widget .w-sub { font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; }
+    .widget .about-line { font-size: 0.83rem; color: var(--text-light); line-height: 1.85; }
+    .widget .about-line + .about-line { margin-top: 6px; }
+    .widget .about-line b { color: var(--primary-ink); }
+
+    /* ========== 最新文章（大卡片） ========== */
+    .latest-card {
+      position: relative;
+      overflow: hidden;
+      display: block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 24px 20px;
+      margin-bottom: 18px;
+      text-decoration: none; color: inherit; cursor: pointer;
+      transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
+    }
+    .latest-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
+    }
+    .latest-card:hover { transform: translateY(-4px); border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
+    .latest-card .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px;
+      color: var(--primary-ink); background: var(--bg-tint);
+      padding: 3px 12px; border-radius: var(--radius-pill);
+      margin-bottom: 10px;
+    }
+    .latest-card h2 { font-size: 1.22rem; font-weight: 800; line-height: 1.5; color: var(--text); margin-bottom: 8px; word-break: break-word; }
+    .latest-card .excerpt { font-size: 0.9rem; color: var(--text-light); line-height: 1.85; margin-bottom: 14px; }
+
+    /* ========== 文章列表 ========== */
+    .list-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+    .list-head h3 { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .list-head .rule { flex: 1; height: 1px; min-width: 20px; background: linear-gradient(90deg, var(--border), transparent); }
+
     .chip {
       border: 1px solid var(--border); background: var(--bg-card); color: var(--text-light);
-      border-radius: var(--radius-pill); padding: 7px 15px; font-size: 0.82rem;
+      border-radius: var(--radius-pill); padding: 6px 14px; font-size: 0.79rem;
       font-family: var(--font); font-weight: 600; cursor: pointer;
       transition: all var(--dur) var(--ease-soft);
     }
     .chip:hover { border-color: var(--primary-light); color: var(--primary); }
     .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
-    /* ========== 文章列表 ========== */
     .post-item {
+      position: relative;
       display: block;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow-sm);
-      padding: 20px 22px;
-      margin-bottom: 14px;
-      text-decoration: none;
-      color: inherit;
-      cursor: pointer;
+      padding: 18px 20px 16px 22px;
+      margin-bottom: 12px;
+      text-decoration: none; color: inherit; cursor: pointer;
       transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
       animation: cardRise 0.45s var(--ease-bounce) backwards;
     }
-    .post-item:hover { transform: translateY(-3px); border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
-    .post-item h2 {
-      font-size: 1.18rem; font-weight: 700; color: var(--text);
-      line-height: 1.5; margin-bottom: 6px; word-break: break-word;
+    .post-item:hover { transform: translateX(4px); border-color: var(--primary-light); box-shadow: var(--shadow); }
+    .post-item .accent-bar {
+      position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+      border-radius: 3px; background: linear-gradient(180deg, var(--primary), var(--accent));
+      opacity: 0.75;
     }
-    .post-item .excerpt {
-      font-size: 0.9rem; color: var(--text-light); line-height: 1.8;
-      margin-bottom: 12px; word-break: break-word;
-    }
-    .post-item .more { font-size: 0.83rem; font-weight: 700; color: var(--primary-ink); }
+    .post-item h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 6px; word-break: break-word; }
+    .post-item .excerpt { font-size: 0.87rem; color: var(--text-light); line-height: 1.8; margin-bottom: 10px; word-break: break-word; }
+    .post-item .more { font-size: 0.79rem; font-weight: 700; color: var(--primary-ink); }
 
     .post-meta {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      font-size: 0.77rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-size: 0.75rem; color: var(--text-muted);
     }
     .post-meta .avatar {
-      width: 26px; height: 26px; border-radius: 50%; font-size: 0.8rem;
+      width: 24px; height: 24px; border-radius: 50%; font-size: 0.75rem;
       display: flex; align-items: center; justify-content: center;
       background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft));
       border: 1px solid var(--border); flex-shrink: 0;
     }
+    .post-meta .who { font-weight: 700; color: var(--text-light); }
     .post-meta .dot { opacity: 0.5; }
 
     /* ========== 文章详情 ========== */
-    .article { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 28px; }
-    .article h1 { font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 800; line-height: 1.45; color: var(--text); margin-bottom: 12px; word-break: break-word; }
-    .article .article-meta { padding-bottom: 16px; border-bottom: 1px dashed var(--border); margin-bottom: 20px; }
-    .article .body {
-      font-size: 0.95rem; color: var(--text-light); line-height: 2;
-      white-space: pre-wrap; word-break: break-word;
-    }
-    .article .article-actions {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--border);
-    }
+    .article { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 30px; }
+    .article h1 { font-size: clamp(1.35rem, 4vw, 1.75rem); font-weight: 800; line-height: 1.45; color: var(--text); margin-bottom: 14px; word-break: break-word; }
+    .article .article-meta { padding-bottom: 16px; border-bottom: 1px dashed var(--border); margin-bottom: 22px; }
+    .article .body { font-size: 0.96rem; color: var(--text-light); line-height: 2.05; white-space: pre-wrap; word-break: break-word; }
+    .article .article-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--border); }
 
     .act {
       display: inline-flex; align-items: center; gap: 5px;
       border: 1px solid var(--border); background: var(--bg); color: var(--text-light);
       border-radius: var(--radius-pill); padding: 7px 15px;
-      font-size: 0.81rem; font-weight: 600; font-family: var(--font);
+      font-size: 0.8rem; font-weight: 600; font-family: var(--font);
       cursor: pointer; text-decoration: none;
       transition: all var(--dur) var(--ease-soft);
     }
@@ -131,7 +276,7 @@
     .back-link:hover { text-decoration: underline; }
 
     /* ========== 评论区 ========== */
-    .comments { margin-top: 28px; }
+    .comments { margin-top: 30px; }
     .comments h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
     .comment { padding: 13px 0; border-bottom: 1px dashed var(--border); }
     .comment:last-of-type { border-bottom: none; }
@@ -150,9 +295,9 @@
     .comment-form input:focus { border-color: var(--primary); }
 
     /* ========== 写文章 ========== */
-    .composer { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 26px; }
+    .composer { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 28px; }
     .composer h2 { font-size: 1.15rem; margin-bottom: 6px; color: var(--text); }
-    .composer .hint { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.8; }
+    .composer .hint { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.8; }
     .composer label { display: block; font-size: 0.84rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .composer input[type="text"], .composer textarea {
       width: 100%; padding: 11px 15px;
@@ -162,14 +307,14 @@
       transition: border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
     }
     .composer input[type="text"]:focus, .composer textarea:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
-    .composer textarea { min-height: 220px; resize: vertical; line-height: 1.9; }
+    .composer textarea { min-height: 240px; resize: vertical; line-height: 1.9; }
     .composer .field { margin-bottom: 16px; position: relative; }
     .composer .counter { position: absolute; right: 14px; bottom: 10px; font-size: 0.72rem; color: var(--text-muted); pointer-events: none; }
     .composer .footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .composer .whoami { font-size: 0.78rem; color: var(--text-muted); flex: 1 1 auto; }
+    .composer .whoami { font-size: 0.77rem; color: var(--text-muted); flex: 1 1 auto; }
 
     .blog-empty {
-      text-align: center; padding: 56px 20px; color: var(--text-muted);
+      text-align: center; padding: 54px 20px; color: var(--text-muted);
       background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius);
     }
     .blog-empty .big { display: block; font-size: 2.4rem; margin-bottom: 12px; }
@@ -177,11 +322,24 @@
     .view { display: none; }
     .view.active { display: block; animation: fadeInUp 0.35s var(--ease-soft) both; }
 
+    @media (max-width: 900px) {
+      .blog-cols { grid-template-columns: 1fr; }
+      .blog-side { position: static; }
+    }
     @media (max-width: 768px) {
-      .blog-wrap { padding: 18px 13px 48px; }
-      .post-item { padding: 17px 18px; }
+      .blog-wrap { padding: 18px 14px 48px; }
+      .blog-hero { padding: 30px 18px 26px; }
+      .blog-avatar { width: 72px; height: 72px; }
+      .blog-stats { grid-template-columns: repeat(2, 1fr); }
+      .post-item { padding: 16px 16px 14px 18px; }
       .article { padding: 20px 18px; }
       .composer { padding: 18px 16px; }
+      .latest-card { padding: 18px 18px 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blog-avatar { animation: none; }
+      .post-item { animation: none; }
     }
   </style>
 </head>
@@ -204,22 +362,75 @@
   <!-- ==================== 主内容 ==================== -->
   <main class="blog-wrap" id="main">
 
+    <!-- Hero -->
     <header class="blog-hero">
-      <h1>📝 玩家博客</h1>
-      <p>Roblox 好音乐、好用的 ID、踩过的坑 —— 都可以写在这里。<b>无需注册</b>，填个昵称就能发。</p>
+      <div class="blog-avatar">
+        <img src="images/developer.png" alt="站点头像" width="80" height="80">
+      </div>
+      <h1>玩家博客</h1>
+      <p class="blog-status"><span id="statusText"></span><span class="caret" aria-hidden="true"></span></p>
+      <p class="bio">
+        分享在 Roblox 里挖到的好音乐、好用的 ID，还有踩过的坑。<br>
+        不用注册，填个昵称就能写；写下的东西会记在这个浏览器上，随时能自己删。
+      </p>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" id="writeEntryBtn">✍️ 写一篇</button>
+        <a class="btn btn-secondary" href="roblox_music.html">🎵 去 ID 宝库看看</a>
+      </div>
     </header>
+
+    <!-- 统计条 -->
+    <div class="blog-stats">
+      <div class="s-item"><div class="s-num" id="statPosts">–</div><div class="s-label">篇文章</div></div>
+      <div class="s-item"><div class="s-num" id="statComments">–</div><div class="s-label">条评论</div></div>
+      <div class="s-item"><div class="s-num" id="statLikes">–</div><div class="s-label">个赞</div></div>
+      <div class="s-item"><div class="s-num" id="statAuthors">–</div><div class="s-label">位作者</div></div>
+    </div>
 
     <!-- ---------- 视图一：文章列表 ---------- -->
     <section class="view active" id="viewList">
-      <div class="blog-bar">
-        <button type="button" class="chip active" data-sort="new">🕒 最新</button>
-        <button type="button" class="chip" data-sort="hot">🔥 最热</button>
-        <button type="button" class="chip" id="refreshBtn">🔄 刷新</button>
-        <button type="button" class="btn btn-primary" id="writeEntryBtn" style="padding:8px 18px;font-size:0.85rem;">✍️ 写一篇</button>
-        <span class="count" id="postCount"></span>
-      </div>
-      <div id="postList">
-        <div class="blog-empty"><span class="big" aria-hidden="true">⏳</span>正在加载…</div>
+      <div class="blog-cols">
+
+        <div class="blog-main">
+          <div id="latestBox"></div>
+
+          <div class="list-head">
+            <h3>📄 全部文章</h3>
+            <span class="rule" aria-hidden="true"></span>
+            <button type="button" class="chip active" data-sort="new">🕒 最新</button>
+            <button type="button" class="chip" data-sort="hot">🔥 最热</button>
+            <button type="button" class="chip" id="refreshBtn">🔄</button>
+            <span id="postCount" style="font-size:0.78rem;color:var(--text-muted);"></span>
+          </div>
+
+          <div id="postList">
+            <div class="blog-empty"><span class="big" aria-hidden="true">⏳</span>正在加载…</div>
+          </div>
+        </div>
+
+        <aside class="blog-side">
+          <div class="widget">
+            <h3>🔥 热门文章</h3>
+            <div class="w-list" id="hotList"><div class="w-item">还没有内容</div></div>
+          </div>
+
+          <div class="widget">
+            <h3>🔗 快捷入口</h3>
+            <div class="w-list">
+              <a class="w-item" href="index.html"><span class="w-rank">🏠</span><span class="w-title">回到首页</span></a>
+              <a class="w-item" href="roblox_music.html"><span class="w-rank">🎵</span><span class="w-title">Roblox ID 宝库</span></a>
+              <a class="w-item" href="feedback.html"><span class="w-rank">💬</span><span class="w-title">意见反馈</span></a>
+            </div>
+          </div>
+
+          <div class="widget">
+            <h3>ℹ️ 关于这里</h3>
+            <p class="about-line">这是 <b>织雾满穗</b> 的玩家交流区。</p>
+            <p class="about-line">不需要注册账号，也没有密码 —— 用昵称就能写，身份认在你这台浏览器上。</p>
+            <p class="about-line">请勿发布违规内容：含敏感词的会被直接拦下，被多次举报的会自动隐藏。</p>
+          </div>
+        </aside>
+
       </div>
     </section>
 
@@ -297,6 +508,41 @@
       } catch (e) {}
       $('whoami').textContent = '你的浏览器身份：' + CLIENT.slice(0, 6) + '…（只用来认领你自己的文章）';
 
+      /* ---------- 轮播状态语 ----------
+         对应原站那句「在干嘛呢？」。开了系统「减少动态效果」就固定显示第一句，不做打字机。 */
+      var STATUS_LINES = [
+        '在 1500 多首里翻来翻去…',
+        '刚又挖到一首好听的',
+        '这个 ID 居然还能用！',
+        '整理歌单中，勿扰',
+        '欢迎来聊聊 Roblox 音乐',
+        '在干嘛呢？'
+      ];
+
+      (function statusTyper() {
+        var el = $('statusText');
+        if (!el) return;
+
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) { el.textContent = STATUS_LINES[0]; return; }
+
+        var li = 0, ci = 0, deleting = false;
+
+        (function tick() {
+          var line = STATUS_LINES[li];
+          if (!deleting) {
+            ci++;
+            el.textContent = line.slice(0, ci);
+            if (ci >= line.length) { deleting = true; return setTimeout(tick, 1500); }
+            return setTimeout(tick, 105);
+          }
+          ci--;
+          el.textContent = line.slice(0, ci);
+          if (ci <= 0) { deleting = false; li = (li + 1) % STATUS_LINES.length; return setTimeout(tick, 320); }
+          setTimeout(tick, 45);
+        })();
+      })();
+
       /* ---------- 小工具 ---------- */
       var AVATARS = ['🎵', '🎧', '🎮', '🌾', '🌸', '⭐', '🔥', '🍀', '🌙', '🐳', '🎹', '🎤'];
 
@@ -332,19 +578,31 @@
                ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
       }
 
-      function excerpt(text) {
+      function excerpt(text, max) {
         var s = String(text || '').replace(/\s+/g, ' ').trim();
-        return s.length > 110 ? s.slice(0, 110) + '…' : s;
+        var n = max || 110;
+        return s.length > n ? s.slice(0, n) + '…' : s;
       }
+
+      function displayTitle(p) {
+        return p.title || excerpt(p.content, 30) || '（无标题）';
+      }
+
+      function score(p) { return (p.likes || 0) * 3 + (p.replies || 0) * 2; }
 
       function sorted(list) {
         var out = list.slice();
-        if (sortMode === 'hot') {
-          out.sort(function (a, b) {
-            return (b.likes * 3 + b.replies * 2) - (a.likes * 3 + a.replies * 2) || b.id - a.id;
-          });
-        }
+        if (sortMode === 'hot') out.sort(function (a, b) { return score(b) - score(a) || b.id - a.id; });
+        else out.sort(function (a, b) { return b.id - a.id; });
         return out;
+      }
+
+      function dot() {
+        var d = document.createElement('span');
+        d.className = 'dot';
+        d.setAttribute('aria-hidden', 'true');
+        d.textContent = '·';
+        return d;
       }
 
       function metaLine(p, extraClass) {
@@ -358,7 +616,7 @@
         wrap.appendChild(av);
 
         var nm = document.createElement('span');
-        nm.style.fontWeight = '700';
+        nm.className = 'who';
         nm.textContent = p.name;
         wrap.appendChild(nm);
 
@@ -391,15 +649,93 @@
         return wrap;
       }
 
-      function dot() {
-        var d = document.createElement('span');
-        d.className = 'dot';
-        d.setAttribute('aria-hidden', 'true');
-        d.textContent = '·';
-        return d;
+      /* ---------- 统计与侧边栏 ---------- */
+      function renderStats() {
+        var comments = 0, likes = 0, authors = {};
+        posts.forEach(function (p) {
+          comments += (p.replies || 0);
+          likes += (p.likes || 0);
+          if (p.name) authors[p.name] = 1;
+        });
+
+        $('statPosts').textContent = posts.length;
+        $('statComments').textContent = comments;
+        $('statLikes').textContent = likes;
+        $('statAuthors').textContent = Object.keys(authors).length;
       }
 
-      /* ---------- 列表视图 ---------- */
+      function renderSidebar() {
+        var box = $('hotList');
+        if (!box) return;
+
+        var top = posts.slice().sort(function (a, b) { return score(b) - score(a) || b.id - a.id; }).slice(0, 5);
+        box.innerHTML = '';
+
+        if (top.length === 0) {
+          var none = document.createElement('div');
+          none.className = 'w-item';
+          none.textContent = '还没有内容';
+          box.appendChild(none);
+          return;
+        }
+
+        top.forEach(function (p, i) {
+          var a = document.createElement('a');
+          a.className = 'w-item';
+          a.href = '#/post/' + p.id;
+
+          var rk = document.createElement('span');
+          rk.className = 'w-rank';
+          rk.textContent = String(i + 1);
+          a.appendChild(rk);
+
+          var ti = document.createElement('span');
+          ti.className = 'w-title';
+          ti.textContent = displayTitle(p);
+          a.appendChild(ti);
+
+          var sub = document.createElement('span');
+          sub.className = 'w-sub';
+          sub.textContent = '👍' + (p.likes || 0);
+          a.appendChild(sub);
+
+          box.appendChild(a);
+        });
+      }
+
+      /* ---------- 最新文章大卡 ---------- */
+      function renderLatest() {
+        var box = $('latestBox');
+        if (!box) return;
+        box.innerHTML = '';
+
+        var latest = posts.slice().sort(function (a, b) { return b.id - a.id; })[0];
+        if (!latest) return;
+
+        var a = document.createElement('a');
+        a.className = 'latest-card';
+        a.href = '#/post/' + latest.id;
+
+        var badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '✨ 最新发布';
+        a.appendChild(badge);
+
+        var h = document.createElement('h2');
+        h.textContent = displayTitle(latest);
+        a.appendChild(h);
+
+        var ex = document.createElement('p');
+        ex.className = 'excerpt';
+        ex.textContent = excerpt(latest.content, 150);
+        a.appendChild(ex);
+
+        a.appendChild(metaLine(latest));
+
+        box.appendChild(a);
+      }
+
+      /* ---------- 列表 ---------- */
       function renderList() {
         var box = $('postList');
         $('postCount').textContent = posts.length ? '共 ' + posts.length + ' 篇' : '';
@@ -418,15 +754,20 @@
           el.href = '#/post/' + p.id;
           el.style.animationDelay = Math.min(i * 40, 320) + 'ms';
 
+          var bar = document.createElement('span');
+          bar.className = 'accent-bar';
+          bar.setAttribute('aria-hidden', 'true');
+          el.appendChild(bar);
+
           var h = document.createElement('h2');
-          h.textContent = p.title || excerpt(p.content).slice(0, 30) || '（无标题）';
+          h.textContent = displayTitle(p);
           el.appendChild(h);
 
           el.appendChild(metaLine(p));
 
           var ex = document.createElement('p');
           ex.className = 'excerpt';
-          ex.style.marginTop = '10px';
+          ex.style.marginTop = '9px';
           ex.textContent = excerpt(p.content);
           el.appendChild(ex);
 
@@ -442,7 +783,7 @@
         box.appendChild(frag);
       }
 
-      /* ---------- 详情视图 ---------- */
+      /* ---------- 详情 ---------- */
       function renderPost() {
         var p = posts.filter(function (x) { return x.id === currentId; })[0];
         var box = $('articleBox');
@@ -456,7 +797,7 @@
         box.innerHTML = '';
 
         var h1 = document.createElement('h1');
-        h1.textContent = p.title || '（无标题）';
+        h1.textContent = displayTitle(p);
         box.appendChild(h1);
 
         box.appendChild(metaLine(p, 'article-meta'));
@@ -495,26 +836,24 @@
 
         box.appendChild(acts);
 
-        /* 评论区 */
         var cm = document.createElement('section');
         cm.className = 'comments';
-        cm.id = 'commentsBox';
-        cm.innerHTML = '<h3>💬 评论 <span id="commentCount"></span></h3><div id="commentList"><div class="comment"><span class="c-body">加载中…</span></div></div>';
+        cm.innerHTML = '<h3>💬 评论 <span id="commentCount"></span></h3>' +
+          '<div id="commentList"><div class="comment"><span class="c-body">加载中…</span></div></div>';
         box.appendChild(cm);
 
         loadComments(p.id);
       }
 
       async function loadComments(postId) {
-        var list = $('commentList');
-        if (!list) return;
+        if (!$('commentList')) return;
         try {
           var res = await fetch('/api/blog/list?parent=' + postId + '&client=' + encodeURIComponent(CLIENT) + '&t=' + Date.now(), { cache: 'no-store' });
           var data = await res.json();
-          var rows = (data && data.ok && Array.isArray(data.data)) ? data.data : [];
-          renderComments(rows, postId);
+          renderComments((data && data.ok && Array.isArray(data.data)) ? data.data : [], postId);
         } catch (e) {
-          list.innerHTML = '<div class="comment"><span class="c-body">评论加载失败</span></div>';
+          var l = $('commentList');
+          if (l) l.innerHTML = '<div class="comment"><span class="c-body">评论加载失败</span></div>';
         }
       }
 
@@ -560,7 +899,6 @@
           list.appendChild(el);
         });
 
-        /* 评论输入 */
         var form = document.createElement('div');
         form.className = 'comment-form';
         var input = document.createElement('input');
@@ -606,7 +944,9 @@
           if (data && data.ok) {
             rememberName(name);
             input.value = '';
-            bumpReplyCount(postId);
+            for (var i = 0; i < posts.length; i++) {
+              if (posts[i].id === postId) { posts[i].replies = (posts[i].replies || 0) + 1; break; }
+            }
             await loadComments(postId);
             showToast('✅ 评论成功');
           } else {
@@ -620,13 +960,6 @@
         btn.textContent = '发表评论';
       }
 
-      /* 只改内存里的计数，不重画整页 —— 否则输入框会被清掉 */
-      function bumpReplyCount(postId) {
-        for (var i = 0; i < posts.length; i++) {
-          if (posts[i].id === postId) { posts[i].replies = (posts[i].replies || 0) + 1; break; }
-        }
-      }
-
       /* ---------- 数据加载 ---------- */
       async function loadPosts() {
         try {
@@ -638,6 +971,8 @@
             return;
           }
           posts = Array.isArray(data.data) ? data.data : [];
+          renderStats();
+          renderSidebar();
           render();
         } catch (e) {
           $('postList').innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌫️</span>' +
@@ -690,7 +1025,6 @@
             $('postTitle').value = '';
             $('postCounter').textContent = '0 / 1000';
             showToast('🎉 发布成功');
-
             await loadPosts();
             var newId = Number(data.id) || 0;
             location.hash = newId ? ('#/post/' + newId) : '#/';
@@ -722,6 +1056,7 @@
             for (var i = 0; i < posts.length; i++) {
               if (posts[i].id === postId) { posts[i].likes = data.likes; posts[i].liked = true; break; }
             }
+            renderSidebar();
             showToast('👍 已点赞');
           } else {
             btn.disabled = false;
@@ -803,6 +1138,7 @@
         } else {
           showView('viewList');
           document.title = '玩家博客 - 织雾满穗';
+          renderLatest();
           renderList();
         }
       }
@@ -826,9 +1162,9 @@
 
       $('postBtn').addEventListener('click', publish);
 
-      document.querySelectorAll('.blog-bar .chip[data-sort]').forEach(function (chip) {
+      document.querySelectorAll('.chip[data-sort]').forEach(function (chip) {
         chip.addEventListener('click', function () {
-          document.querySelectorAll('.blog-bar .chip[data-sort]').forEach(function (c) { c.classList.remove('active'); });
+          document.querySelectorAll('.chip[data-sort]').forEach(function (c) { c.classList.remove('active'); });
           chip.classList.add('active');
           sortMode = chip.dataset.sort;
           renderList();
