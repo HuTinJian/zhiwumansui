@@ -1,19 +1,37 @@
 /* ============================================================
-   织雾满穗 · 博客发帖 / 回复（公开）
+   织雾满穗 · 发布文章 / 评论（需要登录）
    ------------------------------------------------------------
    POST /api/blog/add
-   body: { clientId, name, title?, content, parentId? }
-   parentId 有值就是回复（只允许一层，回复的回复会挂到同一条主帖下）
+   body: { content, title?, cover?, tags?, parentId?, clientId? }
+   作者名取自登录会话，不再由前端自报昵称 —— 这样作者名才可信。
+   parentId 有值就是评论（只允许一层，评论的评论会挂到同一篇文章下）
    ============================================================ */
 
 import { json, clientIp, createRateLimiter, readJsonBody, requireSameOrigin, tooLong } from '../_utils.js';
-import {
-  AUTO_HIDE_REPORTS, LIMITS, cleanName, cleanBody, findBlockedWord,
-  isBanned, normalizeClientId
-} from './_moderation.js';
+import { AUTO_HIDE_REPORTS, LIMITS, cleanBody, findBlockedWord, isBanned, normalizeClientId } from './_moderation.js';
+import { currentUser } from './_auth.js';
 
-/* 单 IP 10 分钟最多发 8 条（帖子 + 回复一起算），挡住刷屏 */
+/* 单 IP 10 分钟最多发 8 条（文章 + 评论一起算），挡住刷屏 */
 const limiter = createRateLimiter(8, 10 * 60 * 1000);
+
+/* 封面只接受 http(s) 图片地址；长度也卡一下，别把超长 data: 塞进来 */
+function cleanCover(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  if (s.length > 300) return null;
+  if (!/^https?:\/\//i.test(s)) return null;
+  return s;
+}
+
+/* 标签：逗号 / 顿号 / 空白分隔，最多 5 个，每个最多 12 字 */
+function cleanTags(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  const list = s.split(/[,，、\s]+/).map(function (t) {
+    return t.replace(/[\u0000-\u001f\u007f#]/g, '').trim().slice(0, 12);
+  }).filter(Boolean).slice(0, 5);
+  return list.length ? list.join(',') : null;
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -22,23 +40,26 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'bad origin' }, 403);
   }
 
-  const limit = limiter.check(clientIp(request));
-  if (!limit.ok) {
-    return json({ ok: false, error: 'too_many_requests', wait: limit.wait }, 429);
+  if (!limiter.check(clientIp(request)).ok) {
+    return json({ ok: false, error: 'too_many_requests', wait: 0 }, 429);
   }
 
   try {
+    /* ---------- 必须是登录用户 ---------- */
+    const user = await currentUser(request, env);
+    if (!user) return json({ ok: false, error: 'login_required' }, 401);
+    if (user.banned) return json({ ok: false, error: 'banned' }, 403);
+
     const body = await readJsonBody(request);
 
     const clientId = normalizeClientId(body.clientId);
-    const name = cleanName(body.name).slice(0, LIMITS.name);
+    const name = user.username.slice(0, LIMITS.name);
     const title = cleanBody(body.title).slice(0, LIMITS.title);
     const rawContent = cleanBody(body.content);
+    const cover = cleanCover(body.cover);
+    const tags = cleanTags(body.tags);
     const parentId = Number(body.parentId);
     const isReply = Number.isSafeInteger(parentId) && parentId > 0;
-
-    if (!clientId) return json({ ok: false, error: 'bad client' }, 400);
-    if (!name) return json({ ok: false, error: 'invalid name' }, 400);
 
     const maxLen = isReply ? LIMITS.reply : LIMITS.content;
     if (!rawContent) return json({ ok: false, error: 'empty content' }, 400);
@@ -46,22 +67,22 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too_long', max: maxLen }, 400);
     }
 
-    /* 博客是「文章制」：主帖必须有标题；评论（回复）才不需要 */
+    /* 博客是「文章制」：主帖必须有标题；评论才不需要 */
     if (!isReply && !title) {
       return json({ ok: false, error: 'empty title' }, 400);
     }
 
-    if (await isBanned(env, clientId)) {
+    if (clientId && await isBanned(env, clientId)) {
       return json({ ok: false, error: 'banned' }, 403);
     }
 
     /* 敏感词：整条拒收，并把命中的词回给前端，方便用户自己改 */
-    const hit = findBlockedWord(name, title, rawContent);
+    const hit = findBlockedWord(name, title, rawContent, tags);
     if (hit) {
       return json({ ok: false, error: 'blocked_word', word: hit }, 400);
     }
 
-    /* 回复统一挂到主帖上：如果 parentId 本身是回复，就上溯到它的主帖 */
+    /* 评论统一挂到文章上：如果 parentId 本身是评论，就上溯到它的文章 */
     let rootId = null;
     if (isReply) {
       const parent = await env.DB.prepare(
@@ -75,9 +96,18 @@ export async function onRequestPost(context) {
     }
 
     const result = await env.DB.prepare(
-      `INSERT INTO blog_posts (parent_id, name, title, content, client_id, likes, reports, status)
-       VALUES (?, ?, ?, ?, ?, 0, 0, 'visible')`
-    ).bind(rootId, name, isReply ? null : (title || null), rawContent, clientId).run();
+      `INSERT INTO blog_posts (parent_id, user_id, name, title, content, cover, tags, client_id, likes, views, reports, pinned, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 'visible')`
+    ).bind(
+      rootId,
+      user.id,
+      name,
+      isReply ? null : (title || null),
+      rawContent,
+      isReply ? null : cover,
+      isReply ? null : tags,
+      clientId
+    ).run();
 
     return json({
       ok: true,

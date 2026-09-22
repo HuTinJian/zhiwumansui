@@ -83,3 +83,29 @@ CREATE TABLE IF NOT EXISTS blog_bans (
 CREATE INDEX IF NOT EXISTS idx_blog_parent ON blog_posts(parent_id, id DESC);
 CREATE INDEX IF NOT EXISTS idx_blog_status ON blog_posts(status, id DESC);
 
+
+-- ---------- 第 3 组：博客账号 + 封面 / 标签 / 浏览量 / 置顶 ----------
+-- 同样是「已存在会报 duplicate column，跳过继续」那一套。
+
+-- 登录功能：发帖和评论需要登录，浏览不需要。
+-- 密码只存「盐 + SHA-512 哈希」，不存明文。
+CREATE TABLE IF NOT EXISTS blog_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  pass_hash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  banned INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+-- 文章的新字段
+ALTER TABLE blog_posts ADD COLUMN user_id INTEGER;   -- 作者账号 id
+ALTER TABLE blog_posts ADD COLUMN cover TEXT;        -- 封面图地址（选填，不填就用自动渐变封面）
+ALTER TABLE blog_posts ADD COLUMN tags TEXT;         -- 标签，英文逗号分隔
+ALTER TABLE blog_posts ADD COLUMN views INTEGER DEFAULT 0;    -- 浏览量
+ALTER TABLE blog_posts ADD COLUMN pinned INTEGER DEFAULT 0;   -- 是否置顶
+
+CREATE INDEX IF NOT EXISTS idx_blog_user ON blog_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_blog_pinned ON blog_posts(pinned, id DESC);
+
+

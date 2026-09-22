@@ -20,17 +20,32 @@ CREATE TABLE IF NOT EXISTS feedback (
   decided_at TEXT
 );
 
+-- 博客账号（发帖 / 评论需要登录；浏览不需要）
+CREATE TABLE IF NOT EXISTS blog_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  pass_hash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  banned INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 -- 博客（卡片2 · 玩家交流）
--- parent_id 为 NULL 是主帖，否则是对某条主帖的回复（只做一层嵌套）
+-- parent_id 为 NULL 是主帖（文章），否则是对某篇文章的评论（只做一层嵌套）
 CREATE TABLE IF NOT EXISTS blog_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   parent_id INTEGER,
+  user_id INTEGER,
   name TEXT NOT NULL,
   title TEXT,
   content TEXT NOT NULL,
+  cover TEXT,
+  tags TEXT,
   client_id TEXT,
   likes INTEGER DEFAULT 0,
+  views INTEGER DEFAULT 0,
   reports INTEGER DEFAULT 0,
+  pinned INTEGER DEFAULT 0,
   status TEXT DEFAULT 'visible',
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );

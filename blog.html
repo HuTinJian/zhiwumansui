@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>玩家博客 - 织雾满穗</title>
 
-  <meta name="description" content="织雾满穗玩家博客：分享你在 Roblox 里发现的好音乐、好用 ID 和小技巧，也可以提问题和讨论。无需注册，填个昵称就能发。">
+  <meta name="description" content="织雾满穗玩家博客：分享你在 Roblox 里发现的好音乐、好用 ID 和小技巧，也可以提问题和讨论。">
   <meta name="theme-color" content="#fdf2f5">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -24,322 +24,345 @@
   </script>
 
   <style>
-    .blog-wrap { max-width: 1060px; margin: 0 auto; padding: 24px 20px 64px; }
+    /* ============================================================
+       博客样式
+       ------------------------------------------------------------
+       设计取向：卡片网格 + 封面图为主的「杂志式」博客，不再是长条列表。
+       所有颜色都走站点主题变量，深色模式自动跟随。
+       ============================================================ */
 
-    /* ========== Hero ========== */
+    .blog-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 64px; }
+
+    /* ---------- 顶部工具条（吸顶） ---------- */
+    .blog-topbar {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 12px 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+    .blog-topbar .tb-title {
+      font-size: 1.02rem; font-weight: 800; color: var(--text);
+      display: flex; align-items: center; gap: 7px; margin-right: 4px;
+    }
+    .blog-search {
+      position: relative; flex: 1 1 190px; min-width: 150px; max-width: 320px;
+    }
+    .blog-search input {
+      width: 100%; padding: 9px 14px 9px 34px;
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      background: var(--bg-card); color: var(--text);
+      font-family: var(--font); font-size: 0.85rem; outline: none;
+      transition: border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
+    }
+    .blog-search input:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
+    .blog-search .icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 0.82rem; opacity: 0.55; pointer-events: none;
+    }
+    .tb-spacer { flex: 1 1 auto; }
+
+    .btn-sm {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border: none; border-radius: var(--radius-pill);
+      font-family: var(--font); font-size: 0.83rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), background var(--dur) var(--ease-soft);
+    }
+    .btn-sm:active { transform: scale(0.94); }
+    .btn-sm.primary { background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b)); color: #fff; box-shadow: 0 4px 12px rgba(220,107,130,.25); }
+    .btn-sm.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(220,107,130,.35); }
+    .btn-sm.ghost { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
+    .btn-sm.ghost:hover { border-color: var(--primary-light); color: var(--primary); }
+    .btn-sm[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+
+    .who-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--radius-pill);
+      background: var(--bg-tint); color: var(--primary-ink);
+      font-size: 0.8rem; font-weight: 700; max-width: 150px;
+    }
+    .who-chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ---------- Hero ---------- */
     .blog-hero {
-      position: relative;
-      overflow: hidden;
-      text-align: center;
-      padding: 38px 24px 34px;
-      border-radius: var(--radius-lg);
+      position: relative; overflow: hidden; text-align: center;
+      padding: 34px 22px 30px; border-radius: var(--radius-lg);
       background: linear-gradient(150deg, var(--header-grad-a), var(--header-grad-b));
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm);
       margin-bottom: 18px;
     }
     .blog-hero::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
     }
+    .blog-hero::after {
+      content: ''; position: absolute; right: -60px; bottom: -70px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.35), transparent 68%);
+      pointer-events: none;
+    }
     .blog-avatar {
-      width: 88px; height: 88px;
-      margin: 0 auto 14px;
-      border-radius: 50%;
-      padding: 4px;
-      background: var(--bg-card);
-      border: 2px solid var(--border);
-      box-shadow: var(--shadow);
-      display: flex; align-items: center; justify-content: center;
-      animation: heroPop 0.7s var(--ease-bounce) backwards;
+      width: 76px; height: 76px; margin: 0 auto 12px; border-radius: 50%; padding: 3px;
+      background: var(--bg-card); border: 2px solid var(--border); box-shadow: var(--shadow);
+      animation: heroPop .7s var(--ease-bounce) backwards;
     }
     .blog-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
     @keyframes heroPop {
-      0% { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+      0% { opacity: 0; transform: scale(.6) rotate(-12deg); }
       60% { opacity: 1; transform: scale(1.06) rotate(4deg); }
       100% { transform: scale(1) rotate(0); }
     }
-
     .blog-hero h1 {
-      font-size: clamp(1.6rem, 5vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: -0.8px;
-      margin-bottom: 8px;
+      font-size: clamp(1.5rem, 4.6vw, 2.05rem); font-weight: 800; letter-spacing: -0.8px; margin-bottom: 8px;
       background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 40%, var(--gold) 75%, var(--primary) 100%);
       background-size: 220% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
       display: inline-block;
     }
-    .blog-hero h1:hover { background-position: 100% center; transition: background-position 0.8s var(--ease-soft); }
-
-    /* 轮播状态语（对应原站那句「在干嘛呢？」） */
-    .blog-status {
-      min-height: 1.9em;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--primary-ink);
-      letter-spacing: 0.4px;
-      margin-bottom: 12px;
-    }
+    .blog-hero h1:hover { background-position: 100% center; transition: background-position .8s var(--ease-soft); }
+    .blog-status { min-height: 1.8em; font-size: 0.92rem; font-weight: 600; color: var(--primary-ink); margin-bottom: 10px; }
     .blog-status .caret {
-      display: inline-block; width: 2px; height: 1.05em;
-      vertical-align: -0.16em; margin-left: 3px;
-      background: var(--primary);
-      animation: caretBlink 1s steps(1) infinite;
+      display: inline-block; width: 2px; height: 1.05em; vertical-align: -0.16em; margin-left: 3px;
+      background: var(--primary); animation: caretBlink 1s steps(1) infinite;
     }
-    @keyframes caretBlink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+    @keyframes caretBlink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0; } }
+    .blog-hero .bio { font-size: 0.88rem; color: var(--text-light); line-height: 1.85; max-width: 540px; margin: 0 auto 18px; }
+    .hero-stats { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .hero-stats .hs {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-pill);
+      padding: 5px 15px; font-size: 0.79rem; color: var(--text-muted);
+    }
+    .hero-stats .hs b { color: var(--primary-ink); font-weight: 800; font-variant-numeric: tabular-nums; }
 
-    .blog-hero .bio {
-      font-size: 0.9rem; color: var(--text-light); line-height: 1.9;
-      max-width: 520px; margin: 0 auto 20px;
-    }
-    .blog-hero .hero-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .blog-hero .hero-actions .btn { padding: 10px 24px; font-size: 0.9rem; }
-
-    /* ========== 统计条 ========== */
-    .blog-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-    .blog-stats .s-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 14px 10px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      transition: transform var(--dur) var(--ease-bounce), border-color var(--dur) var(--ease-soft);
-    }
-    .blog-stats .s-item:hover { transform: translateY(-3px); border-color: var(--primary-light); }
-    .blog-stats .s-num {
-      font-size: 1.35rem; font-weight: 800; color: var(--primary-ink); line-height: 1.2;
-      font-variant-numeric: tabular-nums;
-    }
-    .blog-stats .s-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
-
-    /* ========== 两栏布局 ========== */
-    .blog-cols { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 22px; align-items: start; }
-    .blog-main { min-width: 0; }
-    .blog-side { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 16px; }
-
-    .widget {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      padding: 16px 18px;
-    }
-    .widget h3 {
-      font-size: 0.88rem; font-weight: 700; color: var(--text);
-      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
-    }
-    .widget h3::after {
-      content: ''; flex: 1; height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
-    }
-    .widget .w-list { display: flex; flex-direction: column; gap: 4px; }
-    .widget .w-item {
-      display: flex; gap: 9px; align-items: center;
-      padding: 7px 8px; border-radius: var(--radius-xs);
-      font-size: 0.83rem; color: var(--text-light); line-height: 1.6;
-      text-decoration: none; cursor: pointer;
-      transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft);
-    }
-    .widget .w-item:hover { background: var(--bg-tint); color: var(--primary); }
-    .widget .w-rank {
-      flex-shrink: 0; width: 18px; height: 18px; border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.68rem; font-weight: 800;
-      background: var(--bg-soft); color: var(--text-muted);
-    }
-    .widget .w-item:nth-child(1) .w-rank { background: var(--primary); color: #fff; }
-    .widget .w-item:nth-child(2) .w-rank { background: var(--gold); color: #fff; }
-    .widget .w-item:nth-child(3) .w-rank { background: var(--primary-light); color: #fff; }
-    .widget .w-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .widget .w-sub { font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; }
-    .widget .about-line { font-size: 0.83rem; color: var(--text-light); line-height: 1.85; }
-    .widget .about-line + .about-line { margin-top: 6px; }
-    .widget .about-line b { color: var(--primary-ink); }
-
-    /* ========== 最新文章（大卡片） ========== */
-    .latest-card {
-      position: relative;
-      overflow: hidden;
-      display: block;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px 24px 20px;
-      margin-bottom: 18px;
-      text-decoration: none; color: inherit; cursor: pointer;
-      transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
-    }
-    .latest-card::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
-    }
-    .latest-card:hover { transform: translateY(-4px); border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
-    .latest-card .badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px;
-      color: var(--primary-ink); background: var(--bg-tint);
-      padding: 3px 12px; border-radius: var(--radius-pill);
-      margin-bottom: 10px;
-    }
-    .latest-card h2 { font-size: 1.22rem; font-weight: 800; line-height: 1.5; color: var(--text); margin-bottom: 8px; word-break: break-word; }
-    .latest-card .excerpt { font-size: 0.9rem; color: var(--text-light); line-height: 1.85; margin-bottom: 14px; }
-
-    /* ========== 文章列表 ========== */
-    .list-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
-    .list-head h3 { font-size: 1rem; font-weight: 800; color: var(--text); }
-    .list-head .rule { flex: 1; height: 1px; min-width: 20px; background: linear-gradient(90deg, var(--border), transparent); }
-
+    /* ---------- 工具行：排序 + 标签 ---------- */
+    .tool-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tool-row .rule { flex: 1; height: 1px; min-width: 16px; background: linear-gradient(90deg, var(--border), transparent); }
     .chip {
       border: 1px solid var(--border); background: var(--bg-card); color: var(--text-light);
       border-radius: var(--radius-pill); padding: 6px 14px; font-size: 0.79rem;
       font-family: var(--font); font-weight: 600; cursor: pointer;
       transition: all var(--dur) var(--ease-soft);
     }
-    .chip:hover { border-color: var(--primary-light); color: var(--primary); }
+    .chip:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
     .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .chip.tag { background: var(--bg-soft); }
 
-    .post-item {
-      position: relative;
-      display: block;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      padding: 18px 20px 16px 22px;
-      margin-bottom: 12px;
-      text-decoration: none; color: inherit; cursor: pointer;
+    /* ---------- 置顶区 ---------- */
+    .section-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.86rem; font-weight: 800; color: var(--text);
+      margin: 0 0 12px;
+    }
+    .section-label .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+
+    /* ---------- 卡片网格 ---------- */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .p-card {
+      position: relative; overflow: hidden; display: flex; flex-direction: column;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; cursor: pointer;
       transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
-      animation: cardRise 0.45s var(--ease-bounce) backwards;
+      animation: cardRise .5s var(--ease-bounce) backwards;
     }
-    .post-item:hover { transform: translateX(4px); border-color: var(--primary-light); box-shadow: var(--shadow); }
-    .post-item .accent-bar {
-      position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
-      border-radius: 3px; background: linear-gradient(180deg, var(--primary), var(--accent));
-      opacity: 0.75;
-    }
-    .post-item h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 6px; word-break: break-word; }
-    .post-item .excerpt { font-size: 0.87rem; color: var(--text-light); line-height: 1.8; margin-bottom: 10px; word-break: break-word; }
-    .post-item .more { font-size: 0.79rem; font-weight: 700; color: var(--primary-ink); }
+    .p-card:hover { transform: translateY(-5px); border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
 
-    .post-meta {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      font-size: 0.75rem; color: var(--text-muted);
+    /* 封面：有图用图，没图用按标题算出来的渐变 + 首字水印 */
+    .p-cover {
+      position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-soft);
     }
-    .post-meta .avatar {
-      width: 24px; height: 24px; border-radius: 50%; font-size: 0.75rem;
+    .p-cover img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .55s var(--ease-out);
+    }
+    .p-card:hover .p-cover img { transform: scale(1.06); }
+    .p-cover .watermark {
+      font-size: 3.4rem; font-weight: 800; color: rgba(255,255,255,.85);
+      text-shadow: 0 2px 12px rgba(0,0,0,.12); user-select: none;
+      transition: transform .55s var(--ease-out);
+    }
+    .p-card:hover .p-cover .watermark { transform: scale(1.1) rotate(-4deg); }
+    .p-cover .pin-badge {
+      position: absolute; left: 10px; top: 10px; z-index: 2;
+      background: rgba(255,255,255,.92); color: var(--primary-ink);
+      font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: var(--radius-pill);
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+
+    .p-body { padding: 14px 16px 12px; display: flex; flex-direction: column; flex: 1; }
+    .p-body h2 {
+      font-size: 1rem; font-weight: 800; line-height: 1.5; color: var(--text);
+      margin-bottom: 7px; word-break: break-word;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .p-body .excerpt {
+      font-size: 0.84rem; color: var(--text-light); line-height: 1.72; margin-bottom: 11px; flex: 1;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .p-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .p-tags .t {
+      font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: var(--radius-pill);
+      background: var(--bg-tint); color: var(--primary-ink);
+    }
+    .p-foot {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding-top: 10px; border-top: 1px dashed var(--border);
+      font-size: 0.73rem; color: var(--text-muted);
+    }
+    .p-foot .avatar {
+      width: 22px; height: 22px; border-radius: 50%; font-size: .7rem; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft));
-      border: 1px solid var(--border); flex-shrink: 0;
+      border: 1px solid var(--border);
     }
-    .post-meta .who { font-weight: 700; color: var(--text-light); }
-    .post-meta .dot { opacity: 0.5; }
+    .p-foot .who { font-weight: 700; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90px; }
+    .p-foot .spacer { flex: 1; }
+    .p-foot .m { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
 
-    /* ========== 文章详情 ========== */
-    .article { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 30px; }
-    .article h1 { font-size: clamp(1.35rem, 4vw, 1.75rem); font-weight: 800; line-height: 1.45; color: var(--text); margin-bottom: 14px; word-break: break-word; }
-    .article .article-meta { padding-bottom: 16px; border-bottom: 1px dashed var(--border); margin-bottom: 22px; }
+    /* ---------- 骨架屏 ---------- */
+    .skel { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
+    .skel .s {
+      height: 292px; border-radius: var(--radius);
+      background: linear-gradient(100deg, var(--bg-soft) 30%, var(--bg-tint) 50%, var(--bg-soft) 70%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+
+    /* ---------- 文章详情 ---------- */
+    .article { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .article .a-cover { aspect-ratio: 21 / 9; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .article .a-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .article .a-cover .watermark { font-size: 5rem; font-weight: 800; color: rgba(255,255,255,.85); }
+    .article .a-inner { padding: 26px 30px 28px; }
+    .article h1 { font-size: clamp(1.3rem, 3.8vw, 1.7rem); font-weight: 800; line-height: 1.45; color: var(--text); margin-bottom: 14px; word-break: break-word; }
+    .article .a-meta {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding-bottom: 16px; border-bottom: 1px dashed var(--border); margin-bottom: 22px;
+      font-size: 0.77rem; color: var(--text-muted);
+    }
+    .article .a-meta .avatar {
+      width: 26px; height: 26px; border-radius: 50%; font-size: .78rem; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft)); border: 1px solid var(--border);
+    }
+    .article .a-meta .who { font-weight: 700; color: var(--text-light); }
+    .article .a-meta .dot { opacity: .5; }
     .article .body { font-size: 0.96rem; color: var(--text-light); line-height: 2.05; white-space: pre-wrap; word-break: break-word; }
-    .article .article-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--border); }
+    .article .a-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--border); }
 
     .act {
       display: inline-flex; align-items: center; gap: 5px;
       border: 1px solid var(--border); background: var(--bg); color: var(--text-light);
       border-radius: var(--radius-pill); padding: 7px 15px;
-      font-size: 0.8rem; font-weight: 600; font-family: var(--font);
-      cursor: pointer; text-decoration: none;
+      font-size: 0.8rem; font-weight: 600; font-family: var(--font); cursor: pointer; text-decoration: none;
       transition: all var(--dur) var(--ease-soft);
     }
     .act:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
-    .act:active { transform: scale(0.95); }
+    .act:active { transform: scale(.95); }
     .act.liked { background: var(--bg-tint); border-color: var(--primary-light); color: var(--primary); }
     .act.danger:hover { border-color: var(--danger); color: var(--danger); }
-    .act[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .act[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
     .back-link {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.85rem; color: var(--primary-ink); text-decoration: none;
-      font-weight: 600; margin-bottom: 16px; cursor: pointer;
+      font-size: 0.84rem; color: var(--primary-ink); text-decoration: none;
+      font-weight: 600; margin-bottom: 14px; cursor: pointer;
     }
     .back-link:hover { text-decoration: underline; }
 
-    /* ========== 评论区 ========== */
+    /* ---------- 评论区 ---------- */
     .comments { margin-top: 30px; }
-    .comments h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+    .comments h3 { font-size: 0.98rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
     .comment { padding: 13px 0; border-bottom: 1px dashed var(--border); }
     .comment:last-of-type { border-bottom: none; }
     .comment .c-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
-    .comment .c-name { font-size: 0.84rem; font-weight: 700; color: var(--text); }
-    .comment .c-time { font-size: 0.72rem; color: var(--text-muted); }
+    .comment .c-name { font-size: 0.83rem; font-weight: 700; color: var(--text); }
+    .comment .c-time { font-size: 0.71rem; color: var(--text-muted); }
     .comment .c-body { font-size: 0.88rem; color: var(--text-light); line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
     .comment-form { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
     .comment-form input {
       flex: 1 1 200px; padding: 10px 15px;
       border: 2px solid var(--border); border-radius: var(--radius-pill);
-      background: var(--bg); color: var(--text); font-family: var(--font);
-      font-size: 0.88rem; outline: none;
+      background: var(--bg); color: var(--text); font-family: var(--font); font-size: 0.88rem; outline: none;
       transition: border-color var(--dur) var(--ease-soft);
     }
     .comment-form input:focus { border-color: var(--primary); }
 
-    /* ========== 写文章 ========== */
-    .composer { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 28px; }
-    .composer h2 { font-size: 1.15rem; margin-bottom: 6px; color: var(--text); }
-    .composer .hint { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.8; }
-    .composer label { display: block; font-size: 0.84rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .composer input[type="text"], .composer textarea {
+    /* ---------- 表单（写文章 / 登录） ---------- */
+    .panel {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 26px 28px;
+    }
+    .panel.narrow { max-width: 420px; margin: 0 auto; }
+    .panel h2 { font-size: 1.12rem; margin-bottom: 6px; color: var(--text); }
+    .panel .hint { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.8; }
+    .panel label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .panel input[type="text"], .panel input[type="password"], .panel textarea {
       width: 100%; padding: 11px 15px;
       border: 2px solid var(--border); border-radius: var(--radius-sm);
-      background: var(--bg); color: var(--text); font-family: var(--font);
-      font-size: 0.93rem; outline: none;
+      background: var(--bg); color: var(--text); font-family: var(--font); font-size: 0.92rem; outline: none;
       transition: border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
     }
-    .composer input[type="text"]:focus, .composer textarea:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
-    .composer textarea { min-height: 240px; resize: vertical; line-height: 1.9; }
-    .composer .field { margin-bottom: 16px; position: relative; }
-    .composer .counter { position: absolute; right: 14px; bottom: 10px; font-size: 0.72rem; color: var(--text-muted); pointer-events: none; }
-    .composer .footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .composer .whoami { font-size: 0.77rem; color: var(--text-muted); flex: 1 1 auto; }
+    .panel input:focus, .panel textarea:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
+    .panel textarea { min-height: 220px; resize: vertical; line-height: 1.9; }
+    .panel .field { margin-bottom: 15px; position: relative; }
+    .panel .counter { position: absolute; right: 14px; bottom: 10px; font-size: 0.71rem; color: var(--text-muted); pointer-events: none; }
+    .panel .row2 { display: flex; gap: 12px; flex-wrap: wrap; }
+    .panel .row2 .field { flex: 1 1 200px; }
+    .panel .footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .panel .err {
+      display: none; margin-bottom: 14px; padding: 10px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-tint); border: 1px solid var(--danger-light); color: var(--danger);
+      font-size: 0.82rem; line-height: 1.7;
+    }
+    .panel .err.show { display: block; animation: fadeInUp .25s var(--ease-soft) both; }
+    .switch-line { text-align: center; margin-top: 16px; font-size: 0.83rem; color: var(--text-muted); }
+    .switch-line a { color: var(--primary-ink); font-weight: 700; cursor: pointer; text-decoration: none; }
+    .switch-line a:hover { text-decoration: underline; }
+
+    .guest-tip {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 14px 18px; margin-bottom: 18px;
+      background: var(--bg-tint); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.85rem; color: var(--text-light); line-height: 1.75;
+    }
+    .guest-tip .t { flex: 1 1 220px; }
 
     .blog-empty {
-      text-align: center; padding: 54px 20px; color: var(--text-muted);
+      text-align: center; padding: 56px 20px; color: var(--text-muted);
       background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius);
     }
     .blog-empty .big { display: block; font-size: 2.4rem; margin-bottom: 12px; }
 
     .view { display: none; }
-    .view.active { display: block; animation: fadeInUp 0.35s var(--ease-soft) both; }
+    .view.active { display: block; animation: fadeInUp .35s var(--ease-soft) both; }
 
-    @media (max-width: 900px) {
-      .blog-cols { grid-template-columns: 1fr; }
-      .blog-side { position: static; }
-    }
     @media (max-width: 768px) {
-      .blog-wrap { padding: 18px 14px 48px; }
-      .blog-hero { padding: 30px 18px 26px; }
-      .blog-avatar { width: 72px; height: 72px; }
-      .blog-stats { grid-template-columns: repeat(2, 1fr); }
-      .post-item { padding: 16px 16px 14px 18px; }
-      .article { padding: 20px 18px; }
-      .composer { padding: 18px 16px; }
-      .latest-card { padding: 18px 18px 16px; }
+      .blog-wrap { padding: 0 14px 48px; }
+      .blog-hero { padding: 26px 16px 24px; }
+      .blog-avatar { width: 64px; height: 64px; }
+      .card-grid, .skel { grid-template-columns: 1fr; gap: 14px; }
+      .skel .s { height: 260px; }
+      .article .a-inner { padding: 20px 18px 22px; }
+      .panel { padding: 18px 16px; }
+      .blog-topbar { gap: 8px; }
+      .blog-topbar .tb-title { font-size: .95rem; }
+      .blog-search { order: 5; flex: 1 1 100%; max-width: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .blog-avatar { animation: none; }
-      .post-item { animation: none; }
+      .blog-avatar, .p-card, .skel .s { animation: none; }
+      .p-card:hover, .p-cover img, .p-cover .watermark { transform: none; }
     }
   </style>
 </head>
@@ -359,105 +382,103 @@
     </ul>
   </nav>
 
-  <!-- ==================== 主内容 ==================== -->
   <main class="blog-wrap" id="main">
 
-    <!-- Hero -->
-    <header class="blog-hero">
-      <div class="blog-avatar">
-        <img src="images/developer.png" alt="站点头像" width="80" height="80">
-      </div>
-      <h1>玩家博客</h1>
-      <p class="blog-status"><span id="statusText"></span><span class="caret" aria-hidden="true"></span></p>
-      <p class="bio">
-        分享在 Roblox 里挖到的好音乐、好用的 ID，还有踩过的坑。<br>
-        不用注册，填个昵称就能写；写下的东西会记在这个浏览器上，随时能自己删。
-      </p>
-      <div class="hero-actions">
-        <button type="button" class="btn btn-primary" id="writeEntryBtn">✍️ 写一篇</button>
-        <a class="btn btn-secondary" href="roblox_music.html">🎵 去 ID 宝库看看</a>
-      </div>
-    </header>
+    <!-- ==================== 工具条 ==================== -->
+    <div class="blog-topbar">
+      <span class="tb-title">📝 玩家博客</span>
 
-    <!-- 统计条 -->
-    <div class="blog-stats">
-      <div class="s-item"><div class="s-num" id="statPosts">–</div><div class="s-label">篇文章</div></div>
-      <div class="s-item"><div class="s-num" id="statComments">–</div><div class="s-label">条评论</div></div>
-      <div class="s-item"><div class="s-num" id="statLikes">–</div><div class="s-label">个赞</div></div>
-      <div class="s-item"><div class="s-num" id="statAuthors">–</div><div class="s-label">位作者</div></div>
+      <div class="blog-search">
+        <span class="icon" aria-hidden="true">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜索标题、正文或作者…" autocomplete="off" spellcheck="false">
+      </div>
+
+      <span class="tb-spacer"></span>
+
+      <span id="userArea"></span>
+      <button type="button" class="btn-sm primary" id="writeBtn">✍️ 写文章</button>
     </div>
 
-    <!-- ---------- 视图一：文章列表 ---------- -->
+    <!-- ==================== 视图一：文章列表 ==================== -->
     <section class="view active" id="viewList">
-      <div class="blog-cols">
 
-        <div class="blog-main">
-          <div id="latestBox"></div>
-
-          <div class="list-head">
-            <h3>📄 全部文章</h3>
-            <span class="rule" aria-hidden="true"></span>
-            <button type="button" class="chip active" data-sort="new">🕒 最新</button>
-            <button type="button" class="chip" data-sort="hot">🔥 最热</button>
-            <button type="button" class="chip" id="refreshBtn">🔄</button>
-            <span id="postCount" style="font-size:0.78rem;color:var(--text-muted);"></span>
-          </div>
-
-          <div id="postList">
-            <div class="blog-empty"><span class="big" aria-hidden="true">⏳</span>正在加载…</div>
-          </div>
+      <header class="blog-hero">
+        <div class="blog-avatar">
+          <img src="images/developer.png" alt="站点头像" width="70" height="70">
         </div>
+        <h1>玩家博客</h1>
+        <p class="blog-status"><span id="statusText"></span><span class="caret" aria-hidden="true"></span></p>
+        <p class="bio">
+          分享在 Roblox 里挖到的好音乐、好用的 ID，还有踩过的坑。<br>
+          浏览不用登录；想发布内容的话，注册一个昵称就行。
+        </p>
+        <div class="hero-stats">
+          <span class="hs">📄 <b id="statPosts">–</b> 篇文章</span>
+          <span class="hs">💬 <b id="statComments">–</b> 条评论</span>
+          <span class="hs">👁 <b id="statViews">–</b> 次浏览</span>
+          <span class="hs">👍 <b id="statLikes">–</b> 个赞</span>
+        </div>
+      </header>
 
-        <aside class="blog-side">
-          <div class="widget">
-            <h3>🔥 热门文章</h3>
-            <div class="w-list" id="hotList"><div class="w-item">还没有内容</div></div>
-          </div>
+      <div id="pinnedWrap"></div>
 
-          <div class="widget">
-            <h3>🔗 快捷入口</h3>
-            <div class="w-list">
-              <a class="w-item" href="index.html"><span class="w-rank">🏠</span><span class="w-title">回到首页</span></a>
-              <a class="w-item" href="roblox_music.html"><span class="w-rank">🎵</span><span class="w-title">Roblox ID 宝库</span></a>
-              <a class="w-item" href="feedback.html"><span class="w-rank">💬</span><span class="w-title">意见反馈</span></a>
-            </div>
-          </div>
+      <div class="tool-row">
+        <button type="button" class="chip active" data-sort="new">🕒 最新</button>
+        <button type="button" class="chip" data-sort="views">👁 最多浏览</button>
+        <button type="button" class="chip" data-sort="likes">👍 最多点赞</button>
+        <button type="button" class="chip" data-sort="comments">💬 最多评论</button>
+        <span class="rule" aria-hidden="true"></span>
+        <span id="resultCount" style="font-size:.78rem;color:var(--text-muted)"></span>
+      </div>
 
-          <div class="widget">
-            <h3>ℹ️ 关于这里</h3>
-            <p class="about-line">这是 <b>织雾满穗</b> 的玩家交流区。</p>
-            <p class="about-line">不需要注册账号，也没有密码 —— 用昵称就能写，身份认在你这台浏览器上。</p>
-            <p class="about-line">请勿发布违规内容：含敏感词的会被直接拦下，被多次举报的会自动隐藏。</p>
-          </div>
-        </aside>
+      <div id="tagBar" class="tool-row" style="margin-top:-8px"></div>
 
+      <div id="cardGrid" class="card-grid">
+        <div class="skel" style="grid-column:1/-1;">
+          <div class="s"></div><div class="s"></div><div class="s"></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:6px;">
+        <button type="button" class="btn-sm ghost" id="loadMoreBtn" hidden>加载更多</button>
       </div>
     </section>
 
-    <!-- ---------- 视图二：文章详情 ---------- -->
+    <!-- ==================== 视图二：文章详情 ==================== -->
     <section class="view" id="viewPost">
       <a class="back-link" id="backFromPost">← 返回文章列表</a>
       <article class="article" id="articleBox"></article>
     </section>
 
-    <!-- ---------- 视图三：写文章 ---------- -->
+    <!-- ==================== 视图三：写文章 ==================== -->
     <section class="view" id="viewWrite">
       <a class="back-link" id="backFromWrite">← 返回文章列表</a>
-      <div class="composer">
-        <h2>✍️ 写一篇</h2>
-        <p class="hint">
-          发过的文章会记在这个浏览器上，以后随时可以自己删掉。
-          请勿发布违规内容 —— 含敏感词的会直接发不出去，被多次举报的也会自动隐藏。
-        </p>
 
-        <div class="field">
-          <label for="postName">你的昵称</label>
-          <input type="text" id="postName" placeholder="最多 20 字" maxlength="20" autocomplete="nickname">
-        </div>
+      <div class="guest-tip" id="writeGuestTip" hidden>
+        <span class="t">🔒 发布文章需要先登录。浏览是不用登录的，随便看。</span>
+        <button type="button" class="btn-sm primary" id="goAuthBtn">去登录 / 注册</button>
+      </div>
+
+      <div class="panel" id="writePanel" hidden>
+        <h2>✍️ 写一篇文章</h2>
+        <p class="hint">标题必填。封面图可以不填 —— 不填会自动生成一张配色封面。</p>
+
+        <div class="err" id="writeErr"></div>
 
         <div class="field">
           <label for="postTitle">标题</label>
           <input type="text" id="postTitle" placeholder="给你的文章起个标题（最多 60 字）" maxlength="60">
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="postCover">封面图地址（选填）</label>
+            <input type="text" id="postCover" placeholder="https://… 留空就自动生成封面" maxlength="300">
+          </div>
+          <div class="field">
+            <label for="postTags">标签（选填）</label>
+            <input type="text" id="postTags" placeholder="最多 5 个，用逗号隔开" maxlength="80">
+          </div>
         </div>
 
         <div class="field">
@@ -467,9 +488,45 @@
         </div>
 
         <div class="footer">
-          <button type="button" class="btn btn-primary" id="postBtn" aria-busy="false">🚀 发布文章</button>
-          <span class="whoami" id="whoami"></span>
+          <button type="button" class="btn-sm primary" id="publishBtn" aria-busy="false">🚀 发布文章</button>
+          <span style="font-size:.78rem;color:var(--text-muted)">以 <b id="writeAsName">–</b> 的身份发布</span>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 视图四：登录 / 注册 ==================== -->
+    <section class="view" id="viewAuth">
+      <a class="back-link" id="backFromAuth">← 返回文章列表</a>
+
+      <div class="panel narrow">
+        <h2 id="authTitle">👤 登录</h2>
+        <p class="hint" id="authHint">登录后就可以发文章和评论了。没有账号的话，注册一个只要几秒。</p>
+
+        <div class="err" id="authErr"></div>
+
+        <div class="field">
+          <label for="authUser">用户名</label>
+          <input type="text" id="authUser" placeholder="2-20 个字，中文也行" maxlength="20" autocomplete="username">
+        </div>
+
+        <div class="field">
+          <label for="authPass">密码</label>
+          <input type="password" id="authPass" placeholder="至少 6 位" maxlength="64" autocomplete="current-password">
+        </div>
+
+        <div class="field" id="authPass2Field" hidden>
+          <label for="authPass2">再输一次密码</label>
+          <input type="password" id="authPass2" placeholder="确认密码" maxlength="64" autocomplete="new-password">
+        </div>
+
+        <div class="footer">
+          <button type="button" class="btn-sm primary" id="authSubmitBtn">登录</button>
+        </div>
+
+        <p class="switch-line">
+          <span id="authSwitchText">还没有账号？</span>
+          <a id="authSwitchLink">去注册</a>
+        </p>
       </div>
     </section>
 
@@ -496,63 +553,45 @@
       checkPageUpdate('blog');
 
       var CLIENT = getClientId();
-      var NAME_KEY = 'zm_blog_name';
       var posts = [];
+      var me = null;                 /* 当前登录用户，null = 游客 */
       var sortMode = 'new';
+      var keyword = '';
+      var tagFilter = '';
+      var visibleCount = 12;         /* 卡片网格一次渲染多少张，点「加载更多」再加 12 */
+      var PAGE_STEP = 12;
       var currentId = 0;
+      var authMode = 'login';        /* login | register */
 
-      /* ---------- 昵称记忆 ---------- */
-      try {
-        var savedName = localStorage.getItem(NAME_KEY);
-        if (savedName) $('postName').value = savedName;
-      } catch (e) {}
-      $('whoami').textContent = '你的浏览器身份：' + CLIENT.slice(0, 6) + '…（只用来认领你自己的文章）';
+      /* ============================================================
+         工具
+         ============================================================ */
 
-      /* ---------- 轮播状态语 ----------
-         对应原站那句「在干嘛呢？」。开了系统「减少动态效果」就固定显示第一句，不做打字机。 */
-      var STATUS_LINES = [
-        '在 1500 多首里翻来翻去…',
-        '刚又挖到一首好听的',
-        '这个 ID 居然还能用！',
-        '整理歌单中，勿扰',
-        '欢迎来聊聊 Roblox 音乐',
-        '在干嘛呢？'
-      ];
-
-      (function statusTyper() {
-        var el = $('statusText');
-        if (!el) return;
-
-        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduce) { el.textContent = STATUS_LINES[0]; return; }
-
-        var li = 0, ci = 0, deleting = false;
-
-        (function tick() {
-          var line = STATUS_LINES[li];
-          if (!deleting) {
-            ci++;
-            el.textContent = line.slice(0, ci);
-            if (ci >= line.length) { deleting = true; return setTimeout(tick, 1500); }
-            return setTimeout(tick, 105);
-          }
-          ci--;
-          el.textContent = line.slice(0, ci);
-          if (ci <= 0) { deleting = false; li = (li + 1) % STATUS_LINES.length; return setTimeout(tick, 320); }
-          setTimeout(tick, 45);
-        })();
-      })();
-
-      /* ---------- 小工具 ---------- */
       var AVATARS = ['🎵', '🎧', '🎮', '🌾', '🌸', '⭐', '🔥', '🍀', '🌙', '🐳', '🎹', '🎤'];
 
-      function avatarOf(name) {
-        var h = 0, s = String(name || '');
+      function hashOf(text) {
+        var h = 0, s = String(text || '');
         for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-        return AVATARS[h % AVATARS.length];
+        return h;
       }
 
-      /* 数据库存的是 'YYYY-MM-DD HH:MM:SS'（本地时间），Safari 不认这种写法 */
+      function avatarOf(name) { return AVATARS[hashOf(name) % AVATARS.length]; }
+
+      /* 没填封面图时用：按标题从这几套配色里挑一套，保证跟站点的粉色调一致 */
+      var COVERS = [
+        'linear-gradient(135deg,#f7b8c8,#e08aa4)',
+        'linear-gradient(135deg,#f6c8a8,#dfa07c)',
+        'linear-gradient(135deg,#c9b3e8,#9d86cc)',
+        'linear-gradient(135deg,#a8cde8,#7aa8cf)',
+        'linear-gradient(135deg,#b6dcc8,#84b3a0)',
+        'linear-gradient(135deg,#f2b0c0,#c98fb8)'
+      ];
+      function coverOf(post) { return COVERS[hashOf(post.title || post.content) % COVERS.length]; }
+      function watermarkOf(post) {
+        var s = String(post.title || post.content || '?').replace(/\s+/g, '');
+        return s.charAt(0) || '📝';
+      }
+
       function parseTime(s) {
         if (!s) return null;
         var d = new Date(String(s).replace(' ', 'T'));
@@ -584,206 +623,242 @@
         return s.length > n ? s.slice(0, n) + '…' : s;
       }
 
-      function displayTitle(p) {
-        return p.title || excerpt(p.content, 30) || '（无标题）';
+      function displayTitle(p) { return p.title || excerpt(p.content, 30) || '（无标题）'; }
+
+      function fmtNum(n) {
+        n = Number(n) || 0;
+        if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + 'w';
+        return String(n);
       }
 
-      function score(p) { return (p.likes || 0) * 3 + (p.replies || 0) * 2; }
-
-      function sorted(list) {
-        var out = list.slice();
-        if (sortMode === 'hot') out.sort(function (a, b) { return score(b) - score(a) || b.id - a.id; });
-        else out.sort(function (a, b) { return b.id - a.id; });
-        return out;
+      function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined && text !== null) e.textContent = text;
+        return e;
       }
 
-      function dot() {
-        var d = document.createElement('span');
-        d.className = 'dot';
-        d.setAttribute('aria-hidden', 'true');
-        d.textContent = '·';
-        return d;
+      function setErr(id, msg) {
+        var box = $(id);
+        if (!box) return;
+        box.textContent = msg || '';
+        box.classList.toggle('show', !!msg);
       }
 
-      function metaLine(p, extraClass) {
-        var wrap = document.createElement('div');
-        wrap.className = 'post-meta' + (extraClass ? ' ' + extraClass : '');
+      /* ============================================================
+         轮播状态语
+         ============================================================ */
+      var STATUS_LINES = [
+        '在 1500 多首里翻来翻去…',
+        '刚又挖到一首好听的',
+        '这个 ID 居然还能用！',
+        '整理歌单中，勿扰',
+        '欢迎来聊聊 Roblox 音乐',
+        '在干嘛呢？'
+      ];
 
-        var av = document.createElement('span');
-        av.className = 'avatar';
-        av.setAttribute('aria-hidden', 'true');
-        av.textContent = avatarOf(p.name);
-        wrap.appendChild(av);
+      (function statusTyper() {
+        var target = $('statusText');
+        if (!target) return;
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) { target.textContent = STATUS_LINES[0]; return; }
 
-        var nm = document.createElement('span');
-        nm.className = 'who';
-        nm.textContent = p.name;
-        wrap.appendChild(nm);
+        var li = 0, ci = 0, deleting = false;
+        (function tick() {
+          var line = STATUS_LINES[li];
+          if (!deleting) {
+            ci++;
+            target.textContent = line.slice(0, ci);
+            if (ci >= line.length) { deleting = true; return setTimeout(tick, 1500); }
+            return setTimeout(tick, 105);
+          }
+          ci--;
+          target.textContent = line.slice(0, ci);
+          if (ci <= 0) { deleting = false; li = (li + 1) % STATUS_LINES.length; return setTimeout(tick, 320); }
+          setTimeout(tick, 45);
+        })();
+      })();
 
-        wrap.appendChild(dot());
-        var tm = document.createElement('span');
-        tm.textContent = timeAgo(p.createdAt);
-        tm.title = fullDate(p.createdAt);
-        wrap.appendChild(tm);
-
-        if (typeof p.likes === 'number') {
-          wrap.appendChild(dot());
-          var lk = document.createElement('span');
-          lk.textContent = '👍 ' + p.likes;
-          wrap.appendChild(lk);
-        }
-        if (typeof p.replies === 'number') {
-          wrap.appendChild(dot());
-          var rp = document.createElement('span');
-          rp.textContent = '💬 ' + p.replies;
-          wrap.appendChild(rp);
-        }
-        if (p.mine) {
-          wrap.appendChild(dot());
-          var me = document.createElement('span');
-          me.style.color = 'var(--primary-ink)';
-          me.style.fontWeight = '700';
-          me.textContent = '我写的';
-          wrap.appendChild(me);
-        }
-        return wrap;
-      }
-
-      /* ---------- 统计与侧边栏 ---------- */
+      /* ============================================================
+         统计 / 筛选 / 排序
+         ============================================================ */
       function renderStats() {
-        var comments = 0, likes = 0, authors = {};
+        var comments = 0, likes = 0, views = 0;
         posts.forEach(function (p) {
           comments += (p.replies || 0);
           likes += (p.likes || 0);
-          if (p.name) authors[p.name] = 1;
+          views += (p.views || 0);
         });
-
-        $('statPosts').textContent = posts.length;
-        $('statComments').textContent = comments;
-        $('statLikes').textContent = likes;
-        $('statAuthors').textContent = Object.keys(authors).length;
+        $('statPosts').textContent = fmtNum(posts.length);
+        $('statComments').textContent = fmtNum(comments);
+        $('statViews').textContent = fmtNum(views);
+        $('statLikes').textContent = fmtNum(likes);
       }
 
-      function renderSidebar() {
-        var box = $('hotList');
-        if (!box) return;
+      function allTags() {
+        var count = {};
+        posts.forEach(function (p) {
+          (p.tags || []).forEach(function (t) { count[t] = (count[t] || 0) + 1; });
+        });
+        return Object.keys(count).sort(function (a, b) { return count[b] - count[a]; }).slice(0, 12);
+      }
 
-        var top = posts.slice().sort(function (a, b) { return score(b) - score(a) || b.id - a.id; }).slice(0, 5);
-        box.innerHTML = '';
+      function renderTagBar() {
+        var bar = $('tagBar');
+        var tags = allTags();
+        bar.innerHTML = '';
+        if (tags.length === 0) return;
 
-        if (top.length === 0) {
-          var none = document.createElement('div');
-          none.className = 'w-item';
-          none.textContent = '还没有内容';
-          box.appendChild(none);
-          return;
-        }
+        var all = el('button', 'chip' + (tagFilter ? '' : ' active'), '全部标签');
+        all.type = 'button';
+        all.onclick = function () { tagFilter = ''; visibleCount = PAGE_STEP; renderTagBar(); renderGrid(); };
+        bar.appendChild(all);
 
-        top.forEach(function (p, i) {
-          var a = document.createElement('a');
-          a.className = 'w-item';
-          a.href = '#/post/' + p.id;
-
-          var rk = document.createElement('span');
-          rk.className = 'w-rank';
-          rk.textContent = String(i + 1);
-          a.appendChild(rk);
-
-          var ti = document.createElement('span');
-          ti.className = 'w-title';
-          ti.textContent = displayTitle(p);
-          a.appendChild(ti);
-
-          var sub = document.createElement('span');
-          sub.className = 'w-sub';
-          sub.textContent = '👍' + (p.likes || 0);
-          a.appendChild(sub);
-
-          box.appendChild(a);
+        tags.forEach(function (t) {
+          var b = el('button', 'chip tag' + (tagFilter === t ? ' active' : ''), '#' + t);
+          b.type = 'button';
+          b.onclick = function () {
+            tagFilter = (tagFilter === t) ? '' : t;
+            visibleCount = PAGE_STEP;
+            renderTagBar();
+            renderGrid();
+          };
+          bar.appendChild(b);
         });
       }
 
-      /* ---------- 最新文章大卡 ---------- */
-      function renderLatest() {
-        var box = $('latestBox');
-        if (!box) return;
-        box.innerHTML = '';
+      function filtered() {
+        var kw = keyword.trim().toLowerCase();
+        var list = posts.filter(function (p) {
+          if (p.pinned) return false;                       /* 置顶的单独一块显示 */
+          if (tagFilter && (p.tags || []).indexOf(tagFilter) === -1) return false;
+          if (!kw) return true;
+          return (String(p.title || '') + ' ' + String(p.content || '') + ' ' + String(p.name || ''))
+            .toLowerCase().indexOf(kw) !== -1;
+        });
 
-        var latest = posts.slice().sort(function (a, b) { return b.id - a.id; })[0];
-        if (!latest) return;
-
-        var a = document.createElement('a');
-        a.className = 'latest-card';
-        a.href = '#/post/' + latest.id;
-
-        var badge = document.createElement('span');
-        badge.className = 'badge';
-        badge.textContent = '✨ 最新发布';
-        a.appendChild(badge);
-
-        var h = document.createElement('h2');
-        h.textContent = displayTitle(latest);
-        a.appendChild(h);
-
-        var ex = document.createElement('p');
-        ex.className = 'excerpt';
-        ex.textContent = excerpt(latest.content, 150);
-        a.appendChild(ex);
-
-        a.appendChild(metaLine(latest));
-
-        box.appendChild(a);
+        list.sort(function (a, b) {
+          if (sortMode === 'views') return (b.views || 0) - (a.views || 0) || b.id - a.id;
+          if (sortMode === 'likes') return (b.likes || 0) - (a.likes || 0) || b.id - a.id;
+          if (sortMode === 'comments') return (b.replies || 0) - (a.replies || 0) || b.id - a.id;
+          return b.id - a.id;
+        });
+        return list;
       }
 
-      /* ---------- 列表 ---------- */
-      function renderList() {
-        var box = $('postList');
-        $('postCount').textContent = posts.length ? '共 ' + posts.length + ' 篇' : '';
+      /* ============================================================
+         卡片渲染
+         ============================================================ */
+      function buildCover(p, big) {
+        var box = el('div', big ? 'a-cover' : 'p-cover');
 
-        if (posts.length === 0) {
-          box.innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌱</span>' +
-            '还没有人写过文章 —— 你可以是第一个。</div>';
+        if (p.cover) {
+          var img = el('img');
+          img.src = p.cover;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.onerror = function () {
+            /* 图挂了就退回渐变封面，别留一个破图 */
+            box.innerHTML = '';
+            box.style.background = coverOf(p);
+            box.appendChild(el('span', 'watermark', watermarkOf(p)));
+          };
+          box.appendChild(img);
+        } else {
+          box.style.background = coverOf(p);
+          var wm = el('span', 'watermark', watermarkOf(p));
+          wm.setAttribute('aria-hidden', 'true');
+          box.appendChild(wm);
+        }
+
+        if (!big && p.pinned) box.appendChild(el('span', 'pin-badge', '📌 置顶'));
+        return box;
+      }
+
+      function buildCard(p, index) {
+        var card = el('a', 'p-card');
+        card.href = '#/post/' + p.id;
+        card.style.animationDelay = Math.min(index * 45, 400) + 'ms';
+
+        card.appendChild(buildCover(p, false));
+
+        var body = el('div', 'p-body');
+        body.appendChild(el('h2', null, displayTitle(p)));
+        body.appendChild(el('p', 'excerpt', excerpt(p.content, 120)));
+
+        if ((p.tags || []).length) {
+          var tags = el('div', 'p-tags');
+          p.tags.forEach(function (t) { tags.appendChild(el('span', 't', '#' + t)); });
+          body.appendChild(tags);
+        }
+
+        var foot = el('div', 'p-foot');
+        foot.appendChild(el('span', 'avatar', avatarOf(p.name)));
+        foot.appendChild(el('span', 'who', p.name));
+        foot.appendChild(el('span', null, '·'));
+        foot.appendChild(el('span', null, timeAgo(p.createdAt)));
+        foot.appendChild(el('span', 'spacer'));
+
+        var m1 = el('span', 'm', '👁 ' + fmtNum(p.views));
+        var m2 = el('span', 'm', '💬 ' + fmtNum(p.replies));
+        var m3 = el('span', 'm', '👍 ' + fmtNum(p.likes));
+        foot.appendChild(m1); foot.appendChild(m2); foot.appendChild(m3);
+
+        body.appendChild(foot);
+        card.appendChild(body);
+        return card;
+      }
+
+      function renderPinned() {
+        var wrap = $('pinnedWrap');
+        var pinned = posts.filter(function (p) { return p.pinned; });
+        wrap.innerHTML = '';
+        if (pinned.length === 0) return;
+
+        var label = el('div', 'section-label');
+        label.appendChild(el('span', null, '📌 置顶文章'));
+        label.appendChild(el('span', 'rule'));
+        wrap.appendChild(label);
+
+        var grid = el('div', 'card-grid');
+        pinned.forEach(function (p, i) { grid.appendChild(buildCard(p, i)); });
+        wrap.appendChild(grid);
+      }
+
+      function renderGrid(reset) {
+        if (reset) visibleCount = PAGE_STEP;
+
+        var list = filtered();
+        var grid = $('cardGrid');
+
+        $('resultCount').textContent = list.length
+          ? '共 ' + list.length + ' 篇' + (keyword ? '（搜索：' + keyword + '）' : '')
+          : '';
+
+        if (list.length === 0) {
+          grid.className = '';
+          grid.innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌱</span>' +
+            (keyword || tagFilter ? '没有匹配的文章，换个词试试。' : '还没有人写过文章 —— 你可以是第一个。') + '</div>';
+          $('loadMoreBtn').hidden = true;
           return;
         }
+
+        grid.className = 'card-grid';
+        grid.innerHTML = '';
 
         var frag = document.createDocumentFragment();
+        list.slice(0, visibleCount).forEach(function (p, i) { frag.appendChild(buildCard(p, i)); });
+        grid.appendChild(frag);
 
-        sorted(posts).forEach(function (p, i) {
-          var el = document.createElement('a');
-          el.className = 'post-item';
-          el.href = '#/post/' + p.id;
-          el.style.animationDelay = Math.min(i * 40, 320) + 'ms';
-
-          var bar = document.createElement('span');
-          bar.className = 'accent-bar';
-          bar.setAttribute('aria-hidden', 'true');
-          el.appendChild(bar);
-
-          var h = document.createElement('h2');
-          h.textContent = displayTitle(p);
-          el.appendChild(h);
-
-          el.appendChild(metaLine(p));
-
-          var ex = document.createElement('p');
-          ex.className = 'excerpt';
-          ex.style.marginTop = '9px';
-          ex.textContent = excerpt(p.content);
-          el.appendChild(ex);
-
-          var more = document.createElement('span');
-          more.className = 'more';
-          more.textContent = '阅读全文 →';
-          el.appendChild(more);
-
-          frag.appendChild(el);
-        });
-
-        box.innerHTML = '';
-        box.appendChild(frag);
+        var more = list.length > visibleCount;
+        $('loadMoreBtn').hidden = !more;
+        if (more) $('loadMoreBtn').textContent = '加载更多（还有 ' + (list.length - visibleCount) + ' 篇）';
       }
 
-      /* ---------- 详情 ---------- */
+      /* ============================================================
+         文章详情
+         ============================================================ */
       function renderPost() {
         var p = posts.filter(function (x) { return x.id === currentId; })[0];
         var box = $('articleBox');
@@ -795,54 +870,77 @@
         }
 
         box.innerHTML = '';
+        box.appendChild(buildCover(p, true));
 
-        var h1 = document.createElement('h1');
-        h1.textContent = displayTitle(p);
-        box.appendChild(h1);
+        var inner = el('div', 'a-inner');
+        inner.appendChild(el('h1', null, displayTitle(p)));
 
-        box.appendChild(metaLine(p, 'article-meta'));
+        var meta = el('div', 'a-meta');
+        meta.appendChild(el('span', 'avatar', avatarOf(p.name)));
+        meta.appendChild(el('span', 'who', p.name));
+        meta.appendChild(el('span', 'dot', '·'));
+        var tm = el('span', null, timeAgo(p.createdAt));
+        tm.title = fullDate(p.createdAt);
+        meta.appendChild(tm);
+        meta.appendChild(el('span', 'dot', '·'));
+        meta.appendChild(el('span', null, '👁 ' + fmtNum(p.views) + ' 次浏览'));
+        if ((p.tags || []).length) {
+          meta.appendChild(el('span', 'dot', '·'));
+          meta.appendChild(el('span', null, p.tags.map(function (t) { return '#' + t; }).join(' ')));
+        }
+        inner.appendChild(meta);
 
-        var body = document.createElement('div');
-        body.className = 'body';
-        body.textContent = p.content;
-        box.appendChild(body);
+        var body = el('div', 'body', p.content);
+        inner.appendChild(body);
 
-        var acts = document.createElement('div');
-        acts.className = 'article-actions';
+        var acts = el('div', 'a-actions');
 
-        var likeBtn = document.createElement('button');
+        var likeBtn = el('button', 'act' + (p.liked ? ' liked' : ''), (p.liked ? '👍 已赞 ' : '👍 点赞 ') + fmtNum(p.likes));
         likeBtn.type = 'button';
-        likeBtn.className = 'act' + (p.liked ? ' liked' : '');
-        likeBtn.textContent = (p.liked ? '👍 已赞 ' : '👍 点赞 ') + p.likes;
         if (p.liked) likeBtn.disabled = true;
         likeBtn.onclick = function () { likePost(p.id, likeBtn); };
         acts.appendChild(likeBtn);
 
-        var reportBtn = document.createElement('button');
+        var reportBtn = el('button', 'act danger', '⚠️ 举报');
         reportBtn.type = 'button';
-        reportBtn.className = 'act danger';
-        reportBtn.textContent = '⚠️ 举报';
         reportBtn.onclick = function () { reportPost(p.id, reportBtn); };
         acts.appendChild(reportBtn);
 
         if (p.mine) {
-          var delBtn = document.createElement('button');
+          var delBtn = el('button', 'act danger', '🗑️ 删除这篇文章');
           delBtn.type = 'button';
-          delBtn.className = 'act danger';
-          delBtn.textContent = '🗑️ 删除这篇文章';
           delBtn.onclick = function () { deletePost(p.id); };
           acts.appendChild(delBtn);
         }
 
-        box.appendChild(acts);
+        inner.appendChild(acts);
 
-        var cm = document.createElement('section');
-        cm.className = 'comments';
+        var cm = el('section', 'comments');
         cm.innerHTML = '<h3>💬 评论 <span id="commentCount"></span></h3>' +
           '<div id="commentList"><div class="comment"><span class="c-body">加载中…</span></div></div>';
-        box.appendChild(cm);
+        inner.appendChild(cm);
+
+        box.appendChild(inner);
 
         loadComments(p.id);
+        countView(p.id);
+      }
+
+      /* 浏览 +1：只发一次，失败也不打扰用户 */
+      var viewedIds = {};
+      function countView(postId) {
+        if (viewedIds[postId]) return;
+        viewedIds[postId] = 1;
+        fetch('/api/blog/view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: postId })
+        }).then(function (r) { return r.json(); }).then(function (d) {
+          if (!d || !d.ok) return;
+          for (var i = 0; i < posts.length; i++) {
+            if (posts[i].id === postId) { posts[i].views = d.views; break; }
+          }
+        }).catch(function () {});
       }
 
       async function loadComments(postId) {
@@ -866,49 +964,41 @@
         list.innerHTML = '';
 
         if (rows.length === 0) {
-          var none = document.createElement('div');
-          none.className = 'comment';
-          var nb = document.createElement('span');
-          nb.className = 'c-body';
-          nb.textContent = '还没有评论，来说两句吧。';
-          none.appendChild(nb);
+          var none = el('div', 'comment');
+          none.appendChild(el('span', 'c-body', '还没有评论，来说两句吧。'));
           list.appendChild(none);
         }
 
         rows.forEach(function (r) {
-          var el = document.createElement('div');
-          el.className = 'comment';
-
-          var head = document.createElement('div');
-          head.className = 'c-head';
-          var nm = document.createElement('span');
-          nm.className = 'c-name';
-          nm.textContent = avatarOf(r.name) + ' ' + r.name;
-          var tm = document.createElement('span');
-          tm.className = 'c-time';
-          tm.textContent = timeAgo(r.createdAt);
-          head.appendChild(nm);
-          head.appendChild(tm);
-          el.appendChild(head);
-
-          var body = document.createElement('div');
-          body.className = 'c-body';
-          body.textContent = r.content;
-          el.appendChild(body);
-
-          list.appendChild(el);
+          var c = el('div', 'comment');
+          var head = el('div', 'c-head');
+          head.appendChild(el('span', 'c-name', avatarOf(r.name) + ' ' + r.name));
+          head.appendChild(el('span', 'c-time', timeAgo(r.createdAt)));
+          c.appendChild(head);
+          c.appendChild(el('div', 'c-body', r.content));
+          list.appendChild(c);
         });
 
-        var form = document.createElement('div');
-        form.className = 'comment-form';
-        var input = document.createElement('input');
+        var form = el('div', 'comment-form');
+
+        if (!me) {
+          var tip = el('div', 'guest-tip');
+          tip.style.margin = '4px 0 0';
+          tip.appendChild(el('span', 't', '🔒 登录后才能评论。'));
+          var go = el('button', 'btn-sm primary', '去登录 / 注册');
+          go.type = 'button';
+          go.onclick = function () { location.hash = '#/auth'; };
+          tip.appendChild(go);
+          list.appendChild(tip);
+          return;
+        }
+
+        var input = el('input');
         input.type = 'text';
         input.placeholder = '写下你的评论…（最多 500 字）';
         input.maxLength = 500;
-        var send = document.createElement('button');
+        var send = el('button', 'btn-sm primary', '发表评论');
         send.type = 'button';
-        send.className = 'btn btn-primary';
-        send.textContent = '发表评论';
         send.onclick = function () { submitComment(postId, input, send); };
         input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') { e.preventDefault(); send.click(); }
@@ -918,17 +1008,20 @@
         list.appendChild(form);
       }
 
+      /* ============================================================
+         需要登录的动作
+         ============================================================ */
+      function requireLogin() {
+        if (me) return true;
+        showToast('🔒 请先登录');
+        location.hash = '#/auth';
+        return false;
+      }
+
       async function submitComment(postId, input, btn) {
+        if (!requireLogin()) return;
         var text = input.value.trim();
         if (!text) { showToast('评论内容不能为空'); return; }
-
-        var name = $('postName').value.trim();
-        if (!name) {
-          showToast('请先填一个昵称');
-          location.hash = '#/write';
-          setTimeout(function () { $('postName').focus(); }, 400);
-          return;
-        }
 
         btn.disabled = true;
         btn.textContent = '发送中…';
@@ -937,19 +1030,15 @@
           var res = await fetch('/api/blog/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientId: CLIENT, name: name, content: text, parentId: postId })
+            body: JSON.stringify({ content: text, parentId: postId, clientId: CLIENT })
           });
           var data = await res.json();
-
           if (data && data.ok) {
-            rememberName(name);
             input.value = '';
-            for (var i = 0; i < posts.length; i++) {
-              if (posts[i].id === postId) { posts[i].replies = (posts[i].replies || 0) + 1; break; }
-            }
             await loadComments(postId);
             showToast('✅ 评论成功');
           } else {
+            if (data && data.error === 'login_required') { me = null; renderUserArea(); }
             showToast(explainError(data));
           }
         } catch (e) {
@@ -960,87 +1049,6 @@
         btn.textContent = '发表评论';
       }
 
-      /* ---------- 数据加载 ---------- */
-      async function loadPosts() {
-        try {
-          var res = await fetch('/api/blog/list?client=' + encodeURIComponent(CLIENT) + '&t=' + Date.now(), { cache: 'no-store' });
-          var data = await res.json();
-          if (!data || !data.ok) {
-            $('postList').innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌫️</span>' +
-              '博客暂时不可用（后端没启用，或者数据库还没跑迁移）。</div>';
-            return;
-          }
-          posts = Array.isArray(data.data) ? data.data : [];
-          renderStats();
-          renderSidebar();
-          render();
-        } catch (e) {
-          $('postList').innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌫️</span>' +
-            '博客加载失败，请稍后重试。</div>';
-        }
-      }
-
-      /* ---------- 发布 ---------- */
-      function rememberName(name) {
-        try { localStorage.setItem(NAME_KEY, name); } catch (e) {}
-      }
-
-      function explainError(data) {
-        var err = (data && data.error) || '';
-        if (err === 'blocked_word') return '⚠️ 内容里含有不适合发布的词：' + ((data && data.word) || '');
-        if (err === 'too_many_requests') return '⏳ 发得太快了，休息一会儿再来';
-        if (err === 'too_long') return '内容太长了';
-        if (err === 'banned') return '🚫 你的浏览器身份已被限制发言';
-        if (err === 'parent_gone') return '这篇文章已经被删除了';
-        if (err === 'empty content') return '内容不能为空';
-        if (err === 'empty title') return '请给文章起个标题';
-        return '发布失败：' + (err || '请稍后重试');
-      }
-
-      async function publish() {
-        var btn = $('postBtn');
-        var name = $('postName').value.trim();
-        var title = $('postTitle').value.trim();
-        var content = $('postContent').value.trim();
-
-        if (!name) { showToast('请先填一个昵称'); $('postName').focus(); return; }
-        if (!title) { showToast('请给文章起个标题'); $('postTitle').focus(); return; }
-        if (!content) { showToast('正文不能为空'); $('postContent').focus(); return; }
-
-        btn.disabled = true;
-        btn.setAttribute('aria-busy', 'true');
-        btn.textContent = '⏳ 发布中…';
-
-        try {
-          var res = await fetch('/api/blog/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientId: CLIENT, name: name, title: title, content: content })
-          });
-          var data = await res.json();
-
-          if (data && data.ok) {
-            rememberName(name);
-            $('postContent').value = '';
-            $('postTitle').value = '';
-            $('postCounter').textContent = '0 / 1000';
-            showToast('🎉 发布成功');
-            await loadPosts();
-            var newId = Number(data.id) || 0;
-            location.hash = newId ? ('#/post/' + newId) : '#/';
-          } else {
-            showToast(explainError(data));
-          }
-        } catch (e) {
-          showToast('网络异常，请稍后重试');
-        }
-
-        btn.disabled = false;
-        btn.setAttribute('aria-busy', 'false');
-        btn.textContent = '🚀 发布文章';
-      }
-
-      /* ---------- 点赞 / 举报 / 删除 ---------- */
       async function likePost(postId, btn) {
         btn.disabled = true;
         try {
@@ -1052,11 +1060,11 @@
           var data = await res.json();
           if (data && data.ok) {
             btn.classList.add('liked');
-            btn.textContent = '👍 已赞 ' + data.likes;
+            btn.textContent = '👍 已赞 ' + fmtNum(data.likes);
             for (var i = 0; i < posts.length; i++) {
               if (posts[i].id === postId) { posts[i].likes = data.likes; posts[i].liked = true; break; }
             }
-            renderSidebar();
+            renderStats();
             showToast('👍 已点赞');
           } else {
             btn.disabled = false;
@@ -1095,6 +1103,7 @@
       }
 
       async function deletePost(postId) {
+        if (!requireLogin()) return;
         var ok = await showConfirm('删除文章', '确定删除吗？它下面的评论也会一起删掉，且无法恢复。');
         if (!ok) return;
 
@@ -1102,7 +1111,7 @@
           var res = await fetch('/api/blog/remove', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId: postId, clientId: CLIENT })
+            body: JSON.stringify({ postId: postId })
           });
           var data = await res.json();
           if (data && data.ok) {
@@ -1117,11 +1126,224 @@
         }
       }
 
-      /* ---------- 路由 ---------- */
+      /* ============================================================
+         发布文章
+         ============================================================ */
+      function explainError(data) {
+        var err = (data && data.error) || '';
+        if (err === 'login_required') return '🔒 请先登录再发布';
+        if (err === 'blocked_word') return '⚠️ 内容里含有不适合发布的词：' + ((data && data.word) || '');
+        if (err === 'too_many_requests') return '⏳ 发得太快了，休息一会儿再来';
+        if (err === 'too_long') return '内容太长了（最多 ' + ((data && data.max) || 1000) + ' 字）';
+        if (err === 'banned') return '🚫 你的账号已被限制发言';
+        if (err === 'parent_gone') return '这篇文章已经被删除了';
+        if (err === 'empty content') return '内容不能为空';
+        if (err === 'empty title') return '请给文章起个标题';
+        if (err === 'username_taken') return '这个用户名已经有人用了，换一个吧';
+        if (err === 'bad_username') return '用户名要 2-20 个字，可以用中文、字母、数字、下划线';
+        if (err === 'too_short') return '密码至少 6 位';
+        if (err === 'too_long') return '密码太长了';
+        if (err === 'bad_credentials') return '用户名或密码不对';
+        return '出错了：' + (err || '请稍后重试');
+      }
+
+      async function publish() {
+        if (!requireLogin()) return;
+
+        var btn = $('publishBtn');
+        var title = $('postTitle').value.trim();
+        var content = $('postContent').value.trim();
+        var cover = $('postCover').value.trim();
+        var tags = $('postTags').value.trim();
+
+        setErr('writeErr', '');
+        if (!title) { setErr('writeErr', '请给文章起个标题'); $('postTitle').focus(); return; }
+        if (!content) { setErr('writeErr', '正文不能为空'); $('postContent').focus(); return; }
+
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        btn.textContent = '⏳ 发布中…';
+
+        try {
+          var res = await fetch('/api/blog/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: title, content: content, cover: cover, tags: tags, clientId: CLIENT
+            })
+          });
+          var data = await res.json();
+
+          if (data && data.ok) {
+            $('postTitle').value = '';
+            $('postContent').value = '';
+            $('postCover').value = '';
+            $('postTags').value = '';
+            $('postCounter').textContent = '0 / 1000';
+            showToast('🎉 发布成功');
+            await loadPosts();
+            var newId = Number(data.id) || 0;
+            location.hash = newId ? ('#/post/' + newId) : '#/';
+          } else {
+            if (data && data.error === 'login_required') { me = null; renderUserArea(); }
+            setErr('writeErr', explainError(data));
+          }
+        } catch (e) {
+          setErr('writeErr', '网络异常，请稍后重试');
+        }
+
+        btn.disabled = false;
+        btn.setAttribute('aria-busy', 'false');
+        btn.textContent = '🚀 发布文章';
+      }
+
+      /* ============================================================
+         登录 / 注册
+         ============================================================ */
+      function renderUserArea() {
+        var area = $('userArea');
+        area.innerHTML = '';
+
+        if (me) {
+          var chip = el('span', 'who-chip');
+          chip.appendChild(el('span', null, '👤'));
+          chip.appendChild(el('span', 'nm', me.username));
+          chip.title = '已登录：' + me.username;
+          area.appendChild(chip);
+
+          var out = el('button', 'btn-sm ghost', '退出');
+          out.type = 'button';
+          out.style.marginLeft = '8px';
+          out.onclick = doLogout;
+          area.appendChild(out);
+        } else {
+          var login = el('button', 'btn-sm ghost', '👤 登录 / 注册');
+          login.type = 'button';
+          login.onclick = function () { location.hash = '#/auth'; };
+          area.appendChild(login);
+        }
+
+        /* 写文章页两种状态：游客看提示，登录了看表单 */
+        var guest = $('writeGuestTip');
+        var panel = $('writePanel');
+        if (guest && panel) {
+          guest.hidden = !!me;
+          panel.hidden = !me;
+          if (me) $('writeAsName').textContent = me.username;
+        }
+      }
+
+      async function loadMe() {
+        try {
+          var res = await fetch('/api/blog/auth/me?t=' + Date.now(), { cache: 'no-store' });
+          var data = await res.json();
+          me = (data && data.ok && data.user) ? data.user : null;
+        } catch (e) {
+          me = null;
+        }
+        renderUserArea();
+      }
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        var isReg = mode === 'register';
+        $('authTitle').textContent = isReg ? '👤 注册' : '👤 登录';
+        $('authHint').textContent = isReg
+          ? '注册只要几秒：选个用户名、设个密码就行，不需要邮箱。'
+          : '登录后就可以发文章和评论了。没有账号的话，注册一个只要几秒。';
+        $('authPass2Field').hidden = !isReg;
+        $('authSubmitBtn').textContent = isReg ? '注册并登录' : '登录';
+        $('authSwitchText').textContent = isReg ? '已经有账号了？' : '还没有账号？';
+        $('authSwitchLink').textContent = isReg ? '去登录' : '去注册';
+        $('authPass').setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
+        setErr('authErr', '');
+      }
+
+      async function doAuth() {
+        var btn = $('authSubmitBtn');
+        var username = $('authUser').value.trim();
+        var password = $('authPass').value;
+        var password2 = $('authPass2').value;
+
+        setErr('authErr', '');
+
+        if (!username) { setErr('authErr', '请填用户名'); $('authUser').focus(); return; }
+        if (password.length < 6) { setErr('authErr', '密码至少 6 位'); $('authPass').focus(); return; }
+        if (authMode === 'register' && password !== password2) {
+          setErr('authErr', '两次输入的密码不一样'); $('authPass2').focus(); return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = authMode === 'register' ? '注册中…' : '登录中…';
+
+        try {
+          var res = await fetch('/api/blog/auth/' + (authMode === 'register' ? 'register' : 'login'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+          });
+          var data = await res.json();
+
+          if (data && data.ok && data.user) {
+            me = data.user;
+            renderUserArea();
+            $('authPass').value = '';
+            $('authPass2').value = '';
+            showToast(authMode === 'register' ? '🎉 注册成功，已登录' : '👋 欢迎回来，' + me.username);
+            location.hash = '#/write';
+          } else {
+            setErr('authErr', explainError(data));
+          }
+        } catch (e) {
+          setErr('authErr', '网络异常，请稍后重试');
+        }
+
+        btn.disabled = false;
+        btn.textContent = authMode === 'register' ? '注册并登录' : '登录';
+      }
+
+      async function doLogout() {
+        try {
+          await fetch('/api/blog/auth/logout', { method: 'POST' });
+        } catch (e) { /* 忽略 */ }
+        me = null;
+        renderUserArea();
+        showToast('👋 已退出登录');
+        location.hash = '#/';
+      }
+
+      /* ============================================================
+         数据加载
+         ============================================================ */
+      async function loadPosts() {
+        try {
+          var res = await fetch('/api/blog/list?client=' + encodeURIComponent(CLIENT) + '&t=' + Date.now(), { cache: 'no-store' });
+          var data = await res.json();
+          if (!data || !data.ok) {
+            $('cardGrid').className = '';
+            $('cardGrid').innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌫️</span>' +
+              '博客暂时不可用（后端没启用，或者数据库还没跑迁移）。</div>';
+            $('loadMoreBtn').hidden = true;
+            return;
+          }
+          posts = Array.isArray(data.data) ? data.data : [];
+          renderStats();
+          renderTagBar();
+          render();
+        } catch (e) {
+          $('cardGrid').className = '';
+          $('cardGrid').innerHTML = '<div class="blog-empty"><span class="big" aria-hidden="true">🌫️</span>' +
+            '博客加载失败，请稍后重试。</div>';
+        }
+      }
+
+      /* ============================================================
+         路由
+         ============================================================ */
       function showView(name) {
-        ['viewList', 'viewPost', 'viewWrite'].forEach(function (id) {
-          var el = $(id);
-          if (el) el.classList.toggle('active', id === name);
+        ['viewList', 'viewPost', 'viewWrite', 'viewAuth'].forEach(function (id) {
+          var e = $(id);
+          if (e) e.classList.toggle('active', id === name);
         });
       }
 
@@ -1131,15 +1353,21 @@
         if (h.indexOf('post/') === 0) {
           currentId = Number(h.slice(5)) || 0;
           showView('viewPost');
+          document.title = '文章 - 织雾满穗';
           renderPost();
         } else if (h === 'write') {
           showView('viewWrite');
-          document.title = '写一篇 - 织雾满穗';
+          document.title = '写文章 - 织雾满穗';
+          setErr('writeErr', '');
+        } else if (h === 'auth') {
+          showView('viewAuth');
+          document.title = '登录 - 织雾满穗';
+          if (!authMode) setAuthMode('login');
         } else {
           showView('viewList');
           document.title = '玩家博客 - 织雾满穗';
-          renderLatest();
-          renderList();
+          renderPinned();
+          renderGrid(true);
         }
       }
 
@@ -1149,35 +1377,68 @@
         window.scrollTo({ top: 0, behavior: 'instant' });
       });
 
+      /* ============================================================
+         事件绑定
+         ============================================================ */
       $('backFromPost').onclick = function () { location.hash = '#/'; };
       $('backFromWrite').onclick = function () { location.hash = '#/'; };
-      $('writeEntryBtn').onclick = function () { location.hash = '#/write'; };
+      $('backFromAuth').onclick = function () { location.hash = '#/'; };
+      $('writeBtn').onclick = function () { location.hash = '#/write'; };
+      $('goAuthBtn').onclick = function () { location.hash = '#/auth'; };
 
-      /* ---------- 其它交互 ---------- */
+      $('authSwitchLink').onclick = function () {
+        setAuthMode(authMode === 'register' ? 'login' : 'register');
+      };
+      $('authSubmitBtn').onclick = doAuth;
+
+      /* 密码框里按回车直接提交 */
+      ['authUser', 'authPass', 'authPass2'].forEach(function (id) {
+        $(id).addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); doAuth(); }
+        });
+      });
+
+      $('publishBtn').onclick = publish;
+
       $('postContent').addEventListener('input', function () {
         var n = $('postContent').value.length;
         $('postCounter').textContent = n + ' / 1000';
         $('postCounter').style.color = n > 900 ? 'var(--danger)' : '';
       });
 
-      $('postBtn').addEventListener('click', publish);
-
       document.querySelectorAll('.chip[data-sort]').forEach(function (chip) {
         chip.addEventListener('click', function () {
           document.querySelectorAll('.chip[data-sort]').forEach(function (c) { c.classList.remove('active'); });
           chip.classList.add('active');
           sortMode = chip.dataset.sort;
-          renderList();
+          renderGrid(true);
         });
       });
 
-      $('refreshBtn').addEventListener('click', function () {
-        showToast('🔄 正在刷新…');
-        loadPosts();
+      $('loadMoreBtn').onclick = function () {
+        visibleCount += PAGE_STEP;
+        renderGrid(false);
+      };
+
+      /* 搜索：防抖 220ms，输入时只重画网格，不动其它区块 */
+      var searchTimer = 0;
+      $('searchInput').addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+          keyword = $('searchInput').value;
+          if (String(location.hash || '').indexOf('#/post/') === 0) location.hash = '#/';
+          else renderGrid(true);
+        }, 220);
       });
 
-      loadPosts();
-      render();
+      /* ============================================================
+         启动
+         ============================================================ */
+      (async function init() {
+        await loadMe();
+        await loadPosts();
+        setAuthMode('login');
+      })();
     })();
   </script>
 </body>

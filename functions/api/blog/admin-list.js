@@ -13,17 +13,18 @@ export async function onRequestGet(context) {
 
   try {
     const rows = await env.DB.prepare(
-      `SELECT p.id, p.parent_id, p.name, p.title, p.content, p.client_id,
-              p.likes, p.reports, p.status, p.created_at,
+      `SELECT p.id, p.parent_id, p.user_id, p.name, p.title, p.content, p.cover, p.tags,
+              p.client_id, p.likes, p.views, p.reports, p.pinned, p.status, p.created_at,
               (SELECT COUNT(*) FROM blog_posts r WHERE r.parent_id = p.id) AS reply_count
          FROM blog_posts p
         WHERE p.parent_id IS NULL
-        ORDER BY p.id DESC
+        ORDER BY p.pinned DESC, p.id DESC
         LIMIT 300`
     ).all();
 
     const list = (rows && rows.results) ? rows.results : [];
 
+    /* 拉黑名单（浏览器身份） */
     let bans = [];
     try {
       const b = await env.DB.prepare(
@@ -34,29 +35,54 @@ export async function onRequestGet(context) {
         reason: String(r.reason || ''),
         createdAt: String(r.created_at || '')
       }));
-    } catch (e) {
-      /* 没跑迁移时忽略 */
-    }
+    } catch (e) { /* 没跑迁移时忽略 */ }
+
+    /* 被封的账号 */
+    let bannedUsers = [];
+    try {
+      const u = await env.DB.prepare(
+        'SELECT id, username, created_at FROM blog_users WHERE banned = 1 ORDER BY id DESC LIMIT 200'
+      ).all();
+      bannedUsers = ((u && u.results) ? u.results : []).map(r => ({
+        id: Number(r.id) || 0,
+        username: String(r.username || ''),
+        createdAt: String(r.created_at || '')
+      }));
+    } catch (e) { /* 没跑迁移时忽略 */ }
+
+    /* 账号总数，后台显示一句"共 N 个账号" */
+    let userCount = 0;
+    try {
+      const c = await env.DB.prepare('SELECT COUNT(*) AS n FROM blog_users').first();
+      userCount = Number(c && c.n) || 0;
+    } catch (e) { /* 忽略 */ }
 
     return json({
       ok: true,
       data: list.map(r => ({
         id: Number(r.id) || 0,
+        userId: Number(r.user_id) || 0,
         name: String(r.name || ''),
         title: String(r.title || ''),
         content: String(r.content || ''),
+        cover: String(r.cover || ''),
+        tags: String(r.tags || ''),
         clientId: String(r.client_id || ''),
         likes: Number(r.likes) || 0,
+        views: Number(r.views) || 0,
         reports: Number(r.reports) || 0,
+        pinned: Number(r.pinned) === 1,
         status: String(r.status || 'visible'),
         replies: Number(r.reply_count) || 0,
         createdAt: String(r.created_at || '')
       })),
       bans,
+      bannedUsers,
+      userCount,
       total: list.length
     });
   } catch (err) {
     console.error('[blog/admin-list]', err);
-    return json({ ok: false, error: 'unavailable', data: [], bans: [] }, 200);
+    return json({ ok: false, error: 'unavailable', data: [], bans: [], bannedUsers: [], userCount: 0 }, 200);
   }
 }

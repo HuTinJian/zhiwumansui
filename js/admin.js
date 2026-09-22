@@ -1253,7 +1253,11 @@ async function loadBlogPanel() {
     blogCache = list;
     document.getElementById('blogCount').textContent = list.length;
 
-    renderBlogBans(Array.isArray(data.bans) ? data.bans : []);
+    renderBlogBans(
+      Array.isArray(data.bans) ? data.bans : [],
+      Array.isArray(data.bannedUsers) ? data.bannedUsers : [],
+      Number(data.userCount) || 0
+    );
 
     if (list.length === 0) {
       box.innerHTML = '<div class="empty-state">还没有人发帖</div>';
@@ -1267,10 +1271,11 @@ async function loadBlogPanel() {
 
       const hidden = item.status !== 'visible';
       const title = item.title ? escapeHtml(item.title) : '<span style="color:var(--text-muted)">（无标题）</span>';
+      const tags = item.tags ? escapeHtml(item.tags) : '';
 
       el.innerHTML = `
         <div class="row1">
-          <span class="name">${title}</span>
+          <span class="name">${item.pinned ? '📌 ' : ''}${title}</span>
           <span>
             <span class="type-tag">👤 ${escapeHtml(item.name)}</span>
             ${blogStatusTag(item)}
@@ -1278,11 +1283,15 @@ async function loadBlogPanel() {
         </div>
         <div class="meta">
           🕒 ${escapeHtml(item.createdAt)}
-          · 🔑 ${item.clientId ? escapeHtml(item.clientId.slice(0, 8)) + '…' : '无身份'}
-          · 👍 ${item.likes} · 💬 ${item.replies} · ⚠️ ${item.reports}
+          · 👁 ${item.views} · 👍 ${item.likes} · 💬 ${item.replies} · ⚠️ ${item.reports}
+          ${item.userId ? ' · 🆔 账号 #' + item.userId : ''}
+          ${tags ? ' · 🏷 ' + tags : ''}
         </div>
         <div class="message">${escapeHtml(item.content)}</div>
         <div class="actions">
+          ${item.pinned
+            ? '<button class="btn-unpin" data-id="' + item.id + '">📌 取消置顶</button>'
+            : '<button class="btn-pin" data-id="' + item.id + '">📌 置顶</button>'}
           ${hidden
             ? '<button class="btn-show" data-id="' + item.id + '">👁️ 恢复显示</button>'
             : '<button class="btn-hide" data-id="' + item.id + '">🙈 隐藏</button>'}
@@ -1294,6 +1303,8 @@ async function loadBlogPanel() {
       box.appendChild(el);
     });
 
+    box.querySelectorAll('.btn-pin').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'pin')));
+    box.querySelectorAll('.btn-unpin').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'unpin')));
     box.querySelectorAll('.btn-hide').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'hide')));
     box.querySelectorAll('.btn-show').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'show')));
     box.querySelectorAll('.btn-unreport').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'resetReports')));
@@ -1304,23 +1315,47 @@ async function loadBlogPanel() {
   }
 }
 
-function renderBlogBans(bans) {
+function renderBlogBans(bans, bannedUsers, userCount) {
+  bans = Array.isArray(bans) ? bans : [];
+  bannedUsers = Array.isArray(bannedUsers) ? bannedUsers : [];
   const box = document.getElementById('blogBanList');
   if (!box) return;
 
-  if (!bans.length) {
+  const hasBans = bans.length > 0;
+  const hasUsers = bannedUsers.length > 0;
+
+  if (!hasBans && !hasUsers) {
     box.innerHTML = '<div class="empty-state">暂无限制记录</div>';
     return;
   }
 
   box.innerHTML = '';
+
+  /* 被封的账号（登录用户） */
+  bannedUsers.forEach(u => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">👤 ${escapeHtml(u.username)}</span>
+        <span><span class="type-tag red">🚫 账号已封禁</span></span>
+      </div>
+      <div class="meta">🕒 ${escapeHtml(u.createdAt)} · 🆔 账号 #${u.id}</div>
+      <div class="actions">
+        <button class="btn-unban-user" data-user="${u.id}">✅ 解封账号</button>
+      </div>
+    `;
+    box.appendChild(el);
+  });
+
+  /* 被拉黑的浏览器身份（游客） */
   bans.forEach(b => {
     const el = document.createElement('div');
     el.className = 'list-item';
     el.innerHTML = `
       <div class="row1">
         <span class="name">🔑 ${escapeHtml(String(b.clientId).slice(0, 10))}…</span>
-        <span><span class="type-tag red">🚫 已限制发言</span></span>
+        <span><span class="type-tag red">🚫 浏览器已限制</span></span>
       </div>
       <div class="meta">🕒 ${escapeHtml(b.createdAt)}${b.reason ? ' · 原因：' + escapeHtml(b.reason) : ''}</div>
       <div class="actions">
@@ -1328,6 +1363,28 @@ function renderBlogBans(bans) {
       </div>
     `;
     box.appendChild(el);
+  });
+
+  box.querySelectorAll('.btn-unban-user').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ok = await showConfirm('解封账号', '解封后这个账号可以重新登录发帖，之前被隐藏的内容仍需要你手动恢复显示。确定吗？');
+      if (!ok) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/blog/moderate', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unbanUser', userId: Number(btn.dataset.user) })
+        });
+        const data = await res.json();
+        if (data && data.ok) { showToast('✅ 已解封'); loadBlogPanel(); }
+        else { btn.disabled = false; showToast('操作失败'); }
+      } catch (e) {
+        btn.disabled = false;
+        showToast('网络异常');
+      }
+    });
   });
 
   box.querySelectorAll('.btn-unban').forEach(btn => {
@@ -1359,9 +1416,9 @@ async function moderateBlog(id, action) {
   const item = blogCache.find(i => Number(i.id) === id);
 
   const CONFIRM = {
-    hide: '隐藏这条帖子？玩家端立刻看不到，但数据保留，随时可以恢复。',
-    delete: '永久删除这条帖子？它下面的回复、点赞、举报记录都会一起消失，无法恢复。',
-    ban: '拉黑作者？他名下所有帖子会全部下线，并且这台浏览器再也发不了帖。',
+    hide: '隐藏这篇文章？玩家端立刻看不到，但数据保留，随时可以恢复。',
+    delete: '永久删除这篇文章？它下面的评论、点赞、举报记录都会一起消失，无法恢复。',
+    ban: '拉黑作者？他的账号会被封禁、浏览器身份也会被拉黑，名下所有内容一起下线，之后再也发不了。',
     resetReports: '把举报数清零并恢复显示？用在确认是误报的时候。'
   };
 
@@ -1386,11 +1443,13 @@ async function moderateBlog(id, action) {
       if (action === 'delete') showToast('🗑️ 已删除');
       else if (action === 'hide') showToast('🙈 已隐藏');
       else if (action === 'show') showToast('👁️ 已恢复显示');
-      else if (action === 'ban') showToast('🚫 已拉黑，下线了 ' + (data.hidden || 0) + ' 条帖子');
+      else if (action === 'pin') showToast('📌 已置顶');
+      else if (action === 'unpin') showToast('📌 已取消置顶');
+      else if (action === 'ban') showToast('🚫 已拉黑作者，下线了 ' + (data.hidden || 0) + ' 条内容');
       else showToast('🔁 已复位');
       loadBlogPanel();
-    } else if (data && data.error === 'no_client_id') {
-      showToast('这条帖子没有浏览器身份（旧数据），改用「删除」处理吧');
+    } else if (data && data.error === 'no_identity') {
+      showToast('这条内容没有可识别的作者（旧数据），改用「删除」处理吧');
     } else {
       showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
     }
