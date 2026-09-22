@@ -180,13 +180,20 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
 ```
 
-然后把 `migrations.sql` 里的内容分两批粘进去执行：
+然后把 `migrations.sql` 里的内容分三批粘进去执行 —— **三批都要跑完**：
 
 1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...` —— 建议**一条一条**执行；
    某条报 `duplicate column name: xxx` 是正常的（说明那个字段之前加过了），跳过它继续下一条。
 2. **第 2 组**：若干 `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX` —— 可以**整段一起**执行。
 3. **第 3 组**：博客账号表 `blog_users` + 文章的新字段（`user_id` / `cover` / `tags` / `views` / `pinned`）
    —— 同样是「已存在就报 duplicate column，跳过继续」。
+
+> **⚠️ 最容易漏的就是第 3 组**（它是后加的，早期文档只写到第 2 组）。
+> 漏了它的典型症状：**浏览文章一切正常，但一注册 / 登录就报「出错了：server error」** ——
+> 因为 `blog_users` 表不存在，而注册和登录都要读写它。
+> 想确认表在不在，在 Console 里执行：
+> `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;`
+> 结果里应该能看到 `blog_users`。
 
 **方式 B：命令行版（要装 Node.js，而且要在你自己电脑的终端里跑）**
 
