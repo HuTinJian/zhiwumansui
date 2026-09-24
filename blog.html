@@ -32,47 +32,76 @@
     .blog-shell { max-width: 1180px; margin: 0 auto; padding: 0 20px 90px; }
 
     /* ==================== 社区自己的导航栏 ==================== */
+    /* 版式照 NekoGAL 的顶栏：矮、平、安静。
+       记号只有两个：
+         · 左边一枚圆形粉底标 + 粉色品牌字
+         · 当前项下面一条粉横线
+       所以这里【没有】胶囊按钮、没有边框、没有实心底 ——
+       链接一律是纯文字，右侧的图标一律不带底，
+       让「我在哪」和「能点什么」一眼就分得开。 */
     .blog-nav {
       position: sticky; top: 0; z-index: 50;
       background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 2px 14px rgba(220, 107, 130, 0.06);
+      /* NekoGAL 用一条细粉线收边，不用投影。
+         颜色交给主题变量：亮色模式给 --primary-light（粉得轻，不抢内容），
+         深色模式它自动变成 #b8657a（暗底上的浅粉），换主题不用改这里。
+         别用 border-image + 渐变拼色 —— 那条线在 Chromium 里会把渐变反着铺
+         还会溢出到左右两端，而且和 border-radius 不兼容。 */
+      border-bottom: 2px solid var(--primary-light);
     }
     .blog-nav .nav-inner {
       max-width: 1180px; margin: 0 auto; padding: 0 20px;
-      height: 58px; display: flex; align-items: center; gap: 6px;
+      height: 52px; display: flex; align-items: center; gap: 10px;
     }
     .blog-nav .brand {
       display: flex; align-items: center; gap: 8px;
-      font-size: 1rem; font-weight: 800; color: var(--text);
-      text-decoration: none; margin-right: 10px; flex-shrink: 0;
+      font-size: 1rem; font-weight: 800; color: var(--primary-ink);
+      text-decoration: none; margin-right: 12px; flex-shrink: 0;
+      transition: color var(--dur) var(--ease-soft);
     }
+    .blog-nav .brand:hover { color: var(--primary); }
+    /* 圆形，不是圆角方块 —— NekoGAL 的标是圆的 */
     .blog-nav .brand .mark {
-      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: .95rem;
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .9rem;
       background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       box-shadow: 0 3px 10px rgba(220,107,130,.28);
     }
-    .blog-nav .nav-links { display: flex; align-items: center; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .blog-nav .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
     .blog-nav .nav-links::-webkit-scrollbar { display: none; }
     .blog-nav .nav-item {
+      position: relative;
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 8px 13px; border-radius: var(--radius-pill);
+      padding: 15px 12px; border-radius: 0;
       font-size: .86rem; font-weight: 600; color: var(--text-light);
       text-decoration: none; cursor: pointer; white-space: nowrap; border: none; background: none;
       font-family: var(--font);
-      transition: all var(--dur) var(--ease-soft);
+      transition: color var(--dur) var(--ease-soft);
     }
-    .blog-nav .nav-item:hover { background: var(--bg-tint); color: var(--primary); }
-    /* 实心粉底在本页只有一个含义：「你现在在这里」。
-       所以导航栏里所有按钮一律平等，只有当前那一个会变成实心粉。
-       （「发帖」也不特殊化：之前给它加过实心、又加过描边，
-        都因为和「当前页」这个含义撞车而让人看错，已改回普通按钮。） */
-    .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
-    .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .blog-nav .nav-item:hover { color: var(--primary-ink); }
+    /* 当前项 = 它底下那条粉横线。
+       （以前这里是实心粉底，和「发帖」这个动作按钮同一个长相，容易看错；
+         NekoGAL 的做法是横线，横线只可能是「你在这」，不会跟按钮混。）
+       横线画在 15px 内边距的下沿，紧贴整条导航的粉边线，看着像从边上长出来的。
+
+       文字色用 --primary-ink 而不是 --primary：站点变量本来就分了工
+       （--primary 是填充/装饰，--primary-ink 是浅底上的文字）。
+       实测亮色模式下 --primary 当文字只有 3.25:1，淡得看不清；
+       --primary-ink 在亮色 6.09:1、暗色 9.15:1，两个主题都够。 */
+    .blog-nav .nav-item::after {
+      content: ''; position: absolute; left: 10px; right: 10px; bottom: 0;
+      height: 3px; border-radius: 3px 3px 0 0; background: var(--primary);
+      transform: scaleX(0); transform-origin: center;
+      transition: transform var(--dur) var(--ease-bounce);
+    }
+    .blog-nav .nav-item.active { color: var(--primary-ink); font-weight: 700; }
+    .blog-nav .nav-item.active::after { transform: scaleX(1); }
+    .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
     /* 导航栏第二行：板块。和第一行一起吸顶，
-       所以翻列表时换板块不用先滚回顶部。 */
+       所以翻列表时换板块不用先滚回顶部。
+       这一行是【筛选】，不是链接 —— 所以它保留胶囊底，
+       和上面那行纯文字链接区分开：带底的能点出内容，纯文字的换页面。 */
     .blog-nav .nav-boards {
       border-top: 1px solid var(--border);
       background: var(--bg-tint);
@@ -82,7 +111,21 @@
       margin-bottom: 0;
     }
     .blog-nav .theme-slot { display: inline-flex; align-items: center; }
-    .blog-nav .theme-toggle { width: 36px; height: 36px; font-size: .95rem; }
+    /* 主题开关：全站那颗粉边圆钮在这里太"重"了 —— NekoGAL 右端是一排安静的小图标。
+       所以把它脱掉装饰（无底、无圆、不转），只留一个 32px 的图形，
+       和旁边那两颗（搜索、齿轮）排成一排整齐的等大图标。
+       这里必须连 :hover 一起写：全局给 .theme-toggle:hover 挂了 rotate(-18deg)，
+       不覆盖的话鼠标一上去它就会歪。 */
+    .blog-nav .theme-toggle {
+      width: 32px; height: 32px; border-radius: 9px;
+      border: none; background: none; color: var(--text-light);
+      font-size: .95rem; margin-left: 0;
+    }
+    .blog-nav .theme-toggle:hover {
+      background: var(--bg-tint); color: var(--primary);
+      border-color: transparent; transform: none;
+    }
+    .blog-nav .theme-toggle:active { transform: scale(.92); }
 
     /* 自定义头像（emoji 直接当文字，图片则塞进同一个圆形里） */
     .av img, .me-av img {
@@ -110,16 +153,34 @@
     .av-pick.on { border-color: var(--primary); background: var(--bg-tint); box-shadow: var(--shadow-glow); }
     .field-note { display: block; margin-top: 6px; font-size: .74rem; color: var(--text-muted); line-height: 1.7; }
 
-    .nav-search { position: relative; }
+    /* 搜索：NekoGAL 顶栏右边只有一个放大镜图标。
+       照抄成图标但又不能砍掉搜索框（这页全靠它），
+       所以做成「图标长得下输入框」—— 平时只看见一个图标，
+       鼠标上去或敲进去才展开，展开后是页面上唯一一条粉边输入框。 */
+    .nav-search { position: relative; display: inline-flex; align-items: center; }
     .nav-search input {
-      width: 158px; padding: 8px 12px 8px 32px;
-      border: 1px solid var(--border); border-radius: var(--radius-pill);
-      background: var(--bg); color: var(--text);
-      font-family: var(--font); font-size: .83rem; outline: none;
-      transition: width var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+      width: 32px; padding: 7px 0; border: 1px solid transparent;
+      border-radius: 9px; background: none; color: var(--text);
+      font-family: var(--font); font-size: .83rem; outline: none; cursor: pointer;
+      transition: width var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft),
+                  background var(--dur) var(--ease-soft), padding var(--dur) var(--ease-soft);
     }
-    .nav-search input:focus { width: 210px; border-color: var(--primary); }
-    .nav-search .icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: .78rem; opacity: .55; pointer-events: none; }
+    .nav-search input::placeholder { color: transparent; }
+    .nav-search input:hover { background: var(--bg-tint); }
+    .nav-search:focus-within input,
+    .nav-search input:focus,
+    .nav-search input:not(:placeholder-shown) {
+      width: 176px; padding: 7px 12px 7px 30px; cursor: text;
+      background: var(--bg); border-color: var(--primary);
+    }
+    .nav-search input:focus::placeholder,
+    .nav-search input:not(:placeholder-shown)::placeholder { color: var(--text-muted); }
+    .nav-search .icon {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      font-size: .85rem; opacity: .7; pointer-events: none; color: var(--text-light);
+      transition: opacity var(--dur) var(--ease-soft);
+    }
+    .nav-search:focus-within .icon { opacity: 1; }
 
     .btn-n {
       display: inline-flex; align-items: center; gap: 5px;
@@ -137,21 +198,33 @@
     .btn-n.line.on { background: var(--primary); border-color: var(--primary); color: #fff; }
     .btn-n[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
+    /* 导航栏里的纯图标按钮（现在就一个：账号设置的齿轮⚙️）。
+       「登录」按钮还是用 .btn-n.line —— 那是个重要的动作，不能缩成图标。
+       但齿轮是设置，属于次要入口，缩成和搜索、主题开关一样的 32px 图标。 */
+    .btn-n.icon-n {
+      width: 32px; height: 32px; padding: 0; justify-content: center;
+      background: none; border: none; color: var(--text-light); font-size: .95rem;
+    }
+    .btn-n.icon-n:hover { background: var(--bg-tint); color: var(--primary); transform: none; }
+
     /* 登录后右上角的自己：以前是个「看着像按钮但点不动」的装饰。
        现在它能点，点进去看自己发的帖子 —— 所以这里的「我的」
-       从导航栏搬到了账号区，导航栏只留浏览内容。 */
+       从导航栏搬到了账号区，导航栏只留浏览内容。
+       （NekoGAL 右端是一排安静的小图标，所以这里也做小、做平；
+         名字仍然是这页最要紧的一个信息「你是谁」，不能连名字都省掉。） */
     .nav-user {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 5px 12px 5px 5px; border-radius: var(--radius-pill);
-      background: var(--bg-tint); border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px 4px 4px; border-radius: var(--radius-pill);
+      background: none; border: 1px solid transparent;
       font-family: var(--font); cursor: pointer;
-      transition: all var(--dur) var(--ease-soft);
+      transition: background var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
     }
-    .nav-user:hover { background: var(--bg-card); border-color: var(--primary-light); }
+    .nav-user:hover { background: var(--bg-tint); border-color: var(--border); }
     .nav-user:active { transform: scale(.96); }
-    .nav-user.on { border-color: var(--primary); background: var(--bg-card); }
+    /* 停在「我发的」时：和上面的导航项同一个记号 —— 粉下划线，不用粉底块 */
+    .nav-user.on { border-color: var(--primary); }
     .nav-user .av {
-      width: 26px; height: 26px; border-radius: 50%; font-size: .8rem; flex-shrink: 0;
+      width: 24px; height: 24px; border-radius: 50%; font-size: .78rem; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; background: var(--bg-card); border: 1px solid var(--border);
     }
     .nav-user .nm { font-size: .82rem; font-weight: 700; color: var(--primary-ink); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -530,11 +603,25 @@
     }
     @media (max-width: 768px) {
       .blog-shell { padding: 0 14px 96px; }
-      .blog-nav .nav-inner { padding: 0 14px; height: 54px; }
+      /* 手机上也保持「矮、平、安静」：整条再矮 4px，图标缩到 28px */
+      .blog-nav .nav-inner { padding: 0 14px; height: 48px; gap: 6px; }
       .blog-nav .brand .txt { display: none; }
-      .blog-nav .brand { margin-right: 4px; }
-      .blog-nav .nav-item { padding: 7px 10px; font-size: .8rem; }
-      .nav-search { display: none; }
+      .blog-nav .brand { margin-right: 2px; }
+      .blog-nav .brand .mark { width: 26px; height: 26px; font-size: .82rem; }
+      .blog-nav .nav-item { padding: 13px 10px; font-size: .8rem; }
+      .blog-nav .nav-item::after { left: 7px; right: 7px; }
+      .blog-nav .nav-right { gap: 2px; }
+      .blog-nav .theme-toggle, .blog-nav .btn-n.icon-n { width: 28px; height: 28px; font-size: .88rem; }
+      .nav-user { padding: 3px 8px 3px 3px; gap: 5px; }
+      .nav-user .av { width: 22px; height: 22px; }
+      .nav-user .nm { max-width: 60px; font-size: .78rem; }
+      /* 搜索框在手机上收成一个图标就够，点它仍然展开（不 display:none，
+         否则手机上就彻底搜不了了） */
+      .nav-search input { width: 28px; }
+      .nav-search:focus-within input,
+      .nav-search input:focus,
+      .nav-search input:not(:placeholder-shown) { width: 140px; padding: 7px 10px 7px 28px; }
+      .nav-search .icon { left: 7px; font-size: .8rem; }
       .hero { padding: 30px 18px 28px; margin: 14px 0 12px; }
       .hero .logo { width: 52px; height: 52px; font-size: 1.4rem; }
       .board-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -1090,7 +1177,7 @@
         area.innerHTML = '';
         if (me) {
           /* 账号设置在导航栏上：齿轮按钮单独一个，别和「我的帖子」挤在一个点击区里 */
-          var gear = el('button', 'btn-n line', '⚙️');
+          var gear = el('button', 'btn-n icon-n', '⚙️');
           gear.type = 'button';
           gear.title = '账号设置（名字 / 头像 / 密码）';
           if (String(location.hash || '').replace(/^#\/?/, '') === 'account') gear.classList.add('on');
