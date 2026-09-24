@@ -98,18 +98,10 @@
     .blog-nav .nav-item.active::after { transform: scaleX(1); }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
-    /* 导航栏第二行：板块。和第一行一起吸顶，
-       所以翻列表时换板块不用先滚回顶部。
-       这一行是【筛选】，不是链接 —— 所以它保留胶囊底，
-       和上面那行纯文字链接区分开：带底的能点出内容，纯文字的换页面。 */
-    .blog-nav .nav-boards {
-      border-top: 1px solid var(--border);
-      background: var(--bg-tint);
-    }
-    .blog-nav .nav-boards .board-row {
-      max-width: 1180px; margin: 0 auto; padding: 7px 20px;
-      margin-bottom: 0;
-    }
+    /* 导航栏只有一行。板块已经搬到内容区开头做成板块卡了
+       （见下面「板块卡」那段）—— 这是照 NekoGAL 改的：
+       它的顶栏就一行，分类在内容里。 */
+
     .blog-nav .theme-slot { display: inline-flex; align-items: center; }
     /* 主题开关：全站那颗粉边圆钮在这里太"重"了 —— NekoGAL 右端是一排安静的小图标。
        所以把它脱掉装饰（无底、无圆、不转），只留一个 32px 的图形，
@@ -315,29 +307,53 @@
     .sort-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
     .sort-chip.tag { background: var(--bg-soft); }
 
-    /* ==================== 板块条 ==================== */
-    /* 这是这页最主要的一层导航：先选内容类型，再看列表。
-       做得比排序条更实一点，让它在视觉上压过「排序」一头。 */
-    .board-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .board-chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
-      border-radius: var(--radius-pill); padding: 7px 15px;
-      font-size: .82rem; font-family: var(--font); font-weight: 700;
-      cursor: pointer; white-space: nowrap;
-      transition: all var(--dur) var(--ease-soft);
+    /* ==================== 板块卡（社区首页的第一块内容） ==================== */
+    /* 版式照 NekoGAL：它的顶栏只有一行，板块不在导航里，
+       而是内容区开头的一片大卡（每块一张：名字 + 一句话说明 + 数量）。
+       我们原来是「第二行吸顶胶囊条」，现在搬下来 —— 这样顶栏真的只有一行。
+       交互也跟着变：以前是"筛选器"（点完原地筛列表），
+       现在是"入口"（点进去看这个板块）。两者不是一回事，别混。 */
+    .board-cards {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px; margin: 18px 0 20px;
     }
-    .board-chip:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
-    .board-chip.active {
-      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-      border-color: var(--primary); color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, .28);
+    .bc-head {
+      grid-column: 1 / -1;
+      display: flex; align-items: baseline; gap: 10px;
+      font-size: .95rem; font-weight: 800; color: var(--text);
     }
-    .board-chip .n {
-      font-size: .7rem; font-weight: 800; padding: 1px 7px; border-radius: 9px;
-      background: var(--bg-soft); color: var(--text-muted);
+    .bc-head .bc-sub { font-size: .76rem; font-weight: 500; color: var(--text-muted); }
+
+    .bc {
+      display: flex; align-items: center; gap: 13px;
+      padding: 14px 16px; text-align: left;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); cursor: pointer; font-family: var(--font);
+      transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
     }
-    .board-chip.active .n { background: rgba(255,255,255,.26); color: #fff; }
+    .bc:hover { transform: translateY(-3px); border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
+    .bc-ic {
+      width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.32rem;
+      background: var(--bg-tint); border: 1px solid var(--border);
+    }
+    .bc-tx { min-width: 0; flex: 1; }
+    .bc-t { font-size: .95rem; font-weight: 800; color: var(--text); }
+    .bc-d {
+      font-size: .76rem; color: var(--text-muted); line-height: 1.6; margin-top: 3px;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    /* 数字对齐用等宽数字，免得每个卡里的位数不一样、看着参差 */
+    .bc-m {
+      display: flex; align-items: center; gap: 9px; margin-top: 8px;
+      font-size: .72rem; color: var(--text-muted); font-variant-numeric: tabular-nums;
+    }
+    .bc-m .bc-today { color: var(--primary-ink); font-weight: 700; }
+    /* 「你正在看这块」—— 只有当前筛中的那张卡有粉边 */
+    .bc.on { border-color: var(--primary); background: var(--bg-tint); }
+
+    /* 「全部板块」那张：横跨整行，是总览而不是某个板块 */
+    .bc-all { grid-column: 1 / -1; }
 
     /* 卡片 / 详情页上的板块徽章 */
     .kind-chip {
@@ -644,11 +660,10 @@
     <span class="ic" aria-hidden="true">🏠</span><span>返回主页</span>
   </a>
 
-  <!-- ==================== 社区导航栏（两行，整块吸顶） ====================
-       第一行：品牌 + 全部/热门/发帖 + 搜索 + 主题开关 + 账号
-       第二行：板块（资源分享 / 游戏交流 / BUG 反馈 / 建议 / 闲聊）
-       两行都在吸顶范围内，所以往下翻列表时板块也一直能点，
-       不用滚回顶部才能换板块。 -->
+  <!-- ==================== 社区导航栏（一行，吸顶） ====================
+       一行里装：品牌 + 全部/热门/发帖 + 搜索 + 主题开关 + 账号。
+       板块【不在】这里 —— 它在内容区开头做成了板块卡（照 NekoGAL：
+       顶栏一行，分类在内容里）。 -->
   <nav class="blog-nav" aria-label="社区导航">
     <div class="nav-inner">
       <a class="brand" href="blog.html#/">
@@ -671,10 +686,6 @@
         <span class="theme-slot" data-theme-slot></span>
         <span id="userArea"></span>
       </div>
-    </div>
-
-    <div class="nav-boards">
-      <div class="board-row" id="boardRow"></div>
     </div>
   </nav>
 
@@ -702,6 +713,11 @@
         </p>
       </div>
     </header>
+
+    <!-- 板块卡：内容区的第一块（照 NekoGAL —— 分类不进顶栏，放内容里）。
+         这里只放容器，卡片由 renderBoards() 按真实帖子数量画出来。
+         它故意留在各个「视图」外面：切到看帖/发帖页时整块跟着横幅一起收起来。 -->
+    <div class="board-cards" id="boardCards"></div>
 
     <!-- ==================== 视图一：列表 ==================== -->
     <section class="view active" id="viewList">
@@ -1067,35 +1083,78 @@
         renderGrid(true);
       }
 
-      /* 板块条：社区最主要的一层筛选，每块带一个数量。
-         数量从已加载的帖子里现算，所以和列表永远对得上。 */
+      /* 板块卡：内容区的第一块，也是这页最主要的一层「先选看哪类内容」。
+         每块一张卡：图标 + 名字 + 一句话说明 + 三条数字 + 今天新增。
+         数字全部从【已加载的帖子】现算，不编造 —— 和列表永远对得上。
+         受限说明：只有最近 PAGE_LIMIT 条参与计算，所以是「已载入范围内」的实况。 */
+      function boardStats(id) {
+        var items = 0, replies = 0, today = 0, i, p, pj;
+        /* 今天的日期串（'2026-09-25'）；createdAt 形如 '2026-09-24 21:10'，前 10 位就是日期 */
+        var now = new Date();
+        var todayStr = now.getFullYear() + '-' +
+          ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+        for (i = 0; i < posts.length; i++) {
+          p = posts[i];
+          if (id && p.kind !== id) continue;
+          /* 只有主帖进板块，评论（parentId 非 0）不算 */
+          if (Number(p.parentId) || 0) continue;
+          items++;
+          replies += Number(p.replies) || 0;
+          pj = parseTime(p.createdAt);
+          if (pj) {
+            var pjStr = pj.getFullYear() + '-' +
+              ('0' + (pj.getMonth() + 1)).slice(-2) + '-' + ('0' + pj.getDate()).slice(-2);
+            if (pjStr === todayStr) today++;
+          }
+        }
+        return { items: items, replies: replies, today: today };
+      }
+
+      function buildBoardCard(b) {
+        /* b === null 表示「全部板块」那张总览卡 */
+        var isAll = !b;
+        var st = boardStats(isAll ? '' : b.id);
+        var on = isAll ? !kindFilter : (kindFilter === b.id);
+
+        var card = el('button', 'bc' + (isAll ? ' bc-all' : '') + (on ? ' on' : ''));
+        card.type = 'button';
+        card.title = isAll ? '不筛板块，全部内容都看' : b.desc;
+
+        card.appendChild(el('span', 'bc-ic', isAll ? '🗂️' : b.icon));
+
+        var tx = el('span', 'bc-tx');
+        tx.appendChild(el('span', 'bc-t', isAll ? '全部板块' : b.name));
+        if (!isAll) tx.appendChild(el('span', 'bc-d', b.desc));
+        var m = el('span', 'bc-m');
+        m.appendChild(el('span', null, '主题 ' + st.items));
+        m.appendChild(el('span', null, '回复 ' + st.replies));
+        if (st.today > 0) m.appendChild(el('span', 'bc-today', '今日 +' + st.today));
+        tx.appendChild(m);
+        card.appendChild(tx);
+
+        card.onclick = function () {
+          /* 再点一次同一块 = 取消筛选，回到全部。
+             注意：这里【不】把视图滚到列表 —— 板块卡就在列表上方，
+             滚走反而让人看不到自己刚点的结果。 */
+          if (isAll) kindFilter = '';
+          else kindFilter = (kindFilter === b.id) ? '' : b.id;
+          applyFilter();
+        };
+        return card;
+      }
+
       function renderBoards() {
-        var row = $('boardRow');
-        if (!row) return;
-        row.innerHTML = '';
+        var box = $('boardCards');
+        if (!box) return;
+        box.innerHTML = '';
 
-        var all = el('button', 'board-chip' + (kindFilter ? '' : ' active'));
-        all.type = 'button';
-        all.title = '不筛板块，全部内容都看';
-        all.appendChild(document.createTextNode('🗂 全部板块 '));
-        all.appendChild(el('span', 'n', String(posts.length)));
-        all.onclick = function () { kindFilter = ''; applyFilter(); };
-        row.appendChild(all);
+        var head = el('div', 'bc-head');
+        head.appendChild(el('span', null, '交流论坛'));
+        head.appendChild(el('span', 'bc-sub', '站里没有的可以在这里求助 · 点一块看该板块的内容'));
+        box.appendChild(head);
 
-        BOARDS.forEach(function (b) {
-          var n = posts.filter(function (p) { return p.kind === b.id; }).length;
-          var chip = el('button', 'board-chip' + (kindFilter === b.id ? ' active' : ''));
-          chip.type = 'button';
-          chip.title = b.desc;
-          chip.appendChild(document.createTextNode(b.icon + ' ' + b.name + ' '));
-          chip.appendChild(el('span', 'n', String(n)));
-          chip.onclick = function () {
-            /* 再点一次同一个板块 = 取消，回到全部 */
-            kindFilter = (kindFilter === b.id) ? '' : b.id;
-            applyFilter();
-          };
-          row.appendChild(chip);
-        });
+        box.appendChild(buildBoardCard(null));
+        BOARDS.forEach(function (b) { box.appendChild(buildBoardCard(b)); });
       }
 
       function renderTags() {
@@ -1884,9 +1943,14 @@
           var e = $(id);
           if (e) e.classList.toggle('active', id === name);
         });
-        /* 大图横幅只在列表页显示；看帖子 / 发帖 / 登录 / 账号设置时收起来，
-           免得每次都要先划过一整屏图才看到内容。 */
-        $('heroBox').style.display = (name === 'viewList') ? '' : 'none';
+        /* 大图横幅和板块卡都只在列表页显示；看帖子 / 发帖 / 登录 / 账号设置时收起来，
+           免得每次都要先划过一整屏图（和六张板块卡）才看到内容。
+           板块卡不在 .view 里面，所以这段必须显式带上它 ——
+           漏了它的症状是：点进一篇帖子，顶上还杵着六张板块卡。 */
+        var listOnly = (name === 'viewList') ? '' : 'none';
+        $('heroBox').style.display = listOnly;
+        var cards = $('boardCards');
+        if (cards) cards.style.display = listOnly;
       }
 
       function setNavActive(go) {
