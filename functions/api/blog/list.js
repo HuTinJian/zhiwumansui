@@ -7,8 +7,9 @@
    ============================================================ */
 
 import { json } from '../_utils.js';
-import { normalizeClientId } from './_moderation.js';
+import { DEFAULT_KIND, normalizeKind, normalizeClientId } from './_moderation.js';
 import { currentUser } from './_auth.js';
+import { hasKindColumn } from './_schema.js';
 
 const PAGE_LIMIT = 200;
 
@@ -53,9 +54,10 @@ export async function onRequestGet(context) {
     }
 
     /* ---------- 文章列表 ---------- */
+    /* 这里故意写 p.* 而不是逐个列字段：以后再加字段时，老库即使漏跑迁移，
+       查询也不会因为「未知列」整个报错，最多是拿不到那个字段（下面用 `|| 默认值` 兜住）。 */
     const rows = await env.DB.prepare(
-      `SELECT p.id, p.user_id, p.name, p.title, p.content, p.cover, p.tags,
-              p.likes, p.views, p.pinned, p.created_at,
+      `SELECT p.*,
               (SELECT COUNT(*) FROM blog_posts r
                 WHERE r.parent_id = p.id AND r.status = 'visible') AS reply_count
          FROM blog_posts p
@@ -65,6 +67,9 @@ export async function onRequestGet(context) {
     ).bind(PAGE_LIMIT).all();
 
     const list = (rows && rows.results) ? rows.results : [];
+
+    /* 板块字段准备好了没（没准备好不影响浏览，只是内容都归到默认板块） */
+    const kindReady = await hasKindColumn(env);
 
     /* 我点过赞的文章：一次查出来，避免每篇再问一次数据库 */
     let likedSet = new Set();
@@ -81,6 +86,7 @@ export async function onRequestGet(context) {
       title: String(r.title || ''),
       content: String(r.content || ''),
       cover: String(r.cover || ''),
+      kind: normalizeKind(r.kind) || DEFAULT_KIND,
       tags: splitTags(r.tags),
       likes: Number(r.likes) || 0,
       views: Number(r.views) || 0,
@@ -91,7 +97,7 @@ export async function onRequestGet(context) {
       createdAt: String(r.created_at || '')
     }));
 
-    return json({ ok: true, data, total: data.length });
+    return json({ ok: true, data, total: data.length, kindReady });
   } catch (err) {
     console.error('[blog/list]', err);
     /* 表还没建时给出友好提示，而不是 500 白屏 */

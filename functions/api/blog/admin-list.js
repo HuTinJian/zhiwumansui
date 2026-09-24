@@ -18,7 +18,7 @@ export async function onRequestGet(context) {
               (SELECT COUNT(*) FROM blog_posts r WHERE r.parent_id = p.id) AS reply_count
          FROM blog_posts p
         WHERE p.parent_id IS NULL
-        ORDER BY p.pinned DESC, p.id DESC
+        ORDER BY p.reports DESC, p.pinned DESC, p.id DESC
         LIMIT 300`
     ).all();
 

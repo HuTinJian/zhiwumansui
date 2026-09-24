@@ -528,7 +528,7 @@
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 Roblox ID 宝库</button>
-        <button class="subtab" data-subpanel="card2-panel">📝 玩家博客</button>
+        <button class="subtab" data-subpanel="card2-panel">🌾 玩家社区</button>
       </div>
 
       <div class="subpanel active" id="card1-panel">
@@ -622,21 +622,22 @@
         </div>
       </div>
 
-      <!-- 卡片2 · 玩家博客 -->
+      <!-- 卡片2 · 玩家社区 -->
       <div class="subpanel" id="card2-panel">
 
         <div class="panel-card">
           <h2>
-            📝 博客帖子管理
+            🌾 社区帖子管理
             <span class="count" id="blogCount">0</span>
             <span class="head-actions">
               <button class="btn btn-secondary" id="refreshBlogBtn">🔄 刷新</button>
             </span>
           </h2>
           <p class="desc" style="margin:-6px 0 14px;font-size:0.85rem;color:var(--text-muted);line-height:1.8;">
-            玩家写的文章都在这里。被 3 个人举报会自动隐藏等你复核；
+            玩家发的内容都在这里。<b>举报不会自动隐藏内容</b>，只累计次数等你人工判断
+            （列表按举报数排，被集中举报的一眼就能看到）；是否下架由你点「隐藏」决定。
             <b>拉黑</b>会同时封禁账号与浏览器身份 —— 换个昵称、重新注册都发不出来，他名下已有的内容也会一起下线。
-            置顶的文章会单独显示在博客顶部。
+            置顶的内容会单独显示在社区顶部。
           </p>
           <div id="blogList">
             <div class="loading">加载中...</div>

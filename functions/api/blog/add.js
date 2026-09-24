@@ -8,8 +8,9 @@
    ============================================================ */
 
 import { json, clientIp, createRateLimiter, readJsonBody, requireSameOrigin, tooLong } from '../_utils.js';
-import { AUTO_HIDE_REPORTS, LIMITS, cleanBody, findBlockedWord, isBanned, normalizeClientId } from './_moderation.js';
+import { DEFAULT_KIND, LIMITS, cleanBody, findBlockedWord, isBanned, normalizeClientId, normalizeKind } from './_moderation.js';
 import { currentUser } from './_auth.js';
+import { hasKindColumn } from './_schema.js';
 
 /* 单 IP 10 分钟最多发 8 条（文章 + 评论一起算），挡住刷屏 */
 const limiter = createRateLimiter(8, 10 * 60 * 1000);
@@ -95,24 +96,40 @@ export async function onRequestPost(context) {
       rootId = parent.parent_id ? Number(parent.parent_id) : Number(parent.id);
     }
 
-    const result = await env.DB.prepare(
-      `INSERT INTO blog_posts (parent_id, user_id, name, title, content, cover, tags, client_id, likes, views, reports, pinned, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 'visible')`
-    ).bind(
-      rootId,
-      user.id,
-      name,
-      isReply ? null : (title || null),
-      rawContent,
-      isReply ? null : cover,
-      isReply ? null : tags,
-      clientId
-    ).run();
+    /* 板块只对主帖有意义，评论不占板块位 */
+    const kind = isReply ? null : (normalizeKind(body.kind) || DEFAULT_KIND);
+
+    /* 板块字段可能还没建（老库没跑迁移）：先探测再决定写不写它，
+       否则插入会直接报「未知列」，发帖整个失败 —— 那就白白卡住用户了。 */
+    const kindReady = isReply ? false : await hasKindColumn(env);
+
+    /* 评论用的字段（板块字段没建时，发帖也走这一条，只是不带板块） */
+    const result = kindReady
+      ? await env.DB.prepare(
+          `INSERT INTO blog_posts
+             (parent_id, user_id, name, title, content, cover, tags, client_id, likes, views, reports, pinned, status, kind)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 'visible', ?)`
+        ).bind(
+          rootId, user.id, name,
+          isReply ? null : (title || null), rawContent,
+          isReply ? null : cover, isReply ? null : tags, clientId,
+          kind
+        ).run()
+      : await env.DB.prepare(
+          `INSERT INTO blog_posts
+             (parent_id, user_id, name, title, content, cover, tags, client_id, likes, views, reports, pinned, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 'visible')`
+        ).bind(
+          rootId, user.id, name,
+          isReply ? null : (title || null), rawContent,
+          isReply ? null : cover, isReply ? null : tags, clientId
+        ).run();
 
     return json({
       ok: true,
       id: Number(result.meta && result.meta.last_row_id) || 0,
-      autoHideAt: AUTO_HIDE_REPORTS
+      kind,
+      kindReady
     });
   } catch (err) {
     console.error('[blog/add]', err);

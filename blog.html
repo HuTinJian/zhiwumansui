@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>玩家博客 - 织雾满穗</title>
+  <title>玩家社区 - 织雾满穗</title>
 
-  <meta name="description" content="织雾满穗玩家博客：分享你在 Roblox 里发现的好音乐、好用 ID 和小技巧，也可以提问题和讨论。">
+  <meta name="description" content="织雾满穗玩家社区：什么游戏都能聊 —— 分享资源、反馈 BUG、提建议、交流游戏内容，不止 Roblox。">
   <meta name="theme-color" content="#fdf2f5">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -25,13 +25,13 @@
 
   <style>
     /* ============================================================
-       博客样式 —— 版式参考 nekogal.com：粉色 Hero + 版块网格 + 登录侧栏
+       社区样式 —— 版式参考 nekogal.com：大图横幅 + 板块条 + 帖子网格 + 登录侧栏
        颜色全部走站点主题变量，深色模式自动跟随。
        ============================================================ */
 
     .blog-shell { max-width: 1180px; margin: 0 auto; padding: 0 20px 90px; }
 
-    /* ==================== 博客自己的导航栏 ==================== */
+    /* ==================== 社区自己的导航栏 ==================== */
     .blog-nav {
       position: sticky; top: 0; z-index: 50;
       background: var(--bg-card);
@@ -66,7 +66,7 @@
     .blog-nav .nav-item:hover { background: var(--bg-tint); color: var(--primary); }
     /* 实心粉底在本页只有一个含义：「你现在在这里」。
        所以导航栏里所有按钮一律平等，只有当前那一个会变成实心粉。
-       （「写文章」也不特殊化：之前给它加过实心、又加过描边，
+       （「发帖」也不特殊化：之前给它加过实心、又加过描边，
         都因为和「当前页」这个含义撞车而让人看错，已改回普通按钮。） */
     .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -99,7 +99,7 @@
     .btn-n[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
     /* 登录后右上角的自己：以前是个「看着像按钮但点不动」的装饰。
-       现在它能点，点进去看自己写的文章 —— 所以这里的「我的」
+       现在它能点，点进去看自己发的帖子 —— 所以这里的「我的」
        从导航栏搬到了账号区，导航栏只留浏览内容。 */
     .nav-user {
       display: inline-flex; align-items: center; gap: 7px;
@@ -117,29 +117,42 @@
     }
     .nav-user .nm { font-size: .82rem; font-weight: 700; color: var(--primary-ink); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* ==================== Hero 横幅 ==================== */
+    /* ==================== 顶部大图横幅 ==================== */
+    /* 底图：images/community-banner.jpg（我们的紫粉夜色）。
+       两层叠加是为了白字读得清：
+         .hero-bg   —— 图片本身，cover 铺满
+         .hero-veil —— 中间压暗 + 上下渐隐，把文字区变成深色
+       （那张图的中间本来就最暗、左右两边的粉云最亮，
+         所以文字一律放中间，别往边上放白字。） */
     .hero {
       position: relative; overflow: hidden;
       margin: 20px 0 16px;
-      padding: 40px 28px 38px;
+      min-height: 250px;
+      padding: 46px 28px 42px;
       border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, #f7c2d0 0%, var(--primary) 55%, #b84460 100%);
-      box-shadow: 0 14px 40px rgba(184, 68, 96, 0.28);
+      background: linear-gradient(135deg, #2a1c3d 0%, #1b1430 60%, #2b1a2e 100%);
+      box-shadow: 0 14px 40px rgba(40, 20, 60, 0.34);
       text-align: center;
       color: #fff;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hero::before {
-      content: ''; position: absolute; inset: 0;
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('images/community-banner.jpg') center center / cover no-repeat;
+      transform: scale(1.02);
+    }
+    .hero-veil {
+      position: absolute; inset: 0;
       background:
-        radial-gradient(circle at 12% 22%, rgba(255,255,255,.34), transparent 42%),
-        radial-gradient(circle at 86% 78%, rgba(255,255,255,.26), transparent 46%);
-      pointer-events: none;
+        radial-gradient(ellipse 62% 78% at 50% 50%, rgba(18, 12, 32, .74) 0%, rgba(18, 12, 32, .52) 55%, rgba(18, 12, 32, .18) 100%),
+        linear-gradient(180deg, rgba(14, 10, 26, .5) 0%, transparent 34%, transparent 66%, rgba(14, 10, 26, .55) 100%);
     }
-    .hero .inner { position: relative; z-index: 1; }
+    .hero .inner { position: relative; z-index: 1; max-width: 760px; }
     .hero .logo {
       width: 62px; height: 62px; margin: 0 auto 14px; border-radius: 18px;
       display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
-      background: rgba(255,255,255,.22); border: 2px solid rgba(255,255,255,.4);
+      background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.34);
+      backdrop-filter: blur(2px);
       animation: heroPop .7s var(--ease-bounce) backwards;
     }
     @keyframes heroPop {
@@ -149,22 +162,29 @@
     }
     .hero h1 {
       font-size: clamp(1.9rem, 6vw, 2.9rem); font-weight: 800; letter-spacing: -1px;
-      margin-bottom: 10px; text-shadow: 0 3px 16px rgba(120, 30, 55, .35);
+      margin-bottom: 10px; text-shadow: 0 3px 18px rgba(0, 0, 0, .6);
     }
     .hero .tagline {
       font-size: clamp(.9rem, 2.6vw, 1.05rem); font-weight: 600; letter-spacing: 2px;
-      opacity: .96; margin-bottom: 20px;
+      opacity: .97; margin-bottom: 20px; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
     }
     .hero .features { display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; }
     .hero .features .f {
       padding: 6px 16px; border-radius: var(--radius-pill);
-      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.34);
-      font-size: .8rem; font-weight: 600;
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3);
+      font-size: .8rem; font-weight: 600; text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+      backdrop-filter: blur(2px);
     }
-
-    .slogan-bar { text-align: center; margin-bottom: 20px; padding: 4px 0; }
-    .slogan-bar .en { font-size: .92rem; font-weight: 700; letter-spacing: .3px; color: var(--primary-ink); font-style: italic; }
-    .slogan-bar .cn { font-size: .82rem; color: var(--text-muted); margin-top: 3px; }
+    /* 双语标语并入横幅底部（原来单独占一条，属于重复块，已合并） */
+    .hero .quote { margin-top: 20px; }
+    .hero .quote .en {
+      display: block; font-size: .86rem; font-weight: 700; font-style: italic;
+      letter-spacing: .3px; color: #ffd9e4; text-shadow: 0 2px 10px rgba(0, 0, 0, .65);
+    }
+    .hero .quote .cn {
+      display: block; font-size: .78rem; margin-top: 3px;
+      color: rgba(255,255,255,.8); text-shadow: 0 2px 10px rgba(0, 0, 0, .65);
+    }
 
     /* ==================== 主体两栏 ==================== */
     .cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
@@ -182,6 +202,61 @@
     .sort-chip:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
     .sort-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
     .sort-chip.tag { background: var(--bg-soft); }
+
+    /* ==================== 板块条 ==================== */
+    /* 这是这页最主要的一层导航：先选内容类型，再看列表。
+       做得比排序条更实一点，让它在视觉上压过「排序」一头。 */
+    .board-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .board-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
+      border-radius: var(--radius-pill); padding: 7px 15px;
+      font-size: .82rem; font-family: var(--font); font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: all var(--dur) var(--ease-soft);
+    }
+    .board-chip:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
+    .board-chip.active {
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      border-color: var(--primary); color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, .28);
+    }
+    .board-chip .n {
+      font-size: .7rem; font-weight: 800; padding: 1px 7px; border-radius: 9px;
+      background: var(--bg-soft); color: var(--text-muted);
+    }
+    .board-chip.active .n { background: rgba(255,255,255,.26); color: #fff; }
+
+    /* 卡片 / 详情页上的板块徽章 */
+    .kind-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: var(--radius-pill);
+      font-size: .68rem; font-weight: 700;
+      background: var(--bg-soft); color: var(--primary-ink); border: 1px solid var(--border);
+    }
+    /* 卡片标题下面那行：板块 + 标签（模仿对象的做法：分类和标签都挂在卡片上） */
+    .board .bd .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .board .bd .card-meta .tag-chip,
+    .article .a-in .card-meta .tag-chip {
+      padding: 3px 8px; border-radius: var(--radius-pill);
+      font-size: .68rem; font-weight: 600;
+      background: var(--bg-soft); color: var(--text-muted);
+    }
+    .article .a-in .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+
+    /* 数据库缺字段时的提示条 */
+    .migrate-hint {
+      margin-bottom: 12px; padding: 10px 14px;
+      border: 1px dashed var(--primary-light); border-radius: var(--radius);
+      background: var(--bg-tint); color: var(--text-light);
+      font-size: .78rem; line-height: 1.75;
+    }
+    .migrate-hint b { color: var(--primary-ink); }
+    .migrate-hint code {
+      display: inline-block; margin-top: 4px; padding: 3px 7px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+      font-size: .74rem; word-break: break-all;
+    }
 
     /* ==================== 版块网格 ==================== */
     .board-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -286,7 +361,7 @@
     .tag-cloud .tg:hover { border-color: var(--primary-light); color: var(--primary); }
     .tag-cloud .tg.active { background: var(--primary); color: #fff; }
 
-    /* ==================== 文章详情 ==================== */
+    /* ==================== 帖子详情 ==================== */
     .article { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
     .article .a-cover { aspect-ratio: 21/9; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .article .a-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -350,13 +425,14 @@
     .panel h2 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text); }
     .panel .hint { font-size: .82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.8; }
     .panel label { display: block; font-size: .82rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .panel input[type="text"], .panel input[type="password"], .panel textarea {
+    .panel input[type="text"], .panel input[type="password"], .panel textarea, .panel select {
       width: 100%; padding: 11px 15px;
       border: 2px solid var(--border); border-radius: var(--radius-sm);
       background: var(--bg); color: var(--text); font-family: var(--font); font-size: .92rem; outline: none;
       transition: border-color var(--dur) var(--ease-soft), box-shadow var(--dur) var(--ease-soft);
     }
-    .panel input:focus, .panel textarea:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
+    .panel input:focus, .panel textarea:focus, .panel select:focus { border-color: var(--primary); box-shadow: var(--shadow-glow); }
+    .panel select { cursor: pointer; }
     .panel textarea { min-height: 220px; resize: vertical; line-height: 1.9; }
     .panel .field { margin-bottom: 15px; position: relative; }
     .panel .counter { position: absolute; right: 14px; bottom: 10px; font-size: .71rem; color: var(--text-muted); pointer-events: none; }
@@ -442,24 +518,24 @@
     <span class="ic" aria-hidden="true">🏠</span><span>返回主页</span>
   </a>
 
-  <!-- ==================== 博客自己的导航栏 ==================== -->
-  <nav class="blog-nav" aria-label="博客导航">
+  <!-- ==================== 社区自己的导航栏 ==================== -->
+  <nav class="blog-nav" aria-label="社区导航">
     <div class="nav-inner">
       <a class="brand" href="blog.html#/">
-        <span class="mark" aria-hidden="true">📝</span>
-        <span class="txt">玩家博客</span>
+        <span class="mark" aria-hidden="true">🌾</span>
+        <span class="txt">玩家社区</span>
       </a>
 
       <div class="nav-links">
-        <button type="button" class="nav-item active" data-go="all">📚 全部文章</button>
+        <button type="button" class="nav-item active" data-go="all">📋 全部</button>
         <button type="button" class="nav-item" data-go="hot">🔥 热门</button>
-        <button type="button" class="nav-item" data-go="write">✍️ 写文章</button>
+        <button type="button" class="nav-item" data-go="write">✍️ 发帖</button>
       </div>
 
       <div class="nav-right">
         <div class="nav-search">
           <span class="icon" aria-hidden="true">🔍</span>
-          <input type="text" id="searchInput" placeholder="搜文章…" autocomplete="off" spellcheck="false">
+          <input type="text" id="searchInput" placeholder="搜帖子…" autocomplete="off" spellcheck="false">
         </div>
         <span id="userArea"></span>
       </div>
@@ -468,30 +544,37 @@
 
   <div class="blog-shell" id="main">
 
+    <!-- 顶部大图横幅：底图是 images/community-banner.jpg（我们的紫粉夜色配色），
+         文字压在最暗的中间区域，保证白字看得清。 -->
     <header class="hero" id="heroBox">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-veil" aria-hidden="true"></div>
       <div class="inner">
-        <div class="logo" aria-hidden="true">📝</div>
-        <h1>玩家博客</h1>
-        <p class="tagline">写下来 · 分享 · 少踩一个坑</p>
+        <div class="logo" aria-hidden="true">🌾</div>
+        <h1>玩家社区</h1>
+        <p class="tagline">什么游戏都能聊 —— 不止 Roblox</p>
         <div class="features">
-          <span class="f">🎵 音乐与 ID</span>
-          <span class="f">💬 玩家互助</span>
-          <span class="f">📱 手机也能写</span>
+          <span class="f">📦 资源分享</span>
+          <span class="f">🐛 BUG 反馈</span>
+          <span class="f">💡 提建议</span>
+          <span class="f">🎮 游戏交流</span>
           <span class="f">🔒 浏览免登录</span>
         </div>
+        <p class="quote">
+          <span class="en">Work hard in silence, let success make the noise.</span>
+          <span class="cn">在沉默中努力，让成功自己发声</span>
+        </p>
       </div>
     </header>
-
-    <div class="slogan-bar">
-      <div class="en">Work hard in silence, let success make the noise.</div>
-      <div class="cn">在沉默中努力，让成功自己发声</div>
-    </div>
 
     <!-- ==================== 视图一：列表 ==================== -->
     <section class="view active" id="viewList">
       <div class="cols">
 
         <div class="main-col">
+          <!-- 板块：社区最主要的一层筛选，点一下只看那一类 -->
+          <div class="board-row" id="boardRow"></div>
+
           <div class="tool-row">
             <button type="button" class="sort-chip active" data-sort="new">🕒 最新</button>
             <button type="button" class="sort-chip" data-sort="views">👁 最多浏览</button>
@@ -501,7 +584,8 @@
             <span id="resultCount" style="font-size:.78rem;color:var(--text-muted)"></span>
           </div>
 
-          <div id="tagBar" class="tool-row" style="margin-top:-6px"></div>
+          <!-- 数据库还没加 kind 字段时的提示（跑一次迁移就会消失） -->
+          <div class="migrate-hint" id="migrateHint" hidden></div>
 
           <div class="board-grid" id="boardGrid">
             <div class="empty" style="grid-column:1/-1;"><span class="big" aria-hidden="true">⏳</span>正在加载…</div>
@@ -516,7 +600,7 @@
           <div class="widget login-wrap" id="loginWrap"></div>
 
           <div class="widget">
-            <h3>🔥 热门文章</h3>
+            <h3>🔥 热门内容</h3>
             <div class="w-list" id="hotList"><div class="w-item">还没有内容</div></div>
           </div>
 
@@ -538,30 +622,35 @@
       </div>
     </section>
 
-    <!-- ==================== 视图二：文章详情 ==================== -->
+    <!-- ==================== 视图二：帖子详情 ==================== -->
     <section class="view" id="viewPost">
-      <a class="back-link" id="backFromPost">← 返回文章列表</a>
+      <a class="back-link" id="backFromPost">← 返回社区</a>
       <article class="article" id="articleBox"></article>
     </section>
 
-    <!-- ==================== 视图三：写文章 ==================== -->
+    <!-- ==================== 视图三：发帖 ==================== -->
     <section class="view" id="viewWrite">
-      <a class="back-link" id="backFromWrite">← 返回文章列表</a>
+      <a class="back-link" id="backFromWrite">← 返回社区</a>
 
       <div class="guest-tip" id="writeGuestTip" hidden>
-        <span class="t">🔒 发布文章需要先登录。浏览是不用登录的，随便看。</span>
+        <span class="t">🔒 发帖需要先登录。浏览是不用登录的，随便看。</span>
         <button type="button" class="btn-n fill" id="goAuthBtn">去登录 / 注册</button>
       </div>
 
       <div class="panel" id="writePanel" hidden>
-        <h2>✍️ 写一篇文章</h2>
-        <p class="hint">标题必填。封面图可以不填 —— 不填会自动生成一张配色封面。</p>
+        <h2>✍️ 发个帖子</h2>
+        <p class="hint">什么游戏都能发，不止 Roblox。标题必填；封面图不填会自动生成一张配色封面。</p>
 
         <div class="err" id="writeErr"></div>
 
         <div class="field">
+          <label for="postKind">发到哪个板块</label>
+          <select id="postKind"></select>
+        </div>
+
+        <div class="field">
           <label for="postTitle">标题</label>
-          <input type="text" id="postTitle" placeholder="给你的文章起个标题（最多 60 字）" maxlength="60">
+          <input type="text" id="postTitle" placeholder="给你的帖子起个标题（最多 60 字）" maxlength="60">
         </div>
 
         <div class="row2">
@@ -576,21 +665,21 @@
         </div>
 
         <div class="field">
-          <label for="postContent">正文</label>
-          <textarea id="postContent" placeholder="写点什么吧…（最多 1000 字）" maxlength="1000"></textarea>
+          <label for="postContent">内容</label>
+          <textarea id="postContent" placeholder="说点什么…（最多 1000 字）" maxlength="1000"></textarea>
           <span class="counter" id="postCounter">0 / 1000</span>
         </div>
 
         <div class="foot">
-          <button type="button" class="btn-n fill" id="publishBtn" aria-busy="false">🚀 发布文章</button>
-          <span style="font-size:.78rem;color:var(--text-muted)">以 <b id="writeAsName">–</b> 的身份发布</span>
+          <button type="button" class="btn-n fill" id="publishBtn" aria-busy="false">🚀 发布</button>
+          <span style="font-size:.78rem;color:var(--text-muted)">以 <b id="writeAsName">–</b> 的身份发帖</span>
         </div>
       </div>
     </section>
 
     <!-- ==================== 视图四：登录 / 注册 ==================== -->
     <section class="view" id="viewAuth">
-      <a class="back-link" id="backFromAuth">← 返回文章列表</a>
+      <a class="back-link" id="backFromAuth">← 返回社区</a>
 
       <div class="panel narrow">
         <h2 id="authTitle">👤 登录</h2>
@@ -651,11 +740,29 @@
       var sortMode = 'new';
       var keyword = '';
       var tagFilter = '';
+      var kindFilter = '';       /* 当前板块筛选，'' = 全部板块 */
+      var kindReady = true;      /* 数据库里 kind 字段在不在（false 时页面会提示跑迁移） */
       var scope = 'all';
       var visibleCount = 10;
       var PAGE_STEP = 10;
       var currentId = 0;
       var authMode = 'login';
+
+      /* ---------- 板块 ----------
+         社区按内容类型分区。id 必须和 functions/api/blog/_moderation.js
+         里的 KINDS 完全一致，否则发出去的帖子会落到默认板块。
+         想加板块：这里加一条，那边 KINDS 也加同名 id。 */
+      var BOARDS = [
+        { id: 'resource', icon: '📦', name: '资源分享', desc: '工具、素材、教程、脚本，能用的都往这儿放' },
+        { id: 'game',     icon: '🎮', name: '游戏交流', desc: '聊游戏内容、攻略、心得，什么游戏都行' },
+        { id: 'bug',      icon: '🐛', name: 'BUG 反馈', desc: '哪里不对劲、报错、卡住了，贴出来' },
+        { id: 'idea',     icon: '💡', name: '建议',     desc: '希望加什么、改什么，说给站长听' },
+        { id: 'chat',     icon: '💬', name: '闲聊',     desc: '随便聊，找人搭话都行' }
+      ];
+      function boardOf(id) {
+        for (var bi = 0; bi < BOARDS.length; bi++) if (BOARDS[bi].id === id) return BOARDS[bi];
+        return BOARDS[BOARDS.length - 1];   /* 认不出来的当闲聊，别让卡片空着 */
+      }
 
       var AVATARS = ['🎵', '🎧', '🎮', '🌾', '🌸', '⭐', '🔥', '🍀', '🌙', '🐳', '🎹', '🎤'];
       function hashOf(t) { var h = 0, s = String(t || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
@@ -705,7 +812,7 @@
       }
       function setErr(id, msg) { var b = $(id); if (!b) return; b.textContent = msg || ''; b.classList.toggle('show', !!msg); }
 
-      // 「热门」的算法：浏览量 + 点赞×3。右侧栏「热门文章」用的是同一个，
+      // 「热门」的算法：浏览量 + 点赞×3。右侧栏「热门内容」用的是同一个，
       // 这样选项卡和侧边栏不会各说各话。
       // 它跟排序条里的「👁 最多浏览」也就成了两件事，不是重复按钮。
       function hotScore(p) { return (p.views || 0) + (p.likes || 0) * 3; }
@@ -715,6 +822,7 @@
         var list = posts.filter(function (p) {
           if (scope !== 'mine' && p.pinned) return false;
           if (scope === 'mine' && !p.mine) return false;
+          if (kindFilter && p.kind !== kindFilter) return false;
           if (tagFilter && (p.tags || []).indexOf(tagFilter) === -1) return false;
           if (!kw) return true;
           return (String(p.title || '') + ' ' + String(p.content || '') + ' ' + String(p.name || ''))
@@ -737,29 +845,56 @@
         return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, 14);
       }
 
+      /* 改了筛选条件后统一走这里：重画标签云、板块条、列表。
+         免得每个入口都自己写一遍「重置 + 重画」，漏一处就不一致。 */
+      function applyFilter() {
+        renderTags();
+        renderBoards();
+        renderGrid(true);
+      }
+
+      /* 板块条：社区最主要的一层筛选，每块带一个数量。
+         数量从已加载的帖子里现算，所以和列表永远对得上。 */
+      function renderBoards() {
+        var row = $('boardRow');
+        if (!row) return;
+        row.innerHTML = '';
+
+        var all = el('button', 'board-chip' + (kindFilter ? '' : ' active'));
+        all.type = 'button';
+        all.title = '不筛板块，全部内容都看';
+        all.appendChild(document.createTextNode('🗂 全部板块 '));
+        all.appendChild(el('span', 'n', String(posts.length)));
+        all.onclick = function () { kindFilter = ''; applyFilter(); };
+        row.appendChild(all);
+
+        BOARDS.forEach(function (b) {
+          var n = posts.filter(function (p) { return p.kind === b.id; }).length;
+          var chip = el('button', 'board-chip' + (kindFilter === b.id ? ' active' : ''));
+          chip.type = 'button';
+          chip.title = b.desc;
+          chip.appendChild(document.createTextNode(b.icon + ' ' + b.name + ' '));
+          chip.appendChild(el('span', 'n', String(n)));
+          chip.onclick = function () {
+            /* 再点一次同一个板块 = 取消，回到全部 */
+            kindFilter = (kindFilter === b.id) ? '' : b.id;
+            applyFilter();
+          };
+          row.appendChild(chip);
+        });
+      }
+
       function renderTags() {
-        var cloud = $('tagCloud'), bar = $('tagBar');
+        var cloud = $('tagCloud');
         var tags = allTags();
-        cloud.innerHTML = ''; bar.innerHTML = '';
+        cloud.innerHTML = '';
 
         if (tags.length === 0) { cloud.appendChild(el('span', 'tg', '暂无标签')); return; }
 
         tags.forEach(function (t) {
           var a = el('span', 'tg' + (tagFilter === t ? ' active' : ''), '#' + t);
-          a.onclick = function () { tagFilter = (tagFilter === t) ? '' : t; visibleCount = PAGE_STEP; renderTags(); renderGrid(true); };
+          a.onclick = function () { tagFilter = (tagFilter === t) ? '' : t; applyFilter(); };
           cloud.appendChild(a);
-        });
-
-        var all = el('button', 'sort-chip tag' + (tagFilter ? '' : ' active'), '全部标签');
-        all.type = 'button';
-        all.onclick = function () { tagFilter = ''; visibleCount = PAGE_STEP; renderTags(); renderGrid(true); };
-        bar.appendChild(all);
-
-        tags.slice(0, 8).forEach(function (t) {
-          var b = el('button', 'sort-chip tag' + (tagFilter === t ? ' active' : ''), '#' + t);
-          b.type = 'button';
-          b.onclick = function () { tagFilter = (tagFilter === t) ? '' : t; visibleCount = PAGE_STEP; renderTags(); renderGrid(true); };
-          bar.appendChild(b);
         });
       }
 
@@ -793,15 +928,15 @@
           box.appendChild(el('div', 'sub', '已经登录啦，写点什么吧'));
 
           var bs = el('div', 'btns');
-          var w = el('button', 'btn-n fill', '✍️ 写文章');
+          var w = el('button', 'btn-n fill', '✍️ 发个帖');
           w.type = 'button'; w.onclick = function () { location.hash = '#/write'; };
           bs.appendChild(w);
           box.appendChild(bs);
 
-          // 「我的文章」从导航栏搬到这里：它属于账号，不属于浏览内容。
+          // 「我发的」从导航栏搬到这里：它属于账号，不属于浏览内容。
           // 再点一次就回到全部（按钮文字跟着变），省得去找返回。
           var bs2 = el('div', 'btns');
-          var mine = el('button', 'btn-n line', scope === 'mine' ? '← 看全部' : '📄 我的文章');
+          var mine = el('button', 'btn-n line', scope === 'mine' ? '← 看全部' : '📄 我发的');
           mine.type = 'button';
           mine.onclick = function () { goScope(scope === 'mine' ? 'all' : 'mine'); };
           var o = el('button', 'btn-n line', '退出');
@@ -810,7 +945,7 @@
           box.appendChild(bs2);
         } else {
           box.appendChild(el('div', 'hi', 'HI! 请登录'));
-          box.appendChild(el('div', 'sub', '登录后就能发文章和评论了。'));
+          box.appendChild(el('div', 'sub', '登录后就能发帖和评论了。'));
           var bs2 = el('div', 'btns');
           var l = el('button', 'btn-n fill', '登录');
           l.type = 'button'; l.onclick = function () { location.hash = '#/auth'; setAuthMode('login'); };
@@ -830,7 +965,7 @@
           chip.appendChild(el('span', 'av', avatarOf(me.username)));
           chip.appendChild(el('span', 'nm', me.username));
           chip.classList.toggle('on', scope === 'mine');
-          chip.title = scope === 'mine' ? '回到全部文章' : '看我自己写的文章';
+          chip.title = scope === 'mine' ? '回到全部' : '看我自己发的帖子';
           chip.onclick = function () { goScope(scope === 'mine' ? 'all' : 'mine'); };
           area.appendChild(chip);
         } else {
@@ -876,11 +1011,21 @@
         card.style.animationDelay = Math.min(i * 45, 380) + 'ms';
 
         var cover = buildCover(p, false);
+        /* 封面只留「置顶」这一个徽章（和模仿对象一样）；
+           板块和标签移到标题下面那行，免得一个小角上挤三样东西。 */
         if (p.pinned) cover.appendChild(el('span', 'badge pin', '📌 置顶'));
-        else if ((p.tags || []).length) cover.appendChild(el('span', 'badge', '#' + p.tags[0]));
         card.appendChild(cover);
 
         var bd = el('div', 'bd');
+
+        var board = boardOf(p.kind);
+        var meta = el('div', 'card-meta');
+        meta.appendChild(el('span', 'kind-chip', board.icon + ' ' + board.name));
+        (p.tags || []).slice(0, 2).forEach(function (t) {
+          meta.appendChild(el('span', 'tag-chip', '#' + t));
+        });
+        bd.appendChild(meta);
+
         bd.appendChild(el('h3', null, displayTitle(p)));
         bd.appendChild(el('p', 'desc', excerpt(p.content, 110)));
 
@@ -905,15 +1050,36 @@
         var grid = $('boardGrid');
         var list = scopeList();
 
-        var label = scope === 'mine' ? '我写的' : (scope === 'hot' ? '热门' : '');
+        /* 结果说明：把「筛了哪些条件」明明白白说出来，
+           免得用户点了板块之后不知道自己在看什么。 */
+        var bits = [];
+        if (kindFilter) { var kb = boardOf(kindFilter); bits.push(kb.icon + ' ' + kb.name); }
+        if (scope === 'mine') bits.push('我发的');
+        else if (scope === 'hot') bits.push('热门');
+        if (tagFilter) bits.push('#' + tagFilter);
+        if (keyword) bits.push('搜索：' + keyword);
+
         $('resultCount').textContent = list.length
-          ? (label ? label + '：' : '') + '共 ' + list.length + ' 篇' + (keyword ? '（搜索：' + keyword + '）' : '')
+          ? (bits.length ? bits.join(' · ') + '：' : '') + '共 ' + list.length + ' 条'
           : '';
+
+        /* 数据库还缺 kind 字段时给个明确指引（跑一次迁移它就自动消失） */
+        var hint = $('migrateHint');
+        if (hint) {
+          hint.hidden = kindReady;
+          if (!kindReady) {
+            hint.innerHTML =
+              '<b>板块功能还没生效</b>：数据库里还没有 <code>kind</code> 字段。' +
+              '发帖和浏览都照常可用，只是所有内容都会暂时归到「💬 闲聊」。' +
+              '在 Cloudflare 的 D1 Console 里执行下面这一句就能启用：<br>' +
+              '<code>ALTER TABLE blog_posts ADD COLUMN kind TEXT;</code>';
+          }
+        }
 
         if (list.length === 0) {
           grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big" aria-hidden="true">🌱</span>' +
-            (scope === 'mine' ? '你还没有写过文章。' :
-              (keyword || tagFilter ? '没有匹配的文章，换个词试试。' : '还没有人写过文章 —— 你可以是第一个。')) +
+            (scope === 'mine' ? '你还没有发过帖子。' :
+              ((keyword || tagFilter || kindFilter) ? '这个条件下还没有内容，换个板块或标签看看。' : '还没有人发过帖子 —— 你可以是第一个。')) +
             '</div>';
           $('loadMoreBtn').hidden = true;
           return;
@@ -926,7 +1092,7 @@
 
         var more = list.length > visibleCount;
         $('loadMoreBtn').hidden = !more;
-        if (more) $('loadMoreBtn').textContent = '加载更多（还有 ' + (list.length - visibleCount) + ' 篇）';
+        if (more) $('loadMoreBtn').textContent = '加载更多（还有 ' + (list.length - visibleCount) + ' 条）';
       }
 
       function renderPost() {
@@ -934,7 +1100,7 @@
         var box = $('articleBox');
 
         if (!p) {
-          box.innerHTML = '<div class="empty"><span class="big" aria-hidden="true">🔍</span>这篇文章不存在，或者已经被删除了。</div>';
+          box.innerHTML = '<div class="empty"><span class="big" aria-hidden="true">🔍</span>这条内容不存在，或者已经被删除了。</div>';
           return;
         }
 
@@ -942,6 +1108,14 @@
         box.appendChild(buildCover(p, true));
 
         var inn = el('div', 'a-in');
+
+        /* 板块放在最前面：一眼知道这是「资源」还是「BUG」 */
+        var pb = boardOf(p.kind);
+        var kindLine = el('div', 'card-meta');
+        kindLine.appendChild(el('span', 'kind-chip', pb.icon + ' ' + pb.name));
+        kindLine.appendChild(el('span', 'tag-chip', pb.desc));
+        inn.appendChild(kindLine);
+
         inn.appendChild(el('h1', null, displayTitle(p)));
 
         var meta = el('div', 'a-meta');
@@ -972,7 +1146,7 @@
         acts.appendChild(rep);
 
         if (p.mine) {
-          var del = el('button', 'act danger', '🗑️ 删除这篇文章');
+          var del = el('button', 'act danger', '🗑️ 删除这条');
           del.type = 'button'; del.onclick = function () { deletePost(p.id); };
           acts.appendChild(del);
         }
@@ -1106,7 +1280,7 @@
       }
 
       async function reportPost(postId, btn) {
-        var ok = await showConfirm('举报这篇文章', '确认举报吗？被 3 个人举报后它会先自动隐藏，等站长复核。恶意举报同样会被记录。');
+        var ok = await showConfirm('举报这条内容', '确认举报吗？举报会记下来交给站长人工判断，内容不会自动消失。恶意举报同样会被记录。');
         if (!ok) return;
         btn.disabled = true;
         try {
@@ -1116,14 +1290,14 @@
           });
           var data = await res.json();
           if (data && data.ok) {
-            showToast(data.already ? '你已经举报过这篇了' : (data.hidden ? '⚠️ 已提交举报，这篇文章已被暂时隐藏' : '⚠️ 已提交举报，感谢反馈'));
+            showToast(data.already ? '你已经举报过这条了' : '⚠️ 已提交举报，站长会人工看，感谢反馈');
           } else { btn.disabled = false; showToast('举报失败，请稍后重试'); }
         } catch (e) { btn.disabled = false; showToast('网络异常'); }
       }
 
       async function deletePost(postId) {
         if (!requireLogin()) return;
-        var ok = await showConfirm('删除文章', '确定删除吗？它下面的评论也会一起删掉，且无法恢复。');
+        var ok = await showConfirm('删除这条', '确定删除吗？它下面的评论也会一起删掉，且无法恢复。');
         if (!ok) return;
         try {
           var res = await fetch('/api/blog/remove', {
@@ -1143,9 +1317,9 @@
         if (err === 'too_many_requests') return '⏳ 发得太快了，休息一会儿再来';
         if (err === 'too_long') return '内容太长了（最多 ' + ((data && data.max) || 1000) + ' 字）';
         if (err === 'banned') return '🚫 你的账号已被限制发言';
-        if (err === 'parent_gone') return '这篇文章已经被删除了';
+        if (err === 'parent_gone') return '这条内容已经被删除了';
         if (err === 'empty content') return '内容不能为空';
-        if (err === 'empty title') return '请给文章起个标题';
+        if (err === 'empty title') return '请给帖子起个标题';
         if (err === 'username_taken') return '这个用户名已经有人用了，换一个吧';
         if (err === 'bad_username') return '用户名要 2-20 个字，可以用中文、字母、数字、下划线';
         if (err === 'too_short') return '密码至少 6 位';
@@ -1156,26 +1330,29 @@
       async function publish() {
         if (!requireLogin()) return;
         var btn = $('publishBtn');
+        var kind = $('postKind').value || 'chat';
         var title = $('postTitle').value.trim();
         var content = $('postContent').value.trim();
         var cover = $('postCover').value.trim();
         var tags = $('postTags').value.trim();
 
         setErr('writeErr', '');
-        if (!title) { setErr('writeErr', '请给文章起个标题'); $('postTitle').focus(); return; }
-        if (!content) { setErr('writeErr', '正文不能为空'); $('postContent').focus(); return; }
+        if (!title) { setErr('writeErr', '请给帖子起个标题'); $('postTitle').focus(); return; }
+        if (!content) { setErr('writeErr', '内容不能为空'); $('postContent').focus(); return; }
 
         btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = '⏳ 发布中…';
         try {
           var res = await fetch('/api/blog/add', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: title, content: content, cover: cover, tags: tags, clientId: CLIENT })
+            body: JSON.stringify({ kind: kind, title: title, content: content, cover: cover, tags: tags, clientId: CLIENT })
           });
           var data = await res.json();
           if (data && data.ok) {
             $('postTitle').value = ''; $('postContent').value = ''; $('postCover').value = ''; $('postTags').value = '';
             $('postCounter').textContent = '0 / 1000';
-            showToast('🎉 发布成功');
+            showToast(data.kindReady === false
+              ? '🎉 发布成功（板块功能要跑一次数据库迁移才会生效）'
+              : '🎉 发布成功');
             await loadPosts();
             var nid = Number(data.id) || 0;
             location.hash = nid ? ('#/post/' + nid) : '#/';
@@ -1184,7 +1361,22 @@
             setErr('writeErr', explainError(data));
           }
         } catch (e) { setErr('writeErr', '网络异常，请稍后重试'); }
-        btn.disabled = false; btn.setAttribute('aria-busy', 'false'); btn.textContent = '🚀 发布文章';
+        btn.disabled = false; btn.setAttribute('aria-busy', 'false'); btn.textContent = '🚀 发布';
+      }
+
+      /* 把板块下拉框灌满：选项直接从 BOARDS 生成，
+         这样加板块只改一处，不会出现「下拉框和后端对不上」。 */
+      function fillKindOptions() {
+        var sel = $('postKind');
+        if (!sel) return;
+        sel.innerHTML = '';
+        BOARDS.forEach(function (b) {
+          var o = document.createElement('option');
+          o.value = b.id;
+          o.textContent = b.icon + ' ' + b.name + ' —— ' + b.desc;
+          sel.appendChild(o);
+        });
+        sel.value = 'chat';
       }
 
       function setAuthMode(mode) {
@@ -1193,7 +1385,7 @@
         $('authTitle').textContent = isReg ? '👤 注册' : '👤 登录';
         $('authHint').textContent = isReg
           ? '注册只要几秒：选个用户名、设个密码就行，不需要邮箱。'
-          : '登录后就可以发文章和评论了。没有账号的话，注册一个只要几秒。';
+          : '登录后就可以发帖和评论了。没有账号的话，注册一个只要几秒。';
         $('authPass2Field').hidden = !isReg;
         $('authSubmitBtn').textContent = isReg ? '注册并登录' : '登录';
         $('authSwitchText').textContent = isReg ? '已经有账号了？' : '还没有账号？';
@@ -1238,7 +1430,7 @@
       async function doLogout() {
         try { await fetch('/api/blog/auth/logout', { method: 'POST' }); } catch (e) {}
         me = null;
-        // 退出后「我的文章」就没意义了，回到全部，免得看到一片空白。
+        // 退出后「我发的」就没意义了，回到全部，免得看到一片空白。
         if (scope === 'mine') scope = 'all';
         renderNavUser(); renderLoginCard();
         setNavActive(navKeyForScope());
@@ -1262,17 +1454,21 @@
           var data = await res.json();
           if (!data || !data.ok) {
             $('boardGrid').innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big" aria-hidden="true">🌫️</span>' +
-              '博客暂时不可用（后端没启用，或者数据库还没跑迁移）。</div>';
+              '社区暂时不可用（后端没启用，或者数据库还没跑迁移）。</div>';
             $('loadMoreBtn').hidden = true;
             return;
           }
           posts = Array.isArray(data.data) ? data.data : [];
+          /* kindReady=false 表示数据库还没加 kind 字段 —— 页面会提示一句，
+             但浏览、发帖照常能用（后端会自动降级，不会 500）。 */
+          kindReady = data.kindReady !== false;
           renderTags();
+          renderBoards();
           renderSidebar();
           render();
         } catch (e) {
           $('boardGrid').innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big" aria-hidden="true">🌫️</span>' +
-            '博客加载失败，请稍后重试。</div>';
+            '社区加载失败，请稍后重试。</div>';
         }
       }
 
@@ -1281,10 +1477,9 @@
           var e = $(id);
           if (e) e.classList.toggle('active', id === name);
         });
-        var showHero = (name === 'viewList');
-        $('heroBox').style.display = showHero ? '' : 'none';
-        var sb = document.querySelector('.slogan-bar');
-        if (sb) sb.style.display = showHero ? '' : 'none';
+        /* 大图横幅只在列表页显示；看帖子 / 发帖 / 登录时收起来，
+           免得每次都要先划过一整屏图才看到内容。 */
+        $('heroBox').style.display = (name === 'viewList') ? '' : 'none';
       }
 
       function setNavActive(go) {
@@ -1299,14 +1494,14 @@
         if (h.indexOf('post/') === 0) {
           currentId = Number(h.slice(5)) || 0;
           showView('viewPost');
-          document.title = '文章 - 织雾满穗';
-          // 看文章也还在「文章」这一块里，所以点亮「全部文章」，
-          // 免得点进文章后导航栏整个暗下来、又不知道自己在哪。
+          document.title = '帖子 - 织雾满穗';
+          // 看帖子也还在社区里，所以点亮「全部」，
+          // 免得点进去之后导航栏整个暗下来、又不知道自己在哪。
           setNavActive('all');
           renderPost();
         } else if (h === 'write') {
           showView('viewWrite');
-          document.title = '写文章 - 织雾满穗';
+          document.title = '发帖 - 织雾满穗';
           setNavActive('write');
           setErr('writeErr', '');
         } else if (h === 'auth') {
@@ -1315,18 +1510,18 @@
           setNavActive('');
         } else {
           showView('viewList');
-          document.title = '玩家博客 - 织雾满穗';
+          document.title = '玩家社区 - 织雾满穗';
           setNavActive(navKeyForScope());
           syncSortChips();
-          // 从文章页返回时，侧边栏那颗按钮的文字也要对上
-          //（「我的文章」还是「看全部」）。
+          // 从帖子页返回时，侧边栏那颗按钮的文字也要对上
+          //（「我发的」还是「看全部」）。
           renderLoginCard();
           renderGrid(true);
         }
 
         // 右上角那颗「登录」亮不亮，只取决于当前是不是登录页。
         // 统一放在最后处理：不然每条分支都得记着调一次，
-        // 漏掉哪条就会一直亮着（比如从登录页走到文章页）。
+        // 漏掉哪条就会一直亮着（比如从登录页走到帖子页）。
         renderNavUser();
       }
 
@@ -1354,8 +1549,8 @@
         $('postCounter').style.color = n > 900 ? 'var(--danger)' : '';
       });
 
-      // ==================== 切「在看哪一批文章」 ====================
-      // 三个入口共用这一套：导航栏（全部 / 热门）、右上角头像、侧边栏「我的文章」。
+      // ==================== 切「在看哪一批内容」 ====================
+      // 三个入口共用这一套：导航栏（全部 / 热门）、右上角头像、侧边栏「我发的」。
       // 注意「热门」有自己的算法，不再顺手把排序改成「最多浏览」。
       function navKeyForScope() {
         return scope === 'all' ? 'all' : (scope === 'hot' ? 'hot' : '');
@@ -1417,6 +1612,7 @@
       });
 
       (async function init() {
+        fillKindOptions();
         await loadMe();
         await loadPosts();
         setAuthMode('login');

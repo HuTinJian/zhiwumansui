@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS blog_users (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
--- 博客（卡片2 · 玩家交流）
--- parent_id 为 NULL 是主帖（文章），否则是对某篇文章的评论（只做一层嵌套）
+-- 玩家社区（卡片2 · 玩家交流）
+-- parent_id 为 NULL 是主帖，否则是对某条内容的评论（只做一层嵌套）
 CREATE TABLE IF NOT EXISTS blog_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   parent_id INTEGER,
@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   content TEXT NOT NULL,
   cover TEXT,
   tags TEXT,
+  kind TEXT,                       -- 板块：resource/game/bug/idea/chat（见 _moderation.js 的 KINDS）
   client_id TEXT,
   likes INTEGER DEFAULT 0,
   views INTEGER DEFAULT 0,

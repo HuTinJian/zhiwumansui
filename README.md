@@ -30,7 +30,7 @@
 .
 ├── index.html                 主页（卡片入口 + 站点介绍）
 ├── roblox_music.html          卡片1 · Roblox ID 宝库（搜索 / 分页 / 随机 / 复制 / 收藏 / 隔离区）
-├── blog.html                  卡片2 · 玩家博客（卡片网格 / 封面 / 标签 / 搜索 / 排序 / 登录）
+├── blog.html                  卡片2 · 玩家社区（大图横幅 / 板块 / 卡片网格 / 封面 / 标签 / 搜索 / 排序 / 登录）
 ├── feedback.html              反馈提交页（去掉了邮箱，改成后台处理 + 回执弹窗）
 ├── admin.html                 后台管理页（需登录，4 个标签：反馈 / 更新 / 卡片 / 数据统计）
 ├── 404.html                   找不到页面时显示的页面（Cloudflare Pages 会自动使用它）
@@ -39,7 +39,7 @@
 │   └── update-modal.css       版本更新弹窗专用（只在要弹公告时才加载）
 ├── js/
 │   ├── auth.js                登录弹窗、登录态检查、后台入口（连点标题 3 次）
-│   ├── admin.js               后台各模块逻辑（反馈 / 鸣谢 / 隔离区 / 歌曲 / 博客 / 导出）
+│   ├── admin.js               后台各模块逻辑（反馈 / 鸣谢 / 隔离区 / 歌曲 / 社区 / 导出）
 │   ├── common.js              全站共用：弹窗、提示、主题、浏览器身份、反馈回执
 │   └── ...                    其它页面脚本
 ├── data/
@@ -168,7 +168,7 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 **如果你的数据库是之前建的、`feedback` 表已经在用了**，光重跑 `schema.sql` 是不够的 ——
 `CREATE TABLE IF NOT EXISTS` 见到表已存在就直接跳过，**不会给已有的表补新字段**。
 
-新功能（反馈回执、博客）需要几个新字段和新表，所以老库要再跑一次 `migrations.sql`。
+新功能（反馈回执、玩家社区）需要几个新字段和新表，所以老库要再跑一次 `migrations.sql`。
 
 > **⚠️ 这里最容易踩的坑**：Cloudflare 网页上的 D1 Console 是一个 **SQL 查询框**，
 > 只认 SQL 语句。**千万不要把 `npx wrangler ...` 那种命令行粘进去** ——
@@ -180,20 +180,23 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
 ```
 
-然后把 `migrations.sql` 里的内容分三批粘进去执行 —— **三批都要跑完**：
+然后把 `migrations.sql` 里的内容分四批粘进去执行 —— **四批都要跑完**：
 
 1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...` —— 建议**一条一条**执行；
    某条报 `duplicate column name: xxx` 是正常的（说明那个字段之前加过了），跳过它继续下一条。
 2. **第 2 组**：若干 `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX` —— 可以**整段一起**执行。
-3. **第 3 组**：博客账号表 `blog_users` + 文章的新字段（`user_id` / `cover` / `tags` / `views` / `pinned`）
+3. **第 3 组**：博客账号表 `blog_users` + 内容的新字段（`user_id` / `cover` / `tags` / `views` / `pinned`）
    —— 同样是「已存在就报 duplicate column，跳过继续」。
+4. **第 4 组**：社区板块字段 `kind`（`ALTER TABLE blog_posts ADD COLUMN kind TEXT;` + 一个索引）。
 
-> **⚠️ 最容易漏的就是第 3 组**（它是后加的，早期文档只写到第 2 组）。
-> 漏了它的典型症状：**浏览文章一切正常，但一注册 / 登录就报「出错了：server error」** ——
-> 因为 `blog_users` 表不存在，而注册和登录都要读写它。
-> 想确认表在不在，在 Console 里执行：
-> `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;`
-> 结果里应该能看到 `blog_users`。
+> **⚠️ 最容易漏的是第 3 组和第 4 组**（都是后加的）。
+> 好消息：**漏跑不会白屏**。新版接口做了「缺字段就降级」的兜底
+> （见 `functions/api/blog/_schema.js`），漏跑的症状是「少一块功能」而不是「整页报错」：
+>
+> | 漏了哪一组 | 症状 | 怎么确认 |
+> |---|---|---|
+> | 第 3 组（`blog_users` 表） | 浏览正常，但**注册 / 登录**一律报「出错了：server error」 | Console 里跑 `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;`，看不到 `blog_users` 就是缺 |
+> | 第 4 组（`kind` 字段） | 社区页顶部**自己弹一条提示**告诉你缺什么；内容都能正常发，只是全归到「💬 闲聊」 | 按提示把那句 `ALTER TABLE` 跑一遍即可 |
 
 **方式 B：命令行版（要装 Node.js，而且要在你自己电脑的终端里跑）**
 
@@ -378,9 +381,9 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 
 ## 附一：博客、反馈回执与隔离区快照
 
-### 1）玩家博客（卡片2 · `blog.html`）
+### 1）玩家社区（卡片2 · `blog.html`）
 
-**卡片网格 + 封面图**的杂志式博客，配登录系统。浏览完全开放，**发布内容才需要登录**。
+**大图横幅 + 板块分类 + 卡片网格**的玩家社区：什么游戏都能聊，不止 Roblox。浏览完全开放，**发帖和评论才需要登录**。
 
 **四个页面用一个文件搞定**（hash 路由，静态托管也能用，浏览器前进后退正常）：
 
@@ -416,16 +419,18 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 
 1. **敏感词**：发表时先过一遍词表，命中就直接拒收并告诉你哪个词。
    词表在 `functions/api/blog/_moderation.js` 里，想加词直接往数组里塞。
-2. **举报**：每人对同一篇只能举报一次；**被 3 个人举报就自动隐藏**，等管理员复核。
-   阈值是同一个文件里的 `AUTO_HIDE_REPORTS`。
-3. **后台处置**：后台 → 卡片管理 → 📝 玩家博客，可以
+2. **举报**：每人对同一条只能举报一次。**举报不会自动隐藏内容**，只累计次数、由站长人工判断 ——
+   因为「凑够 3 个人就能弄掉别人的帖子」太容易被恶意举报利用。
+   后台列表按举报数从多到少排（`functions/api/blog/admin-list.js` 的 `ORDER BY p.reports DESC`），
+   被集中举报的一眼就能看到。
+3. **后台处置**：后台 → 卡片管理 → 🌾 社区帖子管理，可以
    `置顶 / 取消置顶`、`隐藏 / 恢复显示`、`误报复位`、`删除`、以及 **`拉黑作者`**。
    拉黑会**同时封禁账号和浏览器身份** —— 换昵称、重新注册都发不出来，他名下已有的内容也会一起下线；
    后台下方能分别看到「被封的账号」和「被限制的浏览器」，都能一键解除。
 
 - **标题必填**：文章没有标题会被后端拒收；**评论**不需要标题。
 - **评论区**只做一层：评论下面不再套评论，避免无限套娃。
-- **导航栏只保留「首页 + 反馈」**，博客和宝库都从首页的卡片进去。
+- **导航栏只保留「首页 + 反馈」**，社区和宝库都从首页的卡片进去。
 
 ### 2）反馈：不用留邮箱了
 
@@ -434,7 +439,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
   2. 你在后台每条反馈下面写一句说明（选填），点 **✅ 受理** 或 **🚫 拒绝**。
   3. 访客**下次打开他当初选择的那个页面**时，会看到一个弹窗告诉他结果，
      里面带着你写的那句话。同一条只提示一次。
-- 反馈类型改成了两级：**主页 / 反馈 / 卡片（▸ Roblox ID 宝库、▸ 玩家博客）/ 其他**。
+- 反馈类型改成了两级：**主页 / 反馈 / 卡片（▸ Roblox ID 宝库、▸ 玩家社区）/ 其他**。
 - 老反馈没有浏览器身份，回执送不到 —— 后台会标一句"旧数据无身份"，处理时也会先问一下你。
 - 界面上那串身份只是 32 位随机十六进制，**不含任何个人信息**，也猜不到别人的。
 
@@ -478,9 +483,11 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **手机上关掉的特效** | `css/style.css` | 搜 `html.lite`；`js/common.js` 里的 `isLiteMode()` 决定什么时候进入精简模式 |
 | **宝库里的歌** | 后台「卡片管理」 | 增删都会写进 D1；也可以直接改 `data/roblox_music.json`（改完要重新部署） |
 | **每页显示多少组** | `roblox_music.html` | 搜 `const PAGE_SIZE`，默认 100 组一页；改完分页器会自己重算页数 |
-| **博客的敏感词** | `functions/api/blog/_moderation.js` | 搜 `BLOCKED_WORDS`，往数组里加词即可（会自动做去空格、全角转半角） |
-| **举报几条自动隐藏** | `functions/api/blog/_moderation.js` | 搜 `AUTO_HIDE_REPORTS`，默认 3 |
-| **博客昵称/正文长度** | `functions/api/blog/_moderation.js` | 搜 `LIMITS`；前端 `blog.html` 里的 `maxlength` 要一起改 |
+| **社区的敏感词** | `functions/api/blog/_moderation.js` | 搜 `BLOCKED_WORDS`，往数组里加词即可（会自动做去空格、全角转半角） |
+| **举报几条自动隐藏** | ~~已取消~~ | 举报不再自动隐藏内容，改由站长人工判断；后台按举报数排序便于排查 |
+| **社区顶部的大图横幅** | `images/community-banner.jpg` + `blog.html` 的 `.hero` | 换图直接替换那个 jpg（同样尺寸比例最好看）；正文字压在中间，因为那张图中间最暗、白字才看得清 |
+| **社区的板块** | `functions/api/blog/_moderation.js` 的 `KINDS` + `blog.html` 的 `var BOARDS` | 两边都要加同名 id，少改一边会导致新板块的帖子落到「闲聊」 |
+| **社区的昵称/正文长度** | `functions/api/blog/_moderation.js` | 搜 `LIMITS`；前端 `blog.html` 里的 `maxlength` 要一起改 |
 | **反馈处理结果的提示文案** | `js/common.js` | 搜 `showDecisionModal`，受理/拒绝两段话都在里面 |
 | **更新公告** | 后台「更新管理」 | 填好内容点保存，访客下次打开对应页面就会看到弹窗 |
 | **看热门榜 / 访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来；点「🔄 刷新」重新拉一次 |

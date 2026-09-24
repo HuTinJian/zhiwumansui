@@ -1,13 +1,16 @@
 /* ============================================================
-   织雾满穗 · 博客举报（公开）
+   织雾满穗 · 社区举报（公开）
    ------------------------------------------------------------
    POST /api/blog/report  body: { postId, clientId, reason? }
    同一个人对同一条只能举报一次（blog_reports 主键去重）。
-   举报数达到阈值就自动下线，等管理员复核 —— 这样刷屏内容不会一直挂在墙上。
+
+   【已取消自动隐藏】举报只累计次数、通知站长，不再自动下线内容。
+   理由：3 个人就能把别人的帖子弄没，太容易被恶意举报利用。
+   是否下架改由站长在后台人工判断（后台按举报数排序，一眼看到被集中举报的帖子）。
    ============================================================ */
 
 import { json, clientIp, createRateLimiter, readJsonBody, requireSameOrigin, tooLong } from '../_utils.js';
-import { AUTO_HIDE_REPORTS, cleanBody, normalizeClientId } from './_moderation.js';
+import { cleanBody, normalizeClientId } from './_moderation.js';
 
 /* 举报接口不需要很快，一个人一小时最多 10 次 */
 const limiter = createRateLimiter(10, 60 * 60 * 1000);
@@ -38,28 +41,19 @@ export async function onRequestPost(context) {
     ).bind(postId, clientId, reason || null).run();
 
     if (((ins.meta && ins.meta.changes) || 0) === 0) {
-      return json({ ok: true, already: true, hidden: false });
+      return json({ ok: true, already: true });
     }
 
+    /* 只累计次数，内容照常显示 —— 不会再自动改成 hidden */
     await env.DB.prepare(
       'UPDATE blog_posts SET reports = reports + 1 WHERE id = ?'
     ).bind(postId).run();
 
     const row = await env.DB.prepare(
-      'SELECT reports, status FROM blog_posts WHERE id = ?'
+      'SELECT reports FROM blog_posts WHERE id = ?'
     ).bind(postId).first();
 
-    const reports = Number(row && row.reports) || 0;
-    let hidden = false;
-
-    if (row && row.status === 'visible' && reports >= AUTO_HIDE_REPORTS) {
-      await env.DB.prepare(
-        "UPDATE blog_posts SET status = 'hidden' WHERE id = ?"
-      ).bind(postId).run();
-      hidden = true;
-    }
-
-    return json({ ok: true, already: false, reports, hidden });
+    return json({ ok: true, already: false, reports: Number(row && row.reports) || 0 });
   } catch (err) {
     console.error('[blog/report]', err);
     return json({ ok: false, error: 'server error' }, 500);

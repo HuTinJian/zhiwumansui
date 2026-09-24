@@ -21,14 +21,17 @@
 --          （某条报 `duplicate column name: xxx` 是正常的，说明那个字段之前加过了，
 --            跳过它继续执行后面的就行）
 --        · 再整个执行第 2 组（建表 + 索引）
---        · 最后执行第 3 组（博客账号表 blog_users + 文章的新字段）
+--        · 第 3 组（博客账号表 blog_users + 内容的新字段）
+--        · 第 4 组（社区板块字段 kind）
 --
---      ⚠️ 三组都要跑，别在第 2 组就停手。
---         第 3 组是后加的（博客登录功能），文件开头这段说明一度只写到第 2 组，
---         结果就有人漏跑了它里的 `CREATE TABLE blog_users` —— 症状是：
---         浏览文章一切正常，但「注册 / 登录」一律报
---         「出错了：server error」，因为注册和登录都要读写这张表。
---         判断方法：打开任意一篇文章能看，但注册就 500，那就是这张表缺了。
+--      ⚠️ 四组都要跑，别在中途停手。漏跑的症状很好认：
+--         · 漏了第 3 组的 blog_users → 浏览正常，但「注册 / 登录」一律报
+--           「出错了：server error」（注册和登录都要读写这张表）。
+--         · 漏了第 4 组的 kind → 社区页顶部会自己弹一条提示，
+--           告诉你缺哪个字段、该跑哪句 SQL（页面不会崩，发帖也能用，
+--           只是所有内容暂时都归到「💬 闲聊」）。
+--         新功能一律做了「缺字段就降级」的兜底，所以漏跑不会白屏，
+--         但会少一块功能 —— 看到提示就补跑对应的那一句即可。
 --
 --   ② 命令行版（要在你自己电脑的终端里跑，不是在 Cloudflare 网页里）
 --      需要先装 Node.js，然后在项目根目录执行：
@@ -106,7 +109,7 @@ CREATE TABLE IF NOT EXISTS blog_users (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
--- 文章的新字段
+-- 内容的新字段
 ALTER TABLE blog_posts ADD COLUMN user_id INTEGER;   -- 作者账号 id
 ALTER TABLE blog_posts ADD COLUMN cover TEXT;        -- 封面图地址（选填，不填就用自动渐变封面）
 ALTER TABLE blog_posts ADD COLUMN tags TEXT;         -- 标签，英文逗号分隔
@@ -115,5 +118,17 @@ ALTER TABLE blog_posts ADD COLUMN pinned INTEGER DEFAULT 0;   -- 是否置顶
 
 CREATE INDEX IF NOT EXISTS idx_blog_user ON blog_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_pinned ON blog_posts(pinned, id DESC);
+
+
+-- ---------- 第 4 组：社区板块（2026-09-24 起，博客改成「玩家社区」） ----------
+-- kind 存板块 id：resource 资源分享 / game 游戏交流 / bug BUG反馈 / idea 建议 / chat 闲聊
+-- （取值清单在 functions/api/blog/_moderation.js 的 KINDS，前后端必须一致）
+--
+-- 漏跑也能用：社区页会自己提示缺这个字段，浏览和发帖都照常，
+-- 只是所有内容暂时都归到「💬 闲聊」。跑完这一句就正常了。
+ALTER TABLE blog_posts ADD COLUMN kind TEXT;
+
+-- 按板块筛列表时用得上
+CREATE INDEX IF NOT EXISTS idx_blog_kind ON blog_posts(kind, id DESC);
 
 
