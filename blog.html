@@ -71,6 +71,45 @@
     .blog-nav .nav-item.active { background: var(--primary); color: #fff; }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
+    /* 导航栏第二行：板块。和第一行一起吸顶，
+       所以翻列表时换板块不用先滚回顶部。 */
+    .blog-nav .nav-boards {
+      border-top: 1px solid var(--border);
+      background: var(--bg-tint);
+    }
+    .blog-nav .nav-boards .board-row {
+      max-width: 1180px; margin: 0 auto; padding: 7px 20px;
+      margin-bottom: 0;
+    }
+    .blog-nav .theme-slot { display: inline-flex; align-items: center; }
+    .blog-nav .theme-toggle { width: 36px; height: 36px; font-size: .95rem; }
+
+    /* 自定义头像（emoji 直接当文字，图片则塞进同一个圆形里） */
+    .av img, .me-av img {
+      width: 100%; height: 100%; border-radius: 50%;
+      object-fit: cover; display: block;
+    }
+
+    /* 账号设置：头像预览 + emoji 选择 */
+    .av-preview { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+    .av-lg {
+      width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+      background: var(--bg-soft); border: 2px solid var(--border);
+    }
+    .av-lg img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .av-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+    .av-pick {
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      font-family: var(--font);
+      transition: all var(--dur) var(--ease-soft);
+    }
+    .av-pick:hover { border-color: var(--primary-light); transform: translateY(-2px); }
+    .av-pick.on { border-color: var(--primary); background: var(--bg-tint); box-shadow: var(--shadow-glow); }
+    .field-note { display: block; margin-top: 6px; font-size: .74rem; color: var(--text-muted); line-height: 1.7; }
+
     .nav-search { position: relative; }
     .nav-search input {
       width: 158px; padding: 8px 12px 8px 32px;
@@ -518,7 +557,11 @@
     <span class="ic" aria-hidden="true">🏠</span><span>返回主页</span>
   </a>
 
-  <!-- ==================== 社区自己的导航栏 ==================== -->
+  <!-- ==================== 社区导航栏（两行，整块吸顶） ====================
+       第一行：品牌 + 全部/热门/发帖 + 搜索 + 主题开关 + 账号
+       第二行：板块（资源分享 / 游戏交流 / BUG 反馈 / 建议 / 闲聊）
+       两行都在吸顶范围内，所以往下翻列表时板块也一直能点，
+       不用滚回顶部才能换板块。 -->
   <nav class="blog-nav" aria-label="社区导航">
     <div class="nav-inner">
       <a class="brand" href="blog.html#/">
@@ -537,8 +580,14 @@
           <span class="icon" aria-hidden="true">🔍</span>
           <input type="text" id="searchInput" placeholder="搜帖子…" autocomplete="off" spellcheck="false">
         </div>
+        <!-- 主题开关由 js/common.js 自动注入到这里（全站同一个开关，不另做一个） -->
+        <span class="theme-slot" data-theme-slot></span>
         <span id="userArea"></span>
       </div>
+    </div>
+
+    <div class="nav-boards">
+      <div class="board-row" id="boardRow"></div>
     </div>
   </nav>
 
@@ -572,9 +621,6 @@
       <div class="cols">
 
         <div class="main-col">
-          <!-- 板块：社区最主要的一层筛选，点一下只看那一类 -->
-          <div class="board-row" id="boardRow"></div>
-
           <div class="tool-row">
             <button type="button" class="sort-chip active" data-sort="new">🕒 最新</button>
             <button type="button" class="sort-chip" data-sort="views">👁 最多浏览</button>
@@ -638,7 +684,7 @@
       </div>
 
       <div class="panel" id="writePanel" hidden>
-        <h2>✍️ 发个帖子</h2>
+        <h2 id="writeHeading">✍️ 发个帖子</h2>
         <p class="hint">什么游戏都能发，不止 Roblox。标题必填；封面图不填会自动生成一张配色封面。</p>
 
         <div class="err" id="writeErr"></div>
@@ -713,6 +759,68 @@
       </div>
     </section>
 
+    <!-- ==================== 视图五：账号设置 ==================== -->
+    <section class="view" id="viewAccount">
+      <a class="back-link" id="backFromAccount">← 返回社区</a>
+
+      <div class="guest-tip" id="accountGuestTip" hidden>
+        <span class="t">🔒 账号设置需要先登录。</span>
+        <button type="button" class="btn-n fill" id="goAuthBtn2">去登录 / 注册</button>
+      </div>
+
+      <div class="panel narrow" id="accountPanel" hidden>
+        <h2>⚙️ 账号设置</h2>
+        <p class="hint">改完立刻生效。改名字会把你以前发过的内容上的作者名一起换掉。</p>
+
+        <div class="err" id="accountErr"></div>
+
+        <!-- 头像：先给一排常用 emoji，也可以填图片直链 -->
+        <div class="field">
+          <label>头像</label>
+          <div class="av-preview">
+            <span class="av-lg" id="avPreview"></span>
+            <div class="av-picks" id="avPicks"></div>
+          </div>
+          <input type="text" id="acctAvatarUrl" placeholder="也可以填图片直链：https://…（留空用上面的 emoji）" maxlength="300">
+          <span class="field-note">本站没有图床，所以只能选 emoji 或填一个网上的图片地址。</span>
+        </div>
+
+        <div class="field">
+          <label for="acctUser">用户名</label>
+          <input type="text" id="acctUser" placeholder="2-20 个字，中文也行" maxlength="20" autocomplete="username">
+        </div>
+
+        <div class="foot">
+          <button type="button" class="btn-n fill" id="saveProfileBtn">💾 保存名字和头像</button>
+        </div>
+
+        <hr style="margin:22px 0 18px;border:none;border-top:1px solid var(--border);">
+
+        <h3 style="font-size:.95rem;margin-bottom:6px;">改密码</h3>
+        <p class="hint" style="margin-bottom:14px;">改密码要先输一遍旧密码。改完当前登录不会掉。</p>
+
+        <div class="field">
+          <label for="acctOldPass">旧密码</label>
+          <input type="password" id="acctOldPass" placeholder="现在用的密码" maxlength="64" autocomplete="current-password">
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="acctNewPass">新密码</label>
+            <input type="password" id="acctNewPass" placeholder="至少 6 位" maxlength="64" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="acctNewPass2">再输一次</label>
+            <input type="password" id="acctNewPass2" placeholder="确认新密码" maxlength="64" autocomplete="new-password">
+          </div>
+        </div>
+
+        <div class="foot">
+          <button type="button" class="btn-n line" id="savePassBtn">🔑 改密码</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <footer class="footer">
@@ -746,6 +854,7 @@
       var visibleCount = 10;
       var PAGE_STEP = 10;
       var currentId = 0;
+      var editId = 0;            /* 非 0 = 正在编辑这条帖子（发帖表单复用） */
       var authMode = 'login';
 
       /* ---------- 板块 ----------
@@ -767,6 +876,24 @@
       var AVATARS = ['🎵', '🎧', '🎮', '🌾', '🌸', '⭐', '🔥', '🍀', '🌙', '🐳', '🎹', '🎤'];
       function hashOf(t) { var h = 0, s = String(t || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
       function avatarOf(n) { return AVATARS[hashOf(n) % AVATARS.length]; }
+
+      /* 头像：优先用用户自己设的（emoji 或图片直链），没设就按用户名算一个默认 emoji。
+         av 可能是空串（用户没设 / 老库还没跑迁移），所以统一走这里判断。 */
+      function avatarNode(av, name) {
+        var v = String(av || '').trim();
+        if (/^https?:\/\//i.test(v)) {
+          var img = document.createElement('img');
+          img.src = v; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+          return img;
+        }
+        return document.createTextNode(v || avatarOf(name));
+      }
+      /* 外面再套一层圆形 span（.av 的样式负责圆圈大小） */
+      function avSpan(av, name, cls) {
+        var s = el('span', cls || 'av');
+        s.appendChild(avatarNode(av, name));
+        return s;
+      }
 
       var COVERS = [
         'linear-gradient(135deg,#f7b8c8,#e08aa4)',
@@ -923,7 +1050,9 @@
         box.innerHTML = '';
 
         if (me) {
-          box.appendChild(el('div', 'me-av', avatarOf(me.username)));
+          var mav = el('div', 'me-av');
+          mav.appendChild(avatarNode(me.avatar, me.username));
+          box.appendChild(mav);
           box.appendChild(el('div', 'hi', me.username));
           box.appendChild(el('div', 'sub', '已经登录啦，写点什么吧'));
 
@@ -960,9 +1089,17 @@
         var area = $('userArea');
         area.innerHTML = '';
         if (me) {
+          /* 账号设置在导航栏上：齿轮按钮单独一个，别和「我的帖子」挤在一个点击区里 */
+          var gear = el('button', 'btn-n line', '⚙️');
+          gear.type = 'button';
+          gear.title = '账号设置（名字 / 头像 / 密码）';
+          if (String(location.hash || '').replace(/^#\/?/, '') === 'account') gear.classList.add('on');
+          gear.onclick = function () { location.hash = '#/account'; };
+          area.appendChild(gear);
+
           var chip = el('button', 'nav-user');
           chip.type = 'button';
-          chip.appendChild(el('span', 'av', avatarOf(me.username)));
+          chip.appendChild(avSpan(me.avatar, me.username));
           chip.appendChild(el('span', 'nm', me.username));
           chip.classList.toggle('on', scope === 'mine');
           chip.title = scope === 'mine' ? '回到全部' : '看我自己发的帖子';
@@ -1035,7 +1172,7 @@
         st.appendChild(el('span', 's', '👍 ' + fmtNum(p.likes)));
 
         var who = el('span', 'who');
-        who.appendChild(el('span', 'av', avatarOf(p.name)));
+        who.appendChild(avSpan(p.avatar, p.name));
         who.appendChild(el('span', 't', p.name));
         who.title = p.name + ' · ' + fullDate(p.createdAt);
         st.appendChild(who);
@@ -1119,13 +1256,19 @@
         inn.appendChild(el('h1', null, displayTitle(p)));
 
         var meta = el('div', 'a-meta');
-        meta.appendChild(el('span', 'av', avatarOf(p.name)));
+        meta.appendChild(avSpan(p.avatar, p.name));
         meta.appendChild(el('span', 'who', p.name));
         meta.appendChild(el('span', 'dot', '·'));
         var tm = el('span', null, timeAgo(p.createdAt)); tm.title = fullDate(p.createdAt);
         meta.appendChild(tm);
         meta.appendChild(el('span', 'dot', '·'));
         meta.appendChild(el('span', null, '👁 ' + fmtNum(p.views) + ' 次浏览'));
+        if (p.editedAt) {
+          meta.appendChild(el('span', 'dot', '·'));
+          var edt = el('span', null, '已编辑 ' + timeAgo(p.editedAt));
+          edt.title = fullDate(p.editedAt);
+          meta.appendChild(edt);
+        }
         if ((p.tags || []).length) {
           meta.appendChild(el('span', 'dot', '·'));
           meta.appendChild(el('span', null, p.tags.map(function (t) { return '#' + t; }).join(' ')));
@@ -1146,6 +1289,12 @@
         acts.appendChild(rep);
 
         if (p.mine) {
+          /* 自己的帖子可以改内容（后端只认作者本人，别人的改不了） */
+          var ed = el('button', 'act', '✏️ 编辑这条');
+          ed.type = 'button';
+          ed.onclick = function () { location.hash = '#/edit/' + p.id; };
+          acts.appendChild(ed);
+
           var del = el('button', 'act danger', '🗑️ 删除这条');
           del.type = 'button'; del.onclick = function () { deletePost(p.id); };
           acts.appendChild(del);
@@ -1201,7 +1350,10 @@
         rows.forEach(function (r) {
           var c = el('div', 'comment');
           var h = el('div', 'c-head');
-          h.appendChild(el('span', 'c-name', avatarOf(r.name) + ' ' + r.name));
+          var nmEl = el('span', 'c-name');
+          nmEl.appendChild(avatarNode(r.avatar, r.name));
+          nmEl.appendChild(document.createTextNode(' ' + r.name));
+          h.appendChild(nmEl);
           h.appendChild(el('span', 'c-time', timeAgo(r.createdAt)));
           c.appendChild(h);
           c.appendChild(el('div', 'c-body', r.content));
@@ -1324,12 +1476,53 @@
         if (err === 'bad_username') return '用户名要 2-20 个字，可以用中文、字母、数字、下划线';
         if (err === 'too_short') return '密码至少 6 位';
         if (err === 'bad_credentials') return '用户名或密码不对';
+        /* 编辑帖子 */
+        if (err === 'not_mine') return '只能改自己发的内容';
+        if (err === 'not_found') return '这条内容已经不在了';
+        if (err === 'not_editable') return '评论暂时不支持编辑';
+        /* 账号设置 */
+        if (err === 'bad_old_password') return '旧密码不对';
+        if (err === 'need_old_password') return '请先填旧密码';
+        if (err === 'bad_avatar') return '头像只能是 emoji，或者一个 http(s) 图片地址';
+        if (err === 'avatar_not_ready') return '头像功能还没生效：数据库缺 avatar 字段，去 D1 Console 跑一句 ALTER TABLE blog_users ADD COLUMN avatar TEXT;';
         return '出错了：' + (err || '请稍后重试');
+      }
+
+      /* 把发帖表单切回「新建」状态 */
+      function resetWriteForm() {
+        editId = 0;
+        $('postTitle').value = '';
+        $('postContent').value = '';
+        $('postCover').value = '';
+        $('postTags').value = '';
+        $('postKind').value = 'chat';
+        $('postCounter').textContent = '0 / 1000';
+        $('writeHeading').textContent = '✍️ 发个帖子';
+        $('publishBtn').textContent = '🚀 发布';
+      }
+
+      /* 把发帖表单切到「编辑」状态，并填上原内容。
+         复用同一个表单，省得再做一套长得一样的界面。 */
+      function startEdit(p) {
+        editId = p.id;
+        $('postTitle').value = p.title || '';
+        $('postContent').value = p.content || '';
+        $('postCover').value = p.cover || '';
+        $('postTags').value = (p.tags || []).join(', ');
+        $('postKind').value = p.kind || 'chat';
+        $('postCounter').textContent = (p.content || '').length + ' / 1000';
+        $('writeHeading').textContent = '✏️ 编辑帖子';
+        $('publishBtn').textContent = '💾 保存修改';
+        showView('viewWrite');
+        document.title = '编辑帖子 - 织雾满穗';
+        setNavActive('write');
+        setErr('writeErr', '');
       }
 
       async function publish() {
         if (!requireLogin()) return;
         var btn = $('publishBtn');
+        var editing = editId;          /* 先存下来：请求过程中可能被别处改掉 */
         var kind = $('postKind').value || 'chat';
         var title = $('postTitle').value.trim();
         var content = $('postContent').value.trim();
@@ -1340,28 +1533,40 @@
         if (!title) { setErr('writeErr', '请给帖子起个标题'); $('postTitle').focus(); return; }
         if (!content) { setErr('writeErr', '内容不能为空'); $('postContent').focus(); return; }
 
-        btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = '⏳ 发布中…';
+        btn.disabled = true; btn.setAttribute('aria-busy', 'true');
+        btn.textContent = editing ? '⏳ 保存中…' : '⏳ 发布中…';
         try {
-          var res = await fetch('/api/blog/add', {
+          var payload = { kind: kind, title: title, content: content, cover: cover, tags: tags, clientId: CLIENT };
+          if (editing) payload.postId = editing;
+
+          var res = await fetch(editing ? '/api/blog/edit' : '/api/blog/add', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kind: kind, title: title, content: content, cover: cover, tags: tags, clientId: CLIENT })
+            body: JSON.stringify(payload)
           });
           var data = await res.json();
           if (data && data.ok) {
-            $('postTitle').value = ''; $('postContent').value = ''; $('postCover').value = ''; $('postTags').value = '';
-            $('postCounter').textContent = '0 / 1000';
-            showToast(data.kindReady === false
-              ? '🎉 发布成功（板块功能要跑一次数据库迁移才会生效）'
-              : '🎉 发布成功');
-            await loadPosts();
-            var nid = Number(data.id) || 0;
-            location.hash = nid ? ('#/post/' + nid) : '#/';
+            if (editing) {
+              /* 改完回这条帖子的详情页，让人看到结果 */
+              showToast('✅ 已保存修改');
+              await loadPosts();
+              location.hash = '#/post/' + editing;
+            } else {
+              $('postTitle').value = ''; $('postContent').value = ''; $('postCover').value = ''; $('postTags').value = '';
+              $('postCounter').textContent = '0 / 1000';
+              showToast(data.kindReady === false
+                ? '🎉 发布成功（板块功能要跑一次数据库迁移才会生效）'
+                : '🎉 发布成功');
+              await loadPosts();
+              var nid = Number(data.id) || 0;
+              location.hash = nid ? ('#/post/' + nid) : '#/';
+            }
           } else {
             if (data && data.error === 'login_required') { me = null; renderNavUser(); renderLoginCard(); }
             setErr('writeErr', explainError(data));
           }
         } catch (e) { setErr('writeErr', '网络异常，请稍后重试'); }
-        btn.disabled = false; btn.setAttribute('aria-busy', 'false'); btn.textContent = '🚀 发布';
+        btn.disabled = false; btn.setAttribute('aria-busy', 'false');
+        btn.textContent = editing ? '💾 保存修改' : '🚀 发布';
       }
 
       /* 把板块下拉框灌满：选项直接从 BOARDS 生成，
@@ -1377,6 +1582,121 @@
           sel.appendChild(o);
         });
         sel.value = 'chat';
+      }
+
+      /* ==================== 账号设置 ==================== */
+      var pickedAvatar = '';   /* 当前选中的头像（emoji，或图片直链） */
+
+      function renderAccount() {
+        var guest = $('accountGuestTip'), panel = $('accountPanel');
+        if (!guest || !panel) return;
+        guest.hidden = !!me;
+        panel.hidden = !me;
+        if (!me) return;
+
+        $('acctUser').value = me.username;
+        pickedAvatar = me.avatar || '';
+        $('acctAvatarUrl').value = /^https?:\/\//i.test(pickedAvatar) ? pickedAvatar : '';
+        drawAvatarPicks();
+        drawAvatarPreview();
+        setErr('accountErr', '');
+      }
+
+      function drawAvatarPreview() {
+        var box = $('avPreview');
+        if (!box) return;
+        box.innerHTML = '';
+        box.appendChild(avatarNode(pickedAvatar, me ? me.username : ''));
+      }
+
+      function drawAvatarPicks() {
+        var box = $('avPicks');
+        if (!box) return;
+        box.innerHTML = '';
+
+        AVATARS.forEach(function (em) {
+          var b = el('button', 'av-pick' + (pickedAvatar === em ? ' on' : ''), em);
+          b.type = 'button';
+          b.title = '用 ' + em + ' 当头像';
+          b.onclick = function () {
+            pickedAvatar = em;
+            $('acctAvatarUrl').value = '';
+            drawAvatarPicks(); drawAvatarPreview();
+          };
+          box.appendChild(b);
+        });
+
+        /* 恢复默认：不存头像，显示时按用户名自动算一个 */
+        var def = el('button', 'av-pick' + (pickedAvatar ? '' : ' on'), '🔄');
+        def.type = 'button';
+        def.title = '用系统默认头像（按用户名自动生成）';
+        def.onclick = function () {
+          pickedAvatar = '';
+          $('acctAvatarUrl').value = '';
+          drawAvatarPicks(); drawAvatarPreview();
+        };
+        box.appendChild(def);
+      }
+
+      async function saveProfile() {
+        if (!me) return;
+        var btn = $('saveProfileBtn');
+        var username = $('acctUser').value.trim();
+        var url = $('acctAvatarUrl').value.trim();
+        var avatar = url || pickedAvatar;   /* 填了图片地址就优先用它 */
+
+        setErr('accountErr', '');
+        if (!username) { setErr('accountErr', '用户名不能为空'); $('acctUser').focus(); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ 保存中…';
+        try {
+          var res = await fetch('/api/blog/auth/profile', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'profile', username: username, avatar: avatar })
+          });
+          var data = await res.json();
+          if (data && data.ok && data.user) {
+            me = data.user;
+            renderNavUser(); renderLoginCard();
+            showToast(data.renamed
+              ? '✅ 已保存，' + data.renamed + ' 条旧内容的作者名也一起改了'
+              : '✅ 已保存');
+            await loadPosts();
+            renderAccount();
+          } else {
+            setErr('accountErr', explainError(data));
+          }
+        } catch (e) { setErr('accountErr', '网络异常，请稍后重试'); }
+        btn.disabled = false; btn.textContent = '💾 保存名字和头像';
+      }
+
+      async function savePass() {
+        if (!me) return;
+        var btn = $('savePassBtn');
+        var oldPass = $('acctOldPass').value;
+        var newPass = $('acctNewPass').value;
+        var newPass2 = $('acctNewPass2').value;
+
+        setErr('accountErr', '');
+        if (!oldPass) { setErr('accountErr', '请先填旧密码'); $('acctOldPass').focus(); return; }
+        if (newPass.length < 6) { setErr('accountErr', '新密码至少 6 位'); $('acctNewPass').focus(); return; }
+        if (newPass !== newPass2) { setErr('accountErr', '两次输入的新密码不一样'); $('acctNewPass2').focus(); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ 改密码中…';
+        try {
+          var res = await fetch('/api/blog/auth/profile', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'password', oldPassword: oldPass, newPassword: newPass })
+          });
+          var data = await res.json();
+          if (data && data.ok) {
+            $('acctOldPass').value = ''; $('acctNewPass').value = ''; $('acctNewPass2').value = '';
+            showToast('🔑 密码已改，下次登录请用新密码');
+          } else {
+            setErr('accountErr', explainError(data));
+          }
+        } catch (e) { setErr('accountErr', '网络异常，请稍后重试'); }
+        btn.disabled = false; btn.textContent = '🔑 改密码';
       }
 
       function setAuthMode(mode) {
@@ -1473,11 +1793,11 @@
       }
 
       function showView(name) {
-        ['viewList', 'viewPost', 'viewWrite', 'viewAuth'].forEach(function (id) {
+        ['viewList', 'viewPost', 'viewWrite', 'viewAuth', 'viewAccount'].forEach(function (id) {
           var e = $(id);
           if (e) e.classList.toggle('active', id === name);
         });
-        /* 大图横幅只在列表页显示；看帖子 / 发帖 / 登录时收起来，
+        /* 大图横幅只在列表页显示；看帖子 / 发帖 / 登录 / 账号设置时收起来，
            免得每次都要先划过一整屏图才看到内容。 */
         $('heroBox').style.display = (name === 'viewList') ? '' : 'none';
       }
@@ -1499,11 +1819,23 @@
           // 免得点进去之后导航栏整个暗下来、又不知道自己在哪。
           setNavActive('all');
           renderPost();
+        } else if (h.indexOf('edit/') === 0) {
+          /* 编辑自己发的帖子：复用发帖表单，只换标题和按钮 */
+          var ep = posts.filter(function (x) { return x.id === (Number(h.slice(5)) || 0); })[0];
+          if (!ep) { showToast('这条内容找不到了'); location.hash = '#/'; return; }
+          if (!ep.mine) { showToast('只能编辑自己发的帖子'); location.hash = '#/post/' + ep.id; return; }
+          startEdit(ep);
         } else if (h === 'write') {
+          resetWriteForm();
           showView('viewWrite');
           document.title = '发帖 - 织雾满穗';
           setNavActive('write');
           setErr('writeErr', '');
+        } else if (h === 'account') {
+          showView('viewAccount');
+          document.title = '账号设置 - 织雾满穗';
+          setNavActive('');
+          renderAccount();
         } else if (h === 'auth') {
           showView('viewAuth');
           document.title = '登录 - 织雾满穗';
@@ -1533,7 +1865,18 @@
       $('backFromPost').onclick = function () { location.hash = '#/'; };
       $('backFromWrite').onclick = function () { location.hash = '#/'; };
       $('backFromAuth').onclick = function () { location.hash = '#/'; };
+      $('backFromAccount').onclick = function () { location.hash = '#/'; };
       $('goAuthBtn').onclick = function () { location.hash = '#/auth'; setAuthMode('login'); };
+      $('goAuthBtn2').onclick = function () { location.hash = '#/auth'; setAuthMode('login'); };
+
+      /* 账号设置页的两个保存按钮 */
+      $('saveProfileBtn').onclick = saveProfile;
+      $('savePassBtn').onclick = savePass;
+      /* 头像地址一改就更新预览，所见即所得 */
+      $('acctAvatarUrl').addEventListener('input', function () {
+        pickedAvatar = $('acctAvatarUrl').value.trim();
+        drawAvatarPreview();
+      });
 
       $('authSwitchLink').onclick = function () { setAuthMode(authMode === 'register' ? 'login' : 'register'); };
       $('authSubmitBtn').onclick = doAuth;

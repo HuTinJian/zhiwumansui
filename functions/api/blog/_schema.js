@@ -31,6 +31,22 @@ export async function hasKindColumn(env) {
   return columnExists(env, 'blog_posts', 'kind');
 }
 
+/**
+ * blog_users.avatar（自定义头像）字段是否存在。
+ * 不存在时降级：用「按用户名算出来的默认 emoji」，设置页会提示跑迁移。
+ */
+export async function hasAvatarColumn(env) {
+  return columnExists(env, 'blog_users', 'avatar');
+}
+
+/**
+ * blog_posts.edited_at（最后编辑时间）字段是否存在。
+ * 不存在时降级：不记录编辑时间，也就不用显示「已编辑」。
+ */
+export async function hasEditedAtColumn(env) {
+  return columnExists(env, 'blog_posts', 'edited_at');
+}
+
 async function columnExists(env, table, column) {
   const key = table + '.' + column;
   const now = Date.now();

@@ -76,13 +76,33 @@ export function cleanName(raw) {
     .trim();
 }
 
-/* 正文清洗：保留换行（博客需要分段），但去掉多余空行与控制字符 */
+/* 正文清洗：保留换行（帖子需要分段），但去掉多余空行与控制字符 */
 export function cleanBody(raw) {
   return String(raw || '')
     .replace(/\r\n?/g, '\n')
     .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u200b-\u200f]/g, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/* 头像清洗：只接受两种形式 ——
+     · 一个 emoji（最多 8 个字符，够放组合 emoji）
+     · 一个 http(s) 图片直链
+   其它一律拒绝（返回 null）。
+
+   【为什么不做文件上传】本站没有配置对象存储（R2 之类），收了图片没地方放，
+   硬塞进数据库又会被体积和流量拖垮。等哪天有存储了再换成上传，
+   接口形状不用改（前端换个 input 就行）。 */
+export function cleanAvatar(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  if (s.length > 300) return null;
+  if (/^https?:\/\//i.test(s)) {
+    return /^https?:\/\/[^\s"'<>]+$/i.test(s) ? s : null;
+  }
+  const emoji = s.replace(/[\u0000-\u001f\u007f\s]/g, '');
+  if (!emoji || emoji.length > 8) return null;
+  return emoji;
 }
 
 /* 客户端身份格式（32 位随机十六进制） */

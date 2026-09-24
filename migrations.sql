@@ -23,8 +23,9 @@
 --        · 再整个执行第 2 组（建表 + 索引）
 --        · 第 3 组（博客账号表 blog_users + 内容的新字段）
 --        · 第 4 组（社区板块字段 kind）
+--        · 第 5 组（自定义头像 avatar + 编辑时间 edited_at）
 --
---      ⚠️ 四组都要跑，别在中途停手。漏跑的症状很好认：
+--      ⚠️ 五组都要跑，别在中途停手。漏跑的症状很好认：
 --         · 漏了第 3 组的 blog_users → 浏览正常，但「注册 / 登录」一律报
 --           「出错了：server error」（注册和登录都要读写这张表）。
 --         · 漏了第 4 组的 kind → 社区页顶部会自己弹一条提示，
@@ -130,5 +131,18 @@ ALTER TABLE blog_posts ADD COLUMN kind TEXT;
 
 -- 按板块筛列表时用得上
 CREATE INDEX IF NOT EXISTS idx_blog_kind ON blog_posts(kind, id DESC);
+
+
+-- ---------- 第 5 组：自定义头像 + 编辑时间（2026-09-24） ----------
+-- avatar   ：账号头像。存一个 emoji，或一个 http(s) 图片直链（不做文件上传，
+--            因为本站没有对象存储）。没设就是空，页面会按用户名自动生成一个默认 emoji。
+-- edited_at：帖子最后一次被作者修改的时间，前台显示成「已编辑 …」。
+--
+-- 这两组同样「漏跑不崩」：
+--   · 缺 avatar   → 账号设置里改头像会被拒并提示这一句；其余功能照常
+--   · 缺 edited_at → 只是不显示「已编辑」，编辑功能本身照常可用
+ALTER TABLE blog_users ADD COLUMN avatar TEXT;
+
+ALTER TABLE blog_posts ADD COLUMN edited_at TEXT;
 
 

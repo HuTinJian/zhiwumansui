@@ -9,7 +9,7 @@
 import { json } from '../_utils.js';
 import { DEFAULT_KIND, normalizeKind, normalizeClientId } from './_moderation.js';
 import { currentUser } from './_auth.js';
-import { hasKindColumn } from './_schema.js';
+import { hasAvatarColumn, hasKindColumn } from './_schema.js';
 
 const PAGE_LIMIT = 200;
 
@@ -29,13 +29,19 @@ export async function onRequestGet(context) {
     const clientId = normalizeClientId(url.searchParams.get('client'));
     const me = await currentUser(request, env);
 
+    /* 作者头像存在 blog_users.avatar 里。字段没建就不 JOIN ——
+       否则整条查询会因为「未知列 / 未知表」直接报错。 */
+    const avatarReady = await hasAvatarColumn(env);
+    const avatarJoin = avatarReady ? ' LEFT JOIN blog_users u ON u.id = p.user_id' : '';
+    const avatarSel = avatarReady ? ', u.avatar AS author_avatar' : '';
+
     /* ---------- 某篇文章下的评论 ---------- */
     if (Number.isSafeInteger(parent) && parent > 0) {
       const rows = await env.DB.prepare(
-        `SELECT id, parent_id, user_id, name, content, user_id AS uid, created_at
-           FROM blog_posts
-          WHERE parent_id = ? AND status = 'visible'
-          ORDER BY id ASC
+        `SELECT p.id, p.parent_id, p.user_id, p.name, p.content, p.user_id AS uid, p.created_at` + avatarSel + `
+           FROM blog_posts p` + avatarJoin + `
+          WHERE p.parent_id = ? AND p.status = 'visible'
+          ORDER BY p.id ASC
           LIMIT 300`
       ).bind(parent).all();
 
@@ -46,6 +52,7 @@ export async function onRequestGet(context) {
           id: Number(r.id) || 0,
           parentId: Number(r.parent_id) || 0,
           name: String(r.name || ''),
+          avatar: String(r.author_avatar || ''),
           content: String(r.content || ''),
           mine: !!(me && Number(r.uid) === me.id),
           createdAt: String(r.created_at || '')
@@ -57,10 +64,10 @@ export async function onRequestGet(context) {
     /* 这里故意写 p.* 而不是逐个列字段：以后再加字段时，老库即使漏跑迁移，
        查询也不会因为「未知列」整个报错，最多是拿不到那个字段（下面用 `|| 默认值` 兜住）。 */
     const rows = await env.DB.prepare(
-      `SELECT p.*,
+      `SELECT p.*` + avatarSel + `,
               (SELECT COUNT(*) FROM blog_posts r
                 WHERE r.parent_id = p.id AND r.status = 'visible') AS reply_count
-         FROM blog_posts p
+         FROM blog_posts p` + avatarJoin + `
         WHERE p.parent_id IS NULL AND p.status = 'visible'
         ORDER BY p.id DESC
         LIMIT ?`
@@ -83,6 +90,7 @@ export async function onRequestGet(context) {
     const data = list.map(r => ({
       id: Number(r.id) || 0,
       name: String(r.name || ''),
+      avatar: String(r.author_avatar || ''),
       title: String(r.title || ''),
       content: String(r.content || ''),
       cover: String(r.cover || ''),
@@ -94,10 +102,11 @@ export async function onRequestGet(context) {
       pinned: Number(r.pinned) === 1,
       liked: likedSet.has(Number(r.id)),
       mine: !!(me && Number(r.user_id) === me.id),
-      createdAt: String(r.created_at || '')
+      createdAt: String(r.created_at || ''),
+      editedAt: String(r.edited_at || '')
     }));
 
-    return json({ ok: true, data, total: data.length, kindReady });
+    return json({ ok: true, data, total: data.length, kindReady, avatarReady });
   } catch (err) {
     console.error('[blog/list]', err);
     /* 表还没建时给出友好提示，而不是 500 白屏 */

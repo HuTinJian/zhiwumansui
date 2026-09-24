@@ -12,6 +12,7 @@
    ============================================================ */
 
 import { toHex, timingSafeEqual, readCookie } from '../_utils.js';
+import { hasAvatarColumn } from './_schema.js';
 
 export const USER_COOKIE = 'zm_blog_user';
 
@@ -139,8 +140,11 @@ export async function currentUser(request, env) {
   if (!id) return null;
 
   try {
+    /* 头像字段可能还没建（老库没跑迁移）：先探测，缺了就不查它 ——
+       前端拿不到自定义头像时会回落到「按用户名算出来的默认 emoji」。 */
+    const hasAvatar = await hasAvatarColumn(env);
     const row = await env.DB.prepare(
-      'SELECT id, username, banned FROM blog_users WHERE id = ?'
+      'SELECT id, username, banned' + (hasAvatar ? ', avatar' : '') + ' FROM blog_users WHERE id = ?'
     ).bind(id).first();
 
     if (!row) return null;
@@ -148,6 +152,7 @@ export async function currentUser(request, env) {
     return {
       id: Number(row.id),
       username: String(row.username || ''),
+      avatar: hasAvatar ? String(row.avatar || '') : '',
       banned: Number(row.banned) === 1
     };
   } catch (e) {

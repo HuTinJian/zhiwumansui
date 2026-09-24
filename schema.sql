@@ -20,12 +20,13 @@ CREATE TABLE IF NOT EXISTS feedback (
   decided_at TEXT
 );
 
--- 博客账号（发帖 / 评论需要登录；浏览不需要）
+-- 社区账号（发帖 / 评论需要登录；浏览不需要）
 CREATE TABLE IF NOT EXISTS blog_users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
   pass_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
+  avatar TEXT,                     -- 自定义头像：一个 emoji，或一个 http(s) 图片直链
   banned INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
@@ -48,7 +49,8 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   reports INTEGER DEFAULT 0,
   pinned INTEGER DEFAULT 0,
   status TEXT DEFAULT 'visible',
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  edited_at TEXT                   -- 最后一次编辑时间（没编辑过就是空）
 );
 
 -- 每人每帖只能点一次赞

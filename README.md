@@ -180,23 +180,27 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
 ```
 
-然后把 `migrations.sql` 里的内容分四批粘进去执行 —— **四批都要跑完**：
+然后把 `migrations.sql` 里的内容分五批粘进去执行 —— **五批都要跑完**：
 
 1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...` —— 建议**一条一条**执行；
    某条报 `duplicate column name: xxx` 是正常的（说明那个字段之前加过了），跳过它继续下一条。
 2. **第 2 组**：若干 `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX` —— 可以**整段一起**执行。
-3. **第 3 组**：博客账号表 `blog_users` + 内容的新字段（`user_id` / `cover` / `tags` / `views` / `pinned`）
+3. **第 3 组**：社区账号表 `blog_users` + 内容的新字段（`user_id` / `cover` / `tags` / `views` / `pinned`）
    —— 同样是「已存在就报 duplicate column，跳过继续」。
 4. **第 4 组**：社区板块字段 `kind`（`ALTER TABLE blog_posts ADD COLUMN kind TEXT;` + 一个索引）。
+5. **第 5 组**：自定义头像 `avatar`（`ALTER TABLE blog_users ADD COLUMN avatar TEXT;`）
+   + 编辑时间 `edited_at`（`ALTER TABLE blog_posts ADD COLUMN edited_at TEXT;`）。
 
-> **⚠️ 最容易漏的是第 3 组和第 4 组**（都是后加的）。
+> **⚠️ 最容易漏的是第 3～5 组**（都是后加的）。
 > 好消息：**漏跑不会白屏**。新版接口做了「缺字段就降级」的兜底
 > （见 `functions/api/blog/_schema.js`），漏跑的症状是「少一块功能」而不是「整页报错」：
 >
-> | 漏了哪一组 | 症状 | 怎么确认 |
+> | 漏了哪一组 | 症状 | 怎么确认 / 怎么补 |
 > |---|---|---|
 > | 第 3 组（`blog_users` 表） | 浏览正常，但**注册 / 登录**一律报「出错了：server error」 | Console 里跑 `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;`，看不到 `blog_users` 就是缺 |
-> | 第 4 组（`kind` 字段） | 社区页顶部**自己弹一条提示**告诉你缺什么；内容都能正常发，只是全归到「💬 闲聊」 | 按提示把那句 `ALTER TABLE` 跑一遍即可 |
+> | 第 4 组（`kind` 字段） | 社区页顶部**自己弹一条提示**；内容都能正常发，只是全归到「💬 闲聊」 | 按提示把那句 `ALTER TABLE` 跑一遍即可 |
+> | 第 5 组（`avatar` 字段） | 账号设置里**改头像会被拒**并提示缺字段；名字和密码照常能改 | `ALTER TABLE blog_users ADD COLUMN avatar TEXT;` |
+> | 第 5 组（`edited_at` 字段） | 只是不显示「已编辑 …」，**编辑功能本身照常可用** | `ALTER TABLE blog_posts ADD COLUMN edited_at TEXT;` |
 
 **方式 B：命令行版（要装 Node.js，而且要在你自己电脑的终端里跑）**
 
