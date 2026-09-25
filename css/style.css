@@ -638,12 +638,18 @@ body.modal-open .particles i { animation-play-state: paused; }
   max-width: 500px;
   width: 100%;
   max-height: 90vh;
+  /* 手机上 100vh 比"看得见的高度"大（浏览器地址栏会占一截），
+     只写 vh 会算出一个比可视区还高的框 —— 底部按钮就跑到屏幕外了。
+     认识 dvh 的浏览器用下面这行覆盖；不认识的会忽略它，仍用上面那行。 */
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border);
   animation: modalIn 0.22s var(--ease-out) both;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;   /* iOS 上手指滑动有惯性，别像卡住 */
+  overscroll-behavior: contain;        /* 划到底不要带着背后整页一起滚 */
 }
 
 .modal.show.closing .modal-content {
@@ -1004,10 +1010,14 @@ body.modal-open .particles i { animation-play-state: paused; }
 /* ============================================================
    12.5 预览版告知弹窗
    ============================================================ */
+/* ⚠ 这里原来写的是 overflow: hidden（为了让顶部那条渐变被圆角裁住）。
+   结果就是【手机上新人是划不动的】：内容比屏幕高的时候直接被切掉，还滚不了。
+   现在改成纵向可滚 —— 圆角照样能把内容裁进去，滚动手感靠上面 .modal-content 那两条。 */
 .preview-notice-modal .modal-content {
   max-width: 520px;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   border: none;
 }
 
@@ -1111,6 +1121,19 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .preview-notice-sponsor-tip strong { color: var(--primary-ink); }
 
+/* ---------- 手机上：新人弹窗要放得下，也尽量少划 ----------
+   2026-09-25 用户反馈「手机端没办法划屏幕」。除了把 overflow 改开（见上面那条），
+   这里再把这块的内外边距收窄：24px 的左右留白在小屏上太奢侈，
+   省下来的高度能让「我知道了 / 去提意见」和最后那句提示不用划就看见。 */
+@media (max-width: 768px) {
+  .preview-notice-content .preview-notice-top { padding: 13px 16px 11px; }
+  .preview-notice-content h2 { margin: 15px 16px 8px; }
+  .preview-notice-body { margin: 0 16px 13px; font-size: 0.88rem; }
+  .preview-notice-note { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.8rem; }
+  .preview-notice-actions { padding: 0 16px 14px; gap: 8px; }
+  .preview-notice-sponsor-tip { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.8rem; }
+  .preview-notice-ver { font-size: 0.72rem; }
+}
 /* ============================================================
    12.6 精简模式（手机上自动生效）
    ------------------------------------------------------------

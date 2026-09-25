@@ -762,7 +762,7 @@ function fillSiteCost(scope) {
      ============================================================ */
   const PREVIEW_NOTICE_KEY = 'zm_preview_notice_seen';
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开就会重新看到一次 */
-  const PREVIEW_NOTICE_VERSION = '3';
+  const PREVIEW_NOTICE_VERSION = '4';
 
   /* 用来让「版本更新弹窗」等预览版弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
