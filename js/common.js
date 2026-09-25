@@ -806,21 +806,20 @@ function fillSiteCost(scope) {
         <p class="preview-notice-note">
           <span class="preview-notice-note-icon" aria-hidden="true">⚠️</span>
           <span>我们不能保证任何事情都没有可能发生。使用本网站时，请对重要内容自行二次确认；如遇数据异常、内容错误或其他问题，欢迎及时反馈。</span>
-        </p><div class="preview-notice-actions">
+        </p>
+        <div class="preview-notice-actions">
           <button type="button" class="btn btn-primary" id="previewNoticeOk">我知道了</button>
           <a class="btn btn-secondary" id="previewNoticeFeedback" href="feedback.html">💬 去提意见</a>
         </div>
-        <!-- 赞赏码放在按钮【下面】（用户指定的位置）。
-             第一次进来的人都会看到这个弹窗，所以图只给小的：想扫大图就点下面那个按钮。
-             顺带把「这个站到现在花了多少钱」如实写出来（数字见文件开头的 SITE_COST）。 --><div class="preview-notice-sponsor">
-          <img class="preview-notice-qr" src="images/sponsor-qrcode.png"
-               alt="HuTinJian 的赞赏码，扫码即可支持" width="88" height="88" loading="lazy">
-          <p class="preview-notice-sponsor-txt">
-            <strong>☕ 请我喝一杯</strong> —— 到目前一共花了
-            <strong>${SITE_COST.amount}</strong>（截至 ${SITE_COST.checkedAt}），
-            全是一个人业余时间做的，AI 调用费自己掏。扫码就是最大的支持，不扫也照常用。
-          </p>
-        </div>
+        <!-- 赞助码【不放在这个弹窗里】了（用户 2026-09-25 要求）：
+             这里只留一句提示，把人指到首页 hero 那条（「开始逛逛」按钮下面）去扫。
+             顺带的好处：首访不用再为这个弹窗下载那张 220KB 的二维码图。
+             花的钱数仍然如实写出来（数字见文件开头的 SITE_COST）。 -->
+        <p class="preview-notice-sponsor-tip">
+          ☕ 想请我喝一杯？<strong>赞助码在首页</strong>「🚀 开始逛逛」按钮下面那条，扫码就行。
+          这个站到目前一共花了 <strong>${SITE_COST.amount}</strong>（截至 ${SITE_COST.checkedAt}），
+          全是一个人业余时间做的。不赞助也完全没关系，照常用。
+        </p>
       </div>
     `;
     document.body.appendChild(modal);
