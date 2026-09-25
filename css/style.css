@@ -1094,7 +1094,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 /* ---------- 新人弹窗底部那句赞助提示 ----------
-   这里【不放二维码图】了（用户 2026-09-25 要求）：弹窗只说「赞助码在首页那条」，
+   这里【不放二维码图】了（用户 2026-09-25 要求）：弹窗只说一句「赞助码在首页」，
    顺带省掉首访为这个弹窗下载 220KB 二维码的开销。
    注意要盖掉 .modal-content p 的 margin-bottom:20px 和 pre-wrap。 */
 .preview-notice-sponsor-tip {
