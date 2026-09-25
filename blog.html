@@ -32,26 +32,36 @@
     .blog-shell { max-width: 1180px; margin: 0 auto; padding: 0 20px 90px; }
 
     /* ==================== 社区自己的导航栏 ==================== */
-    /* 版式照 NekoGAL 的顶栏：矮、平、安静。
-       记号只有两个：
-         · 左边一枚圆形粉底标 + 粉色品牌字
-         · 当前项下面一条粉横线
-       所以这里【没有】胶囊按钮、没有边框、没有实心底 ——
-       链接一律是纯文字，右侧的图标一律不带底，
-       让「我在哪」和「能点什么」一眼就分得开。 */
+    /* 版式照 www.nekogal.com 的顶栏（主体主题 zibll），
+       度量是从它线上的 main.min.css 里抠出来的，不是照图估的：
+         .header{padding:8px 20px}
+         .navbar-top .nav>li>a{padding-left:10px;padding-right:10px;border-radius:4px}
+         .navbar-nav>li:before{content:' ';position:absolute;width:100%;top:-10px;
+             background:var(--focus-color);height:5px;border-radius:0 0 15px 15px;opacity:0}
+         .current-menu-item>a, …:hover{background-color:transparent;color:var(--focus-color)}
+         .nav>li>a:focus,.nav>li>a:hover{background:var(--main-shadow);color:var(--focus-color)}
+
+       ★ 最要命的一处（我前两版都做错了）：
+         NekoGAL 的「当前项」【不是】底下一条下划线，而是【顶上一条 5px 粉条】，
+         只有下面两个角是圆的 —— 看着像从顶边垂下来的一小块。
+         我之前做成 bottom:0 + 3px 下划线，位置、粗细、圆角方向全反了。
+         （它还配一层很淡的 hover 底，这里也照做。）
+
+       它整条是个【浮动圆角条】（留 8px 外边距），不是通栏压边。
+       我的导航栏是 sticky 吸顶的，所以不照抄外边距 —— 那会在顶上留一条缝，
+       滚动时露出后面的内容。照抄的是那套「圆角 + 内边距」的手感。 */
     .blog-nav {
       position: sticky; top: 0; z-index: 50;
       background: var(--bg-card);
-      /* NekoGAL 用一条细粉线收边，不用投影。
-         颜色交给主题变量：亮色模式给 --primary-light（粉得轻，不抢内容），
-         深色模式它自动变成 #b8657a（暗底上的浅粉），换主题不用改这里。
-         别用 border-image + 渐变拼色 —— 那条线在 Chromium 里会把渐变反着铺
-         还会溢出到左右两端，而且和 border-radius 不兼容。 */
-      border-bottom: 2px solid var(--primary-light);
+      border-bottom: 1px solid var(--border);
     }
     .blog-nav .nav-inner {
-      max-width: 1180px; margin: 0 auto; padding: 0 20px;
-      height: 52px; display: flex; align-items: center; gap: 10px;
+      max-width: 1180px; margin: 0 auto;
+      /* 纵向不留内边距：粉条要贴到导航栏的顶边，中间不能有空隙。
+         （NekoGAL 的 .header 是 padding:8px 20px，它那条粉条靠 top:-10px
+           画到 padding 区里；我们这里改成让导航项撑满整条高度，等价且不用负偏移。） */
+      padding: 0 12px 0 20px;
+      min-height: 52px; display: flex; align-items: center; gap: 10px;
     }
     .blog-nav .brand {
       display: flex; align-items: center; gap: 8px;
@@ -67,35 +77,43 @@
       background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       box-shadow: 0 3px 10px rgba(220,107,130,.28);
     }
-    .blog-nav .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    /* 关键：这一行要【撑满整条导航的高度】，里面的项才能顶到最上边。
+       它还有个 overflow-x:auto（手机上三个链接放不下时要能横滑）——
+       溢出裁剪会吃掉画在盒子外面的东西，所以粉条必须画在项【自己盒子内】的 top:0，
+       不能像 NekoGAL 那样用 top:-5px 伸到外面（它那边没有 overflow，伸出去没事）。 */
+    .blog-nav .nav-links {
+      display: flex; align-items: stretch; align-self: stretch;
+      gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    }
     .blog-nav .nav-links::-webkit-scrollbar { display: none; }
     .blog-nav .nav-item {
       position: relative;
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 15px 12px; border-radius: 0;
+      /* NekoGAL: padding-left/right:10px + border-radius:4px。
+         纵向内边距交给 stretch（撑满整条），只在横向上留白。 */
+      padding: 0 10px; border-radius: 4px;
       font-size: .86rem; font-weight: 600; color: var(--text-light);
       text-decoration: none; cursor: pointer; white-space: nowrap; border: none; background: none;
       font-family: var(--font);
-      transition: color var(--dur) var(--ease-soft);
+      transition: color var(--dur) var(--ease-soft), background var(--dur) var(--ease-soft);
     }
-    .blog-nav .nav-item:hover { color: var(--primary-ink); }
-    /* 当前项 = 它底下那条粉横线。
-       （以前这里是实心粉底，和「发帖」这个动作按钮同一个长相，容易看错；
-         NekoGAL 的做法是横线，横线只可能是「你在这」，不会跟按钮混。）
-       横线画在 15px 内边距的下沿，紧贴整条导航的粉边线，看着像从边上长出来的。
-
-       文字色用 --primary-ink 而不是 --primary：站点变量本来就分了工
-       （--primary 是填充/装饰，--primary-ink 是浅底上的文字）。
-       实测亮色模式下 --primary 当文字只有 3.25:1，淡得看不清；
-       --primary-ink 在亮色 6.09:1、暗色 9.15:1，两个主题都够。 */
+    /* hover：NekoGAL 给的是 background:var(--main-shadow) + 主题色文字。
+       我们这儿换成 --bg-tint —— 它的 --main-shadow 是 rgba(116,116,116,.08)，
+       放在我们这个偏粉的底上会显脏，用自家的淡粉底更贴。 */
+    .blog-nav .nav-item:hover { color: var(--primary-ink); background: var(--bg-tint); }
+    /* ★ 当前项：顶上一条 5px 粉条，只有下面两角是圆的（照 NekoGAL 的 li:before）。
+       画在项自己盒子的 top:0，而项是撑满整条高度的，所以它正好贴着导航栏顶边。 */
     .blog-nav .nav-item::after {
-      content: ''; position: absolute; left: 10px; right: 10px; bottom: 0;
-      height: 3px; border-radius: 3px 3px 0 0; background: var(--primary);
-      transform: scaleX(0); transform-origin: center;
-      transition: transform var(--dur) var(--ease-bounce);
+      content: ''; position: absolute; left: 0; right: 0; top: 0;
+      height: 5px; border-radius: 0 0 15px 15px; background: var(--primary);
+      opacity: 0; transition: opacity var(--dur) var(--ease-soft);
     }
+    /* 文字仍用 --primary-ink 而不是 --primary：站点变量分工是
+       --primary 管填充/装饰、--primary-ink 管浅底文字。
+       实测亮色模式 --primary 当文字只有 3.25:1，看不清；
+       --primary-ink 亮色 6.09:1、暗色 9.15:1。粉条本身可以用 --primary。 */
     .blog-nav .nav-item.active { color: var(--primary-ink); font-weight: 700; }
-    .blog-nav .nav-item.active::after { transform: scaleX(1); }
+    .blog-nav .nav-item.active::after { opacity: 1; }
     .blog-nav .nav-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
     /* 导航栏只有一行。板块已经搬到内容区开头做成板块卡了
@@ -619,13 +637,12 @@
     }
     @media (max-width: 768px) {
       .blog-shell { padding: 0 14px 96px; }
-      /* 手机上也保持「矮、平、安静」：整条再矮 4px，图标缩到 28px */
-      .blog-nav .nav-inner { padding: 0 14px; height: 48px; gap: 6px; }
+      /* 手机上也保持「有呼吸感」：整条再矮一点，图标缩到 28px */
+      .blog-nav .nav-inner { padding: 0 8px 0 14px; min-height: 48px; gap: 6px; }
       .blog-nav .brand .txt { display: none; }
       .blog-nav .brand { margin-right: 2px; }
       .blog-nav .brand .mark { width: 26px; height: 26px; font-size: .82rem; }
-      .blog-nav .nav-item { padding: 13px 10px; font-size: .8rem; }
-      .blog-nav .nav-item::after { left: 7px; right: 7px; }
+      .blog-nav .nav-item { padding: 0 8px; font-size: .8rem; }
       .blog-nav .nav-right { gap: 2px; }
       .blog-nav .theme-toggle, .blog-nav .btn-n.icon-n { width: 28px; height: 28px; font-size: .88rem; }
       .nav-user { padding: 3px 8px 3px 3px; gap: 5px; }
