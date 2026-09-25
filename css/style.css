@@ -987,8 +987,9 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-.credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); }
+}/* 名字变长了（DeepSeek-V4.1-Flash（modlens vision）），窄屏上会折两行 ——
+   把行高压紧一点，别把卡片撑得比旁边两张还高。 */
+.credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
 
 /* ---------- 赞赏码（credits 那排的第三张卡） ----------
@@ -1100,10 +1101,42 @@ body.modal-open .particles i { animation-play-state: paused; }
   gap: 10px;
   flex-wrap: wrap;
   padding: 0 24px 22px;
+}.preview-notice-actions .btn {
+  flex: 1 1 140px;
 }
 
-.preview-notice-actions .btn {
-  flex: 1 1 140px;
+/* ---------- 新人弹窗底部的赞赏码 ----------
+   位置在按钮【下面】（用户指定的）。图给小的：新人第一次进来只是"看见有这回事"，
+   想扫大图，首页那条和底部卡片都能点开大图。 */.preview-notice-sponsor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* 弹窗原本就有 877px 高，900 高的屏上正好把这一块切掉一截 ——
+     所以这里所有间距都往紧里给，目标是不用滚动就看得到。 */
+  margin: 0 24px 16px;
+  padding: 11px 13px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+.preview-notice-qr {
+  width: 88px; height: 88px; flex-shrink: 0; display: block;
+  border-radius: 10px; background: #fff; border: 1px solid var(--border);
+}
+/* 注意要盖掉 .modal-content p 的 margin-bottom:20px 和 pre-wrap */
+.preview-notice-sponsor-txt {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.8;
+  color: var(--text-light);
+  white-space: normal;
+}
+.preview-notice-sponsor-txt strong { color: var(--primary-ink); }
+
+/* 窄屏上竖着排：横排会把说明文字挤成一列单字 */@media (max-width: 480px) {
+  .preview-notice-sponsor { flex-direction: column; text-align: center; gap: 9px; padding: 11px 12px; }
+  .preview-notice-qr { width: 76px; height: 76px; }
+  .preview-notice-sponsor-txt { font-size: 0.8rem; line-height: 1.7; }
 }
 
 /* ============================================================

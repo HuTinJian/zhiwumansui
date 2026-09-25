@@ -59,11 +59,33 @@
     }
   }
 
-  initTheme();
+  initTheme();/* ============================================================
+   0.5 这个站到现在花了多少钱
+   ------------------------------------------------------------
+   首页（「开始逛逛」按钮下面那条）和「新人弹窗」都要显示这个数字，
+   所以【数字只写在这一处】：页面里用 <span data-site-cost></span> 占位，
+   脚本启动时统一填进去。以后要改，就改下面 amount 这一行，全站一起变。
 
-  /* ============================================================
-     1. 基础工具
-     ============================================================ */
+   口径：DeepSeek API 的累计消费（元）。数字来自 DSH 的账单文件，
+   是人工核对后填进来的，不会自己涨 —— 换数字时记得把 checkedAt 一起改。
+   ============================================================ */
+const SITE_COST = {
+  amount: '¥40.20',         /* 累计花费（元）—— 只改这一个地方 */
+  since: '2026-09-12',      /* 从哪天开始算的 */
+  checkedAt: '2026-09-25'   /* 上面这个数字是哪天核对的 */
+};
+
+/* 把金额填进页面里所有 [data-site-cost] 占位处 */
+function fillSiteCost(scope) {
+  const root = scope || document;
+  root.querySelectorAll('[data-site-cost]').forEach(el => {
+    el.textContent = SITE_COST.amount;
+  });
+}
+
+/* ============================================================
+   1. 基础工具
+   ============================================================ */
 
   /* 显示 Toast 短提示 */
   function showToast(msg, duration = 2500) {
@@ -774,22 +796,30 @@
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
-          <span class="preview-notice-badge">🚧 预览版</span>
-          <span class="preview-notice-ver">DeepSeek V4.1-Flash</span>
+          <span class="preview-notice-badge">🚧 预览版</span><span class="preview-notice-ver">DeepSeek-V4.1-Flash（modlens vision）</span>
         </div>
         <h2 id="${modalId}Title">这里是预览版，先跟你说一声</h2>
-        <p class="preview-notice-body">
-          本站由 <strong>DeepSeek V4.1-Flash</strong> 编写，目前仍是预览版，
+        <p class="preview-notice-body">本站由 <strong>DeepSeek-V4.1-Flash（modlens vision）</strong> 编写，目前仍是预览版，
           功能和内容都还在陆续补完，可能会有小毛病或者样式不统一的地方。
           如果你发现了问题，或者有想加的功能，欢迎随时告诉我们 —— 你的每一条反馈都会被看到。
         </p>
         <p class="preview-notice-note">
           <span class="preview-notice-note-icon" aria-hidden="true">⚠️</span>
           <span>我们不能保证任何事情都没有可能发生。使用本网站时，请对重要内容自行二次确认；如遇数据异常、内容错误或其他问题，欢迎及时反馈。</span>
-        </p>
-        <div class="preview-notice-actions">
+        </p><div class="preview-notice-actions">
           <button type="button" class="btn btn-primary" id="previewNoticeOk">我知道了</button>
           <a class="btn btn-secondary" id="previewNoticeFeedback" href="feedback.html">💬 去提意见</a>
+        </div>
+        <!-- 赞赏码放在按钮【下面】（用户指定的位置）。
+             第一次进来的人都会看到这个弹窗，所以图只给小的：想扫大图就点下面那个按钮。
+             顺带把「这个站到现在花了多少钱」如实写出来（数字见文件开头的 SITE_COST）。 --><div class="preview-notice-sponsor">
+          <img class="preview-notice-qr" src="images/sponsor-qrcode.png"
+               alt="HuTinJian 的赞赏码，扫码即可支持" width="88" height="88" loading="lazy">
+          <p class="preview-notice-sponsor-txt">
+            <strong>☕ 请我喝一杯</strong> —— 到目前一共花了
+            <strong>${SITE_COST.amount}</strong>（截至 ${SITE_COST.checkedAt}），
+            全是一个人业余时间做的，AI 调用费自己掏。扫码就是最大的支持，不扫也照常用。
+          </p>
         </div>
       </div>
     `;
@@ -814,9 +844,9 @@
     document.addEventListener('zm:modalclose', onClose);
   }
 
-  /* 统一初始化 */
-  function initUI() {
-    applyLiteMode();
+  /* 统一初始化 */function initUI() {
+  applyLiteMode();
+  fillSiteCost();
     bindModalA11y();
     injectAtmosphere();
     injectThemeToggle();

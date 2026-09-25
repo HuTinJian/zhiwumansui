@@ -496,6 +496,10 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **更新公告** | 后台「更新管理」 | 填好内容点保存，访客下次打开对应页面就会看到弹窗 |
 | **看热门榜 / 访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来；点「🔄 刷新」重新拉一次 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
+| **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 只改 `amount` 那一行（现在是 `¥40.20`），首页那条赞赏码、赞赏码弹窗、新人弹窗会一起变；顺便把 `checkedAt` 改成你核对这天的日期。**全站只有这一处写数字**，其它地方都是 `data-site-cost` 占位 |
+| **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` + `css/style.css` | 换码直接替换那张图（三处共用）。现在一共露三处：首页「开始逛逛」按钮下面那条（`<button class="hero-sponsor">`）、点开的赞赏码大图弹窗、新人弹窗（`js/common.js` 里 `preview-notice-sponsor` 那段） |
+| **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 从 `'2'` 改成 `'3'` |
+| **社区顶栏（导航栏）的样子** | `blog.html` 里的 `.blog-nav` CSS + `<nav class="blog-nav">` | 现在是照 NekoGAL 的真实结构和度量做的：**品牌摆正中、导航项在左、搜索/主题/账号在右**；当前项顶上一条 5px 粉条（`top:-8px`，只有下面两角圆）；整条没有下边框，滚起来才出阴影（JS 里的 `navScrollShadow`）；右端几颗是圆钮带淡底 |
 
 > 小提示：改完如果发现页面没变，先按 `Ctrl + F5` 强制刷新一次，
 > 浏览器有时候会把旧的 CSS / JS 缓存住。

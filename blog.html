@@ -41,49 +41,66 @@
          .current-menu-item>a, …:hover{background-color:transparent;color:var(--focus-color)}
          .nav>li>a:focus,.nav>li>a:hover{background:var(--main-shadow);color:var(--focus-color)}
 
-       ★ 最要命的一处（我前两版都做错了）：
-         NekoGAL 的「当前项」【不是】底下一条下划线，而是【顶上一条 5px 粉条】，
-         只有下面两个角是圆的 —— 看着像从顶边垂下来的一小块。
-         我之前做成 bottom:0 + 3px 下划线，位置、粗细、圆角方向全反了。
-         （它还配一层很淡的 hover 底，这里也照做。）
+       ★ 这次改掉的三处「以前做偏了」（也就是「看着没变」的真正原因）：
+         ① 它是【居中版式】(navbar-top center)：导航项在左、**logo 摆正中**、工具在右。
+            我前两版把标一直放在最左边、尺寸也小，整条就还是"我们自己那套"。
+         ② 整条上下各留 8px（.header 的 padding），而且【没有下边框】——
+            "抬起来"是滚起来之后的阴影干的；暗色下阴影要压得更重才看得见。
+         ③ 右端那几颗是 .toggle-radius：29px 的**圆钮**、还带一层很淡的底
+            （它的 --this-bg 取的是 --main-border-color），不是无底方角图标。
 
-       它整条是个【浮动圆角条】（留 8px 外边距），不是通栏压边。
-       我的导航栏是 sticky 吸顶的，所以不照抄外边距 —— 那会在顶上留一条缝，
-       滚动时露出后面的内容。照抄的是那套「圆角 + 内边距」的手感。 */
+       粉条照它的 li:before 原样：5px 高、只有下面两角圆、贴着整条的最顶边
+       （它写 top:-10px，是靠负偏移伸进 .header 的 padding 区；我们让项撑满整条
+        高度，所以画在项自己盒子的 top:0 就是同一个位置）。 */
     .blog-nav {
       position: sticky; top: 0; z-index: 50;
       background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
+      /* ② 上下各 8px —— 照 .header 的 padding:8px 20px。
+         原来那条 1px 下边线去掉了：它靠「滚起来出阴影」分层，不靠一条线。 */
+      padding: 8px 20px;
+      transition: box-shadow var(--dur) var(--ease-soft);
     }
+    /* 滚起来才「抬」起一层（NekoGAL: .body-scroll .header{box-shadow:0 4px 10px var(--main-shadow)}）。
+       暗色底上淡阴影看不见，所以暗色单独压重一点。 */
+    .blog-nav.scrolled { box-shadow: 0 4px 10px rgba(74, 63, 68, .1); }
+    [data-theme="dark"] .blog-nav.scrolled { box-shadow: 0 4px 10px rgba(0, 0, 0, .5); }
     .blog-nav .nav-inner {
+      position: relative;   /* 品牌块要绝对定位到正中，这一层得有 position 当参照物 */
       max-width: 1180px; margin: 0 auto;
-      /* 纵向不留内边距：粉条要贴到导航栏的顶边，中间不能有空隙。
-         （NekoGAL 的 .header 是 padding:8px 20px，它那条粉条靠 top:-10px
-           画到 padding 区里；我们这里改成让导航项撑满整条高度，等价且不用负偏移。） */
-      padding: 0 12px 0 20px;
-      min-height: 52px; display: flex; align-items: center; gap: 10px;
+      /* 纵向不再留内边距：那 8px 挪到 .blog-nav 自己身上了（照 .header 的 padding:8px 20px）。 */
+      padding: 0;
+      min-height: 48px; display: flex; align-items: center; gap: 10px;
     }
+    /* ★ 品牌块摆到【正中】（NekoGAL: .navbar-top.center .navbar-brand{position:absolute;
+       width:100%;text-align:center}）。它那边是"绝对定位 + 撑满整条 + 文字居中"；
+       撑满宽度会把底下那排导航项整个盖住、点不到，所以这里用 left:50% + translate
+       收成刚好包住内容的宽度 —— 看见的是一样的居中，但不会挡住左右两边。
+       （手机屏放不下，媒体查询里会退回靠左。） */
     .blog-nav .brand {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
       display: flex; align-items: center; gap: 8px;
       font-size: 1rem; font-weight: 800; color: var(--primary-ink);
-      text-decoration: none; margin-right: 12px; flex-shrink: 0;
+      text-decoration: none; flex-shrink: 0; white-space: nowrap;
       transition: color var(--dur) var(--ease-soft);
     }
     .blog-nav .brand:hover { color: var(--primary); }
-    /* 圆形，不是圆角方块 —— NekoGAL 的标是圆的 */
+    /* ★ 标改成【站点自己的 logo 图】（images/favicon.svg），34px ——
+       NekoGAL 那边就是一个 <img> 的 logo（.navbar-logo>img{height:36px}）。
+       我前一版是 emoji 套个 28px 的渐变圆，摆在正中会显得空。 */
     .blog-nav .brand .mark {
-      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: .9rem;
-      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      display: block; object-fit: contain;
       box-shadow: 0 3px 10px rgba(220,107,130,.28);
     }
-    /* 关键：这一行要【撑满整条导航的高度】，里面的项才能顶到最上边。
-       它还有个 overflow-x:auto（手机上三个链接放不下时要能横滑）——
-       溢出裁剪会吃掉画在盒子外面的东西，所以粉条必须画在项【自己盒子内】的 top:0，
-       不能像 NekoGAL 那样用 top:-5px 伸到外面（它那边没有 overflow，伸出去没事）。 */
+    /* 这一行要撑满整条导航的高度，里面的项才能顶到最上边（粉条画在项自己的 top:0）。
+       麻烦在于它还得有 overflow-x:auto（手机上三个链接放不下时要能横滑），
+       而溢出裁剪会吃掉画在盒子【外面】的东西。
+       解法：上下各补 8px（再用负 margin 抵消掉，不撑高整条）——
+       这样这一行的盒子一直顶到导航条的最上边，粉条也就贴到了整条顶边，跟 NekoGAL 同一个位置。 */
     .blog-nav .nav-links {
       display: flex; align-items: stretch; align-self: stretch;
       gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+      margin: -8px 0; padding: 8px 0;
     }
     .blog-nav .nav-links::-webkit-scrollbar { display: none; }
     .blog-nav .nav-item {
@@ -102,9 +119,11 @@
        放在我们这个偏粉的底上会显脏，用自家的淡粉底更贴。 */
     .blog-nav .nav-item:hover { color: var(--primary-ink); background: var(--bg-tint); }
     /* ★ 当前项：顶上一条 5px 粉条，只有下面两角是圆的（照 NekoGAL 的 li:before）。
-       画在项自己盒子的 top:0，而项是撑满整条高度的，所以它正好贴着导航栏顶边。 */
+       位置：它写 top:-10px，是负偏移到 .header 的 padding 区里 —— 也就是【整条的最顶边】。
+       我们这里让项撑满导航行的高度、再往上顶 8px（那 8px 正是导航行的补白，见上），
+       落点跟它一样：粉条贴在整条的最上边，下面两角圆着垂下来。 */
     .blog-nav .nav-item::after {
-      content: ''; position: absolute; left: 0; right: 0; top: 0;
+      content: ''; position: absolute; left: 0; right: 0; top: -8px;
       height: 5px; border-radius: 0 0 15px 15px; background: var(--primary);
       opacity: 0; transition: opacity var(--dur) var(--ease-soft);
     }
@@ -121,19 +140,19 @@
        它的顶栏就一行，分类在内容里。 */
 
     .blog-nav .theme-slot { display: inline-flex; align-items: center; }
-    /* 主题开关：全站那颗粉边圆钮在这里太"重"了 —— NekoGAL 右端是一排安静的小图标。
-       所以把它脱掉装饰（无底、无圆、不转），只留一个 32px 的图形，
-       和旁边那两颗（搜索、齿轮）排成一排整齐的等大图标。
+    /* 主题开关：全站那颗粉边圆钮在这里太"重"了，所以做小、做平。
+       ★ 但"平"不等于"无底方角"：NekoGAL 右端那几个是 .toggle-radius ——
+         29px、border-radius:100%、还带一层很淡的底。所以这里改成圆钮 + --bg-soft。
        这里必须连 :hover 一起写：全局给 .theme-toggle:hover 挂了 rotate(-18deg)，
        不覆盖的话鼠标一上去它就会歪。 */
     .blog-nav .theme-toggle {
-      width: 32px; height: 32px; border-radius: 9px;
-      border: none; background: none; color: var(--text-light);
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--bg-soft); color: var(--text-light);
       font-size: .95rem; margin-left: 0;
     }
     .blog-nav .theme-toggle:hover {
       background: var(--bg-tint); color: var(--primary);
-      border-color: transparent; transform: none;
+      border-color: var(--primary-light); transform: none;
     }
     .blog-nav .theme-toggle:active { transform: scale(.92); }
 
@@ -210,12 +229,15 @@
 
     /* 导航栏里的纯图标按钮（现在就一个：账号设置的齿轮⚙️）。
        「登录」按钮还是用 .btn-n.line —— 那是个重要的动作，不能缩成图标。
-       但齿轮是设置，属于次要入口，缩成和搜索、主题开关一样的 32px 图标。 */
+       ★ 尺寸也不再是"无底方角"：NekoGAL 的 .toggle-radius 是 29px 的【圆钮】，
+         还带一层很淡的底（它的 --this-bg 取 --main-border-color）。
+         这里照它做成圆钮 + --bg-soft 的淡底，跟主题钮同一颗长相。 */
     .btn-n.icon-n {
       width: 32px; height: 32px; padding: 0; justify-content: center;
-      background: none; border: none; color: var(--text-light); font-size: .95rem;
+      border-radius: 50%; background: var(--bg-soft); border: 1px solid var(--border);
+      color: var(--text-light); font-size: .95rem;
     }
-    .btn-n.icon-n:hover { background: var(--bg-tint); color: var(--primary); transform: none; }
+    .btn-n.icon-n:hover { background: var(--bg-tint); color: var(--primary); border-color: var(--primary-light); transform: none; }
 
     /* 登录后右上角的自己：以前是个「看着像按钮但点不动」的装饰。
        现在它能点，点进去看自己发的帖子 —— 所以这里的「我的」
@@ -638,10 +660,15 @@
     @media (max-width: 768px) {
       .blog-shell { padding: 0 14px 96px; }
       /* 手机上也保持「有呼吸感」：整条再矮一点，图标缩到 28px */
-      .blog-nav .nav-inner { padding: 0 8px 0 14px; min-height: 48px; gap: 6px; }
+      /* 手机：条矮一点；品牌块【退回靠左】—— 小屏上居中会跟导航项、工具钮撞在一起 */
+      .blog-nav { padding: 6px 14px; }
+      .blog-nav .nav-inner { min-height: 44px; gap: 6px; }
+      .blog-nav .brand { position: static; left: auto; top: auto; transform: none; }
       .blog-nav .brand .txt { display: none; }
-      .blog-nav .brand { margin-right: 2px; }
-      .blog-nav .brand .mark { width: 26px; height: 26px; font-size: .82rem; }
+      .blog-nav .brand .mark { width: 28px; height: 28px; }
+      /* 粉条那套补白要跟着条上的 6px 一起改 */
+      .blog-nav .nav-links { margin: -6px 0; padding: 6px 0; }
+      .blog-nav .nav-item::after { top: -6px; }   /* 手机上是 6px 补白 → 粉条跟着改 */
       .blog-nav .nav-item { padding: 0 8px; font-size: .8rem; }
       .blog-nav .nav-right { gap: 2px; }
       .blog-nav .theme-toggle, .blog-nav .btn-n.icon-n { width: 28px; height: 28px; font-size: .88rem; }
@@ -684,7 +711,7 @@
   <nav class="blog-nav" aria-label="社区导航">
     <div class="nav-inner">
       <a class="brand" href="blog.html#/">
-        <span class="mark" aria-hidden="true">🌾</span>
+        <img class="mark" src="images/favicon.svg" alt="" width="34" height="34">
         <span class="txt">玩家社区</span>
       </a>
 
@@ -2121,6 +2148,25 @@
           else renderGrid(true);
         }, 220);
       });
+
+      /* 顶栏滚动阴影。NekoGAL 是 .body-scroll .header{box-shadow:0 4px 10px …}：
+         顶栏平时跟下面的内容连成一片，滚起来才"抬"起一层。
+         这里只做一件事：滚动超过 6px 就给 .blog-nav 加个 .scrolled。
+         （自己记一个上次的值，没变就不碰 class —— 别每帧都去写 DOM。） */
+      (function navScrollShadow() {
+        var bar = document.querySelector('.blog-nav');
+        if (!bar) return;
+        var last = null;
+        function onScroll() {
+          var y = window.scrollY || document.documentElement.scrollTop || 0;
+          var scrolled = y > 6;
+          if (scrolled === last) return;
+          last = scrolled;
+          bar.classList.toggle('scrolled', scrolled);
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
 
       (async function init() {
         fillKindOptions();
