@@ -506,23 +506,9 @@
           <span class="credits-label">支持者</span><span class="credits-name">DeepSeek-V4.1-Flash（modlens vision）</span>
           <span class="credits-en">AI Assistant</span>
         </div>
-      </div>
-
-      <!-- 赞赏码：做成第三张卡，和上面两张同款同尺寸 ——
-           显眼（就在开发者/支持者这一排里，一眼看得到），
-           但不抢戏（和支持者并排，不是弹窗、不是横幅）。
-           缩略图点开看大图，这样手机上也能扫。 -->
-      <button type="button" class="credits-card credits-qr" id="sponsorCard"
-              aria-label="查看赞赏码大图">
-        <img class="credits-icon credits-qr-img" src="images/sponsor-qrcode.png"
-             alt="HuTinJian 的赞赏码" width="48" height="48" loading="lazy">
-        <!-- 这里用 span 不用 div：button 里只允许短语内容，塞 div 是无效 HTML -->
-        <span class="credits-info">
-          <span class="credits-label">赞赏码</span>
-          <span class="credits-name">请我喝一杯</span>
-          <span class="credits-en">点我看大图 · 扫一扫</span>
-        </span>
-      </button>
+      </div><!-- 这一排原本还有第三张「赞赏码」卡，已经删掉了 ——
+           赞赏码现在在页面更上面（hero 里「开始逛逛」按钮下面那条），
+           这里再放一张就重复了，而且这排是「开发者 / 支持者」，本来也不该塞收款入口。 -->
     </div>
   </main>
 
@@ -572,13 +558,11 @@
 
       /* ---------- 赞赏码：点卡片看大图 ----------
          用全站同一套弹窗（common.js 的 openModal/closeModal），
-         不另造一个 —— 这样 ESC 关闭、点遮罩关闭、焦点管理都是现成的。 */(function sponsorQr() {
-        /* 两处都能点开大图：hero 里那条（「开始逛逛」下面）和底部那张卡片。
+         不另造一个 —— 这样 ESC 关闭、点遮罩关闭、焦点管理都是现成的。 */(function sponsorQr() {/* 能点开大图的只剩 hero 里那条（「开始逛逛」按钮下面）——
+           开发者/支持者那排的第三张卡已经删了。
            大图还是全站同一套弹窗（common.js 的 openModal），ESC / 点遮罩关闭都现成。 */
-        ['heroSponsor', 'sponsorCard'].forEach(function (id) {
-          var el = $(id);
-          if (el) el.addEventListener('click', function () { openModal('sponsorModal'); });
-        });
+        var heroSponsor = $('heroSponsor');
+        if (heroSponsor) heroSponsor.addEventListener('click', function () { openModal('sponsorModal'); });
         var close = $('sponsorClose');
         if (close) close.addEventListener('click', function () { closeModal('sponsorModal'); });
       })();

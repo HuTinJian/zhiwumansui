@@ -992,20 +992,6 @@ body.modal-open .particles i { animation-play-state: paused; }
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
 
-/* ---------- 赞赏码（credits 那排的第三张卡） ----------
-   它和上面两张卡【同款同尺寸】，只是换成 <button> 好点开大图 ——
-   所以这里只做三件事：抹掉按钮的默认长相、说清它可点、给缩略图留着色。
-   缩略图那个方图不套圆框（原来 .credits-icon 是圆的，会切掉二维码的角）。 */
-.credits-qr {
-  font-family: var(--font);
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  padding: 18px 24px;   /* 和 .credits-card 一致，别让三张卡高低不齐 */
-}
-.credits-qr:hover .credits-icon { transform: scale(1.1); }  /* 二维码别旋转，转了反而像坏了 */
-.credits-qr-img { border-radius: var(--radius-sm); object-fit: contain; background: #fff; }
-
 .sponsor-modal-content { max-width: 420px; text-align: center; }
 .sponsor-modal-content h2 { margin-bottom: 10px; }
 .sponsor-qr-big {
