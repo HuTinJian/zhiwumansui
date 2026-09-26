@@ -46,6 +46,7 @@
 ├── data/
 │   ├── roblox_music.json      站点内置的歌曲数据（静态、只读）
 │   ├── sponsors.json          👑 赞助者底档（静态、只读；后台加的那些存在 D1 里）
+│   ├── thanks.json            🎮 Roblox ID 宝库（鸣谢名单）的本地档案（静态、只读；结构同 GET /api/thanks，见第六节）
 │   └── admin_quarantine.json  管理员隔离区的静态快照（由 JSON 合并工具导出，见第五节）
 ├── tools/
 │   ├── update-notice.html     更新公告配置工具（**仅后台可用**，内部 iframe）
@@ -602,6 +603,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单和一行金额 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里两个切换：**👑 赞助者 / 🎮 Roblox ID 宝库**，导航栏和页脚都有入口；宝库页原来那个鸣谢弹窗现在直接跳到这个页面，不再单独弹 |
+| **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`💬 反馈贡献者`）；`data/thanks.json` 是同结构的**本地档案**，供 `tools/thanks-merge.html` 合并、对账、存档用 —— **页面目前不读它**，想让名单在接口挂掉时也能显示，得照赞助者那样把这份底档接进 `thanks.html` |
 | **👑 赞助者里的人和金额** | `data/sponsors.json`（底档）+ 后台 →「❤️ 鸣谢名单」→「👑 赞助者」 | 底档改文件 + 重新部署才生效；后台加的存 D1，类别固定 `'👑 赞助者'`（**这个字符串是数据口径，别改**），**金额写在 `platform` 字段**（例 `¥10`）、感谢语写在 `message`。页面上两处合并显示，同名的以底档为准 |
 | **社区顶栏（导航栏）的样子** | `blog.html` 里的 `.blog-nav` CSS + `<nav class="blog-nav">` | 现在是照 NekoGAL 的真实结构和度量做的：**品牌摆正中、导航项在左、搜索/主题/账号在右**；当前项顶上一条 5px 粉条（`top:-8px`，只有下面两角圆）；整条没有下边框，滚起来才出阴影（JS 里的 `navScrollShadow`）；右端几颗是圆钮带淡底 |
 
