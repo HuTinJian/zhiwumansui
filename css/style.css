@@ -1032,7 +1032,7 @@ body.modal-open .particles i { animation-play-state: paused; }
    颜色全走既有主题变量，明暗两套主题都不用再写一遍。
    结构是可扩展列表：以后加人只要在 data/sponsors.json 里加一条，或后台加一条。 */
 .seg-tabs {
-  display: flex;
+  display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
   padding: 5px;
@@ -1067,12 +1067,13 @@ body.modal-open .particles i { animation-play-state: paused; }
 .seg-panel[hidden] { display: none; }
 .seg-panel:not([hidden]) { animation: fadeInUp 0.4s var(--ease-soft) both; }
 
-/* 赞助者那一栏的名单卡：尺度对齐首页卡片，别比首页还大
-   （2026-09-26：原来是 14/16px 内边距 + 1.6rem 浮动皇冠 + 1.06/1.16rem 文字，用户说太大） */
+/* 赞助者那一栏的名单卡：改成**网格卡片**（跟主页 .content-grid 一个套路），
+   不再是一条拉满整页宽的长条 —— 2026-09-26 用户要求「别每样都拉满整页宽，改成网格卡片」。
+   一格大约 320px 起，窗口宽就并排多张，窄屏自动变一列。 */
 .thanks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1080,8 +1081,9 @@ body.modal-open .particles i { animation-play-state: paused; }
 .thanks-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 11px 13px;
   background: var(--bg-card);
   border: 1px solid var(--gold-light);
   border-radius: var(--radius-sm);
@@ -1138,22 +1140,27 @@ body.modal-open .particles i { animation-play-state: paused; }
 .thanks-amount-num { font-size: 0.95rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
 .thanks-amount-tip { font-size: 0.64rem; color: var(--text-muted); letter-spacing: 0.5px; white-space: nowrap; }
 
-/* 全站唯一那处金额 —— 占位元素由 js/common.js 的 fillSiteCost 启动时回填 */
+/* 全站唯一那处金额 —— 占位元素由 js/common.js 的 fillSiteCost 启动时回填。
+   2026-09-26：原来是一条拉满整页宽、上面还画了虚线分隔的说明；用户嫌「每样都拉满整页宽」，
+   改成一条普通小字（不画横线、限宽）。 */
 .thanks-cost {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--border);
-  font-size: 0.8rem;
+  margin-top: 14px;
+  max-width: 640px;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.7;
+  line-height: 1.6;
 }
 .thanks-cost b { color: var(--gold-ink); font-weight: 800; }
 
 /* 2026-09-26：这一块原来是「☕ 请我喝一杯」+ 赞赏码小图（.thanks-support / -qr / -txt / -t / -s）。
    用户要求「把鸣谢里面赞助码有关的删掉」，标记与样式都移除了 —— 赞赏入口只在首页 hero 那条。 */
 
-/* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单（尺度同样按首页那套收小） */
-.thanks-groups { display: flex; flex-direction: column; gap: 10px; }
+/* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单，同样走网格卡片（窄屏自动一列） */
+.thanks-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+}
 .thanks-group {
   padding: 12px 14px;
   background: var(--bg-card);
@@ -1185,8 +1192,10 @@ body.modal-open .particles i { animation-play-state: paused; }
 .thanks-foot { margin: 14px 0 10px; font-size: 0.8rem; color: var(--text-muted); }
 .thanks-foot-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
-/* 空态 / 加载态：接口挂了或名单真的是空的，都长这样（列表里当 li 用，所以也去掉项目符号） */
+/* 空态 / 加载态：接口挂了或名单真的是空的，都长这样
+   （列表里当 li 用，所以也去掉项目符号；网格里要占满整行，不然只占一格很难看） */
 .thanks-empty {
+  grid-column: 1 / -1;
   padding: 16px 14px;
   text-align: center;
   font-size: 0.84rem;
