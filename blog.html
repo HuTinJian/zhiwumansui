@@ -719,6 +719,8 @@
         <button type="button" class="nav-item active" data-go="all">📋 全部</button>
         <button type="button" class="nav-item" data-go="hot">🔥 热门</button>
         <button type="button" class="nav-item" data-go="write">✍️ 发帖</button>
+        <!-- 纯链接（外面那一页），不是站内视图切换，所以没有 data-go -->
+        <a class="nav-item" href="thanks.html">❤️ 鸣谢</a>
       </div>
 
       <div class="nav-right">
@@ -976,6 +978,7 @@
       <a href="index.html">首页</a>
       <a href="roblox_music.html">ID 宝库</a>
       <a href="feedback.html">意见反馈</a>
+      <a href="thanks.html">❤️ 鸣谢</a>
     </div>
   </footer>
 
@@ -2121,6 +2124,9 @@
       document.querySelectorAll('.blog-nav .nav-item').forEach(function (b) {
         b.addEventListener('click', function () {
           var go = b.dataset.go;
+          /* 没有 data-go 的是【外面那一页】的纯链接（如「❤️ 鸣谢」）：
+             交给浏览器自己跳，别当成站内视图切换 */
+          if (!go) return;
           if (go === 'write') { location.hash = '#/write'; return; }
           goScope(go);
         });

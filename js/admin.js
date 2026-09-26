@@ -1,6 +1,7 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、卡片管理（歌曲/隔离区/鸣谢）
+   反馈管理、卡片管理（歌曲 / 隔离区 / 社区）、
+   鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
    ============================================================ */
 
 /* 缓存反馈列表，用于展开查看隔离区时定位 */
@@ -36,6 +37,12 @@ let feedbackCache = [];
       if (tab.dataset.panel === 'panel-stats' && typeof window.loadStatsPanel === 'function') {
         window.loadStatsPanel();
       }
+
+      /* ❤️ 鸣谢名单面板：切过去时才去拉赞助者名单
+         （ensureSponsors 只在第一次真正拉一次，之后靠「🔄 刷新」或增删后自动刷新） */
+      if (tab.dataset.panel === 'panel-thanks' && typeof window.ensureSponsors === 'function') {
+        window.ensureSponsors();
+      }
     });
   });
 
@@ -59,6 +66,16 @@ let feedbackCache = [];
   document.getElementById('addSongBtn').onclick = handleAddSong;
   document.getElementById('exportSongsBtn').onclick = handleExportSongs;
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
+
+  /* 👑 赞助者名单：添加 / 保存、取消编辑、刷新 */
+  document.getElementById('addSponsorBtn').onclick = handleAddSponsor;
+  document.getElementById('cancelSponsorEditBtn').onclick = resetSponsorForm;
+  document.getElementById('refreshSponsorsBtn').onclick = loadSponsors;
+
+  /* 切到「👑 赞助者名单」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
+     所以和一级标签那层的懒加载不会重复请求） */
+  const sponsorTabBtn = document.querySelector('[data-subpanel="sponsor-panel"]');
+  if (sponsorTabBtn) sponsorTabBtn.addEventListener('click', ensureSponsors);
 
   /* 添加鸣谢弹窗 */
   const addThanksTrigger = document.getElementById('addThanksSelectTrigger');
@@ -388,7 +405,7 @@ async function importSelectedQuarantine(feedbackId, ids) {
 async function approveToThanks(feedbackId) {
   const confirmed = await showConfirm(
     '加入鸣谢',
-    '确认将该反馈用户加入鸣谢名单？\n\n加入后可在"鸣谢管理"中编辑类别和描述。'
+    '确认将该反馈用户加入鸣谢名单？\n\n加入后可在后台「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」里编辑类别和描述。'
   );
   if (!confirmed) return;
 
@@ -856,7 +873,7 @@ async function handleExportSongs() {
 }
 
 /* ============================================================
-   鸣谢管理
+   ❤️ 鸣谢名单（后台「🎮 Roblox ID 宝库」子面板；赞助者见下面单独一节）
    ============================================================ */
 async function loadThanks() {
   const container = document.getElementById('thanksList');
@@ -984,6 +1001,296 @@ async function deleteThanks(id) {
       loadThanks();
     } else {
       showToast('删除失败');
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+/* ============================================================
+   👑 赞助者名单（新「❤️ 鸣谢名单」页里赞助者那一栏）
+   ------------------------------------------------------------
+   约定（本轮定的，前端 thanks.html 也按同一套读，别自行改名）：
+   · 类别固定写死 '👑 赞助者'；
+   · 「金额」存 platform 字段（例如 '¥10'），「感谢语」存 message 字段；
+   · 两处来源：随仓库发布的底档 data/sponsors.json（这里只读，要改就改文件后重新部署），
+     以及 D1 的 thanks 表里 category='👑 赞助者' 的行（这个面板负责增 / 删 / 改）。
+   ============================================================ */
+const SPONSOR_CATEGORY = '👑 赞助者';
+
+/* D1 那部分（可管理）的缓存：编辑时按 id 取回原值 */
+let sponsorCache = [];
+
+/* 已经拉过一次没有？用来避免来回切标签反复请求 */
+let sponsorsLoaded = false;
+
+/* 正在编辑的 D1 记录 id；0 表示「新增」模式 */
+let editingSponsorId = 0;
+
+/* 第一次进面板才拉一次；之后靠「🔄 刷新」或增删后自动刷新 */
+function ensureSponsors() {
+  if (sponsorsLoaded) return;
+  loadSponsors();
+}
+
+/* 读底档 data/sponsors.json：取不到就返回空数组
+   （文件还没建 / 本地直接开文件时会 404，静默跳过，不当成错误刷屏） */
+async function fetchSponsorBaseline() {
+  try {
+    const res = await fetch('data/sponsors.json?t=' + Date.now());
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.sponsors)) return data.sponsors;
+    if (data && Array.isArray(data.list)) return data.list;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
+  } catch (err) {
+    return [];
+  }
+}
+
+/* 把服务端的英文错误码翻成人话 */
+function sponsorErrorText(data, status) {
+  const code = (data && (data.error || data.message)) || '';
+  if (code === 'too long') return '内容太长（名字 ≤40 / 金额 ≤30 / 感谢语 ≤200）';
+  if (code === 'missing fields') return '名字不能为空（类别是固定写死的）';
+  if (code === 'unauthorized') return '登录已过期，请重新登录';
+  if (code === 'bad origin') return '来源校验没通过，刷新页面再试';
+  if (code === 'invalid id') return '这条记录的 ID 不对，刷新后再试';
+  if (code) return code;
+  return 'HTTP ' + status;
+}
+
+async function loadSponsors() {
+  sponsorsLoaded = true;
+
+  const container = document.getElementById('sponsorList');
+  const countEl = document.getElementById('sponsorCount');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  /* ① 底档（静态文件，只读） */
+  const baseline = await fetchSponsorBaseline();
+
+  /* ② D1 里 category === '👑 赞助者' 的行（可增删改） */
+  let d1People = [];
+  let d1Error = '';
+
+  try {
+    const res = await fetch('/api/thanks?t=' + Date.now());
+    if (!res.ok) {
+      d1Error = '加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录';
+    } else {
+      const data = await res.json();
+      if (data && data.ok === false) {
+        d1Error = '加载失败：' + escapeHtml(data.error || '未知错误');
+      } else if (Array.isArray(data)) {
+        const cat = data.find(c => c && c.category === SPONSOR_CATEGORY);
+        d1People = (cat && Array.isArray(cat.people)) ? cat.people : [];
+      }
+    }
+  } catch (err) {
+    d1Error = '网络异常，D1 那部分没加载出来';
+  }
+
+  sponsorCache = d1People;
+
+  /* 计数 = 底档 + D1 两段之和 */
+  const total = baseline.length + d1People.length;
+  if (countEl) countEl.textContent = total;
+
+  container.innerHTML = '';
+
+  if (total === 0 && !d1Error) {
+    container.innerHTML = '<div class="empty-state">暂无赞助者</div>';
+    return;
+  }
+
+  /* ---- 底档行：只读，标一句「改文件」 ---- */
+  if (baseline.length) {
+    const head = document.createElement('div');
+    head.className = 'sponsor-group-title';
+    head.textContent = '📄 底档 · data/sponsors.json（只读，改文件 + 重新部署才会变）';
+    container.appendChild(head);
+
+    baseline.forEach(item => {
+      const p = item || {};
+      const amount = (p.amount === undefined || p.amount === null || p.amount === '')
+        ? String(p.platform || '')
+        : String(p.amount);
+      const el = document.createElement('div');
+      el.className = 'list-item';
+      el.innerHTML = `
+        <div class="row1">
+          <span class="name">${escapeHtml(p.name || '匿名')}</span>
+          ${amount ? '<span class="type-tag gold">' + escapeHtml(amount) + '</span>' : ''}
+        </div>
+        ${p.title ? '<div class="meta">' + escapeHtml(p.title) + '</div>' : ''}
+        ${p.message ? '<div class="message">' + escapeHtml(p.message) + '</div>' : ''}
+        <div class="meta" style="margin:0;">📄 底档 · 改 data/sponsors.json</div>
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  /* ---- D1 行：可编辑、可删除 ---- */
+  if (d1People.length) {
+    const head = document.createElement('div');
+    head.className = 'sponsor-group-title';
+    head.textContent = '☁️ 后台添加 · 存在 D1（category = 👑 赞助者）';
+    container.appendChild(head);
+
+    d1People.forEach(person => {
+      const el = document.createElement('div');
+      el.className = 'list-item';
+      el.innerHTML = `
+        <div class="row1">
+          <span class="name">${escapeHtml(person.name)}</span>
+          ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
+        </div>
+        ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
+        <div class="actions">
+          <button class="btn-edit-sponsor" data-id="${escapeHtml(String(person.id))}">✏️ 编辑</button>
+          <button class="btn-delete" data-id="${escapeHtml(String(person.id))}">🗑️ 删除</button>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+
+    container.querySelectorAll('.btn-edit-sponsor').forEach(btn => {
+      btn.addEventListener('click', () => startEditSponsor(Number(btn.dataset.id)));
+    });
+    container.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteSponsor(Number(btn.dataset.id)));
+    });
+  }
+
+  /* D1 拉挂了也要说清楚，但不挡住底档已经渲染出来的部分 */
+  if (d1Error) {
+    const warn = document.createElement('div');
+    warn.className = 'empty-state';
+    warn.textContent = '⚠️ D1 那部分没加载出来：' + d1Error;
+    container.appendChild(warn);
+  }
+}
+
+/* 编辑：把这一行的值填回上面的表单（值一律用 .value 赋值，不拼 HTML） */
+function startEditSponsor(id) {
+  const person = sponsorCache.find(p => Number(p.id) === Number(id));
+  if (!person) { showToast('未找到这条记录，刷新后再试'); return; }
+
+  editingSponsorId = Number(id);
+  document.getElementById('addSponsorName').value = person.name || '';
+  document.getElementById('addSponsorAmount').value = person.platform || '';
+  document.getElementById('addSponsorMessage').value = person.message || '';
+
+  const okBtn = document.getElementById('addSponsorBtn');
+  if (okBtn) okBtn.textContent = '💾 保存修改';
+  const cancelBtn = document.getElementById('cancelSponsorEditBtn');
+  if (cancelBtn) cancelBtn.style.display = '';
+
+  const form = document.querySelector('.sponsor-add-form');
+  if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast('✏️ 正在编辑「' + (person.name || '') + '」，改完点「💾 保存修改」');
+}
+
+/* 清空表单 + 退出编辑模式（「取消编辑」按钮和提交成功后都走这里） */
+function resetSponsorForm() {
+  editingSponsorId = 0;
+  ['addSponsorName', 'addSponsorAmount', 'addSponsorMessage'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const okBtn = document.getElementById('addSponsorBtn');
+  if (okBtn) { okBtn.textContent = '➕ 添加'; okBtn.disabled = false; }
+  const cancelBtn = document.getElementById('cancelSponsorEditBtn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+/* 添加 / 保存赞助者
+   ⚠️ 约定：金额写进 platform 字段、感谢语写进 message 字段，类别固定 '👑 赞助者'
+   —— 这是本轮定下来的，别改成别的字段名，thanks.html 前端按同一套读。 */
+async function handleAddSponsor() {
+  const nameEl = document.getElementById('addSponsorName');
+  const amountEl = document.getElementById('addSponsorAmount');
+  const messageEl = document.getElementById('addSponsorMessage');
+  const name = nameEl.value.trim();
+  const amount = amountEl.value.trim();
+  const message = messageEl.value.trim();
+
+  /* 长度上限跟服务端 functions/api/thanks.js 对齐（name 40 / platform 30 / message 200） */
+  if (!name) { showToast('请填写名字'); nameEl.focus(); return; }
+  if (name.length > 40) { showToast('名字最多 40 个字'); return; }
+  if (amount.length > 30) { showToast('金额最多 30 个字'); return; }
+  if (message.length > 200) { showToast('感谢语最多 200 个字'); return; }
+
+  const editingId = editingSponsorId;
+  const btn = document.getElementById('addSponsorBtn');
+  if (btn) btn.disabled = true;
+
+  try {
+    /* 底档那份是静态文件，这里动不了；能改的只有 D1 里的行 */
+    const res = await fetch('/api/thanks', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingId
+        ? {
+            action: 'update', id: editingId, category: SPONSOR_CATEGORY,
+            name, platform: amount, message
+          }
+        : {
+            action: 'add', category: SPONSOR_CATEGORY,
+            name, platform: amount, message
+          })
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+
+    if (data && data.ok) {
+      showToast(editingId ? '✅ 已保存修改' : '✅ 已添加赞助者');
+      resetSponsorForm();
+      loadSponsors();
+    } else {
+      showToast((editingId ? '保存失败：' : '添加失败：') + sponsorErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* 删除 D1 里的那一条（底档删不了，要改 data/sponsors.json） */
+async function deleteSponsor(id) {
+  if (!id || isNaN(Number(id))) {
+    showToast('⚠️ ID 无效，无法删除');
+    return;
+  }
+
+  const confirmed = await showConfirm(
+    '删除赞助者',
+    '确定要删除这位赞助者吗？\n\n只能删后台添加的（D1）；底档那部分要改 data/sponsors.json。'
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/thanks', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: Number(id) })
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+
+    if (data && data.ok) {
+      showToast('🗑️ 已删除');
+      if (editingSponsorId === Number(id)) resetSponsorForm();
+      loadSponsors();
+    } else {
+      showToast('删除失败：' + sponsorErrorText(data, res.status));
     }
   } catch (err) {
     showToast('网络异常');
@@ -1472,3 +1779,5 @@ window.loadRobloxStats = loadRobloxStats;
 window.addSongToServer = addSongToServer;
 window.loadStatsPanel = loadStatsPanel;
 window.loadBlogPanel = loadBlogPanel;
+window.loadSponsors = loadSponsors;
+window.ensureSponsors = ensureSponsors;

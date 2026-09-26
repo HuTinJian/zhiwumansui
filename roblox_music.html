@@ -958,66 +958,6 @@
       font-size: 0.85rem;
     }
 
-    #thanksModal .modal-content {
-      max-width: 600px;
-      background: var(--gold-bg);
-      border: 1px solid var(--gold-light);
-    }
-    #thanksModal h2 {
-      color: var(--gold-ink);
-      text-align: center;
-    }
-    #thanksModal .subtitle {
-      text-align: center;
-      color: var(--gold-ink);
-      font-style: italic;
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-      opacity: 0.85;
-    }
-    #thanksModal .thanks-dev-line {
-      text-align: center;
-      color: var(--text-light);
-      font-size: 0.82rem;
-      margin: -8px 0 14px 0;
-      opacity: 0.85;
-    }
-    #thanksList {
-      max-height: 50vh;
-      overflow-y: auto;
-      margin-bottom: 12px;
-    }
-    .thanks-cat { margin-bottom: 14px; }
-    .thanks-cat .cat-title {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 0.95rem;
-      border-bottom: 1px solid var(--gold-light);
-      padding-bottom: 4px;
-      margin-bottom: 6px;
-    }
-    .thanks-person {
-      padding: 4px 0;
-      font-size: 0.9rem;
-      color: var(--text);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 8px;
-      align-items: baseline;
-    }
-    .thanks-person .p-name {
-      font-weight: 600;
-      color: var(--gold-ink);
-    }
-    .thanks-person .p-platform {
-      color: var(--text-muted);
-      font-size: 0.82rem;
-    }
-    .thanks-person .p-message {
-      color: var(--text-light);
-      font-size: 0.85rem;
-    }
-
     #visitSourceModal .modal-content {
       max-width: 480px;
     }
@@ -1168,20 +1108,15 @@
       transform: translateY(-1px);
     }
 
-    #thanksList::-webkit-scrollbar,
     #quarantineList::-webkit-scrollbar { width: 6px; }
-    #thanksList::-webkit-scrollbar-track,
     #quarantineList::-webkit-scrollbar-track { background: transparent; }
-    #thanksList::-webkit-scrollbar-thumb,
     #quarantineList::-webkit-scrollbar-thumb {
       background: rgba(220, 107, 130, 0.25);
       border-radius: 10px;
     }
-    #thanksList::-webkit-scrollbar-thumb:hover,
     #quarantineList::-webkit-scrollbar-thumb:hover {
       background: rgba(220, 107, 130, 0.45);
     }
-    #thanksList,
     #quarantineList {
       scrollbar-width: thin;
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
@@ -1264,6 +1199,7 @@
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
       <li><a href="feedback.html">💬 反馈</a></li>
+      <li><a href="thanks.html">❤️ 鸣谢</a></li>
     </ul>
   </nav>
 
@@ -1278,7 +1214,9 @@
           <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
         </div>
         <nav class="header-nav" aria-label="页面操作">
-          <button type="button" class="nav-btn gold" id="openThanksBtn">❤️ 鸣谢名单</button>
+          <!-- 2026-09-26：原来这里点开的是本站的鸣谢弹窗，
+               鸣谢名单已经搬到独立页面 thanks.html，这里直接跳过去（落在宝库那一档）。 -->
+          <a class="nav-btn gold" href="thanks.html?tab=roblox">❤️ 鸣谢名单</a>
         </nav>
       </div>
       <div class="btns toolbar">
@@ -1338,6 +1276,7 @@
       <a href="index.html">首页</a>
       <a href="feedback.html">意见反馈</a>
       <a href="blog.html">玩家社区</a>
+      <a href="thanks.html">❤️ 鸣谢</a>
     </div>
   </footer>
 
@@ -1410,18 +1349,6 @@
       <div class="quarantine-footer">
         <button class="btn btn-success" id="restoreAllQuarantineBtn">🔄 全部恢复</button>
         <button class="btn btn-primary" id="closeQuarantineBtn">关闭</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal" id="thanksModal">
-    <div class="modal-content">
-      <h2>❤️ 鸣谢名单</h2>
-      <div class="subtitle">“因为你们，这个项目才更美好。”</div>
-      <div class="thanks-dev-line">👑 开发者 · Roblox：@HuTinJian</div>
-      <div id="thanksList"></div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="closeThanksBtn">关闭</button>
       </div>
     </div>
   </div>
@@ -1641,10 +1568,6 @@
       restoreAllQuarantineBtn: $('restoreAllQuarantineBtn'),
       closeQuarantineBtn: $('closeQuarantineBtn'),
       openQuarantineBtn: $('openQuarantineBtn'),
-      thanksModal: $('thanksModal'),
-      thanksList: $('thanksList'),
-      closeThanksBtn: $('closeThanksBtn'),
-      openThanksBtn: $('openThanksBtn'),
       riskModal: $('riskModal'),
       riskBody: $('riskBody'),
       riskCancelBtn: $('riskCancelBtn'),
@@ -2737,39 +2660,6 @@
       renderQuarantineList();
     }
 
-    async function loadThanks() {
-      dom.thanksList.innerHTML = '<div class="empty-state">加载中...</div>';
-      try {
-        const res = await fetch('/api/thanks?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) {
-          dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
-          return;
-        }
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-          dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
-          return;
-        }
-        let html = '';
-        data.forEach(cat => {
-          if (!cat || !cat.people || cat.people.length === 0) return;
-          html += '<div class="thanks-cat">';
-          html += `<div class="cat-title">${escapeHtml(cat.category)}</div>`;
-          cat.people.forEach(p => {
-            html += '<div class="thanks-person">';
-            html += `<span class="p-name">${escapeHtml(p.name)}</span>`;
-            if (p.platform) html += `<span class="p-platform">· ${escapeHtml(p.platform)}</span>`;
-            if (p.message) html += `<span class="p-message">· ${escapeHtml(p.message)}</span>`;
-            html += '</div>';
-          });
-          html += '</div>';
-        });
-        dom.thanksList.innerHTML = html || '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
-      } catch (err) {
-        dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
-      }
-    }
-
     /* 只保留一个“特殊视图”（收藏 / 最新 / 热门 / 多 ID），避免多个筛选互相打架 */
     function resetViewFilters(keep) {
       if (keep !== 'fav' && showFavOnly) {
@@ -2953,12 +2843,6 @@
       dom.closeQuarantineBtn.onclick = () => closeModal('quarantineModal');
       dom.quarantineSearch.addEventListener('input', debounce(renderQuarantineList, 200));
       dom.restoreAllQuarantineBtn.onclick = restoreAllFromQuarantine;
-
-      dom.openThanksBtn.onclick = () => {
-        openModal('thanksModal');
-        loadThanks();
-      };
-      dom.closeThanksBtn.onclick = () => closeModal('thanksModal');
     }
   </script>
 

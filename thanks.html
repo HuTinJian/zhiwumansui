@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>❤️ 鸣谢名单 · 织雾满穗</title>
+
+  <meta name="description" content="织雾满穗的鸣谢名单：👑 赞助者名单（愿意为这个站掏钱的人）与 🎮 Roblox ID 宝库的帮忙者。">
+  <meta name="keywords" content="织雾满穗,鸣谢名单,赞助者,Roblox ID 宝库">
+  <meta name="author" content="HuTinJian">
+  <meta name="theme-color" content="#fdf2f5">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="❤️ 鸣谢名单 · 织雾满穗">
+  <meta property="og:description" content="这个站能一直开着，靠的是这些人。">
+  <meta property="og:image" content="images/developer.png">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- 主题引导：在样式渲染前确定明暗，避免闪白 -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zm_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <nav class="navbar has-brand" aria-label="站点导航">
+    <a class="nav-brand" href="index.html">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span class="brand-text">织雾满穗</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 首页</a></li>
+      <li><a href="feedback.html">💬 反馈</a></li>
+      <li><a href="thanks.html" class="active" aria-current="page">❤️ 鸣谢</a></li>
+    </ul>
+  </nav>
+
+  <!-- ==================== 主内容 ==================== -->
+  <main class="container" id="main">
+
+    <header class="thanks-head">
+      <h1>❤️ 鸣谢名单</h1>
+      <p>这个站能一直开着，靠的是这些人。</p>
+    </header>
+
+    <!-- ==================== 切换选择器 ====================
+         2026-09-26：原来挂在首页的「赞助者荣誉榜」搬到这里，
+         和「Roblox ID 宝库」的鸣谢名单合成一页，靠这个切换器换名单。
+         外观照后台 admin.html 的 .subtabs/.subtab（药丸 + 当前项有色底），
+         样式收在 css/style.css 的 .seg-tabs/.seg-tab 里。
+         点击不刷新页面；?tab=sponsors（默认）/ ?tab=roblox 都能直接深链进来。 -->
+    <div class="seg-tabs" role="tablist" aria-label="鸣谢名单分类">
+      <button type="button" class="seg-tab active" id="tabSponsors" role="tab"
+              data-tab="sponsors" aria-selected="true" aria-controls="panelSponsors">👑 赞助者名单</button>
+      <button type="button" class="seg-tab" id="tabRoblox" role="tab"
+              data-tab="roblox" aria-selected="false" aria-controls="panelRoblox">🎮 Roblox ID 宝库</button>
+    </div>
+
+    <!-- ==================== 面板一：👑 赞助者名单 ====================
+         名单来源有两处，脚本合并去重（按名字，底档优先）：
+           1) 仓库里的底档 data/sponsors.json —— 静态文件，不发接口也看得到；
+           2) D1 thanks 表里 category === '👑 赞助者' 的行（后台加的）。
+         接口挂了 / 返回空都不影响底档：两者各拉各的，互不牵连。 -->
+    <section class="seg-panel active" id="panelSponsors" role="tabpanel"
+             aria-labelledby="tabSponsors" tabindex="0">
+      <ul class="thanks-list" id="sponsorList" aria-busy="true">
+        <li class="thanks-empty" id="sponsorLoading">名单加载中…</li>
+      </ul>
+      <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
+
+      <p class="thanks-cost">本站的 AI 调用费一直是自己掏的，到现在一共花了
+        <b data-site-cost>¥76.41</b>（截至 2026-09-26）。</p>
+
+      <div class="thanks-support">
+        <img class="thanks-support-qr" src="images/sponsor-qrcode.png"
+             alt="HuTinJian 的赞赏码" width="96" height="96" loading="lazy">
+        <div class="thanks-support-txt">
+          <span class="thanks-support-t">☕ 请我喝一杯</span>
+          <span class="thanks-support-s">想支持就扫一下这个码；不扫也完全没关系，照常用。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 面板二：🎮 Roblox ID 宝库 ==================== -->
+    <section class="seg-panel" id="panelRoblox" role="tabpanel"
+             aria-labelledby="tabRoblox" tabindex="0" hidden>
+      <div class="thanks-groups" id="thanksGroups" aria-busy="true">
+        <div class="thanks-empty" id="thanksLoading">加载中…</div>
+      </div>
+      <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
+
+      <p class="thanks-foot">这些人是在 Roblox ID 宝库 帮过忙的。</p>
+      <p class="thanks-foot-actions">
+        <a class="btn btn-secondary" href="roblox_music.html">🎮 去逛逛宝库 →</a>
+      </p>
+    </section>
+  </main>
+
+  <!-- ==================== 页脚 ==================== -->
+  <footer class="footer">
+    <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <div class="footer-links">
+      <a href="feedback.html">意见反馈</a>
+      <a href="roblox_music.html">Roblox ID 宝库</a>
+      <a href="blog.html">玩家社区</a>
+    </div>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    /* ============================================================
+       鸣谢名单页交互
+       ------------------------------------------------------------
+       两件事：① 切换器（不刷新换名单 + 同步 URL）；② 拉两个名单的数据。
+       两条数据链各自 try/catch：/api/thanks 挂了、或底档读不到，
+       都只影响自己那一块，绝不让整页白屏。
+       ============================================================ */
+    (function () {
+      'use strict';
+
+      var $ = function (id) { return document.getElementById(id); };
+
+      /* D1 里赞助者用的类别名，固定这个字符串（别改，后台也按它存） */
+      var SPONSOR_CATEGORY = '👑 赞助者';
+
+      $('year').textContent = new Date().getFullYear();
+
+      /* 版本更新检查（跟其它页一样，带页面对应的 key） */
+      checkPageUpdate('thanks');
+
+      /* 转义：优先用 common.js 的 escapeHtml；万一它没加载出来，插值也不能裸奔 */
+      function esc(text) {
+        if (typeof escapeHtml === 'function') return escapeHtml(text);
+        return String(text === undefined || text === null ? '' : text)
+          .replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+          });
+      }
+
+      function fetchJson(url) {
+        return fetch(url, { cache: 'no-store' }).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        });
+      }
+
+      /* ============================================================
+         ① 切换选择器
+         ============================================================ */
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('.seg-tab'));
+      var panels = { sponsors: $('panelSponsors'), roblox: $('panelRoblox') };
+
+      /* 只认这两个值，别的一律当默认的那一个 */
+      function normalize(name) { return name === 'roblox' ? 'roblox' : 'sponsors'; }
+
+      function show(name, syncUrl) {
+        name = normalize(name);
+
+        tabs.forEach(function (btn) {
+          var on = btn.getAttribute('data-tab') === name;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+
+        Object.keys(panels).forEach(function (key) {
+          var panel = panels[key];
+          if (!panel) return;
+          if (key === name) {
+            panel.classList.add('active');
+            panel.removeAttribute('hidden');
+          } else {
+            panel.classList.remove('active');
+            panel.setAttribute('hidden', '');
+          }
+        });
+
+        if (syncUrl) {
+          /* 深链同步：换一下就改地址栏，但不往历史里堆记录（返回键照样回上一页） */
+          try {
+            history.replaceState(null, '', location.pathname + '?tab=' + name + location.hash);
+          } catch (e) { /* 个别环境（如 file://）不支持，忽略即可，切换本身不受影响 */ }
+        }
+      }
+
+      tabs.forEach(function (btn, index) {
+        btn.addEventListener('click', function () {
+          show(btn.getAttribute('data-tab'), true);
+        });
+
+        /* 键盘：左右（上下）方向键换名单，Home / End 跳首尾。
+           两个选项都是原生 button，Tab 键本来就能聚焦，这里只是补上方向键。 */
+        btn.addEventListener('keydown', function (e) {
+          var next = null;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(index + 1) % tabs.length];
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(index - 1 + tabs.length) % tabs.length];
+          else if (e.key === 'Home') next = tabs[0];
+          else if (e.key === 'End') next = tabs[tabs.length - 1];
+          if (!next) return;
+          e.preventDefault();
+          next.focus();
+          show(next.getAttribute('data-tab'), true);
+        });
+      });
+
+      /* 进页面时按 ?tab= 打开对应的那个；没带参数就是赞助者名单。
+         初次打开【不改 URL】—— 干净的 thanks.html 就让它保持干净。 */
+      var initial = 'sponsors';
+      try {
+        initial = new URLSearchParams(location.search).get('tab') || 'sponsors';
+      } catch (e) {
+        var m = /[?&]tab=([^&#]+)/.exec(location.search || '');
+        if (m) initial = decodeURIComponent(m[1]);
+      }
+      show(initial, false);
+
+      /* ============================================================
+         ② 赞助者名单：底档（data/sponsors.json）+ 后台加的（D1）
+         ============================================================ */
+      function sponsorCard(item) {
+        var html = '<li class="thanks-card">' +
+          '<span class="thanks-crown" aria-hidden="true">👑</span>' +
+          '<div class="thanks-info">' +
+            '<div class="thanks-top">' +
+              '<span class="thanks-name">' + esc(item.name) + '</span>' +
+              '<span class="thanks-title">' + esc(item.title || '荣誉赞助者') + '</span>' +
+            '</div>';
+
+        if (item.message) html += '<p class="thanks-note">' + esc(item.message) + '</p>';
+
+        html += '</div>';
+
+        if (item.amount) {
+          html += '<div class="thanks-amount" aria-label="赞助金额 ' + esc(item.amount) + '">' +
+            '<span class="thanks-amount-num">' + esc(item.amount) + '</span>' +
+            '<span class="thanks-amount-tip">赞助金额</span>' +
+          '</div>';
+        }
+
+        return html + '</li>';
+      }
+
+      function renderSponsors(base, baseOk, extra) {
+        var list = $('sponsorList');
+        if (!list) return;
+
+        var items = [];
+        var seen = Object.create(null);
+
+        function push(p) {
+          if (!p) return;
+          var name = String(p.name === undefined || p.name === null ? '' : p.name).trim();
+          if (!name || seen[name]) return;   /* 按名字去重：先来的赢 —— 底档先入，所以底档优先 */
+          seen[name] = true;
+          items.push({
+            name: name,
+            /* 称号：底档写 title；D1 那边没有这个字段，统一给「荣誉赞助者」 */
+            title: p.title || '荣誉赞助者',
+            /* 金额：底档写 amount；D1 的约定是写在 platform 字段里（后台定的口径），所以两个都认 */
+            amount: p.amount || p.platform || '',
+            message: p.message || ''
+          });
+        }
+
+        /* 底档优先入列 */
+        (Array.isArray(base) ? base : []).forEach(function (p) { push(p); });
+        /* D1 里同名的会被上面挡掉，剩下的才追加 */
+        (Array.isArray(extra) ? extra : []).forEach(function (p) { push(p); });
+
+        if (items.length === 0) {
+          list.innerHTML = '<li class="thanks-empty">' +
+            (baseOk ? '暂无赞助者名单 ❤️' : '底档名单暂时读不出来，刷新一下再试 ❤️') + '</li>';
+        } else {
+          list.innerHTML = items.map(sponsorCard).join('');
+        }
+        list.removeAttribute('aria-busy');
+      }
+
+      /* 两条数据链同时发、各错各的：
+         · 底档 = 仓库里的静态 JSON，跟接口没关系 —— 接口挂了它照常显示；
+         · 接口 = D1 里后台加的人（可能 404 / 断了），拿不到就当没有。 */
+      var basePromise = fetchJson('data/sponsors.json?t=' + Date.now())
+        .then(function (data) { return { list: Array.isArray(data) ? data : [], ok: true }; })
+        .catch(function () { return { list: [], ok: false }; });
+
+      var groupsPromise = fetchJson('/api/thanks?t=' + Date.now())
+        .then(function (groups) { return Array.isArray(groups) ? groups : null; })
+        .catch(function () { return null; });
+
+      Promise.all([basePromise, groupsPromise]).then(function (results) {
+        var base = results[0];
+        var groups = results[1];
+
+        var extra = [];
+        if (Array.isArray(groups)) {
+          groups.forEach(function (cat) {
+            if (cat && cat.category === SPONSOR_CATEGORY && Array.isArray(cat.people)) {
+              extra = extra.concat(cat.people);
+            }
+          });
+        }
+        renderSponsors(base.list, base.ok, extra);
+        renderRoblox(groups);
+      });
+
+      /* ============================================================
+         ③ 🎮 Roblox ID 宝库名单：照 /api/thanks 的类别分组渲染
+            （渲染与转义做法沿用原宝库页弹窗那一版，所有插值都过 esc）
+         ============================================================ */
+      function renderRoblox(groups) {
+        var box = $('thanksGroups');
+        if (!box) return;
+
+        if (!Array.isArray(groups) || groups.length === 0) {
+          box.innerHTML = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
+          box.removeAttribute('aria-busy');
+          return;
+        }
+
+        var html = '';
+        groups.forEach(function (cat) {
+          if (!cat || !cat.people || cat.people.length === 0) return;
+          /* 赞助者（👑 赞助者）上面那一栏已经专门展示了，这里跳过 ——
+             同一个机构/人不在两个 tab 里重复出现（它们本来就是两个名单）。 */
+          if (cat.category === SPONSOR_CATEGORY) return;
+          html += '<div class="thanks-group">';
+          html += '<div class="cat-title">' + esc(cat.category) + '</div>';
+          cat.people.forEach(function (p) {
+            html += '<div class="thanks-person">';
+            html += '<span class="p-name">' + esc(p.name) + '</span>';
+            if (p.platform) html += '<span class="p-platform">· ' + esc(p.platform) + '</span>';
+            if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        });
+
+        box.innerHTML = html || '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
+        box.removeAttribute('aria-busy');
+      }
+    })();
+  </script>
+</body>
+</html>

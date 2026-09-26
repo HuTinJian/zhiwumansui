@@ -998,49 +998,60 @@ body.modal-open .particles i { animation-play-state: paused; }
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
 
-/* ---------- 赞助者荣誉榜（首页 hero 下面那条） ----------
-   2026-09-26 新增：只放「愿意为这个站掏钱的人」，所以单独做一张金色系的卡，
-   跟旁边粉色的卡片区分开 —— 荣誉感靠配色和称号，不靠堆特效。
-   颜色全部走既有主题变量（--gold-* / --bg-card / --text*），
+/* ---------- 鸣谢页（thanks.html）：切换选择器 + 名单卡片 ----------
+   2026-09-26：荣誉榜搬去 thanks.html，这里是新的切换器样式。
+   切换器外观照后台 admin.html 的 .subtabs/.subtab（药丸 + 当前项有色底/顶部小条），
+   但样式收进全站共享表，页面里不用再各写一份。
+   颜色全部走既有主题变量（--primary* / --gold* / --bg* / --text*），
    明暗两套主题因此都不用再写一遍；动画只有一个 4px 的上下浮动和一次入场。
-   结构是可扩展列表：以后加人只要复制一个 .honor-item 改名字和金额。 */
-.honor-section {
-  position: relative;
-  overflow: hidden;
-  margin: 52px 0 8px;
-  padding: 24px 26px 20px;
-  background: linear-gradient(135deg, var(--gold-bg), var(--bg-card) 62%);
-  border: 1px solid var(--gold-light);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  animation: fadeInUp 0.7s var(--ease-out) 0.42s backwards;
-}
-/* 顶上那条金边：跟 .card::before 一个做法，只是把颜色换成金色 */
-.honor-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
-}
-.honor-head {
+   结构是可扩展列表：以后加人只要在 data/sponsors.json 里加一条，或后台加一条。 */
+.seg-tabs {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  padding: 6px;
+  margin-bottom: 18px;
+  background: rgba(220, 107, 130, 0.06);
+  border-radius: var(--radius-pill);
+  animation: fadeInUp 0.5s var(--ease-out) backwards;
 }
-.honor-head h2 {
-  font-size: 1.22rem;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--gold-ink);
+.seg-tab {
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-light);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
 }
-.honor-hint { font-size: 0.82rem; color: var(--text-muted); }
+.seg-tab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
+.seg-tab:active { transform: scale(0.95); }
+.seg-tab.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
+}
+/* 键盘 Tab 聚焦到切换器上时要看得见 —— 有色底上的默认光标环不够显眼 */
+.seg-tab:focus-visible { outline: 2px solid var(--primary-ink); outline-offset: 2px; }
 
-.honor-list {
+/* 面板：靠 [hidden] 切换（点击不刷新页面），只有当前那个会播入场动画 */
+.seg-panel[hidden] { display: none; }
+.seg-panel:not([hidden]) { animation: fadeInUp 0.4s var(--ease-soft) both; }
+
+.thanks-head { margin: 34px 0 22px; text-align: center; }
+.thanks-head h1 {
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--text);
+}
+.thanks-head p { margin-top: 8px; font-size: 0.92rem; color: var(--text-light); line-height: 1.7; }
+
+/* 赞助者那一栏的名单卡 */
+.thanks-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1048,7 +1059,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   padding: 0;
   list-style: none;
 }
-.honor-item {
+.thanks-card {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1058,36 +1069,37 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
   transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+  animation: fadeInUp 0.5s var(--ease-out) backwards;
 }
-.honor-item:hover {
+.thanks-card:hover {
   transform: translateY(-3px);
   border-color: var(--gold);
   box-shadow: var(--shadow-hover);
 }
-.honor-crown {
+.thanks-crown {
   font-size: 1.6rem;
   line-height: 1;
   flex-shrink: 0;
-  animation: honorFloat 3.4s ease-in-out infinite;
+  animation: thanksFloat 3.4s ease-in-out infinite;
 }
-@keyframes honorFloat {
+@keyframes thanksFloat {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
 }
-.honor-info { flex: 1; min-width: 0; }
-.honor-top {
+.thanks-info { flex: 1; min-width: 0; }
+.thanks-top {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-.honor-name {
+.thanks-name {
   font-size: 1.06rem;
   font-weight: 800;
   color: var(--text);
   word-break: break-word;
 }
-.honor-title {
+.thanks-title {
   padding: 2px 9px;
   border-radius: var(--radius-pill);
   font-size: 0.7rem;
@@ -1097,30 +1109,102 @@ body.modal-open .particles i { animation-play-state: paused; }
   background: var(--gold-bg);
   border: 1px solid var(--gold-light);
 }
-.honor-note {
+.thanks-note {
   margin-top: 3px;
   font-size: 0.83rem;
   color: var(--text-light);
   line-height: 1.65;
 }
-.honor-amount {
+.thanks-amount {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
   text-align: right;
 }
-.honor-amount-num { font-size: 1.16rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
-.honor-amount-tip { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.5px; }
-.honor-cost {
-  margin-top: 14px;
+.thanks-amount-num { font-size: 1.16rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
+.thanks-amount-tip { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+/* 全站唯一那处金额 —— 占位元素由 js/common.js 的 fillSiteCost 启动时回填 */
+.thanks-cost {
+  margin-top: 16px;
   padding-top: 12px;
   border-top: 1px dashed var(--border);
   font-size: 0.8rem;
   color: var(--text-muted);
   line-height: 1.7;
 }
-.honor-cost b { color: var(--gold-ink); font-weight: 800; }
+.thanks-cost b { color: var(--gold-ink); font-weight: 800; }
+
+/* ☕ 赞赏码：低调一点（小图 + 一行字，不做成按钮） */
+.thanks-support {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.thanks-support-qr {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  display: block;
+  border-radius: var(--radius-xs);
+  background: #fff;
+  border: 1px solid var(--border);
+}
+.thanks-support-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.thanks-support-t { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.thanks-support-s { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
+
+/* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单 */
+.thanks-groups { display: flex; flex-direction: column; gap: 12px; }
+.thanks-group {
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.thanks-group .cat-title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.98rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.thanks-person {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.thanks-person .p-name { font-weight: 600; color: var(--primary-ink); }
+.thanks-person .p-platform { color: var(--text-muted); font-size: 0.82rem; }
+.thanks-person .p-message { color: var(--text-light); font-size: 0.85rem; }
+
+.thanks-foot { margin: 18px 0 10px; font-size: 0.82rem; color: var(--text-muted); }
+.thanks-foot-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* 空态 / 加载态：接口挂了或名单真的是空的，都长这样（列表里当 li 用，所以也去掉项目符号） */
+.thanks-empty {
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  list-style: none;
+}
 
 .sponsor-modal-content { max-width: 420px; text-align: center; }
 .sponsor-modal-content h2 { margin-bottom: 10px; }
@@ -1286,9 +1370,11 @@ html.lite .reveal {
   transition: none;
 }
 
-/* 荣誉榜的入场 + 皇冠浮动也一起关掉（低配手机上没必要为装饰做合成） */
-html.lite .honor-section,
-html.lite .honor-crown {
+/* 鸣谢页卡片/皇冠的入场与浮动也一起关掉（低配手机上没必要为装饰做合成） */
+html.lite .thanks-card,
+html.lite .thanks-crown,
+html.lite .seg-tabs,
+html.lite .seg-panel:not([hidden]) {
   animation: none !important;
 }
 
@@ -1300,7 +1386,7 @@ html.lite .honor-crown {
   .navbar .nav-links a:hover,
   .card:hover,
   .credits-card:hover,
-  .honor-item:hover,
+  .thanks-card:hover,
   .feature:hover,
   .stat-item:hover,
   .song-group:hover,
@@ -1360,9 +1446,9 @@ html.lite .honor-crown {
   .theme-toggle { width: 36px; height: 36px; font-size: 0.95rem; }
   .credits-section { flex-direction: column; align-items: center; gap: 12px; }
   .credits-card { min-width: 100%; justify-content: center; }
-  .honor-section { margin-top: 40px; padding: 20px 18px 17px; }
-  .honor-head h2 { font-size: 1.14rem; }
-  .honor-item { gap: 12px; padding: 13px 14px; }
+  .thanks-head { margin: 26px 0 18px; }
+  .seg-tab { padding: 8px 14px; font-size: 0.82rem; }
+  .thanks-card { gap: 12px; padding: 13px 14px; }
 }
 
 @media (max-width: 480px) {
@@ -1371,19 +1457,24 @@ html.lite .honor-crown {
   .toast { font-size: 0.85rem; padding: 10px 20px; bottom: 20px; }
   .credits-card { padding: 16px; }
   .credits-icon { width: 40px; height: 40px; }
-  /* 荣誉榜：名字长、右边还有金额，窄屏上允许金额换到第二行，免得撑破卡片 */
-  .honor-section { margin-top: 34px; padding: 18px 15px 15px; }
-  .honor-head { margin-bottom: 13px; gap: 6px; }
-  .honor-head h2 { font-size: 1.02rem; }
-  .honor-hint { font-size: 0.76rem; }
-  .honor-item { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
-  .honor-crown { font-size: 1.4rem; }
-  .honor-info { flex: 1 1 auto; }
-  .honor-name { font-size: 1rem; }
-  .honor-note { font-size: 0.79rem; }
-  .honor-amount { flex: 0 0 auto; margin-left: auto; }
-  .honor-amount-num { font-size: 1.08rem; }
-  .honor-cost { font-size: 0.76rem; }
+  /* 导航栏现在是三个入口（首页 / 反馈 / 鸣谢），窄屏上品牌文字会把它们挤到折行 ——
+     跟首页原来的做法一样：窄屏只留图标，导航项就还在一行里。 */
+  .nav-brand .brand-text { display: none; }
+  .navbar .nav-links a { padding: 6px 10px; white-space: nowrap; }
+  /* 鸣谢页：名字长、右边还有金额，窄屏上允许金额换到第二行，免得撑破卡片 */
+  .thanks-head { margin: 22px 0 16px; }
+  .seg-tabs { gap: 6px; padding: 5px; }
+  .seg-tab { flex: 1 1 auto; padding: 8px 12px; font-size: 0.8rem; }
+  .thanks-card { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .thanks-crown { font-size: 1.4rem; }
+  .thanks-info { flex: 1 1 auto; }
+  .thanks-name { font-size: 1rem; }
+  .thanks-note { font-size: 0.79rem; }
+  .thanks-amount { flex: 0 0 auto; margin-left: auto; }
+  .thanks-amount-num { font-size: 1.08rem; }
+  .thanks-cost { font-size: 0.76rem; }
+  .thanks-support { align-items: flex-start; gap: 11px; padding: 12px 14px; }
+  .thanks-support-qr { width: 76px; height: 76px; }
 }
 
 /* ============================================================

@@ -126,6 +126,11 @@
     .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-2px); }
     .list-item .actions .btn-expand { background: var(--primary); color: #fff; }
     .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    /* 赞助者那一行的「✏️ 编辑」：中性描边款，别跟红色的「🗑️ 删除」抢眼 */
+    .list-item .actions .btn-edit-sponsor {
+      background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
+    }
+    .list-item .actions .btn-edit-sponsor:hover { background: var(--bg-tint); transform: translateY(-2px); }
     .list-item .actions button:active { transform: scale(0.92); }
 
     /* ---------- 反馈处理结果 ---------- */
@@ -325,6 +330,55 @@
     }
     .song-add-form .btn-add-song:active { transform: scale(0.93); }
 
+    /* ========== 鸣谢名单面板（👑 赞助者） ========== */
+    .panel-hint {
+      font-size: 0.85rem; color: var(--text-muted); line-height: 1.8;
+      margin-bottom: 14px;
+    }
+    .panel-hint code {
+      background: var(--bg-tint); color: var(--primary-ink);
+      padding: 1px 6px; border-radius: 4px; font-size: 0.8rem;
+      font-family: 'Courier New', monospace;
+    }
+    .sponsor-group-title {
+      font-weight: 700; color: var(--gold); margin: 16px 0 8px; font-size: 0.95rem;
+    }
+    .sponsor-add-form {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+      padding: 14px; background: var(--bg-soft);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+    .sponsor-add-form input {
+      padding: 9px 14px; border: 2px solid var(--border);
+      border-radius: 10px; font-family: var(--font); font-size: 0.9rem;
+      background: var(--bg-card); color: var(--text); outline: none;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+    }
+    .sponsor-add-form input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .sponsor-add-form input.sponsor-name { flex: 1 1 140px; }
+    .sponsor-add-form input.sponsor-amount { flex: 0 1 130px; font-family: monospace; }
+    .sponsor-add-form input.sponsor-message { flex: 3 1 200px; }
+    .sponsor-add-form .btn-add-sponsor {
+      padding: 9px 22px; background: var(--primary); color: #fff;
+      border: none; border-radius: var(--radius-pill);
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: background 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce);
+    }
+    .sponsor-add-form .btn-add-sponsor:hover {
+      background: var(--primary-dark); transform: translateY(-2px);
+    }
+    .sponsor-add-form .btn-add-sponsor:active { transform: scale(0.93); }
+    .sponsor-add-form .btn-add-sponsor:disabled { opacity: 0.6; cursor: default; }
+    .sponsor-add-form .btn-cancel-sponsor {
+      padding: 9px 18px; background: transparent; color: var(--text-light);
+      border: 2px solid var(--border); border-radius: var(--radius-pill);
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: var(--font);
+    }
+    .sponsor-add-form .btn-cancel-sponsor:hover { border-color: var(--primary-light); color: var(--primary); }
+
     /* ========== 工具 iframe ========== */
     .tool-iframe-wrap {
       margin: 0;
@@ -472,6 +526,8 @@
       .fb-q-item { flex-wrap: wrap; gap: 6px; }
       .song-add-form { flex-direction: column; }
       .song-add-form input { width: 100%; }
+      .sponsor-add-form { flex-direction: column; }
+      .sponsor-add-form input { width: 100%; }
     }
   </style>
 </head>
@@ -498,6 +554,7 @@
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
+      <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📊 数据统计</button>
     </div>
 
@@ -535,7 +592,6 @@
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
           <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
-          <button class="subtab" data-subpanel="card1-thanks">❤️ 鸣谢管理</button>
           <button class="subtab" data-subpanel="card1-json-merge">📦 JSON 合并工具</button>
         </div>
 
@@ -598,21 +654,6 @@
           </div>
         </div>
 
-        <div class="subpanel" id="card1-thanks">
-          <div class="panel-card">
-            <h2>
-              ❤️ 鸣谢名单
-              <span class="count" id="thanksCount">0</span>
-              <span class="head-actions">
-                <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
-              </span>
-            </h2>
-            <div id="thanksList">
-              <div class="loading">加载中...</div>
-            </div>
-          </div>
-        </div>
-
         <div class="subpanel" id="card1-json-merge">
           <div class="panel-card" style="padding:0;overflow:hidden;">
             <div class="tool-iframe-wrap">
@@ -651,6 +692,65 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- 鸣谢名单 -->
+    <div class="panel" id="panel-thanks">
+
+      <p class="panel-hint">
+        这里的两个名单都展示在站点的新页面 <code>thanks.html</code>（页内也是这两个切换）。
+        「👑 赞助者名单」有<b>两处来源</b>：随仓库发布的底档 <code>data/sponsors.json</code>（只读、改文件），
+        以及下面在后台增删的 D1 记录；「🎮 Roblox ID 宝库」就是原来卡片管理里的那份鸣谢名单。
+      </p>
+
+      <div class="subtabs subtabs-lv3" data-tabs-group="thanks">
+        <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者名单</button>
+        <button class="subtab" data-subpanel="thanks-panel">🎮 Roblox ID 宝库</button>
+      </div>
+
+      <!-- 子面板 · 赞助者名单（底档只读 + D1 可增删改） -->
+      <div class="subpanel active" id="sponsor-panel">
+        <div class="panel-card">
+          <h2>
+            👑 赞助者名单
+            <span class="count" id="sponsorCount">0</span>
+            <span class="head-actions">
+              <button class="btn btn-secondary" id="refreshSponsorsBtn">🔄 刷新</button>
+            </span>
+          </h2>
+          <p class="panel-hint" style="margin:-6px 0 14px;">
+            底档那一份只能改 <code>data/sponsors.json</code> 后重新部署；
+            这里加的会存进 D1（类别固定 <code>👑 赞助者</code>，<b>金额写在 platform 字段</b>）。
+            名字 ≤40 字、金额 ≤30 字、感谢语 ≤200 字。
+          </p>
+          <div class="sponsor-add-form">
+            <input type="text" class="sponsor-name" id="addSponsorName" placeholder="名字（必填）" maxlength="40">
+            <input type="text" class="sponsor-amount" id="addSponsorAmount" placeholder="金额，例如 ¥10" maxlength="30">
+            <input type="text" class="sponsor-message" id="addSponsorMessage" placeholder="感谢语（选填）" maxlength="200">
+            <button class="btn-add-sponsor" id="addSponsorBtn">➕ 添加</button>
+            <button class="btn-cancel-sponsor" id="cancelSponsorEditBtn" style="display:none;">取消编辑</button>
+          </div>
+          <div id="sponsorList">
+            <div class="loading">加载中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子面板 · Roblox ID 宝库（原来的鸣谢管理，整块搬过来） -->
+      <div class="subpanel" id="thanks-panel">
+        <div class="panel-card">
+          <h2>
+            ❤️ 鸣谢名单
+            <span class="count" id="thanksCount">0</span>
+            <span class="head-actions">
+              <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
+            </span>
+          </h2>
+          <div id="thanksList">
+            <div class="loading">加载中...</div>
+          </div>
+        </div>
       </div>
     </div>
 
