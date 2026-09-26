@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>开发者隔离区合并工具 - 织雾满穗</title>
+  <title>⛔ 开发者隔离区合并工具 - 织雾满穗</title>
 
   <!-- 站点公共样式（配色变量、字体、按钮底色都跟后台同一套） -->
   <link rel="stylesheet" href="../css/style.css">
@@ -371,11 +371,11 @@
       <div class="result-stats">
         <div class="stat-item">
           <div class="num" id="statOriginal">0</div>
-          <div class="label">原有条数（A 边）</div>
+          <div class="label">原有条数</div>
         </div>
         <div class="stat-item gold">
           <div class="num" id="statExtra">0</div>
-          <div class="label">新增条数（B 边独有）</div>
+          <div class="label">新增条数</div>
         </div>
         <div class="stat-item">
           <div class="num" id="statMerged">0</div>
@@ -383,12 +383,12 @@
         </div>
         <div class="stat-item gold">
           <div class="num" id="statOverwritten">0</div>
-          <div class="label">重复覆盖（保留 A 边）</div>
+          <div class="label">重复覆盖</div>
         </div>
       </div>
       <div class="preview" id="previewResult" style="max-height:200px;"></div>
       <div class="actions" style="margin-bottom:0;">
-        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+        <button class="btn btn-success" id="downloadBtn">💾 下载 admin_quarantine.json</button>
       </div>
     </div>
 
@@ -615,7 +615,7 @@
         const list = normalizeList(body.data);
         if (!list) throw new Error('data 不是数组');
         dataB = list;
-        showListB(list, '已从线上 D1 读取');
+        showListB(list, '已从线上读取');
         checkReady();
       } catch (e) {
         if (!silent) {

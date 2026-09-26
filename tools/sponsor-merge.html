@@ -325,13 +325,13 @@
     </div>
 
     <div class="card">
-      <h2>📁 A · 底档（data/sponsors.json）</h2>
+      <h2>📁 A · 站内底档（data/sponsors.json）</h2>
       <p class="hint">
-        点按钮直接读网站上的底档（字段：name / amount / title / message）；也可以手动选文件，或者把文件拖进方框。
+        点按钮直接读网站上的那份（随仓库发布的底档，字段：name / amount / title / message）；也可以手动选文件，或者把文件拖进方框。
         合并时以这一边为准。
       </p>
       <div class="actions">
-        <button class="btn btn-secondary" id="loadABtn">📥 读取底档 sponsors.json</button>
+        <button class="btn btn-secondary" id="loadABtn">📥 读取站内底档</button>
       </div>
       <label class="upload-box" id="uploadBoxA">
         <input type="file" id="fileA" accept=".json,application/json">
@@ -346,11 +346,11 @@
     <div class="card">
       <h2>☁️ B · 线上赞助者（/api/thanks → 👑 赞助者）</h2>
       <p class="hint">
-        点按钮直接读线上鸣谢接口里 category === 「👑 赞助者」的那一组（需要登录后台），
+        点按钮直接读线上鸣谢接口里 category === 「👑 赞助者」的那一组（需要登录后台）；也可以手动选择后台导出的 JSON，
         再映射成底档的字段：金额取 platform、感谢语取 message、称号固定「荣誉赞助者」。
       </p>
       <div class="actions">
-        <button class="btn btn-secondary" id="loadBBtn">📥 读取线上 D1 赞助者</button>
+        <button class="btn btn-secondary" id="loadBBtn">📥 读取线上赞助者</button>
       </div>
       <label class="upload-box" id="uploadBoxB">
         <input type="file" id="fileB" accept=".json,application/json">
@@ -368,28 +368,28 @@
 
     <div class="card" id="resultCard" style="display:none;">
       <h2>✅ 合并结果</h2>
-      <p class="hint">下载后覆盖网站里的 data/sponsors.json（格式跟底档一致），重新部署一次就生效。</p>
+      <p class="hint">下载后覆盖网站里的 data/sponsors.json，重新部署一次就生效。导出格式跟底档一致。</p>
       <div class="result-stats">
         <div class="stat-item">
           <div class="num" id="statOriginal">0</div>
-          <div class="label">原有条数（A 边底档）</div>
+          <div class="label">原有人数</div>
         </div>
         <div class="stat-item gold">
           <div class="num" id="statExtra">0</div>
-          <div class="label">新增条数（B 边独有）</div>
+          <div class="label">新增人数</div>
         </div>
         <div class="stat-item">
           <div class="num" id="statMerged">0</div>
-          <div class="label">合并后总条数</div>
+          <div class="label">合并后总人数</div>
         </div>
         <div class="stat-item gold">
           <div class="num" id="statOverwritten">0</div>
-          <div class="label">重复覆盖（保留 A 边）</div>
+          <div class="label">重复覆盖</div>
         </div>
       </div>
       <div class="preview" id="previewResult" style="max-height:200px;"></div>
       <div class="actions" style="margin-bottom:0;">
-        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+        <button class="btn btn-success" id="downloadBtn">💾 下载 sponsors.json</button>
       </div>
     </div>
 
@@ -507,12 +507,12 @@
     }
 
     function showListA(list, source) {
-      fileInfoA.textContent = '✅ ' + source + '：' + list.length + ' 人';
+      fileInfoA.textContent = '✅ ' + source + '：' + list.length + ' 条';
       previewA.textContent = JSON.stringify(list.slice(0, 3), null, 2) + (list.length > 3 ? '\n...' : '');
     }
 
     function showListB(list, source) {
-      fileInfoB.textContent = '✅ ' + source + '：' + list.length + ' 人';
+      fileInfoB.textContent = '✅ ' + source + '：' + list.length + ' 条';
       previewB.textContent = JSON.stringify(list.slice(0, 3), null, 2) + (list.length > 3 ? '\n...' : '');
     }
 
@@ -536,13 +536,13 @@
       readFile(file, function (err, raw) {
         if (err) {
           clearA('等待读取...');
-          alert('❌ 底档文件解析失败：' + err.message);
+          alert('❌ A 边文件解析失败：' + err.message);
           return;
         }
         const list = normalizeList(raw);
         if (!list) {
           clearA('等待读取...');
-          alert('❌ 底档必须是一个 JSON 数组，格式：[{"name":"名字","amount":"¥10","title":"荣誉赞助者","message":"感谢语"}]');
+          alert('❌ A 边必须是一个 JSON 数组，格式：[{"name":"名字","amount":"¥10","title":"荣誉赞助者","message":"感谢语"}]');
           return;
         }
         dataA = list;
@@ -555,7 +555,7 @@
       readFile(file, function (err, raw) {
         if (err) {
           clearB('等待读取...');
-          alert('❌ 线上数据文件解析失败：' + err.message);
+          alert('❌ B 边文件解析失败：' + err.message);
           return;
         }
         /* 两种都认：底档那种扁平数组，或者 /api/thanks 那种分组数组 */
@@ -567,7 +567,7 @@
         }
         if (!list) {
           clearB('等待读取...');
-          alert('❌ 线上数据必须是一个 JSON 数组（底档格式，或 /api/thanks 的分组格式）');
+          alert('❌ B 边必须是一个 JSON 数组（底档格式，或 /api/thanks 的分组格式）');
           return;
         }
         dataB = list;
@@ -639,7 +639,7 @@
             '\n\n（用 file:// 直接打开这个工具页时会读不到，请用本地预览打开，或手动选文件）');
         }
       }
-      if (!silent) { loadABtn.disabled = false; loadABtn.textContent = '📥 读取底档 sponsors.json'; }
+      if (!silent) { loadABtn.disabled = false; loadABtn.textContent = '📥 读取站内底档'; }
     }
 
     async function loadOnlineSponsors(silent) {
@@ -653,7 +653,7 @@
         const list = sponsorsFromThanks(body);
         if (!list) throw new Error('接口未返回有效数据');
         dataB = list;
-        showListB(list, '已从线上 D1 读取');
+        showListB(list, '已从线上读取');
         checkReady();
         if (!silent && list.length === 0) {
           alert('线上「👑 赞助者」这一组现在是空的（底档那一部分照常参与合并）。');
@@ -663,7 +663,7 @@
           alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
         }
       }
-      if (!silent) { loadBBtn.disabled = false; loadBBtn.textContent = '📥 读取线上 D1 赞助者'; }
+      if (!silent) { loadBBtn.disabled = false; loadBBtn.textContent = '📥 读取线上赞助者'; }
     }
 
     loadABtn.addEventListener('click', function () { loadSiteSponsors(false); });
@@ -718,7 +718,7 @@
 
     downloadBtn.addEventListener('click', function () {
       if (!merged || merged.length === 0) { alert('❌ 合并结果为空，已取消下载'); return; }
-      if (!confirm('确定下载并覆盖 data/sponsors.json 吗？共 ' + merged.length + ' 位赞助者')) return;
+      if (!confirm('确定下载并覆盖 data/sponsors.json 吗？共 ' + merged.length + ' 人')) return;
       const content = JSON.stringify(merged, null, 2);
       const blob = new Blob([content], { type: 'application/json' });
       const url = URL.createObjectURL(blob);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JSON 合并工具 - 织雾满穗</title>
+  <title>📦 音乐 ID 合并工具 - 织雾满穗</title>
 
   <!-- 登录保护：先藏起来，确认已登录再显示，避免未登录时闪一下工具界面 -->
   <style>html.auth-pending body { visibility: hidden; }</style>
@@ -317,15 +317,15 @@
   <div class="container">
 
     <div class="page-title">
-      <h1>📦 JSON 合并工具</h1>
-      <p class="subtitle">读取线上数据 → 合并或导出 → 放进网站的 data/ 目录</p>
+      <h1>📦 音乐 ID 合并工具</h1>
+      <p class="subtitle">站内歌单 + 线上 D1 新歌 → 按歌曲 ID 去重（线上新歌优先）→ 导出 roblox_music.json</p>
     </div>
 
     <div class="card">
-      <h2>📁 原有数据（data/roblox_music.json）</h2>
-      <p class="hint">点按钮直接读网站上的那份；也可以手动选文件，或者把文件拖进方框。</p>
+      <h2>📁 A · 站内歌单（data/roblox_music.json）</h2>
+      <p class="hint">点按钮直接读网站上的那份（随仓库发布的底档）；也可以手动选文件，或者把文件拖进方框。重复的 ID 会被线上新歌覆盖（合并时以 B 边为准）。</p>
       <div class="actions">
-        <button class="btn btn-secondary" id="loadSiteJsonBtn">📥 读取网站上的 roblox_music.json</button>
+        <button class="btn btn-secondary" id="loadSiteJsonBtn">📥 读取站内歌单</button>
       </div>
       <label class="upload-box" id="uploadBoxA">
         <input type="file" id="fileA" accept=".json,application/json">
@@ -338,10 +338,10 @@
     </div>
 
     <div class="card">
-      <h2>📁 D1 里的新歌（songs_extra）</h2>
-      <p class="hint">点按钮直接读线上数据库；也可以手动选后台导出的 songs_extra_xxx.json。</p>
+      <h2>☁️ B · 线上 D1 新歌（/api/songs/list）</h2>
+      <p class="hint">点按钮直接读线上数据库里后台新增的歌（需要登录后台）；也可以手动选择后台导出的 songs_extra_xxx.json。合并时以这一边为准。</p>
       <div class="actions">
-        <button class="btn btn-secondary" id="loadD1SongsBtn">📥 读取线上 D1 里的新歌</button>
+        <button class="btn btn-secondary" id="loadD1SongsBtn">📥 读取线上 D1 新歌</button>
       </div>
       <label class="upload-box" id="uploadBoxB">
         <input type="file" id="fileB" accept=".json,application/json">
@@ -367,7 +367,7 @@
         </div>
         <div class="stat-item gold">
           <div class="num" id="statExtra">0</div>
-          <div class="label">新歌条数</div>
+          <div class="label">新增条数</div>
         </div>
         <div class="stat-item">
           <div class="num" id="statMerged">0</div>
@@ -380,7 +380,7 @@
       </div>
       <div class="preview" id="previewResult" style="max-height:200px;"></div>
       <div class="actions" style="margin-bottom:0;">
-        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+        <button class="btn btn-success" id="downloadBtn">💾 下载 roblox_music.json</button>
       </div>
     </div>
 
@@ -441,21 +441,21 @@
         if (err) {
           dataA = null;
           fileInfoA.textContent = '';
-          previewA.textContent = '等待上传...';
+          previewA.textContent = '等待读取...';
           checkReady();
-          alert('❌ 原有数据文件解析失败：' + err.message);
+          alert('❌ A 边文件解析失败：' + err.message);
           return;
         }
         if (!Array.isArray(data)) {
           dataA = null;
           fileInfoA.textContent = '';
-          previewA.textContent = '等待上传...';
+          previewA.textContent = '等待读取...';
           checkReady();
-          alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）');
+          alert('❌ A 边必须是一个 JSON 数组，格式：[{"id":"歌曲ID","name":"歌名","category":"分类","lineIndex":0}]');
           return;
         }
         dataA = data;
-        fileInfoA.textContent = '✅ 已加载 ' + data.length + ' 条';
+        fileInfoA.textContent = '✅ 已加载文件 ' + file.name + '：' + data.length + ' 条';
         previewA.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
         checkReady();
       });
@@ -466,21 +466,21 @@
         if (err) {
           dataB = null;
           fileInfoB.textContent = '';
-          previewB.textContent = '等待上传...';
+          previewB.textContent = '等待读取...';
           checkReady();
-          alert('❌ 新歌文件解析失败：' + err.message);
+          alert('❌ B 边文件解析失败：' + err.message);
           return;
         }
         if (!Array.isArray(data)) {
           dataB = null;
           fileInfoB.textContent = '';
-          previewB.textContent = '等待上传...';
+          previewB.textContent = '等待读取...';
           checkReady();
-          alert('❌ 必须是一个 JSON 数组（用 [ ] 包起来）');
+          alert('❌ B 边必须是一个 JSON 数组，格式：[{"id":"歌曲ID","name":"歌名","category":"分类","lineIndex":0}]');
           return;
         }
         dataB = data;
-        fileInfoB.textContent = '✅ 已加载 ' + data.length + ' 条';
+        fileInfoB.textContent = '✅ 已加载文件 ' + file.name + '：' + data.length + ' 条';
         previewB.textContent = JSON.stringify(data.slice(0, 3), null, 2) + (data.length > 3 ? '\n...' : '');
         checkReady();
       });
@@ -625,7 +625,7 @@
             '\n\n（用 file:// 直接打开这个工具页时会读不到，请用 wrangler 本地预览，或手动选文件）');
         }
       }
-      if (!silent) { loadSiteJsonBtn.disabled = false; loadSiteJsonBtn.textContent = '📥 读取网站上的 roblox_music.json'; }
+      if (!silent) { loadSiteJsonBtn.disabled = false; loadSiteJsonBtn.textContent = '📥 读取站内歌单'; }
     }
 
     async function fetchD1Songs(silent) {
@@ -634,13 +634,13 @@
         const res = await fetch('/api/songs/list?t=' + Date.now(), { credentials: 'include' });
         const data = await res.json();
         if (!data || !data.ok || !Array.isArray(data.data)) throw new Error('接口未返回有效数据');
-        showLoadedB(data.data, '已从 D1 读取');
+        showLoadedB(data.data, '已从线上读取');
       } catch (e) {
         if (!silent) {
           alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
         }
       }
-      if (!silent) { loadD1SongsBtn.disabled = false; loadD1SongsBtn.textContent = '📥 读取线上 D1 里的新歌'; }
+      if (!silent) { loadD1SongsBtn.disabled = false; loadD1SongsBtn.textContent = '📥 读取线上 D1 新歌'; }
     }
 
     loadSiteJsonBtn.addEventListener('click', function () { fetchSiteJson(false); });

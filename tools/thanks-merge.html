@@ -327,8 +327,9 @@
     <div class="card">
       <h2>☁️ A · 线上鸣谢名单（/api/thanks）</h2>
       <p class="hint">
-        点按钮直接读线上接口（需要登录后台）。这里会<b>自动排除</b>「👑 赞助者」那一组 ——
-        赞助者由「👑 赞助者合并工具」单独负责，两边不会打架。合并时以这一边为准。
+        点按钮直接读线上接口（需要登录后台）；也可以手动选文件，或者把文件拖进方框。
+        这里会<b>自动排除</b>「👑 赞助者」那一组 —— 赞助者由「👑 赞助者合并工具」单独负责，两边不会打架。
+        合并时以这一边为准。
       </p>
       <div class="actions">
         <button class="btn btn-secondary" id="loadABtn">📥 读取线上鸣谢名单</button>
@@ -344,15 +345,15 @@
     </div>
 
     <div class="card">
-      <h2>📁 B · 本地鸣谢 JSON（要并进去的那份）</h2>
+      <h2>📂 B · 本地鸣谢 JSON（要并进去的那份）</h2>
       <p class="hint">
-        选一份你自己整理好的 thanks.json（结构要跟线上一致）：
+        这一边没有一键读取：自己准备一份 thanks.json（结构要跟线上一致），点方框选文件，或者把文件拖进方框。
         <code>[{"category":"🎬 ID公益UP主/作者","people":[{"name":"名字","platform":"平台","message":"说明"}]}]</code>
       </p>
       <label class="upload-box" id="uploadBoxB">
         <input type="file" id="fileB" accept=".json,application/json">
         <div class="upload-icon">📂</div>
-        <div class="upload-text">点击这里选择 <strong>thanks.json</strong></div>
+        <div class="upload-text">或者点击这里选择 <strong>thanks.json</strong></div>
         <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
         <div class="file-info" id="fileInfoB"></div>
       </label>
@@ -374,11 +375,11 @@
       <div class="result-stats">
         <div class="stat-item">
           <div class="num" id="statOriginal">0</div>
-          <div class="label">原有人数（A 边）</div>
+          <div class="label">原有人数</div>
         </div>
         <div class="stat-item gold">
           <div class="num" id="statExtra">0</div>
-          <div class="label">新增人数（B 边独有）</div>
+          <div class="label">新增人数</div>
         </div>
         <div class="stat-item">
           <div class="num" id="statMerged">0</div>
@@ -386,13 +387,13 @@
         </div>
         <div class="stat-item gold">
           <div class="num" id="statOverwritten">0</div>
-          <div class="label">重复覆盖（保留 A 边）</div>
+          <div class="label">重复覆盖</div>
         </div>
       </div>
       <p class="hint" id="groupInfo" style="margin-top:2px;"></p>
       <div class="preview" id="previewResult" style="max-height:200px;"></div>
       <div class="actions" style="margin-bottom:0;">
-        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+        <button class="btn btn-success" id="downloadBtn">💾 下载 thanks.json</button>
       </div>
     </div>
 
@@ -746,9 +747,9 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-      alert('✅ 已下载！\n\n文件名：thanks.json（结构跟线上 /api/thanks 一致）\n\n' +
-        '它是本地合并出来的结果：网站页面读的是线上实时数据，这个工具不会改数据库；\n' +
-        '要归档、对账或交给别人处理，直接保存这个文件就行。');
+      alert('✅ 已下载！\n\n接下来：\n' +
+        '1. 把 thanks.json 存档、对账或交给别人处理（结构跟线上 /api/thanks 一致）\n' +
+        '2. 网站页面读的是线上实时数据，这个工具不改数据库，也不用重新部署');
     });
 
     /* 后台是用 iframe 嵌这个页面的：上报高度，父页面好把框撑开 */

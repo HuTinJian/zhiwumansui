@@ -68,14 +68,23 @@ let feedbackCache = [];
   document.getElementById('cancelImportQuarantine').onclick = () => closeModal('importQuarantineModal');
   document.getElementById('confirmImportQuarantine').onclick = handleImportQuarantine;
 
-  /* 歌曲管理按钮 */
-  document.getElementById('addSongBtn').onclick = handleAddSong;
+  /* 歌曲管理按钮（2026-09-26：原来那排行内输入框改成「➕ 添加歌曲」按钮 + 弹窗） */
+  document.getElementById('openAddSongBtn').onclick = openAddSongModal;
+  document.getElementById('cancelAddSong').onclick = () => {
+    closeModal('addSongModal');
+    resetSongForm();
+  };
+  document.getElementById('confirmAddSong').onclick = handleAddSong;
   document.getElementById('exportSongsBtn').onclick = handleExportSongs;
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
-  /* 👑 赞助者：添加 / 保存、取消编辑、刷新 */
-  document.getElementById('addSponsorBtn').onclick = handleAddSponsor;
-  document.getElementById('cancelSponsorEditBtn').onclick = resetSponsorForm;
+  /* 👑 赞助者：「➕ 添加赞助者」弹窗（行的「✏️ 编辑」复用同一个弹窗）、🔄 刷新 */
+  document.getElementById('openAddSponsorBtn').onclick = openAddSponsorModal;
+  document.getElementById('cancelAddSponsor').onclick = () => {
+    closeModal('addSponsorModal');
+    resetSponsorForm();
+  };
+  document.getElementById('confirmAddSponsor').onclick = handleAddSponsor;
   document.getElementById('refreshSponsorsBtn').onclick = loadSponsors;
 
   /* 切到「👑 赞助者」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
@@ -743,7 +752,24 @@ async function loadSongs() {
   }
 }
 
-/* 单曲添加 */
+/* 「➕ 添加歌曲」弹窗：清空三个输入框再打开
+   （2026-09-26：原来是页面里的一排行内输入框，改成按钮 + 弹窗，
+    字段 id / 校验 / 提交接口 /api/songs/add 都没变） */
+function openAddSongModal() {
+  resetSongForm();
+  const titleEl = document.getElementById('addSongModalTitle');
+  if (titleEl) titleEl.textContent = '➕ 添加歌曲';
+  openModal('addSongModal');
+}
+
+function resetSongForm() {
+  ['addSongId', 'addSongName', 'addSongCat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+/* 单曲添加（弹窗里点「✅ 确认添加」；批量导入走 admin.html 内联脚本，互不影响） */
 async function handleAddSong() {
   const idInput = document.getElementById('addSongId');
   const nameInput = document.getElementById('addSongName');
@@ -753,17 +779,16 @@ async function handleAddSong() {
   const name = nameInput.value.trim();
   const category = catInput.value.trim() || '未分类';
 
-  if (!musicId) { showToast('请填写歌曲 ID'); return; }
-  if (!name) { showToast('请填写歌曲名称'); return; }
-  if (!/^\d+$/.test(musicId)) { showToast('ID 必须是纯数字'); return; }
+  if (!musicId) { showToast('请填写歌曲 ID'); idInput.focus(); return; }
+  if (!name) { showToast('请填写歌曲名称'); nameInput.focus(); return; }
+  if (!/^\d+$/.test(musicId)) { showToast('ID 必须是纯数字'); idInput.focus(); return; }
 
   const data = await addSongToServer({ musicId, name, category });
 
   if (data && data.ok) {
     showToast('✅ 已添加');
-    idInput.value = '';
-    nameInput.value = '';
-    catInput.value = '';
+    closeModal('addSongModal');
+    resetSongForm();
     loadSongs();
     loadRobloxStats();
   } else {
@@ -1181,7 +1206,9 @@ async function loadSponsors() {
   }
 }
 
-/* 编辑：把这一行的值填回上面的表单（值一律用 .value 赋值，不拼 HTML） */
+/* 编辑：打开同一个弹窗、把这一行的值填进去
+   （2026-09-26：原来是填回上面那排行内表单，现在统一走弹窗；
+    值一律用 .value 赋值，不拼 HTML） */
 function startEditSponsor(id) {
   const person = sponsorCache.find(p => Number(p.id) === Number(id));
   if (!person) { showToast('未找到这条记录，刷新后再试'); return; }
@@ -1191,27 +1218,32 @@ function startEditSponsor(id) {
   document.getElementById('addSponsorAmount').value = person.platform || '';
   document.getElementById('addSponsorMessage').value = person.message || '';
 
-  const okBtn = document.getElementById('addSponsorBtn');
+  const titleEl = document.getElementById('addSponsorModalTitle');
+  if (titleEl) titleEl.textContent = '✏️ 编辑赞助者';
+  const okBtn = document.getElementById('confirmAddSponsor');
   if (okBtn) okBtn.textContent = '💾 保存修改';
-  const cancelBtn = document.getElementById('cancelSponsorEditBtn');
-  if (cancelBtn) cancelBtn.style.display = '';
 
-  const form = document.querySelector('.sponsor-add-form');
-  if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  openModal('addSponsorModal');
   showToast('✏️ 正在编辑「' + (person.name || '') + '」，改完点「💾 保存修改」');
 }
 
-/* 清空表单 + 退出编辑模式（「取消编辑」按钮和提交成功后都走这里） */
+/* 「➕ 添加赞助者」：先退出编辑模式、清空表单，再开弹窗 */
+function openAddSponsorModal() {
+  resetSponsorForm();
+  openModal('addSponsorModal');
+}
+
+/* 清空表单 + 退出编辑模式（「取消」按钮和提交成功后都走这里） */
 function resetSponsorForm() {
   editingSponsorId = 0;
   ['addSponsorName', 'addSponsorAmount', 'addSponsorMessage'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  const okBtn = document.getElementById('addSponsorBtn');
-  if (okBtn) { okBtn.textContent = '➕ 添加'; okBtn.disabled = false; }
-  const cancelBtn = document.getElementById('cancelSponsorEditBtn');
-  if (cancelBtn) cancelBtn.style.display = 'none';
+  const titleEl = document.getElementById('addSponsorModalTitle');
+  if (titleEl) titleEl.textContent = '➕ 添加赞助者';
+  const okBtn = document.getElementById('confirmAddSponsor');
+  if (okBtn) { okBtn.textContent = '✅ 确认添加'; okBtn.disabled = false; }
 }
 
 /* 添加 / 保存赞助者
@@ -1232,7 +1264,7 @@ async function handleAddSponsor() {
   if (message.length > 200) { showToast('感谢语最多 200 个字'); return; }
 
   const editingId = editingSponsorId;
-  const btn = document.getElementById('addSponsorBtn');
+  const btn = document.getElementById('confirmAddSponsor');
   if (btn) btn.disabled = true;
 
   try {
@@ -1256,6 +1288,7 @@ async function handleAddSponsor() {
 
     if (data && data.ok) {
       showToast(editingId ? '✅ 已保存修改' : '✅ 已添加赞助者');
+      closeModal('addSponsorModal');
       resetSponsorForm();
       loadSponsors();
     } else {
@@ -1308,6 +1341,14 @@ async function deleteSponsor(id) {
    ------------------------------------------------------------
    数据本来就存在 D1 里（hot_songs 热度表 / visit_sources 渠道表），
    接口也早就有了，只是后台一直没有页面把它们显示出来 —— 这里补上。
+
+   2026-09-26：按用户要求，后台不再展示「🔥 热门 Top 100」排行榜
+   （标题 / 说明 / 榜单列表 / 每行的「✕ 清空热度」全部下线），
+   也没有了清空热度的入口；只保留
+     · 两张汇总卡（有热度的曲目 / 总互动次数）—— 数据仍取自 /api/hot/list，
+       所以这个接口还得调用，但不再渲染任何列表；
+     · 📢 访问渠道来源（/api/visit/stats，不受影响）。
+   后端 functions/api/hot/* 没动。
    ============================================================ */
 
 let statsLoading = false;
@@ -1316,129 +1357,37 @@ async function loadStatsPanel() {
   if (statsLoading) return;
   statsLoading = true;
   try {
-    await Promise.all([loadHotRank(), loadSourceStats()]);
+    await Promise.all([loadHotSummary(), loadSourceStats()]);
   } finally {
     statsLoading = false;
   }
 }
 
-/* 热门榜：/api/hot/list 已经返回 copy / play / fav 分项 + total */
-async function loadHotRank() {
-  const box = document.getElementById('hotRankList');
-  if (!box) return;
-
-  box.innerHTML = '<div class="loading">加载中...</div>';
+/* 「有热度的曲目 / 总互动次数」两张卡：/api/hot/list 返回带 total 的列表，
+   这里只取条数与 total 之和，不渲染榜单、也不提供清空入口。 */
+async function loadHotSummary() {
+  const elHotCount = document.getElementById('statHotCount');
+  const elHotTotal = document.getElementById('statHotTotal');
+  if (!elHotCount && !elHotTotal) return;
 
   try {
     const res = await fetch('/api/hot/list?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) {
-      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）</div>';
-      return;
-    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
     const data = await res.json();
     if (!data || data.ok !== true || !Array.isArray(data.data)) {
-      box.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '未知错误') + '</div>';
-      return;
+      throw new Error((data && data.error) || 'bad payload');
     }
 
     const list = data.data;
-
-    /* 概览卡片 */
     const totalInteractions = list.reduce((sum, x) => sum + (Number(x.total) || 0), 0);
-    const elHotCount = document.getElementById('statHotCount');
-    const elHotTotal = document.getElementById('statHotTotal');
     if (elHotCount) elHotCount.textContent = list.length.toLocaleString('en-US');
     if (elHotTotal) elHotTotal.textContent = totalInteractions.toLocaleString('en-US');
-
-    if (list.length === 0) {
-      box.innerHTML = '<div class="empty-state">还没有热门数据。<br>访客复制 / 试听 / 收藏 ID 之后，这里就会开始累积。</div>';
-      return;
-    }
-
-    box.innerHTML = '';
-    const frag = document.createDocumentFragment();
-
-    list.forEach((item, idx) => {
-      const row = document.createElement('div');
-      row.className = 'rank-item' + (idx < 3 ? ' top' + (idx + 1) : '');
-
-      const no = document.createElement('span');
-      no.className = 'rank-no';
-      no.textContent = String(idx + 1);
-
-      const id = document.createElement('span');
-      id.className = 'rank-id';
-      id.textContent = item.id;
-
-      const counts = document.createElement('span');
-      counts.className = 'rank-counts';
-      counts.append(
-        document.createTextNode('📋 '), strong(String(item.copy || 0)),
-        document.createTextNode(' · 🔗 '), strong(String(item.play || 0)),
-        document.createTextNode(' · ⭐ '), strong(String(item.fav || 0))
-      );
-
-      const total = document.createElement('span');
-      total.className = 'rank-total';
-      total.textContent = String(item.total || 0);
-
-      /* 删除这一条热度（例如被刷了、或这首歌已经不收录了） */
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'rank-del';
-      del.textContent = '✕';
-      del.title = '清空这条热度';
-      del.setAttribute('aria-label', '清空 ID ' + item.id + ' 的热度');
-      del.dataset.id = item.id;
-      del.addEventListener('click', () => deleteHotRecord(item.id));
-
-      row.append(no, id, counts, total, del);
-      frag.appendChild(row);
-    });
-
-    box.appendChild(frag);
   } catch (err) {
     console.error('[stats] hot/list', err);
-    box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+    if (elHotCount) elHotCount.textContent = '-';
+    if (elHotTotal) elHotTotal.textContent = '-';
   }
-}
-
-/* 清空某条热度 */
-async function deleteHotRecord(id) {
-  const ok = await showConfirm(
-    '清空热度',
-    '确定要清空 ID ' + id + ' 的热度记录吗？\n\n' +
-    '清空后它的「复制 / 试听 / 收藏」计数都会归零，' +
-    '宝库页的热门榜里也会消失。这个操作不能撤销。'
-  );
-  if (!ok) return;
-
-  try {
-    const res = await fetch('/api/hot/delete', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: String(id) })
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (res.ok && data && data.ok) {
-      showToast('🗑️ 已清空该条热度');
-      loadHotRank();
-    } else {
-      showToast('清空失败：' + ((data && data.error) || ('HTTP ' + res.status)));
-    }
-  } catch (err) {
-    console.error('[stats] hot/delete', err);
-    showToast('网络异常，请稍后重试');
-  }
-}
-
-function strong(text) {
-  const b = document.createElement('b');
-  b.textContent = text;
-  return b;
 }
 
 /* 访问渠道：/api/visit/stats 返回 [{source, count}] */
