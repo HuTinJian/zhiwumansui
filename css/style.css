@@ -1098,29 +1098,36 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单 —— 同样不用卡片盒子，
    改成居中一列（限宽 640px），组与组之间靠间距 + 细分隔线分开 */
+/* 「🎮 Roblox ID 宝库」那一栏：**类别并排成三列**（2026-09-26 用户澄清：
+   是「🎬 ID公益UP主/作者 / 💬 反馈贡献者 / 📋 歌单整理者」这三个类别分三列，
+   不是类别里的人分三列 —— 每个类别自己是一列，人在这列里竖着往下排）。
+   auto-fit + 1fr：窗口宽就是三列，窄了自动变两列 / 一列。 */
 .thanks-groups {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 22px 18px;
+  align-items: start;
 }
 .thanks-group {
   width: 100%;
-  max-width: 980px;
+  max-width: none;
   padding: 0;
   background: none;
   border: none;
   box-shadow: none;
   text-align: center;
 }
-/* Roblox 那一档的人员：三列排布，**依次往下填**（CSS 多列就是列优先：
-   先填满第一列，再填第二列）—— 2026-09-26 用户要求「改为三数列，依次往下排列」。
-   窄屏自动降成两列 / 一列。 */
-.thanks-people {
-  columns: 3;
-  column-gap: 22px;
+/* 赞助者那一档没有类别、只有一个块 —— 用这个居中的单列容器，
+   别套上面那套三列栅格（不然它会缩到左边第一列去）。 */
+.thanks-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
-.thanks-person { break-inside: avoid; }
+.thanks-single .thanks-group { max-width: 640px; }
+/* 类别里的人：竖着一列往下排（宽度跟着自己那一列走） */
+.thanks-people { width: 100%; }
 .thanks-group .cat-title {
   font-weight: 700;
   color: var(--text);
@@ -1399,7 +1406,6 @@ html.lite .seg-panel:not([hidden]) {
   .credits-card { min-width: 100%; justify-content: center; }
   .section-head { margin: 32px 0 16px; }
   .seg-tab { padding: 7px 14px; font-size: 0.82rem; }
-  .thanks-people { columns: 2; column-gap: 18px; }
 }
 
 @media (max-width: 480px) {
@@ -1417,7 +1423,6 @@ html.lite .seg-panel:not([hidden]) {
   .seg-tabs { gap: 6px; padding: 5px; }
   .seg-tab { padding: 7px 12px; font-size: 0.8rem; }
   .thanks-person { font-size: 0.82rem; }
-  .thanks-people { columns: 1; }
   .thanks-cost { font-size: 0.75rem; }
 }
 

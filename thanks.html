@@ -81,8 +81,10 @@
              aria-labelledby="tabSponsors" tabindex="0">
       <!-- 2026-09-26：原来这里是 ul.thanks-list 的卡片列表；
            用户要求「赞助者名单模仿 Roblox 的鸣谢名单那样写人名」，
-           于是改成和右边那一档一模一样的结构：#sponsorGroups > .thanks-group > .thanks-person -->
-      <div class="thanks-groups" id="sponsorGroups" aria-busy="true">
+           于是改成和右边那一档一模一样的结构：.thanks-group > .thanks-person。
+           容器用 .thanks-single（不是 .thanks-groups）—— 赞助者没有类别、只有一个块，
+           不需要 Roblox 那边的三列栅格。 -->
+      <div class="thanks-single" id="sponsorGroups" aria-busy="true">
         <div class="thanks-empty" id="sponsorLoading">名单加载中…</div>
       </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
@@ -336,8 +338,8 @@
           if (cat.category === SPONSOR_CATEGORY) return;
           html += '<div class="thanks-group">';
           html += '<div class="cat-title">' + esc(cat.category) + '</div>';
-          /* 2026-09-26 用户要求：人员排成三列、依次往下填
-             （CSS 多列就是「先填满第一列再填第二列」，正好是这个顺序） */
+          /* 每个类别自己是一列（三个类别并排，由 css 的 .thanks-groups 栅格决定），
+             下面这些人就竖着往下排 —— 2026-09-26 用户澄清过这一点 */
           html += '<div class="thanks-people">';
           cat.people.forEach(function (p) {
             html += '<div class="thanks-person">';
