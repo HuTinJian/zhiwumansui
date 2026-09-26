@@ -336,6 +336,9 @@
           if (cat.category === SPONSOR_CATEGORY) return;
           html += '<div class="thanks-group">';
           html += '<div class="cat-title">' + esc(cat.category) + '</div>';
+          /* 2026-09-26 用户要求：人员排成三列、依次往下填
+             （CSS 多列就是「先填满第一列再填第二列」，正好是这个顺序） */
+          html += '<div class="thanks-people">';
           cat.people.forEach(function (p) {
             html += '<div class="thanks-person">';
             html += '<span class="p-name">' + esc(p.name) + '</span>';
@@ -343,6 +346,7 @@
             if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
             html += '</div>';
           });
+          html += '</div>';
           html += '</div>';
         });
 

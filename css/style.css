@@ -1106,13 +1106,21 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .thanks-group {
   width: 100%;
-  max-width: 640px;
+  max-width: 980px;
   padding: 0;
   background: none;
   border: none;
   box-shadow: none;
   text-align: center;
 }
+/* Roblox 那一档的人员：三列排布，**依次往下填**（CSS 多列就是列优先：
+   先填满第一列，再填第二列）—— 2026-09-26 用户要求「改为三数列，依次往下排列」。
+   窄屏自动降成两列 / 一列。 */
+.thanks-people {
+  columns: 3;
+  column-gap: 22px;
+}
+.thanks-person { break-inside: avoid; }
 .thanks-group .cat-title {
   font-weight: 700;
   color: var(--text);
@@ -1391,6 +1399,7 @@ html.lite .seg-panel:not([hidden]) {
   .credits-card { min-width: 100%; justify-content: center; }
   .section-head { margin: 32px 0 16px; }
   .seg-tab { padding: 7px 14px; font-size: 0.82rem; }
+  .thanks-people { columns: 2; column-gap: 18px; }
 }
 
 @media (max-width: 480px) {
@@ -1408,6 +1417,7 @@ html.lite .seg-panel:not([hidden]) {
   .seg-tabs { gap: 6px; padding: 5px; }
   .seg-tab { padding: 7px 12px; font-size: 0.8rem; }
   .thanks-person { font-size: 0.82rem; }
+  .thanks-people { columns: 1; }
   .thanks-cost { font-size: 0.75rem; }
 }
 
