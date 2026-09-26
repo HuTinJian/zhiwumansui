@@ -551,6 +551,7 @@
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
+      <button class="tab" data-panel="panel-merge">📦 合并工具</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📊 数据统计</button>
     </div>
@@ -589,7 +590,6 @@
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
           <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
-          <button class="subtab" data-subpanel="card1-json-merge">📦 JSON 合并工具</button>
         </div>
 
         <div class="subpanel active" id="card1-songs">
@@ -650,14 +650,6 @@
             </div>
           </div>
         </div>
-
-        <div class="subpanel" id="card1-json-merge">
-          <div class="panel-card" style="padding:0;overflow:hidden;">
-            <div class="tool-iframe-wrap">
-              <iframe data-src="tools/json-merge.html" data-tool-frame scrolling="no" title="JSON 合并工具"></iframe>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- 卡片2 · 玩家社区 -->
@@ -692,6 +684,66 @@
       </div>
     </div>
 
+    <!-- 合并工具（原来的「📦 JSON 合并工具」从卡片管理搬到这里，
+         并按二级 / 三级分开；四个工具都是 iframe 内嵌、用到才加载） -->
+    <div class="panel" id="panel-merge">
+
+      <div class="subtabs" data-tabs-group="merge">
+        <button class="subtab active" data-subpanel="merge-roblox">🎮 Roblox ID 宝库</button>
+        <button class="subtab" data-subpanel="merge-thanks">❤️ 鸣谢名单</button>
+      </div>
+
+      <!-- 二级 · 🎮 Roblox ID 宝库 -->
+      <div class="subpanel active" id="merge-roblox">
+
+        <div class="subtabs subtabs-lv3" data-tabs-group="merge-roblox">
+          <button class="subtab active" data-subpanel="merge-songs">🎵 音乐 ID</button>
+          <button class="subtab" data-subpanel="merge-quarantine">⛔ 开发者隔离区</button>
+        </div>
+
+        <div class="subpanel active" id="merge-songs">
+          <div class="panel-card" style="padding:0;overflow:hidden;">
+            <div class="tool-iframe-wrap">
+              <iframe data-src="tools/json-merge.html" data-tool-frame scrolling="no" title="JSON 合并工具"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="merge-quarantine">
+          <div class="panel-card" style="padding:0;overflow:hidden;">
+            <div class="tool-iframe-wrap">
+              <iframe data-src="tools/quarantine-merge.html" data-tool-frame scrolling="no" title="开发者隔离区合并工具"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 二级 · ❤️ 鸣谢名单 -->
+      <div class="subpanel" id="merge-thanks">
+
+        <div class="subtabs subtabs-lv3" data-tabs-group="merge-thanks">
+          <button class="subtab active" data-subpanel="merge-sponsor">👑 赞助者</button>
+          <button class="subtab" data-subpanel="merge-thanks-list">🎮 Roblox ID 宝库</button>
+        </div>
+
+        <div class="subpanel active" id="merge-sponsor">
+          <div class="panel-card" style="padding:0;overflow:hidden;">
+            <div class="tool-iframe-wrap">
+              <iframe data-src="tools/sponsor-merge.html" data-tool-frame scrolling="no" title="赞助者合并工具"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="merge-thanks-list">
+          <div class="panel-card" style="padding:0;overflow:hidden;">
+            <div class="tool-iframe-wrap">
+              <iframe data-src="tools/thanks-merge.html" data-tool-frame scrolling="no" title="鸣谢名单合并工具"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 鸣谢名单 -->
     <div class="panel" id="panel-thanks">
 
@@ -699,15 +751,15 @@
            赞助者两处来源……），用户要求删掉，已移除。 -->
 
       <div class="subtabs subtabs-lv3" data-tabs-group="thanks">
-        <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者名单</button>
+        <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者</button>
         <button class="subtab" data-subpanel="thanks-panel">🎮 Roblox ID 宝库</button>
       </div>
 
-      <!-- 子面板 · 赞助者名单（底档只读 + D1 可增删改） -->
+      <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
       <div class="subpanel active" id="sponsor-panel">
         <div class="panel-card">
           <h2>
-            <!-- 2026-09-26：这里原来又写了一遍「👑 赞助者名单」（子标签上已经有了），按用户要求删掉 -->
+            <!-- 2026-09-26：这里原来又写了一遍「👑 赞助者」（子标签上已经有了），按用户要求删掉 -->
             <span class="count" id="sponsorCount">0</span>
             <span class="head-actions">
               <button class="btn btn-secondary" id="refreshSponsorsBtn">🔄 刷新</button>
@@ -954,10 +1006,33 @@ See You Again 2456502348
 
     document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframe);
 
-    /* 一级 / 二级 / 三级标签切换时，把对应面板里的 iframe 唤醒 */
+    /* 一级 / 二级 / 三级标签切换时，把对应面板里的 iframe 唤醒。
+       面板是分级嵌套的（一级 panel → 二级 subpanel → 三级 subpanel），
+       而 el 是个「容器」：它里面可能同时还装着别的、现在根本看不见的子面板
+       （比如 📦 合并工具里就并排放着四个工具）。
+       所以这里只走「当前可见的那条链」：祖先里但凡有一个 panel / subpanel
+       没带 .active，就说明这个 iframe 现在还看不见，先不加载。
+       这样就不写死任何 id，多深都能用。 */
+    function isVisibleIn(iframe, root) {
+      var node = iframe.parentElement;
+      /* root 的父节点是终点：从 iframe 一路查到 root（含 root）为止 */
+      while (node && node !== root.parentElement) {
+        if ((node.classList.contains('panel') || node.classList.contains('subpanel')) &&
+            !node.classList.contains('active')) {
+          return false;
+        }
+        node = node.parentElement;
+      }
+      return true;
+    }
+
     function activateIframesIn(el) {
       if (!el) return;
-      el.querySelectorAll('iframe[data-tool-frame]').forEach(lazyLoadIframe);
+      el.querySelectorAll('iframe[data-tool-frame]').forEach(function (iframe) {
+        if (!isVisibleIn(iframe, el)) return;
+        lazyLoadIframe(iframe);
+        setTimeout(function () { fitIframe(iframe); }, 300);
+      });
     }
 
     /* 供 js/admin.js 里的一级标签切换调用 */
@@ -981,11 +1056,10 @@ See You Again 2456502348
           });
           target.classList.add('active');
 
-          var iframe = target.querySelector('iframe[data-tool-frame]');
-          if (iframe) {
-            lazyLoadIframe(iframe);
-            setTimeout(function () { fitIframe(iframe); }, 300);
-          }
+          /* 这个子面板（以及它里面仍然可见的下级面板）里的 iframe 该加载了。
+             注意不能只取 target.querySelector('iframe')：那是「文档里第一个」，
+             在 📦 合并工具那种「三级子面板里各放一个工具」的结构下不一定可见。 */
+          activateIframesIn(target);
 
           /* 博客管理：第一次切到这个面板时才去拉数据 */
           if (targetId === 'card2-panel' && typeof window.loadBlogPanel === 'function') {

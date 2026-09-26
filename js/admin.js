@@ -1,6 +1,7 @@
 /* ============================================================
    织雾满穗 · 后台管理
    反馈管理、卡片管理（歌曲 / 隔离区 / 社区）、
+   📦 合并工具（四个 iframe 工具页，里面分了二级 / 三级）、
    鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
    ============================================================ */
 
@@ -28,7 +29,12 @@ let feedbackCache = [];
       panel.classList.add('active');
 
       /* 面板里如果嵌了工具页面，这时候才真正去加载它
-         （打开后台时不加载，省掉几万字符的解析和一次网络请求） */
+         （打开后台时不加载，省掉几万字符的解析和一次网络请求）。
+         这个函数是通用的，没有面板名单，也不写死任何 id：
+         它只唤醒「当前可见的那条链」上的 iframe。
+         所以「📦 合并工具」（panel-merge）切过来时先加载的是默认那个
+         「🎵 音乐 ID」（merge-songs），另外三个 —— ⛔ 开发者隔离区 /
+         👑 赞助者 / 🎮 Roblox ID 宝库 —— 等你切到对应的二级 → 三级标签时才加载。 */
       if (typeof window.__zmLoadPanelIframes === 'function') {
         window.__zmLoadPanelIframes(panel);
       }
@@ -38,7 +44,7 @@ let feedbackCache = [];
         window.loadStatsPanel();
       }
 
-      /* ❤️ 鸣谢名单面板：切过去时才去拉赞助者名单
+      /* ❤️ 鸣谢名单面板：切过去时才去拉赞助者
          （ensureSponsors 只在第一次真正拉一次，之后靠「🔄 刷新」或增删后自动刷新） */
       if (tab.dataset.panel === 'panel-thanks' && typeof window.ensureSponsors === 'function') {
         window.ensureSponsors();
@@ -67,12 +73,12 @@ let feedbackCache = [];
   document.getElementById('exportSongsBtn').onclick = handleExportSongs;
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
-  /* 👑 赞助者名单：添加 / 保存、取消编辑、刷新 */
+  /* 👑 赞助者：添加 / 保存、取消编辑、刷新 */
   document.getElementById('addSponsorBtn').onclick = handleAddSponsor;
   document.getElementById('cancelSponsorEditBtn').onclick = resetSponsorForm;
   document.getElementById('refreshSponsorsBtn').onclick = loadSponsors;
 
-  /* 切到「👑 赞助者名单」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
+  /* 切到「👑 赞助者」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
      所以和一级标签那层的懒加载不会重复请求） */
   const sponsorTabBtn = document.querySelector('[data-subpanel="sponsor-panel"]');
   if (sponsorTabBtn) sponsorTabBtn.addEventListener('click', ensureSponsors);
@@ -1008,7 +1014,7 @@ async function deleteThanks(id) {
 }
 
 /* ============================================================
-   👑 赞助者名单（新「❤️ 鸣谢名单」页里赞助者那一栏）
+   👑 赞助者（新「❤️ 鸣谢名单」页里赞助者那一栏）
    ------------------------------------------------------------
    约定（本轮定的，前端 thanks.html 也按同一套读，别自行改名）：
    · 类别固定写死 '👑 赞助者'；

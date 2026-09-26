@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 鸣谢合并工具（Roblox ID 宝库） - 织雾满穗</title>
+
+  <!-- 站点公共样式（配色变量、字体、按钮底色都跟后台同一套） -->
+  <link rel="stylesheet" href="../css/style.css">
+
+  <!-- 登录保护：先藏起来，确认已登录再显示，避免未登录时闪一下工具界面 -->
+  <style>html.auth-pending body { visibility: hidden; }</style>
+  <script>document.documentElement.classList.add('auth-pending');</script>
+
+  <!-- 主题：这个工具常被嵌在后台里，跟父页面同源，所以能直接读到同一个 zm_theme -->
+  <script>
+    (function () {
+      var KEY = 'zm_theme';
+      function apply(t) {
+        document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+      }
+      function read() {
+        var t = null;
+        try { t = localStorage.getItem(KEY); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        return t;
+      }
+      apply(read());
+      /* 父页面切换主题时，localStorage 变化会在本页触发 storage 事件 → 跟着变 */
+      window.addEventListener('storage', function (e) {
+        if (!e || e.key === KEY) apply(read());
+      });
+    })();
+  </script>
+
+  <style>
+    :root {
+      --primary: #dc6b82;
+      --primary-ink: #a83c56;
+      --primary-btn-a: #c7546a;
+      --primary-btn-b: #b84460;
+      --primary-dark: #c7546a;
+      --primary-light: #f0a3b4;
+      --accent: #e88da1;
+      --bg: #fdf2f5;
+      --bg-soft: #fdf8fa;
+      --bg-tint: #fde8ef;
+      --bg-card: #ffffff;
+      --text: #4a3f44;
+      --text-light: #6e5f65;
+      --text-muted: #7d6972;
+      --border: #f0d9de;
+      --success: #8cb8a8;
+      --success-dark: #72a392;
+      --success-strong: #55806f;
+      --gold: #d4a06a;
+      --gold-bg: #fbf3e8;
+      --gold-ink: #8a5a1c;
+      --radius: 20px;
+      --radius-sm: 14px;
+      --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+      color-scheme: light;
+    }
+
+    /* ---------- 暗色模式（跟随站点的主题开关） ---------- */
+    [data-theme="dark"] {
+      --primary: #ef8ea4;
+      --primary-ink: #ffa9bd;
+      --primary-btn-a: #d0617a;
+      --primary-btn-b: #bf4f67;
+      --primary-dark: #e0748d;
+      --primary-light: #b8657a;
+      --accent: #f2a0b3;
+      --bg: #17121a;
+      --bg-soft: #1f1822;
+      --bg-tint: #2b1f28;
+      --bg-card: #241c2a;
+      --text: #f2e9ee;
+      --text-light: #cdbcc5;
+      --text-muted: #a4909a;
+      --border: #3a2c36;
+      --success: #7fb39f;
+      --success-dark: #96c6b2;
+      --success-strong: #3f6b5b;
+      --gold: #e0b477;
+      --gold-bg: #2a2229;
+      --gold-ink: #eec48d;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .page-title h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .page-title .subtitle {
+      color: var(--text-light);
+      font-size: 0.88rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.20s; }
+    .card:nth-child(6) { animation-delay: 0.25s; }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-ink);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .upload-box {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft);
+      background: var(--bg-soft);
+      margin-bottom: 12px;
+      display: block;
+      position: relative;
+    }
+    .upload-box:hover {
+      border-color: var(--primary-light);
+      background: var(--bg-card);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 107, 130, 0.08);
+    }
+    .upload-box.dragover {
+      border-color: var(--primary);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .upload-box .upload-icon { font-size: 1.7rem; margin-bottom: 6px; }
+    .upload-box .upload-text {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+    .upload-box .upload-text strong { color: var(--primary-ink); }
+    .upload-box .file-info {
+      font-size: 0.8rem;
+      color: var(--success-dark);
+      margin-top: 6px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+    /* 视觉隐藏但保留在 Tab 顺序与无障碍树里（display:none 会把 input 整个摘掉） */
+    .upload-box input[type="file"] {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap;
+    }
+    .upload-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220,107,130,.12);
+    }
+
+    .preview {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      max-height: 120px;
+      overflow-y: auto;
+      color: var(--text-light);
+      white-space: pre;
+      word-break: break-all;
+    }
+
+    .actions {
+      text-align: center;
+      margin: 18px 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 30px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font);
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .btn-success {
+      background: var(--success-strong);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
+    }
+    /* 次要按钮：给「读取」这类辅助动作用，不跟主按钮抢视线 */
+    .btn-secondary {
+      background: var(--bg-tint);
+      color: var(--primary-ink);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(220, 107, 130, 0.22);
+    }
+    .btn-success:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-item {
+      background: var(--bg-tint);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-item .num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-ink);
+      line-height: 1.2;
+    }
+    .stat-item .label {
+      font-size: 0.76rem;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .stat-item.gold {
+      background: var(--gold-bg);
+    }
+    .stat-item.gold .num { color: var(--gold-ink); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .page-title h1 { font-size: 1.4rem; }
+      .card { padding: 16px; }
+      .btn { padding: 10px 22px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-title">
+      <h1>🎮 鸣谢合并工具（Roblox ID 宝库）</h1>
+      <p class="subtitle">线上鸣谢名单 + 本地 JSON → 按类别合并、类别内按名字去重（线上优先）→ 导出 thanks.json</p>
+    </div>
+
+    <div class="card">
+      <h2>☁️ A · 线上鸣谢名单（/api/thanks）</h2>
+      <p class="hint">
+        点按钮直接读线上接口（需要登录后台）。这里会<b>自动排除</b>「👑 赞助者」那一组 ——
+        赞助者由「👑 赞助者合并工具」单独负责，两边不会打架。合并时以这一边为准。
+      </p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="loadABtn">📥 读取线上鸣谢名单</button>
+      </div>
+      <label class="upload-box" id="uploadBoxA">
+        <input type="file" id="fileA" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">或者点击这里选择 <strong>线上导出的 thanks.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoA"></div>
+      </label>
+      <div class="preview" id="previewA">等待读取...</div>
+    </div>
+
+    <div class="card">
+      <h2>📁 B · 本地鸣谢 JSON（要并进去的那份）</h2>
+      <p class="hint">
+        选一份你自己整理好的 thanks.json（结构要跟线上一致）：
+        <code>[{"category":"🎬 ID公益UP主/作者","people":[{"name":"名字","platform":"平台","message":"说明"}]}]</code>
+      </p>
+      <label class="upload-box" id="uploadBoxB">
+        <input type="file" id="fileB" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">点击这里选择 <strong>thanks.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoB"></div>
+      </label>
+      <div class="preview" id="previewB">等待读取...</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="mergeBtn" disabled>🔀 合并</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <h2>✅ 合并结果</h2>
+      <p class="hint">
+        下载出来的就是你整理好的 thanks.json（结构跟线上接口一致），适合存档、对账或交给别人处理。
+        注意：网站页面读的是线上 <code>/api/thanks</code> 的实时数据，这个工具只合并、导出，
+        <b>不会往数据库里写东西</b>。
+        这里的名单<b>不含</b>「👑 赞助者」那一组。
+      </p>
+      <div class="result-stats">
+        <div class="stat-item">
+          <div class="num" id="statOriginal">0</div>
+          <div class="label">原有人数（A 边）</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statExtra">0</div>
+          <div class="label">新增人数（B 边独有）</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statMerged">0</div>
+          <div class="label">合并后总人数</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statOverwritten">0</div>
+          <div class="label">重复覆盖（保留 A 边）</div>
+        </div>
+      </div>
+      <p class="hint" id="groupInfo" style="margin-top:2px;"></p>
+      <div class="preview" id="previewResult" style="max-height:200px;"></div>
+      <div class="actions" style="margin-bottom:0;">
+        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ============================================================
+       🎮 鸣谢合并工具（Roblox ID 宝库）
+       ------------------------------------------------------------
+       A 边 = 线上 /api/thanks（分组结构，需登录）
+              [{ "category":"🎬 ID公益UP主/作者",
+                 "people":[{"id":1,"name":"名字","platform":"平台","message":"说明"}] }]
+              ⚠️ 「👑 赞助者」那一组会被排除掉（赞助者归「👑 赞助者合并工具」管），
+                 否则两个工具会互相把对方的名单写来写去。
+       B 边 = 本地整理好的 thanks.json（同一种分组结构）
+
+       合并规则：
+         · 按 category 合并（同名类别合成一组，类别顺序：A 边先出现，再排 B 边新增的）；
+         · 组内按 name 去重，A 边优先 —— 同名算「覆盖」（保留 A 边那条），
+           B 边独有的名字算「新增」；
+         · 输出同结构（people 只留 name / platform / message，不带 id，
+           因为 id 是 D1 的自增主键，本地文件里带着没意义）。
+       ============================================================ */
+    const SPONSOR_CATEGORY = '👑 赞助者'; /* 这一组由「👑 赞助者合并工具」负责，这里必须排除 */
+
+    let dataA = null;
+    let dataB = null;
+    let merged = null;
+
+    const fileA = document.getElementById('fileA');
+    const fileB = document.getElementById('fileB');
+    const uploadBoxA = document.getElementById('uploadBoxA');
+    const uploadBoxB = document.getElementById('uploadBoxB');
+    const fileInfoA = document.getElementById('fileInfoA');
+    const fileInfoB = document.getElementById('fileInfoB');
+    const previewA = document.getElementById('previewA');
+    const previewB = document.getElementById('previewB');
+    const mergeBtn = document.getElementById('mergeBtn');
+    const resultCard = document.getElementById('resultCard');
+    const previewResult = document.getElementById('previewResult');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const loadABtn = document.getElementById('loadABtn');
+    const groupInfo = document.getElementById('groupInfo');
+
+    /* 统一解析：JSON.parse 一律包在 try/catch 里，失败只返回标记，不往外抛 */
+    function safeParse(text) {
+      try {
+        return { ok: true, data: JSON.parse(text) };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    function readFile(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const parsed = safeParse(e.target.result);
+        if (!parsed.ok) { callback(new Error('不是合法的 JSON（' + parsed.error + '）'), null); return; }
+        callback(null, parsed.data);
+      };
+      reader.onerror = function () { callback(new Error('读取文件失败'), null); };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    /* ---------- 把各种来源的数据整理成统一格式 ---------- */
+
+    /* 一个人：名字必须有；平台 / 说明缺了就留空 */
+    function normalizePerson(p) {
+      if (!p || typeof p !== 'object') return null;
+      const name = String(p.name === undefined || p.name === null ? '' : p.name).trim();
+      if (!name) return null;
+      return {
+        name: name,
+        platform: String(p.platform === undefined || p.platform === null ? '' : p.platform),
+        message: String(p.message === undefined || p.message === null ? '' : p.message)
+      };
+    }
+
+    /* 必须是数组；每组要有 category；脏数据跳过，不让它把整次合并搞崩 */
+    function normalizeGroups(raw, excludeSponsor) {
+      if (!Array.isArray(raw)) return null;
+      const out = [];
+      raw.forEach(function (g) {
+        if (!g || typeof g !== 'object') return;
+        const category = String(g.category === undefined || g.category === null ? '' : g.category).trim();
+        if (!category) return;
+        if (excludeSponsor && category === SPONSOR_CATEGORY) return; /* 赞助者那一组不归这里管 */
+        const people = [];
+        if (Array.isArray(g.people)) {
+          g.people.forEach(function (p) {
+            const person = normalizePerson(p);
+            if (person) people.push(person);
+          });
+        }
+        out.push({ category: category, people: people });
+      });
+      return out;
+    }
+
+    /* 统计一下一份分组数据里有多少人 */
+    function countPeople(groups) {
+      let n = 0;
+      groups.forEach(function (g) { n += g.people.length; });
+      return n;
+    }
+
+    /* 预览用：只留前两组、每组前两人，免得刷一大片 */
+    function previewText(groups) {
+      const peek = groups.slice(0, 2).map(function (g) {
+        return { category: g.category, people: g.people.slice(0, 2) };
+      });
+      const more = groups.length > 2 ? '\n...' : '';
+      return JSON.stringify(peek, null, 2) + more;
+    }
+
+    function showGroupsA(list, source, excludedCount) {
+      fileInfoA.textContent = '✅ ' + source + '：' + list.length + ' 类 / ' + countPeople(list) + ' 人' +
+        (excludedCount ? '（已排除 👑 赞助者 ' + excludedCount + ' 人）' : '');
+      previewA.textContent = previewText(list);
+    }
+
+    function showGroupsB(list, source) {
+      fileInfoB.textContent = '✅ ' + source + '：' + list.length + ' 类 / ' + countPeople(list) + ' 人';
+      previewB.textContent = previewText(list);
+    }
+
+    function clearA(tip) {
+      dataA = null;
+      fileInfoA.textContent = '';
+      previewA.textContent = tip || '等待读取...';
+      checkReady();
+    }
+
+    function clearB(tip) {
+      dataB = null;
+      fileInfoB.textContent = '';
+      previewB.textContent = tip || '等待读取...';
+      checkReady();
+    }
+
+    /* ---------- 手动选文件 / 拖拽 ---------- */
+
+    function handleFileA(file) {
+      readFile(file, function (err, raw) {
+        if (err) {
+          clearA('等待读取...');
+          alert('❌ A 边文件解析失败：' + err.message);
+          return;
+        }
+        const list = normalizeGroups(raw, true);
+        if (!list) {
+          clearA('等待读取...');
+          alert('❌ A 边必须是 JSON 数组，格式：[{"category":"类别","people":[{"name":"名字","platform":"平台","message":"说明"}]}]');
+          return;
+        }
+        dataA = list;
+        showGroupsA(list, '已加载文件 ' + file.name, 0);
+        checkReady();
+      });
+    }
+
+    function handleFileB(file) {
+      readFile(file, function (err, raw) {
+        if (err) {
+          clearB('等待读取...');
+          alert('❌ B 边文件解析失败：' + err.message);
+          return;
+        }
+        /* B 边是本地整理的文件：也顺手排除赞助者那组，免得并进结果里又说一套 */
+        const list = normalizeGroups(raw, true);
+        if (!list) {
+          clearB('等待读取...');
+          alert('❌ B 边必须是 JSON 数组，格式：[{"category":"类别","people":[{"name":"名字","platform":"平台","message":"说明"}]}]');
+          return;
+        }
+        dataB = list;
+        showGroupsB(list, '已加载文件 ' + file.name);
+        checkReady();
+      });
+    }
+
+    function checkReady() {
+      mergeBtn.disabled = !(dataA && dataB);
+    }
+
+    fileA.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = ''; /* 先清空，重新选同一个文件时才还会触发 change */
+      if (file) handleFileA(file);
+    });
+    fileB.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = '';
+      if (file) handleFileB(file);
+    });
+
+    function setupDragDrop(box, handler) {
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.remove('dragover');
+        });
+      });
+      box.addEventListener('drop', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]);
+      });
+    }
+    setupDragDrop(uploadBoxA, handleFileA);
+    setupDragDrop(uploadBoxB, handleFileB);
+
+    /* ============================================================
+       一键读取线上名单：打开工具自动读一次，读完直接点「合并」就行
+       （手动选文件 / 拖拽的老路子仍然保留，作为兜底）
+       ============================================================ */
+
+    async function loadOnlineThanks(silent) {
+      if (!silent) { loadABtn.disabled = true; loadABtn.textContent = '⏳ 读取中…'; }
+      try {
+        const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
+        const parsed = safeParse(await res.text());
+        if (!parsed.ok) throw new Error('返回内容不是合法 JSON');
+        const body = parsed.data;
+        if (body && body.ok === false) throw new Error('接口报错：' + (body.error || '未知错误'));
+
+        /* 先数一下赞助者那组排掉了多少人，再按「排除赞助者」整理成统一格式 */
+        const full = normalizeGroups(body, false);
+        if (!full) throw new Error('接口返回的不是数组');
+        const sponsorGroup = full.find(function (g) { return g.category === SPONSOR_CATEGORY; });
+        const excluded = sponsorGroup ? sponsorGroup.people.length : 0;
+        const list = full.filter(function (g) { return g.category !== SPONSOR_CATEGORY; });
+
+        dataA = list;
+        showGroupsA(list, '已从线上读取', excluded);
+        checkReady();
+      } catch (e) {
+        if (!silent) {
+          alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
+        }
+      }
+      if (!silent) { loadABtn.disabled = false; loadABtn.textContent = '📥 读取线上鸣谢名单'; }
+    }
+
+    loadABtn.addEventListener('click', function () { loadOnlineThanks(false); });
+
+    /* 打开工具就自动读一次（静默失败，不弹窗打扰） */
+    loadOnlineThanks(true);
+
+    /* ---------- 合并 ---------- */
+
+    mergeBtn.addEventListener('click', function () {
+      if (!dataA || !dataB) return;
+
+      /* 类别 → { category, people, seen }；seen 是这组里已经收下的名字（A 边优先） */
+      const groups = new Map();
+
+      function bucketOf(category) {
+        let bucket = groups.get(category);
+        if (!bucket) {
+          bucket = { category: category, people: [], seen: new Set() };
+          groups.set(category, bucket);
+        }
+        return bucket;
+      }
+
+      /* ① A 边先铺：同组同名只留第一条
+         2026-09-26（复核 F1）：「原有」要按**去重后**的人数算 —— 原来取的是
+         countPeopleArray(dataA)（去重前），当 A 边同一类别里有同名行时，
+         会出现「原有 + 新增 ≠ 合并后」。另两个工具用的都是去重后的数量，这里对齐。 */
+      let originalCount = 0;
+      dataA.forEach(function (g) {
+        const bucket = bucketOf(g.category);
+        g.people.forEach(function (p) {
+          if (bucket.seen.has(p.name)) return; /* A 边内部同名：保留先出现的那条 */
+          bucket.seen.add(p.name);
+          bucket.people.push(p);
+          originalCount++;
+        });
+      });
+
+      const originalGroups = groups.size;
+
+      /* ② B 边再并：同名（同组内）不采纳 → 算覆盖；新名字 → 算新增；新类别 → 建组 */
+      const inBKeys = new Set(); /* 「类别 + 名字」→ B 边内部重复不重复计数 */
+      let added = 0;
+      let overwritten = 0;
+
+      dataB.forEach(function (g) {
+        const bucket = bucketOf(g.category);
+        g.people.forEach(function (p) {
+          const key = g.category + '\u0000' + p.name;
+          if (inBKeys.has(key)) return;
+          inBKeys.add(key);
+          if (bucket.seen.has(p.name)) {
+            overwritten++; /* 同类别同名：以 A 边为准，B 边这条不采纳 */
+            return;
+          }
+          bucket.seen.add(p.name);
+          bucket.people.push(p);
+          added++;
+        });
+      });
+
+      merged = [];
+      groups.forEach(function (b) {
+        merged.push({ category: b.category, people: b.people });
+      });
+
+      const totalPeople = countPeople(merged);
+      const newGroups = merged.length - originalGroups;
+
+      document.getElementById('statOriginal').textContent = originalCount;
+      document.getElementById('statExtra').textContent = added;
+      document.getElementById('statMerged').textContent = totalPeople;
+      document.getElementById('statOverwritten').textContent = overwritten;
+
+      groupInfo.textContent = '类别：原有 ' + originalGroups + ' 个' +
+        (newGroups > 0 ? '，B 边新增 ' + newGroups + ' 个' : '') +
+        '，合并后共 ' + merged.length + ' 个类别。';
+
+      previewResult.textContent = JSON.stringify(merged.slice(0, 2), null, 2) + (merged.length > 2 ? '\n...' : '');
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      notifyParentHeight();
+    });
+
+    /* 数一份分组数组里的人数（合并前用） */
+    function countPeopleArray(list) {
+      let n = 0;
+      list.forEach(function (g) { n += g.people.length; });
+      return n;
+    }
+
+    downloadBtn.addEventListener('click', function () {
+      if (!merged || merged.length === 0) { alert('❌ 合并结果为空，已取消下载'); return; }
+      const peopleCount = countPeople(merged);
+      if (!confirm('确定下载 thanks.json 吗？共 ' + merged.length + ' 个类别 / ' + peopleCount + ' 人')) return;
+      const content = JSON.stringify(merged, null, 2);
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'thanks.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      alert('✅ 已下载！\n\n文件名：thanks.json（结构跟线上 /api/thanks 一致）\n\n' +
+        '它是本地合并出来的结果：网站页面读的是线上实时数据，这个工具不会改数据库；\n' +
+        '要归档、对账或交给别人处理，直接保存这个文件就行。');
+    });
+
+    /* 后台是用 iframe 嵌这个页面的：上报高度，父页面好把框撑开 */
+    function notifyParentHeight() {
+      try {
+        const h = Math.max(
+          document.body.scrollHeight, document.body.offsetHeight,
+          document.documentElement.scrollHeight, document.documentElement.offsetHeight
+        );
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'iframe-resize', height: h }, location.origin);
+        }
+      } catch (e) {}
+    }
+  </script>
+
+  <!-- ============================================================
+       登录保护：本工具属于后台功能。
+       即使有人直接猜到 tools/ 下的地址打开，没登录也只会看到一句提示，
+       拿不到工具界面。
+       ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* 未登录时用一个友好提示替换整个页面（在后台的 iframe 里也一样适用） */
+    function showGate(title, detail) {
+      document.documentElement.classList.remove('auth-pending');
+      document.body.innerHTML = '';
+
+      /* 提示页的颜色跟着当前主题走（这段是内联样式，用不了 CSS 变量） */
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var cText = dark ? '#f2e9ee' : '#4a3f44';
+      var cMuted = dark ? '#a4909a' : '#8d7c86';
+
+      var wrap = document.createElement('div');
+      wrap.setAttribute('style',
+        'min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'text-align:center;padding:40px 24px;line-height:1.8;' +
+        "font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:" + cText + ';');
+
+      var icon = document.createElement('div');
+      icon.setAttribute('style', 'font-size:2.6rem;margin-bottom:10px;');
+      icon.textContent = '🔒';
+
+      var t = document.createElement('div');
+      t.setAttribute('style', 'font-size:1.05rem;font-weight:700;margin-bottom:8px;');
+      t.textContent = title;
+
+      var d = document.createElement('div');
+      d.setAttribute('style', 'font-size:0.86rem;color:' + cMuted + ';max-width:380px;margin-bottom:18px;');
+      d.textContent = detail;
+
+      var link = document.createElement('a');
+      link.href = '/index.html';
+      link.setAttribute('style',
+        'display:inline-block;padding:10px 26px;border-radius:50px;text-decoration:none;' +
+        'font-weight:600;font-size:0.9rem;color:#fff;' +
+        'background:linear-gradient(135deg,#c7546a,#b84460);');
+      link.textContent = '返回首页';
+
+      wrap.appendChild(icon);
+      wrap.appendChild(t);
+      wrap.appendChild(d);
+      wrap.appendChild(link);
+      document.body.appendChild(wrap);
+    }
+
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+
+    fetch('/api/auth/check', {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (timer) clearTimeout(timer);
+        if (data && data.ok === true) {
+          document.documentElement.classList.remove('auth-pending');
+          return;
+        }
+        showGate('这个工具需要先登录后台',
+                 '「🎮 鸣谢合并工具（Roblox ID 宝库）」是后台专用的数据整理工具，请从「后台管理」页进入。');
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        showGate('暂时无法确认登录状态',
+                 '可能是网络问题，或者当前部署没有启用后端接口。');
+      });
+  })();
+  </script>
+</body>
+</html>

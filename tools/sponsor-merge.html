@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👑 赞助者合并工具 - 织雾满穗</title>
+
+  <!-- 站点公共样式（配色变量、字体、按钮底色都跟后台同一套） -->
+  <link rel="stylesheet" href="../css/style.css">
+
+  <!-- 登录保护：先藏起来，确认已登录再显示，避免未登录时闪一下工具界面 -->
+  <style>html.auth-pending body { visibility: hidden; }</style>
+  <script>document.documentElement.classList.add('auth-pending');</script>
+
+  <!-- 主题：这个工具常被嵌在后台里，跟父页面同源，所以能直接读到同一个 zm_theme -->
+  <script>
+    (function () {
+      var KEY = 'zm_theme';
+      function apply(t) {
+        document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+      }
+      function read() {
+        var t = null;
+        try { t = localStorage.getItem(KEY); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        return t;
+      }
+      apply(read());
+      /* 父页面切换主题时，localStorage 变化会在本页触发 storage 事件 → 跟着变 */
+      window.addEventListener('storage', function (e) {
+        if (!e || e.key === KEY) apply(read());
+      });
+    })();
+  </script>
+
+  <style>
+    :root {
+      --primary: #dc6b82;
+      --primary-ink: #a83c56;
+      --primary-btn-a: #c7546a;
+      --primary-btn-b: #b84460;
+      --primary-dark: #c7546a;
+      --primary-light: #f0a3b4;
+      --accent: #e88da1;
+      --bg: #fdf2f5;
+      --bg-soft: #fdf8fa;
+      --bg-tint: #fde8ef;
+      --bg-card: #ffffff;
+      --text: #4a3f44;
+      --text-light: #6e5f65;
+      --text-muted: #7d6972;
+      --border: #f0d9de;
+      --success: #8cb8a8;
+      --success-dark: #72a392;
+      --success-strong: #55806f;
+      --gold: #d4a06a;
+      --gold-bg: #fbf3e8;
+      --gold-ink: #8a5a1c;
+      --radius: 20px;
+      --radius-sm: 14px;
+      --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+      color-scheme: light;
+    }
+
+    /* ---------- 暗色模式（跟随站点的主题开关） ---------- */
+    [data-theme="dark"] {
+      --primary: #ef8ea4;
+      --primary-ink: #ffa9bd;
+      --primary-btn-a: #d0617a;
+      --primary-btn-b: #bf4f67;
+      --primary-dark: #e0748d;
+      --primary-light: #b8657a;
+      --accent: #f2a0b3;
+      --bg: #17121a;
+      --bg-soft: #1f1822;
+      --bg-tint: #2b1f28;
+      --bg-card: #241c2a;
+      --text: #f2e9ee;
+      --text-light: #cdbcc5;
+      --text-muted: #a4909a;
+      --border: #3a2c36;
+      --success: #7fb39f;
+      --success-dark: #96c6b2;
+      --success-strong: #3f6b5b;
+      --gold: #e0b477;
+      --gold-bg: #2a2229;
+      --gold-ink: #eec48d;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .page-title h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .page-title .subtitle {
+      color: var(--text-light);
+      font-size: 0.88rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+      animation: fadeInUp 0.5s var(--ease-soft) both;
+    }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.20s; }
+    .card:nth-child(6) { animation-delay: 0.25s; }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-ink);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .upload-box {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft);
+      background: var(--bg-soft);
+      margin-bottom: 12px;
+      display: block;
+      position: relative;
+    }
+    .upload-box:hover {
+      border-color: var(--primary-light);
+      background: var(--bg-card);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 107, 130, 0.08);
+    }
+    .upload-box.dragover {
+      border-color: var(--primary);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .upload-box .upload-icon { font-size: 1.7rem; margin-bottom: 6px; }
+    .upload-box .upload-text {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+    .upload-box .upload-text strong { color: var(--primary-ink); }
+    .upload-box .file-info {
+      font-size: 0.8rem;
+      color: var(--success-dark);
+      margin-top: 6px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+    /* 视觉隐藏但保留在 Tab 顺序与无障碍树里（display:none 会把 input 整个摘掉） */
+    .upload-box input[type="file"] {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap;
+    }
+    .upload-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220,107,130,.12);
+    }
+
+    .preview {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      max-height: 120px;
+      overflow-y: auto;
+      color: var(--text-light);
+      white-space: pre;
+      word-break: break-all;
+    }
+
+    .actions {
+      text-align: center;
+      margin: 18px 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 30px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font);
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(220, 107, 130, 0.35);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .btn-success {
+      background: var(--success-strong);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(140, 184, 168, 0.35);
+    }
+    /* 次要按钮：给「读取」这类辅助动作用，不跟主按钮抢视线 */
+    .btn-secondary {
+      background: var(--bg-tint);
+      color: var(--primary-ink);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(220, 107, 130, 0.22);
+    }
+    .btn-success:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-item {
+      background: var(--bg-tint);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-item .num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-ink);
+      line-height: 1.2;
+    }
+    .stat-item .label {
+      font-size: 0.76rem;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .stat-item.gold {
+      background: var(--gold-bg);
+    }
+    .stat-item.gold .num { color: var(--gold-ink); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .page-title h1 { font-size: 1.4rem; }
+      .card { padding: 16px; }
+      .btn { padding: 10px 22px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-title">
+      <h1>👑 赞助者合并工具</h1>
+      <p class="subtitle">底档 sponsors.json + 线上「👑 赞助者」→ 按名字去重（底档优先）→ 导出 sponsors.json</p>
+    </div>
+
+    <div class="card">
+      <h2>📁 A · 底档（data/sponsors.json）</h2>
+      <p class="hint">
+        点按钮直接读网站上的底档（字段：name / amount / title / message）；也可以手动选文件，或者把文件拖进方框。
+        合并时以这一边为准。
+      </p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="loadABtn">📥 读取底档 sponsors.json</button>
+      </div>
+      <label class="upload-box" id="uploadBoxA">
+        <input type="file" id="fileA" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">或者点击这里选择 <strong>sponsors.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoA"></div>
+      </label>
+      <div class="preview" id="previewA">等待读取...</div>
+    </div>
+
+    <div class="card">
+      <h2>☁️ B · 线上赞助者（/api/thanks → 👑 赞助者）</h2>
+      <p class="hint">
+        点按钮直接读线上鸣谢接口里 category === 「👑 赞助者」的那一组（需要登录后台），
+        再映射成底档的字段：金额取 platform、感谢语取 message、称号固定「荣誉赞助者」。
+      </p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="loadBBtn">📥 读取线上 D1 赞助者</button>
+      </div>
+      <label class="upload-box" id="uploadBoxB">
+        <input type="file" id="fileB" accept=".json,application/json">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">或者点击这里选择 <strong>线上导出的 sponsors.json</strong></div>
+        <div class="upload-text" style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">（也可以拖拽文件到方框里）</div>
+        <div class="file-info" id="fileInfoB"></div>
+      </label>
+      <div class="preview" id="previewB">等待读取...</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="mergeBtn" disabled>🔀 合并</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <h2>✅ 合并结果</h2>
+      <p class="hint">下载后覆盖网站里的 data/sponsors.json（格式跟底档一致），重新部署一次就生效。</p>
+      <div class="result-stats">
+        <div class="stat-item">
+          <div class="num" id="statOriginal">0</div>
+          <div class="label">原有条数（A 边底档）</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statExtra">0</div>
+          <div class="label">新增条数（B 边独有）</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statMerged">0</div>
+          <div class="label">合并后总条数</div>
+        </div>
+        <div class="stat-item gold">
+          <div class="num" id="statOverwritten">0</div>
+          <div class="label">重复覆盖（保留 A 边）</div>
+        </div>
+      </div>
+      <div class="preview" id="previewResult" style="max-height:200px;"></div>
+      <div class="actions" style="margin-bottom:0;">
+        <button class="btn btn-success" id="downloadBtn">💾 下载合并后的 JSON</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ============================================================
+       👑 赞助者合并工具
+       ------------------------------------------------------------
+       A 边 = 站内底档 data/sponsors.json（随仓库发布，只读；要改就改文件再部署）
+              字段：{ "name": "名字", "amount": "¥10", "title": "荣誉赞助者", "message": "感谢语" }
+       B 边 = 线上 /api/thanks 里 category === '👑 赞助者' 的那一组 people
+              （后台「❤️ 鸣谢名单 → 👑 赞助者」里加的人，存在 D1 的 thanks 表里）
+
+       ⚠️ 背景约定（跟 js/admin.js 里的 SPONSOR_CATEGORY 一致，别自行改名）：
+          后台添加赞助者时，把【金额】写在 thanks 表的 platform 字段（例如 '¥10'），
+          【感谢语】写在 message 字段，类别固定 '👑 赞助者'。
+          所以这里把 platform 映射回底档的 amount —— 这个约定不要改。
+
+       合并规则：按 name 去重，A 边（底档）优先。
+         · 两边同名 → 算「覆盖」，保留底档那条，线上那条不采纳；
+         · 只有线上有 → 算「新增」，按上面那套字段补进结果；
+         · 输出仍是 [{"name","amount","title","message"}]，可直接覆盖 data/sponsors.json。
+       ============================================================ */
+    const SPONSOR_CATEGORY = '👑 赞助者'; /* 必须和后台 js/admin.js 里的 SPONSOR_CATEGORY 一模一样 */
+    const DEFAULT_TITLE = '荣誉赞助者';
+
+    let dataA = null;
+    let dataB = null;
+    let merged = null;
+
+    const fileA = document.getElementById('fileA');
+    const fileB = document.getElementById('fileB');
+    const uploadBoxA = document.getElementById('uploadBoxA');
+    const uploadBoxB = document.getElementById('uploadBoxB');
+    const fileInfoA = document.getElementById('fileInfoA');
+    const fileInfoB = document.getElementById('fileInfoB');
+    const previewA = document.getElementById('previewA');
+    const previewB = document.getElementById('previewB');
+    const mergeBtn = document.getElementById('mergeBtn');
+    const resultCard = document.getElementById('resultCard');
+    const previewResult = document.getElementById('previewResult');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const loadABtn = document.getElementById('loadABtn');
+    const loadBBtn = document.getElementById('loadBBtn');
+
+    /* 统一解析：JSON.parse 一律包在 try/catch 里，失败只返回标记，不往外抛 */
+    function safeParse(text) {
+      try {
+        return { ok: true, data: JSON.parse(text) };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    function readFile(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const parsed = safeParse(e.target.result);
+        if (!parsed.ok) { callback(new Error('不是合法的 JSON（' + parsed.error + '）'), null); return; }
+        callback(null, parsed.data);
+      };
+      reader.onerror = function () { callback(new Error('读取文件失败'), null); };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    /* ---------- 把各种来源的数据整理成统一格式 ---------- */
+
+    /* 一条赞助者记录：名字必须有；金额 / 称号 / 感谢语缺了就填默认值 */
+    function normalizeRow(item) {
+      if (!item || typeof item !== 'object') return null;
+      const name = String(item.name === undefined || item.name === null ? '' : item.name).trim();
+      if (!name) return null;
+
+      /* 兜底：万一有人把金额写进 platform（后台那条约定），这里也认 */
+      const rawAmount = (item.amount === undefined || item.amount === null || item.amount === '')
+        ? item.platform
+        : item.amount;
+
+      return {
+        name: name,
+        amount: String(rawAmount === undefined || rawAmount === null ? '' : rawAmount),
+        title: String(item.title || DEFAULT_TITLE),
+        message: String(item.message === undefined || item.message === null ? '' : item.message)
+      };
+    }
+
+    function normalizeList(raw) {
+      if (!Array.isArray(raw)) return null;
+      const out = [];
+      raw.forEach(function (item) {
+        const row = normalizeRow(item);
+        if (row) out.push(row);
+      });
+      return out;
+    }
+
+    /* /api/thanks 返回的是分组结构 [{category, people:[{id,name,platform,message}]}]，
+       这里取出赞助者那一组，并按上面的约定映射成底档字段 */
+    function sponsorsFromThanks(raw) {
+      if (!Array.isArray(raw)) return null;
+      const group = raw.find(function (g) { return g && g.category === SPONSOR_CATEGORY; });
+      const people = (group && Array.isArray(group.people)) ? group.people : [];
+      const out = [];
+      people.forEach(function (p) {
+        const row = normalizeRow({
+          name: p ? p.name : '',
+          amount: p ? p.platform : '',        /* 金额在 platform 字段里（后台约定） */
+          title: DEFAULT_TITLE,
+          message: p ? p.message : ''
+        });
+        if (row) out.push(row);
+      });
+      return out;
+    }
+
+    function showListA(list, source) {
+      fileInfoA.textContent = '✅ ' + source + '：' + list.length + ' 人';
+      previewA.textContent = JSON.stringify(list.slice(0, 3), null, 2) + (list.length > 3 ? '\n...' : '');
+    }
+
+    function showListB(list, source) {
+      fileInfoB.textContent = '✅ ' + source + '：' + list.length + ' 人';
+      previewB.textContent = JSON.stringify(list.slice(0, 3), null, 2) + (list.length > 3 ? '\n...' : '');
+    }
+
+    function clearA(tip) {
+      dataA = null;
+      fileInfoA.textContent = '';
+      previewA.textContent = tip || '等待读取...';
+      checkReady();
+    }
+
+    function clearB(tip) {
+      dataB = null;
+      fileInfoB.textContent = '';
+      previewB.textContent = tip || '等待读取...';
+      checkReady();
+    }
+
+    /* ---------- 手动选文件 / 拖拽 ---------- */
+
+    function handleFileA(file) {
+      readFile(file, function (err, raw) {
+        if (err) {
+          clearA('等待读取...');
+          alert('❌ 底档文件解析失败：' + err.message);
+          return;
+        }
+        const list = normalizeList(raw);
+        if (!list) {
+          clearA('等待读取...');
+          alert('❌ 底档必须是一个 JSON 数组，格式：[{"name":"名字","amount":"¥10","title":"荣誉赞助者","message":"感谢语"}]');
+          return;
+        }
+        dataA = list;
+        showListA(list, '已加载文件 ' + file.name);
+        checkReady();
+      });
+    }
+
+    function handleFileB(file) {
+      readFile(file, function (err, raw) {
+        if (err) {
+          clearB('等待读取...');
+          alert('❌ 线上数据文件解析失败：' + err.message);
+          return;
+        }
+        /* 两种都认：底档那种扁平数组，或者 /api/thanks 那种分组数组 */
+        let list = null;
+        if (Array.isArray(raw) && raw.length && raw[0] && Array.isArray(raw[0].people)) {
+          list = sponsorsFromThanks(raw);
+        } else {
+          list = normalizeList(raw);
+        }
+        if (!list) {
+          clearB('等待读取...');
+          alert('❌ 线上数据必须是一个 JSON 数组（底档格式，或 /api/thanks 的分组格式）');
+          return;
+        }
+        dataB = list;
+        showListB(list, '已加载文件 ' + file.name);
+        checkReady();
+      });
+    }
+
+    function checkReady() {
+      mergeBtn.disabled = !(dataA && dataB);
+    }
+
+    fileA.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = ''; /* 先清空，重新选同一个文件时才还会触发 change */
+      if (file) handleFileA(file);
+    });
+    fileB.addEventListener('change', function () {
+      const file = this.files[0];
+      this.value = '';
+      if (file) handleFileB(file);
+    });
+
+    function setupDragDrop(box, handler) {
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(function (evt) {
+        box.addEventListener(evt, function (e) {
+          e.preventDefault(); e.stopPropagation();
+          box.classList.remove('dragover');
+        });
+      });
+      box.addEventListener('drop', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]);
+      });
+    }
+    setupDragDrop(uploadBoxA, handleFileA);
+    setupDragDrop(uploadBoxB, handleFileB);
+
+    /* ============================================================
+       一键读取：两边数据都够得着，不用手动导文件
+         A 边 = 网站上的 data/sponsors.json（公开静态文件）
+         B 边 = /api/thanks 里「👑 赞助者」那一组（需登录）
+       打开工具时会自动读一次，读完直接点「合并」就行；
+       手动选文件 / 拖拽的老路子仍然保留，作为兜底。
+       ============================================================ */
+
+    async function loadSiteSponsors(silent) {
+      if (!silent) { loadABtn.disabled = true; loadABtn.textContent = '⏳ 读取中…'; }
+      try {
+        /* 相对路径：工具页在 /tools/ 下，往上一级才是网站的 data/ */
+        const res = await fetch('../data/sponsors.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const parsed = safeParse(await res.text());
+        if (!parsed.ok) throw new Error('返回内容不是合法 JSON');
+        const list = normalizeList(parsed.data);
+        if (!list) throw new Error('内容不是数组');
+        dataA = list;
+        showListA(list, '已从网站读取');
+        checkReady();
+      } catch (e) {
+        if (!silent) {
+          alert('❌ 读取失败：' + e.message +
+            '\n\n（用 file:// 直接打开这个工具页时会读不到，请用本地预览打开，或手动选文件）');
+        }
+      }
+      if (!silent) { loadABtn.disabled = false; loadABtn.textContent = '📥 读取底档 sponsors.json'; }
+    }
+
+    async function loadOnlineSponsors(silent) {
+      if (!silent) { loadBBtn.disabled = true; loadBBtn.textContent = '⏳ 读取中…'; }
+      try {
+        const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
+        const parsed = safeParse(await res.text());
+        if (!parsed.ok) throw new Error('返回内容不是合法 JSON');
+        const body = parsed.data;
+        if (body && body.ok === false) throw new Error('接口报错：' + (body.error || '未知错误'));
+        const list = sponsorsFromThanks(body);
+        if (!list) throw new Error('接口未返回有效数据');
+        dataB = list;
+        showListB(list, '已从线上 D1 读取');
+        checkReady();
+        if (!silent && list.length === 0) {
+          alert('线上「👑 赞助者」这一组现在是空的（底档那一部分照常参与合并）。');
+        }
+      } catch (e) {
+        if (!silent) {
+          alert('❌ 读取失败：' + e.message + '\n\n请确认已经登录后台（未登录会返回 401）。');
+        }
+      }
+      if (!silent) { loadBBtn.disabled = false; loadBBtn.textContent = '📥 读取线上 D1 赞助者'; }
+    }
+
+    loadABtn.addEventListener('click', function () { loadSiteSponsors(false); });
+    loadBBtn.addEventListener('click', function () { loadOnlineSponsors(false); });
+
+    /* 打开工具就自动读一次（静默失败，不弹窗打扰） */
+    loadSiteSponsors(true);
+    loadOnlineSponsors(true);
+
+    /* ---------- 合并 ---------- */
+
+    mergeBtn.addEventListener('click', function () {
+      if (!dataA || !dataB) return;
+
+      const map = new Map(); /* 名字 → 记录；A 边（底档）优先，所以已经存在的名字不再覆盖 */
+
+      dataA.forEach(function (item) {
+        if (!item || !item.name) return;
+        if (!map.has(item.name)) map.set(item.name, item); /* A 边内部同名：保留先出现的那条 */
+      });
+      const originalCount = map.size;
+
+      const inB = new Set(); /* B 边内部重复的名字不该重复计数 */
+      let added = 0;
+      let overwritten = 0;
+
+      dataB.forEach(function (item) {
+        if (!item || !item.name) return;
+        if (inB.has(item.name)) return;
+        inB.add(item.name);
+        if (map.has(item.name)) {
+          overwritten++; /* 同名：以底档为准，线上这条不采纳 */
+          return;
+        }
+        map.set(item.name, item);
+        added++; /* 只有线上有的 → 新增 */
+      });
+
+      merged = [];
+      map.forEach(function (v) { merged.push(v); });
+
+      document.getElementById('statOriginal').textContent = originalCount;
+      document.getElementById('statExtra').textContent = added;
+      document.getElementById('statMerged').textContent = merged.length;
+      document.getElementById('statOverwritten').textContent = overwritten;
+
+      previewResult.textContent = JSON.stringify(merged.slice(0, 5), null, 2) + (merged.length > 5 ? '\n...' : '');
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      notifyParentHeight();
+    });
+
+    downloadBtn.addEventListener('click', function () {
+      if (!merged || merged.length === 0) { alert('❌ 合并结果为空，已取消下载'); return; }
+      if (!confirm('确定下载并覆盖 data/sponsors.json 吗？共 ' + merged.length + ' 位赞助者')) return;
+      const content = JSON.stringify(merged, null, 2);
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sponsors.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      alert('✅ 已下载！\n\n接下来：\n1. 覆盖网站文件夹里的 data/sponsors.json\n2. 重新部署一次网站');
+    });
+
+    /* 后台是用 iframe 嵌这个页面的：上报高度，父页面好把框撑开 */
+    function notifyParentHeight() {
+      try {
+        const h = Math.max(
+          document.body.scrollHeight, document.body.offsetHeight,
+          document.documentElement.scrollHeight, document.documentElement.offsetHeight
+        );
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'iframe-resize', height: h }, location.origin);
+        }
+      } catch (e) {}
+    }
+  </script>
+
+  <!-- ============================================================
+       登录保护：本工具属于后台功能。
+       即使有人直接猜到 tools/ 下的地址打开，没登录也只会看到一句提示，
+       拿不到工具界面。
+       ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* 未登录时用一个友好提示替换整个页面（在后台的 iframe 里也一样适用） */
+    function showGate(title, detail) {
+      document.documentElement.classList.remove('auth-pending');
+      document.body.innerHTML = '';
+
+      /* 提示页的颜色跟着当前主题走（这段是内联样式，用不了 CSS 变量） */
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var cText = dark ? '#f2e9ee' : '#4a3f44';
+      var cMuted = dark ? '#a4909a' : '#8d7c86';
+
+      var wrap = document.createElement('div');
+      wrap.setAttribute('style',
+        'min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'text-align:center;padding:40px 24px;line-height:1.8;' +
+        "font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:" + cText + ';');
+
+      var icon = document.createElement('div');
+      icon.setAttribute('style', 'font-size:2.6rem;margin-bottom:10px;');
+      icon.textContent = '🔒';
+
+      var t = document.createElement('div');
+      t.setAttribute('style', 'font-size:1.05rem;font-weight:700;margin-bottom:8px;');
+      t.textContent = title;
+
+      var d = document.createElement('div');
+      d.setAttribute('style', 'font-size:0.86rem;color:' + cMuted + ';max-width:380px;margin-bottom:18px;');
+      d.textContent = detail;
+
+      var link = document.createElement('a');
+      link.href = '/index.html';
+      link.setAttribute('style',
+        'display:inline-block;padding:10px 26px;border-radius:50px;text-decoration:none;' +
+        'font-weight:600;font-size:0.9rem;color:#fff;' +
+        'background:linear-gradient(135deg,#c7546a,#b84460);');
+      link.textContent = '返回首页';
+
+      wrap.appendChild(icon);
+      wrap.appendChild(t);
+      wrap.appendChild(d);
+      wrap.appendChild(link);
+      document.body.appendChild(wrap);
+    }
+
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+
+    fetch('/api/auth/check', {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (timer) clearTimeout(timer);
+        if (data && data.ok === true) {
+          document.documentElement.classList.remove('auth-pending');
+          return;
+        }
+        showGate('这个工具需要先登录后台',
+                 '「👑 赞助者合并工具」是后台专用的数据整理工具，请从「后台管理」页进入。');
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        showGate('暂时无法确认登录状态',
+                 '可能是网络问题，或者当前部署没有启用后端接口。');
+      });
+  })();
+  </script>
+</body>
+</html>
