@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>❤️ 鸣谢名单 · 织雾满穗</title>
 
-  <meta name="description" content="织雾满穗的鸣谢名单：👑 赞助者名单（愿意为这个站掏钱的人）与 🎮 Roblox ID 宝库的帮忙者。">
+  <meta name="description" content="织雾满穗的鸣谢名单：👑 赞助者（愿意为这个站掏钱的人）与 🎮 Roblox ID 宝库的帮忙者。">
   <meta name="keywords" content="织雾满穗,鸣谢名单,赞助者,Roblox ID 宝库">
   <meta name="author" content="HuTinJian">
   <meta name="theme-color" content="#fdf2f5">
@@ -67,12 +67,12 @@
          点击不刷新页面；?tab=sponsors（默认）/ ?tab=roblox 都能直接深链进来。 -->
     <div class="seg-tabs" role="tablist" aria-label="鸣谢名单分类">
       <button type="button" class="seg-tab active" id="tabSponsors" role="tab"
-              data-tab="sponsors" aria-selected="true" aria-controls="panelSponsors">👑 赞助者名单</button>
+              data-tab="sponsors" aria-selected="true" aria-controls="panelSponsors">👑 赞助者</button>
       <button type="button" class="seg-tab" id="tabRoblox" role="tab"
               data-tab="roblox" aria-selected="false" aria-controls="panelRoblox">🎮 Roblox ID 宝库</button>
     </div>
 
-    <!-- ==================== 面板一：👑 赞助者名单 ====================
+    <!-- ==================== 面板一：👑 赞助者 ====================
          名单来源有两处，脚本合并去重（按名字，底档优先）：
            1) 仓库里的底档 data/sponsors.json —— 静态文件，不发接口也看得到；
            2) D1 thanks 表里 category === '👑 赞助者' 的行（后台加的）。
@@ -80,7 +80,7 @@
     <section class="seg-panel active" id="panelSponsors" role="tabpanel"
              aria-labelledby="tabSponsors" tabindex="0">
       <!-- 2026-09-26：原来这里是 ul.thanks-list 的卡片列表；
-           用户要求「赞助者名单模仿 Roblox 的鸣谢名单那样写人名」，
+           用户要求「赞助者模仿 Roblox 的鸣谢名单那样写人名」，
            于是改成和右边那一档一模一样的结构：.thanks-group > .thanks-person。
            容器用 .thanks-single（不是 .thanks-groups）—— 赞助者没有类别、只有一个块，
            不需要 Roblox 那边的三列栅格。 -->
@@ -219,7 +219,7 @@
         });
       });
 
-      /* 进页面时按 ?tab= 打开对应的那个；没带参数就是赞助者名单。
+      /* 进页面时按 ?tab= 打开对应的那个；没带参数就是赞助者。
          初次打开【不改 URL】—— 干净的 thanks.html 就让它保持干净。 */
       var initial = 'sponsors';
       try {
@@ -231,9 +231,9 @@
       show(initial, false);
 
       /* ============================================================
-         ② 赞助者名单：底档（data/sponsors.json）+ 后台加的（D1）
+         ② 赞助者：底档（data/sponsors.json）+ 后台加的（D1）
          ============================================================ */
-      /* 赞助者条目：2026-09-26 用户要求「赞助者名单模仿 Roblox 的鸣谢名单那样写人名等内容」——
+      /* 赞助者条目：2026-09-26 用户要求「赞助者模仿 Roblox 的鸣谢名单那样写人名等内容」——
          所以这里不再用卡片、也不再用名字/称号两行，而是和右边那一档同一个写法：
          一个类别块（.thanks-group + .cat-title），里面每人是 .thanks-person 一行：
          👑 名字 · 称号 · 金额 · 感谢语（全部过 esc 转义）。 */
@@ -266,12 +266,12 @@
 
         if (items.length === 0) {
           box.innerHTML = '<div class="thanks-empty">' +
-            (baseOk ? '暂无赞助者名单 ❤️' : '底档名单暂时读不出来，刷新一下再试 ❤️') + '</div>';
+            (baseOk ? '暂无赞助者 ❤️' : '底档名单暂时读不出来，刷新一下再试 ❤️') + '</div>';
           box.removeAttribute('aria-busy');
           return;
         }
 
-        /* 2026-09-26：这里原来还有一行类别标题「👑 赞助者名单」——
+        /* 2026-09-26：这里原来还有一行类别标题「👑 赞助者」——
            跟上面的切换标签重复，用户圈出来要求删掉，所以只剩人员行。
            .thanks-group 这层壳保留：它负责限宽 640px + 居中。 */
         var html = '<div class="thanks-group">';

@@ -79,7 +79,7 @@ const SITE_COST = {
   checkedAt: '2026-09-26'   /* 上面这个数字是哪天核对的 */
 };
 
-/* 把金额填进页面里所有占位处（现在只有鸣谢页 thanks.html 的「👑 赞助者名单」那一处） */
+/* 把金额填进页面里所有占位处（现在只有鸣谢页 thanks.html 的「👑 赞助者」那一处） */
 function fillSiteCost(scope) {
   const root = scope || document;
   root.querySelectorAll('[data-site-cost]').forEach(el => {
