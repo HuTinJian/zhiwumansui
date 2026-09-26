@@ -1080,8 +1080,8 @@ body.modal-open .particles i { animation-play-state: paused; }
 .thanks-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 13px;
+  gap: 10px;
+  padding: 9px 12px;
   background: var(--bg-card);
   border: 1px solid var(--gold-light);
   border-radius: var(--radius-sm);
@@ -1094,45 +1094,49 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-color: var(--gold);
   box-shadow: var(--shadow-hover);
 }
-.thanks-crown { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
+.thanks-crown { font-size: 1rem; line-height: 1; flex-shrink: 0; }
 .thanks-info { flex: 1; min-width: 0; }
+/* 一行式：名字 + 称号 + 短感谢语都在同一行，只有真的放不下才折行
+   （2026-09-26 用户反馈原来那三行文案「占比太长」） */
 .thanks-top {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 7px;
   flex-wrap: wrap;
 }
 .thanks-name {
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--text);
   word-break: break-word;
 }
 .thanks-title {
-  padding: 1px 8px;
+  padding: 1px 7px;
   border-radius: var(--radius-pill);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--gold-ink);
   background: var(--gold-bg);
   border: 1px solid var(--gold-light);
+  white-space: nowrap;
 }
 .thanks-note {
-  margin-top: 2px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-light);
-  line-height: 1.6;
+  line-height: 1.5;
 }
+/* 金额也压成一行（原来「¥10」和「赞助金额」是上下两行，把卡片撑高了） */
 .thanks-amount {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
   flex-shrink: 0;
   text-align: right;
 }
-.thanks-amount-num { font-size: 1rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
-.thanks-amount-tip { font-size: 0.64rem; color: var(--text-muted); letter-spacing: 0.5px; }
+.thanks-amount-num { font-size: 0.95rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
+.thanks-amount-tip { font-size: 0.64rem; color: var(--text-muted); letter-spacing: 0.5px; white-space: nowrap; }
 
 /* 全站唯一那处金额 —— 占位元素由 js/common.js 的 fillSiteCost 启动时回填 */
 .thanks-cost {
