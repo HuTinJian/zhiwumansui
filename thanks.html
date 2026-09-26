@@ -51,10 +51,13 @@
   <!-- ==================== 主内容 ==================== -->
   <main class="container" id="main">
 
-    <header class="thanks-head">
-      <h1>❤️ 鸣谢名单</h1>
-      <p>这个站能一直开着，靠的是这些人。</p>
-    </header>
+    <!-- 页头：照首页「区块标题」的样子（.section-head + .hint），
+         2026-09-26 用户要求「格式像主页一样，别那么大」——
+         原来这里是居中的大标题（.thanks-head，最大 2.3rem），已经换成首页那套尺度。 -->
+    <div class="section-head">
+      <h2>❤️ 鸣谢名单</h2>
+      <span class="hint">这个站能一直开着，靠的是这些人。</span>
+    </div>
 
     <!-- ==================== 切换选择器 ====================
          2026-09-26：原来挂在首页的「赞助者荣誉榜」搬到这里，
@@ -84,14 +87,9 @@
       <p class="thanks-cost">本站的 AI 调用费一直是自己掏的，到现在一共花了
         <b data-site-cost>¥76.41</b>（截至 2026-09-26）。</p>
 
-      <div class="thanks-support">
-        <img class="thanks-support-qr" src="images/sponsor-qrcode.png"
-             alt="HuTinJian 的赞赏码" width="96" height="96" loading="lazy">
-        <div class="thanks-support-txt">
-          <span class="thanks-support-t">☕ 请我喝一杯</span>
-          <span class="thanks-support-s">想支持就扫一下这个码；不扫也完全没关系，照常用。</span>
-        </div>
-      </div>
+      <!-- 2026-09-26：这里原来是「☕ 请我喝一杯」+ 赞赏码小图（.thanks-support）。
+           用户要求把鸣谢页里跟赞助码有关的东西删掉 —— 赞赏入口留在首页 hero 那条，
+           这一页只留名单和那行金额。 -->
     </section>
 
     <!-- ==================== 面板二：🎮 Roblox ID 宝库 ==================== -->

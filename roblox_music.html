@@ -27,53 +27,8 @@
   </script>
 
   <style>
-    .header-nav {
-      display: inline-flex;
-      align-items: center;
-      /* 这里原来是写死的「半透明白 + 粉色描边」，深色主题下会在暗底上糊出一块白。
-         改用主题里的玻璃底色与描边变量，两边都自然。 */
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      padding: 4px 6px;
-      box-shadow: var(--shadow-sm);
-      gap: 2px;
-      margin-left: auto;
-    }
-    .header-nav .nav-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-light);
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
-      font-size: 0.85rem;
-      font-weight: 500;
-      text-decoration: none;
-      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce);
-      height: 30px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      white-space: nowrap;
-      font-family: var(--font);
-    }
-    .header-nav .nav-btn:hover {
-      background: rgba(220, 107, 130, 0.12);
-      color: var(--primary);
-      transform: translateY(-2px);
-    }
-    .header-nav .nav-btn:active {
-      transform: scale(0.92);
-    }
-    .header-nav .nav-btn.gold {
-      color: var(--gold-ink);
-      font-weight: 600;
-    }
-    .header-nav .nav-btn.gold:hover {
-      background: rgba(212, 160, 106, 0.15);
-      color: var(--gold-ink);
-    }
+    /* 2026-09-26：原来这里有一整块 .header-nav / .nav-btn 样式，
+       只服务于页头那颗「❤️ 鸣谢名单」按钮；按钮按用户要求删掉了，样式一并移除。 */
 
     .container {
       max-width: 1100px;
@@ -1161,12 +1116,6 @@
       .page-header { padding: 16px 18px; }
       .page-header h1 { font-size: 1.2rem; }
       .page-header-top { flex-direction: column; align-items: stretch; }
-      .header-nav {
-        width: 100%;
-        justify-content: center;
-        margin-left: 0;
-        flex-wrap: wrap;
-      }
       .page-header .btns { justify-content: center; }
       .search-row input[type="text"] { font-size: 0.9rem; padding: 9px 14px; }
       .filter-tabs button { font-size: 0.78rem; padding: 6px 12px; }
@@ -1213,11 +1162,9 @@
           <span>🔁 <strong id="statMulti">0</strong> 组多 ID</span>
           <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
         </div>
-        <nav class="header-nav" aria-label="页面操作">
-          <!-- 2026-09-26：原来这里点开的是本站的鸣谢弹窗，
-               鸣谢名单已经搬到独立页面 thanks.html，这里直接跳过去（落在宝库那一档）。 -->
-          <a class="nav-btn gold" href="thanks.html?tab=roblox">❤️ 鸣谢名单</a>
-        </nav>
+        <!-- 2026-09-26：这里原来有一颗「❤️ 鸣谢名单」按钮（先弹窗、后改成跳 thanks.html）。
+             按用户要求删掉了：卡片一（宝库页）不再出现鸣谢入口，
+             要去看鸣谢走顶部导航或页脚的「❤️ 鸣谢」。 -->
       </div>
       <div class="btns toolbar">
         <div class="tool-group">
