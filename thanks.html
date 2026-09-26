@@ -79,13 +79,16 @@
          接口挂了 / 返回空都不影响底档：两者各拉各的，互不牵连。 -->
     <section class="seg-panel active" id="panelSponsors" role="tabpanel"
              aria-labelledby="tabSponsors" tabindex="0">
-      <ul class="thanks-list" id="sponsorList" aria-busy="true">
-        <li class="thanks-empty" id="sponsorLoading">名单加载中…</li>
-      </ul>
+      <!-- 2026-09-26：原来这里是 ul.thanks-list 的卡片列表；
+           用户要求「赞助者名单模仿 Roblox 的鸣谢名单那样写人名」，
+           于是改成和右边那一档一模一样的结构：#sponsorGroups > .thanks-group > .thanks-person -->
+      <div class="thanks-groups" id="sponsorGroups" aria-busy="true">
+        <div class="thanks-empty" id="sponsorLoading">名单加载中…</div>
+      </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
 
       <p class="thanks-cost">本站的 AI 调用费一直是自己掏的，到现在一共花了
-        <b data-site-cost>¥76.41</b>（截至 2026-09-26）。</p>
+        <b data-site-cost>¥83.76</b>（截至 2026-09-26）。</p>
 
       <!-- 2026-09-26：这里原来是「☕ 请我喝一杯」+ 赞赏码小图（.thanks-support）。
            用户要求把鸣谢页里跟赞助码有关的东西删掉 —— 赞赏入口留在首页 hero 那条，
@@ -228,32 +231,13 @@
       /* ============================================================
          ② 赞助者名单：底档（data/sponsors.json）+ 后台加的（D1）
          ============================================================ */
-      /* 赞助者卡片：2026-09-26 用户反馈「名字/称号/感谢语占比太长」——
-         改成一行式（皇冠 + 名字 + 称号 + 短感谢语 + 右侧金额），不再用整块的两行文案 */
-      function sponsorCard(item) {
-        var html = '<li class="thanks-card">' +
-          '<span class="thanks-crown" aria-hidden="true">👑</span>' +
-          '<div class="thanks-info">' +
-            '<div class="thanks-top">' +
-              '<span class="thanks-name">' + esc(item.name) + '</span>' +
-              '<span class="thanks-title">' + esc(item.title || '荣誉赞助者') + '</span>' +
-              (item.message ? '<span class="thanks-note">' + esc(item.message) + '</span>' : '') +
-            '</div>' +
-          '</div>';
-
-        if (item.amount) {
-          html += '<div class="thanks-amount" aria-label="赞助金额 ' + esc(item.amount) + '">' +
-            '<span class="thanks-amount-num">' + esc(item.amount) + '</span>' +
-            '<span class="thanks-amount-tip">赞助金额</span>' +
-          '</div>';
-        }
-
-        return html + '</li>';
-      }
-
+      /* 赞助者条目：2026-09-26 用户要求「赞助者名单模仿 Roblox 的鸣谢名单那样写人名等内容」——
+         所以这里不再用卡片、也不再用名字/称号两行，而是和右边那一档同一个写法：
+         一个类别块（.thanks-group + .cat-title），里面每人是 .thanks-person 一行：
+         👑 名字 · 称号 · 金额 · 感谢语（全部过 esc 转义）。 */
       function renderSponsors(base, baseOk, extra) {
-        var list = $('sponsorList');
-        if (!list) return;
+        var box = $('sponsorGroups');
+        if (!box) return;
 
         var items = [];
         var seen = Object.create(null);
@@ -268,7 +252,7 @@
             /* 称号：底档写 title；D1 那边没有这个字段，统一给「荣誉赞助者」 */
             title: p.title || '荣誉赞助者',
             /* 金额：底档写 amount；D1 的约定是写在 platform 字段里（后台定的口径），所以两个都认 */
-            amount: p.amount || p.platform || '',
+            amount: String(p.amount || p.platform || '').trim(),
             message: p.message || ''
           });
         }
@@ -279,12 +263,26 @@
         (Array.isArray(extra) ? extra : []).forEach(function (p) { push(p); });
 
         if (items.length === 0) {
-          list.innerHTML = '<li class="thanks-empty">' +
-            (baseOk ? '暂无赞助者名单 ❤️' : '底档名单暂时读不出来，刷新一下再试 ❤️') + '</li>';
-        } else {
-          list.innerHTML = items.map(sponsorCard).join('');
+          box.innerHTML = '<div class="thanks-empty">' +
+            (baseOk ? '暂无赞助者名单 ❤️' : '底档名单暂时读不出来，刷新一下再试 ❤️') + '</div>';
+          box.removeAttribute('aria-busy');
+          return;
         }
-        list.removeAttribute('aria-busy');
+
+        var html = '<div class="thanks-group">';
+        html += '<div class="cat-title">👑 赞助者名单</div>';
+        items.forEach(function (p) {
+          html += '<div class="thanks-person">';
+          html += '<span class="p-name">👑 ' + esc(p.name) + '</span>';
+          if (p.title) html += '<span class="p-platform">· ' + esc(p.title) + '</span>';
+          if (p.amount) html += '<span class="p-platform">· ' + esc(p.amount) + '</span>';
+          if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+
+        box.innerHTML = html;
+        box.removeAttribute('aria-busy');
       }
 
       /* 两条数据链同时发、各错各的：
