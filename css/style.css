@@ -993,10 +993,134 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-}/* 名字变长了（DeepSeek-V4.1-Flash（modlens vision）），窄屏上会折两行 ——
+}/* 名字比较长（「DeepSeek-V4.1-Flash」字不少），窄屏上会折两行 ——
    把行高压紧一点，别把卡片撑得比旁边两张还高。 */
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
+
+/* ---------- 赞助者荣誉榜（首页 hero 下面那条） ----------
+   2026-09-26 新增：只放「愿意为这个站掏钱的人」，所以单独做一张金色系的卡，
+   跟旁边粉色的卡片区分开 —— 荣誉感靠配色和称号，不靠堆特效。
+   颜色全部走既有主题变量（--gold-* / --bg-card / --text*），
+   明暗两套主题因此都不用再写一遍；动画只有一个 4px 的上下浮动和一次入场。
+   结构是可扩展列表：以后加人只要复制一个 .honor-item 改名字和金额。 */
+.honor-section {
+  position: relative;
+  overflow: hidden;
+  margin: 52px 0 8px;
+  padding: 24px 26px 20px;
+  background: linear-gradient(135deg, var(--gold-bg), var(--bg-card) 62%);
+  border: 1px solid var(--gold-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.7s var(--ease-out) 0.42s backwards;
+}
+/* 顶上那条金边：跟 .card::before 一个做法，只是把颜色换成金色 */
+.honor-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+}
+.honor-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.honor-head h2 {
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--gold-ink);
+}
+.honor-hint { font-size: 0.82rem; color: var(--text-muted); }
+
+.honor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.honor-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+}
+.honor-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  box-shadow: var(--shadow-hover);
+}
+.honor-crown {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: honorFloat 3.4s ease-in-out infinite;
+}
+@keyframes honorFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+.honor-info { flex: 1; min-width: 0; }
+.honor-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.honor-name {
+  font-size: 1.06rem;
+  font-weight: 800;
+  color: var(--text);
+  word-break: break-word;
+}
+.honor-title {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--gold-ink);
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-light);
+}
+.honor-note {
+  margin-top: 3px;
+  font-size: 0.83rem;
+  color: var(--text-light);
+  line-height: 1.65;
+}
+.honor-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  text-align: right;
+}
+.honor-amount-num { font-size: 1.16rem; font-weight: 800; color: var(--gold-ink); line-height: 1.2; }
+.honor-amount-tip { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.5px; }
+.honor-cost {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.honor-cost b { color: var(--gold-ink); font-weight: 800; }
 
 .sponsor-modal-content { max-width: 420px; text-align: center; }
 .sponsor-modal-content h2 { margin-bottom: 10px; }
@@ -1162,6 +1286,12 @@ html.lite .reveal {
   transition: none;
 }
 
+/* 荣誉榜的入场 + 皇冠浮动也一起关掉（低配手机上没必要为装饰做合成） */
+html.lite .honor-section,
+html.lite .honor-crown {
+  animation: none !important;
+}
+
 /* ============================================================
    12.7 触屏 / 移动端手感
    ============================================================ */
@@ -1170,6 +1300,7 @@ html.lite .reveal {
   .navbar .nav-links a:hover,
   .card:hover,
   .credits-card:hover,
+  .honor-item:hover,
   .feature:hover,
   .stat-item:hover,
   .song-group:hover,
@@ -1229,6 +1360,9 @@ html.lite .reveal {
   .theme-toggle { width: 36px; height: 36px; font-size: 0.95rem; }
   .credits-section { flex-direction: column; align-items: center; gap: 12px; }
   .credits-card { min-width: 100%; justify-content: center; }
+  .honor-section { margin-top: 40px; padding: 20px 18px 17px; }
+  .honor-head h2 { font-size: 1.14rem; }
+  .honor-item { gap: 12px; padding: 13px 14px; }
 }
 
 @media (max-width: 480px) {
@@ -1237,6 +1371,19 @@ html.lite .reveal {
   .toast { font-size: 0.85rem; padding: 10px 20px; bottom: 20px; }
   .credits-card { padding: 16px; }
   .credits-icon { width: 40px; height: 40px; }
+  /* 荣誉榜：名字长、右边还有金额，窄屏上允许金额换到第二行，免得撑破卡片 */
+  .honor-section { margin-top: 34px; padding: 18px 15px 15px; }
+  .honor-head { margin-bottom: 13px; gap: 6px; }
+  .honor-head h2 { font-size: 1.02rem; }
+  .honor-hint { font-size: 0.76rem; }
+  .honor-item { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .honor-crown { font-size: 1.4rem; }
+  .honor-info { flex: 1 1 auto; }
+  .honor-name { font-size: 1rem; }
+  .honor-note { font-size: 0.79rem; }
+  .honor-amount { flex: 0 0 auto; margin-left: auto; }
+  .honor-amount-num { font-size: 1.08rem; }
+  .honor-cost { font-size: 0.76rem; }
 }
 
 /* ============================================================

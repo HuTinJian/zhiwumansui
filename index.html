@@ -150,8 +150,9 @@
     }.hero-actions .btn { padding: 12px 30px; }
 
     /* ========== 赞赏码小条（「开始逛逛」按钮下面那条） ==========
-       它就是「这个站花了多少钱 + 想支持就扫这个码」，所以图直接露出来，
-       不藏在二级页面里；整条可点（点开看大图，手机上才扫得动）。
+       它就是「想支持就扫这个码」，所以图直接露出来，不藏在二级页面里；
+       整条可点（点开看大图，手机上才扫得动）。
+       金额【不写在这条里了】（用户 2026-09-26 要求）：花多少只在下面「赞助者荣誉榜」显示。
        尺寸压得比按钮还小一号：它是补充信息，不该抢 hero 的焦点。 */
     .hero-sponsor {
       display: inline-flex;
@@ -398,19 +399,51 @@
       </div>
 
       <!-- 赞赏码小条：位置就是这里（「开始逛逛」那排按钮下面）。
-           图直接露出来（点一下开大图，手机上才扫得动）；
-           花了多少钱用 data-site-cost 占位，脚本会按 js/common.js 里的 SITE_COST 填，
-           这里写的数字只是【没脚本时的兜底】。 -->
+           图直接露出来（点一下开大图，手机上才扫得动）。
+           这里【不写金额了】（用户 2026-09-26 要求）：花了多少钱全网只出现在
+           下面「赞助者荣誉榜」那一处，数字的唯一来源是 js/common.js 的 SITE_COST。 -->
       <button type="button" class="hero-sponsor" id="heroSponsor" aria-label="查看赞赏码大图">
         <img class="hero-sponsor-qr" src="images/sponsor-qrcode.png"
              alt="HuTinJian 的赞赏码" width="76" height="76" loading="lazy">
         <span class="hero-sponsor-txt">
           <span class="hero-sponsor-t">☕ 请我喝一杯</span>
-          <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费到目前一共花了
-            <b data-site-cost>¥59.78</b>（截至 2026-09-25）</span>
+          <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的，
+            感谢名单在下面</span>
           <span class="hero-sponsor-h">点我看大图 · 扫一扫就是最大的支持</span>
         </span>
       </button>
+    </section>
+
+    <!-- ==================== 赞助者荣誉榜 ====================
+         加新赞助者：复制一个 .honor-item 改名字和金额。
+         金额的真值只有一处 —— js/common.js 最上面的 SITE_COST；
+         下面带占位属性的那个数是【没脚本时的兜底】，换数字时顺手一起改。 -->
+    <section class="honor-section" aria-labelledby="honorTitle">
+      <div class="honor-head">
+        <h2 id="honorTitle">🏅 赞助者荣誉榜</h2>
+        <span class="honor-hint">因为有他们，这个小站才能一直开着</span>
+      </div>
+
+      <ul class="honor-list">
+        <!-- 加新赞助者：复制一个 .honor-item 改名字和金额 -->
+        <li class="honor-item">
+          <span class="honor-crown" aria-hidden="true">👑</span>
+          <div class="honor-info">
+            <div class="honor-top">
+              <span class="honor-name">JR_鲜鱼</span>
+              <span class="honor-title">荣誉赞助者</span>
+            </div>
+            <p class="honor-note">谢谢 JR_鲜鱼。愿意为别人的站掏钱，这件事本身就不常见，值得被好好记住。</p>
+          </div>
+          <div class="honor-amount" aria-label="赞助金额 ¥10">
+            <span class="honor-amount-num">¥10</span>
+            <span class="honor-amount-tip">赞助金额</span>
+          </div>
+        </li>
+      </ul>
+
+      <p class="honor-cost">本站的 AI 调用费一直是自己掏的，到现在一共花了
+        <b data-site-cost>¥76.41</b>（截至 2026-09-26）—— 上面这位是目前唯一分担过的人。</p>
     </section>
 
     <!-- 内容卡片 -->
@@ -503,7 +536,7 @@
       <div class="credits-card">
         <img class="credits-icon" src="images/deepseek.png" alt="支持者图标" width="48" height="48" loading="lazy">
         <div class="credits-info">
-          <span class="credits-label">支持者</span><span class="credits-name">DeepSeek-V4.1-Flash（modlens vision）</span>
+          <span class="credits-label">支持者</span><span class="credits-name">DeepSeek-V4.1-Flash</span>
           <span class="credits-en">AI Assistant</span>
         </div>
       </div><!-- 这一排原本还有第三张「赞赏码」卡，已经删掉了 ——
@@ -515,9 +548,9 @@
   <!-- 赞赏码大图（点上面那张卡打开；手机用户扫这个大的） -->
   <div class="modal" id="sponsorModal" role="dialog" aria-modal="true" aria-label="赞赏码">
     <div class="modal-content sponsor-modal-content">
-      <h2>☕ 请我喝一杯</h2><p>这个站是业余时间一个人做的，DeepSeek-V4.1-Flash（modlens vision）的调用也要花钱
-        —— 到目前一共花了 <b data-site-cost>¥59.78</b>。
-        如果它帮到过你，扫下面这个码就是最大的支持；不扫也完全没关系，照常用。</p>
+      <h2>☕ 请我喝一杯</h2><p>这个站是业余时间一个人做的，DeepSeek-V4.1-Flash 的调用也要花钱。
+        如果它帮到过你，扫下面这个码就是最大的支持；不扫也完全没关系，照常用。
+        赞助者名单在首页。</p>
       <img class="sponsor-qr-big" src="images/sponsor-qrcode.png"
            alt="HuTinJian 的赞赏码，扫码即可支持" loading="lazy">
       <div class="modal-actions">

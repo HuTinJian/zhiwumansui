@@ -62,20 +62,24 @@
   initTheme();/* ============================================================
    0.5 这个站到现在花了多少钱
    ------------------------------------------------------------
-   首页（「开始逛逛」按钮下面那条）和「新人弹窗」都要显示这个数字，
-   所以【数字只写在这一处】：页面里用 <span data-site-cost></span> 占位，
-   脚本启动时统一填进去。以后要改，就改下面 amount 这一行，全站一起变。
+   页面上【只有首页「赞助者荣誉榜」那一处】显示这个数字了（用户 2026-09-26 要求）：
+   hero 的赞赏码小条、赞赏码弹窗、新人弹窗都不再写金额和核对日期，
+   免得同一个数字在四个地方各写一遍、还容易改漏。
+
+   数字仍然只写在这一处：需要显示的地方用占位元素标出来（属性名见下面
+   fillSiteCost 的选择器），脚本启动时统一填进去。以后要改，就改下面 amount 这一行。
 
    口径：DeepSeek API 的累计消费（元）。数字来自 DSH 的账单文件，
    是人工核对后填进来的，不会自己涨 —— 换数字时记得把 checkedAt 一起改。
+   首页荣誉榜里还写了一份【没脚本时的兜底】数字，换数字时也顺手一起改。
    ============================================================ */
 const SITE_COST = {
-  amount: '¥59.78',         /* 累计花费（元）—— 只改这一个地方 */
+  amount: '¥76.41',         /* 累计花费（元）—— 只改这一个地方 */
   since: '2026-09-12',      /* 从哪天开始算的 */
-  checkedAt: '2026-09-25'   /* 上面这个数字是哪天核对的 */
+  checkedAt: '2026-09-26'   /* 上面这个数字是哪天核对的 */
 };
 
-/* 把金额填进页面里所有 [data-site-cost] 占位处 */
+/* 把金额填进页面里所有占位处（现在只有首页「赞助者荣誉榜」那一处） */
 function fillSiteCost(scope) {
   const root = scope || document;
   root.querySelectorAll('[data-site-cost]').forEach(el => {
@@ -796,10 +800,10 @@ function fillSiteCost(scope) {
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
-          <span class="preview-notice-badge">🚧 预览版</span><span class="preview-notice-ver">DeepSeek-V4.1-Flash（modlens vision）</span>
+          <span class="preview-notice-badge">🚧 预览版</span><span class="preview-notice-ver">DeepSeek-V4.1-Flash</span>
         </div>
         <h2 id="${modalId}Title">这里是预览版，先跟你说一声</h2>
-        <p class="preview-notice-body">本站由 <strong>DeepSeek-V4.1-Flash（modlens vision）</strong> 编写，目前仍是预览版，
+        <p class="preview-notice-body">本站由 <strong>DeepSeek-V4.1-Flash</strong> 编写，目前仍是预览版，
           功能和内容都还在陆续补完，可能会有小毛病或者样式不统一的地方。
           如果你发现了问题，或者有想加的功能，欢迎随时告诉我们 —— 你的每一条反馈都会被看到。
         </p>
@@ -814,11 +818,11 @@ function fillSiteCost(scope) {
         <!-- 赞助码【不放在这个弹窗里】了（用户 2026-09-25 要求）：
              这里只留一句提示，把人指到首页去扫（具体在哪条就不写了，首页一眼能看到）。
              顺带的好处：首访不用再为这个弹窗下载那张 220KB 的二维码图。
-             花的钱数仍然如实写出来（数字见文件开头的 SITE_COST）。 -->
+             花钱的金额和核对日期【也挪走了】（用户 2026-09-26 要求）：
+             全站只有首页「赞助者荣誉榜」显示那个数字，这里再说一遍就重复了。 -->
         <p class="preview-notice-sponsor-tip">
-          ☕ 想请我喝一杯？<strong>赞助码在首页</strong>，扫码就行。
-          这个站到目前一共花了 <strong>${SITE_COST.amount}</strong>（截至 ${SITE_COST.checkedAt}），
-          全是一个人业余时间做的。不赞助也完全没关系，照常用。
+          ☕ 想请我喝一杯？<strong>赞助码在首页</strong>，扫码就行；
+          不赞助也完全没关系，照常用。
         </p>
       </div>
     `;
