@@ -85,7 +85,8 @@ let feedbackCache = [];
     resetSponsorForm();
   };
   document.getElementById('confirmAddSponsor').onclick = handleAddSponsor;
-  document.getElementById('refreshSponsorsBtn').onclick = loadSponsors;
+  /* 2026-09-26：原来这里还给「🔄 刷新」按钮绑了 loadSponsors，
+     用户要求把那个按钮去掉（与「🎮 Roblox ID 宝库」面板一致），绑定一并移除。 */
 
   /* 切到「👑 赞助者」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
      所以和一级标签那层的懒加载不会重复请求） */
