@@ -269,8 +269,10 @@
           return;
         }
 
+        /* 2026-09-26：这里原来还有一行类别标题「👑 赞助者名单」——
+           跟上面的切换标签重复，用户圈出来要求删掉，所以只剩人员行。
+           .thanks-group 这层壳保留：它负责限宽 640px + 居中。 */
         var html = '<div class="thanks-group">';
-        html += '<div class="cat-title">👑 赞助者名单</div>';
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
           html += '<span class="p-name">👑 ' + esc(p.name) + '</span>';
