@@ -809,6 +809,14 @@ function fillSiteCost(scope) {
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-labelledby', modalId + 'Title');
+
+    /* 【2026-09-27 用户要求】只有「刚进首页自动弹的那次」要 10 秒倒计时；
+       自己点首页公告条重看的，不倒计时 —— 按钮一打开就是可点的。 */
+    const needCountdown = force !== true;
+    const okAttrs = needCountdown ? ' disabled' : '';
+    const okText = needCountdown ? `我已阅读并知晓（${SITE_NOTICE_SECONDS}s）` : '我已阅读并知晓';
+    const fbAttrs = needCountdown ? ' aria-disabled="true"' : '';
+
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
@@ -877,8 +885,8 @@ function fillSiteCost(scope) {
           <span>本站目前仍是预览版，功能和内容都在陆续调整；重要内容请自行二次确认。</span>
         </p>
         <div class="preview-notice-actions" id="siteNoticeActions">
-          <button type="button" class="btn btn-primary" id="siteNoticeOk" disabled>我已阅读并知晓（10s）</button>
-          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html" aria-disabled="true">💬 去反馈</a>
+          <button type="button" class="btn btn-primary" id="siteNoticeOk"${okAttrs}>${okText}</button>
+          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html"${fbAttrs}>💬 去反馈</a>
         </div>
       </div>
     `;
@@ -889,7 +897,10 @@ function fillSiteCost(scope) {
     const feedbackBtn = document.getElementById('siteNoticeFeedback');
     const markSeen = () => { try { localStorage.setItem(SITE_NOTICE_KEY, SITE_NOTICE_VERSION); } catch (e) {} };
 
-    /* 10 秒倒计时：读完之前「我已阅读并知晓」点不动（用户 2026-09-27 要求） */
+    /* 10 秒倒计时：读完之前「我已阅读并知晓」点不动（用户 2026-09-27 要求）
+       —— 只在「自动弹」这条路上跑；手动点公告重看不锁（见下面的 force 分支）。 */
+    let timer = null;
+    let forceUnlock = null;
     const unlock = () => {
       if (okBtn) { okBtn.disabled = false; okBtn.textContent = '我已阅读并知晓'; }
       if (feedbackBtn) {
@@ -897,25 +908,28 @@ function fillSiteCost(scope) {
         feedbackBtn.style.pointerEvents = '';
       }
     };
-    if (feedbackBtn) feedbackBtn.style.pointerEvents = 'none';
 
-    let left = SITE_NOTICE_SECONDS;
-    const timer = setInterval(() => {
-      left -= 1;
-      if (left <= 0) { clearInterval(timer); unlock(); return; }
-      if (okBtn) okBtn.textContent = `我已阅读并知晓（${left}s）`;
-    }, 1000);
-    /* 双保险：万一计时器出意外，再多等 2 秒也一定要解锁 —— 绝不能把人锁在弹窗里出不去 */
-    const forceUnlock = setTimeout(unlock, (SITE_NOTICE_SECONDS + 2) * 1000);
+    if (needCountdown) {
+      if (feedbackBtn) feedbackBtn.style.pointerEvents = 'none';
+
+      let left = SITE_NOTICE_SECONDS;
+      timer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) { clearInterval(timer); timer = null; unlock(); return; }
+        if (okBtn) okBtn.textContent = `我已阅读并知晓（${left}s）`;
+      }, 1000);
+      /* 双保险：万一计时器出意外，再多等 2 秒也一定要解锁 —— 绝不能把人锁在弹窗里出不去 */
+      forceUnlock = setTimeout(unlock, (SITE_NOTICE_SECONDS + 2) * 1000);
+    }
 
     if (okBtn) okBtn.onclick = () => { markSeen(); release(); closeModal(modalId); };
 
-    /* 关闭时收掉计时器（下次再点公告会重新从 10 秒开始） */
+    /* 关闭时收掉计时器（自动弹的那次关掉后不会留下后台定时器） */
     const onClose = e => {
       if (e.detail.id !== modalId) return;
       document.removeEventListener('zm:modalclose', onClose);
-      clearInterval(timer);
-      clearTimeout(forceUnlock);
+      if (timer) clearInterval(timer);
+      if (forceUnlock) clearTimeout(forceUnlock);
       markSeen();
       release();
     };
