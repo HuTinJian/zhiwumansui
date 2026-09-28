@@ -1264,6 +1264,37 @@ body.modal-open .particles i { animation-play-state: paused; }
   .preview-notice-body.site-notice-call { padding: 10px 12px; font-size: 0.84rem; }
 }
 
+/* 「郑重道歉」区块（2026-09-27 用户要求特别标注）：
+   用警示色单独框出来，保证不会被当成普通正文一眼划过去。
+   当前主题的 --danger / --danger-bg / --danger-light 浅色与深色都有定义。 */
+.site-notice-apology {
+  margin: 0 24px 18px;
+  padding: 14px 16px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-light);
+  border-left: 4px solid var(--danger);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+.site-notice-apology-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--danger);
+  margin-bottom: 8px;
+}
+.site-notice-apology-item {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  line-height: 1.8;
+  color: var(--text-light);
+}
+.site-notice-apology-item:last-child { margin-bottom: 0; }
+.site-notice-apology-item strong { color: var(--text); }
+@media (max-width: 768px) {
+  .site-notice-apology { margin: 0 16px 14px; padding: 12px 13px; }
+  .site-notice-apology-item { font-size: 0.84rem; }
+}
+
 /* ---------- 必读公告弹窗里的两个 QQ 群（2026-09-27 新增） ----------
    两张二维码卡片并排；点卡片 = 新标签打开原图（手机上可长按识别）。 */
 .site-notice-groups { margin: 0 24px 18px; }

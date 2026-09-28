@@ -764,8 +764,9 @@ function fillSiteCost(scope) {
      · 首页那条「📢 公告」可以再次打开它（window.openSiteNotice）
      ============================================================ */
   const SITE_NOTICE_KEY = 'zm_site_notice_seen';
-  /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次 */
-  const SITE_NOTICE_VERSION = '1';
+  /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
+     2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。 */
+  const SITE_NOTICE_VERSION = '2';
   /* 强制阅读秒数：倒计时结束前「我已阅读并知晓」是灰的、点不动 */
   const SITE_NOTICE_SECONDS = 10;
 
@@ -823,6 +824,21 @@ function fillSiteCost(scope) {
           <li>宝库主列表<strong>只保留我确认过的这些歌</strong> —— 所以现在站里的歌曲 ID <strong>只剩 100+ 个</strong>，比以前少了很多；</li>
           <li>其余的歌已经单独存成 JSON 文件留档，不会丢；数据库里已有的歌也<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
         </ul>
+
+        <!-- 道歉区块（2026-09-27 用户要求「要特别标注，对 duck 的道歉和对使用我们网站用户的道歉」）：
+             单独用警示色框起来，见 css/style.css 的 .site-notice-apology。 -->
+        <div class="site-notice-apology">
+          <p class="site-notice-apology-title">🙏 郑重道歉</p>
+          <p class="site-notice-apology-item">
+            <strong>对 duck 道歉：</strong>这件事我处理得不够冷静，把私人之间的不愉快带到了站里，
+            给你的群和歌单添了麻烦，真的很抱歉。如果这里哪句话、哪张图让你不舒服，告诉我，我马上改。
+          </p>
+          <p class="site-notice-apology-item">
+            <strong>对使用本站的大家道歉：</strong>因为我个人的原因，宝库的歌单一下子少了一大截，
+            让你白跑一趟、没找到想听的歌，真的很抱歉。我会尽快把歌单补回来，
+            也欢迎你把想听的 ID 发给我。
+          </p>
+        </div>
 
         <p class="preview-notice-body site-notice-call">
           🧩 <strong>希望大家帮忙补歌</strong>：如果你手上有好听的 Roblox 音乐 ID，
