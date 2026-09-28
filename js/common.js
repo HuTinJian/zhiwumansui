@@ -332,6 +332,8 @@ function fillSiteCost(scope) {
       if (!open) return;
 
       if (e.key === 'Escape') {
+        /* data-no-esc="true" 的弹窗（例如全站必读公告）：键盘也关不掉 */
+        if (open.dataset.noEsc === 'true') return;
         e.preventDefault();
         closeTopModal();
         return;
@@ -352,18 +354,10 @@ function fillSiteCost(scope) {
       }
     });
 
-    /* 点击遮罩关闭：以 mousedown + mouseup 都在遮罩上为准，避免拖拽误关 */
-    let downOnBackdrop = null;
-    document.addEventListener('mousedown', e => {
-      downOnBackdrop = e.target.classList && e.target.classList.contains('modal') ? e.target : null;
-    });
-    document.addEventListener('click', e => {
-      const t = e.target;
-      if (!t.classList || !t.classList.contains('modal')) return;
-      if (t !== downOnBackdrop) return;
-      if (t.dataset.static === 'true') return;   /* 可用 data-static="true" 禁止遮罩关闭 */
-      closeModal(t.id);
-    });
+    /* 【2026-09-27 用户要求】所有弹窗一律不能「点空白处（遮罩）」关闭。
+       原来这里有一段 mousedown + click 判断并 closeModal 的逻辑，已整段删除。
+       现在关弹窗只能靠弹窗里的按钮；
+       需要连 ESC 也关不掉的弹窗，在元素上写 data-no-esc="true"（见上面的 keydown 分支）。 */
   }
 
   /* ============================================================
@@ -759,93 +753,154 @@ function fillSiteCost(scope) {
   }
 
   /* ============================================================
-     5.5 预览版告知弹窗
+     5.5 全站必读公告弹窗
      ------------------------------------------------------------
+     2026-09-27：原来的「预览版告知弹窗」整段换成这个（用户要求：
+     「预览版的弹窗删除了，改成这个」；「预览版」三个字改放到首页大标题后面）。
+     · 只在首页（index.html / 站点根路径）弹
      · 每个浏览器只弹一次（记住在 localStorage 里）
      · 想让它重新弹给所有访客看，只要把下面的版本号 +1
+     · 10 秒倒计时读完之前按钮点不动；点空白处、按 ESC 都关不掉
+     · 首页那条「📢 公告」可以再次打开它（window.openSiteNotice）
      ============================================================ */
-  const PREVIEW_NOTICE_KEY = 'zm_preview_notice_seen';
-  /* 注意：内容有改动时把这个数字 +1，所有访客下次打开就会重新看到一次 */
-  const PREVIEW_NOTICE_VERSION = '4';
+  const SITE_NOTICE_KEY = 'zm_site_notice_seen';
+  /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次 */
+  const SITE_NOTICE_VERSION = '1';
+  /* 强制阅读秒数：倒计时结束前「我已阅读并知晓」是灰的、点不动 */
+  const SITE_NOTICE_SECONDS = 10;
 
-  /* 用来让「版本更新弹窗」等预览版弹窗关掉之后再出现，避免两个弹窗撞在一起 */
+  /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
   const noticeGate = new Promise(resolve => { releaseNoticeGate = resolve; });
-  /* 兜底：万一预览弹窗没跑起来，20 秒后也必须放行 */
+  /* 兜底：万一弹窗没跑起来，20 秒后也必须放行 */
   setTimeout(() => { if (releaseNoticeGate) releaseNoticeGate(); }, 20000);
 
-  function showPreviewNotice() {
-    if (!hasSharedStyles()) { if (releaseNoticeGate) releaseNoticeGate(); return; }
-    if (document.documentElement.getAttribute('data-notice') === 'off') {
-      if (releaseNoticeGate) releaseNoticeGate();
-      return;
+  /* 只在首页弹：站点根路径 / 与 /index.html 都算首页，其它页面（宝库/反馈/社区/鸣谢/后台/404）不弹 */
+  function isHomePage() {
+    const path = (window.location.pathname || '').toLowerCase();
+    if (path === '' || path === '/') return true;
+    return path.indexOf('index.html') !== -1;
+  }
+
+  /* force=true 时无视「已经看过」的记录（首页那条公告点开走的就是这条路） */
+  function showSiteNotice(force) {
+    const release = () => { if (releaseNoticeGate) { releaseNoticeGate(); releaseNoticeGate = null; } };
+
+    if (!hasSharedStyles()) { release(); return; }
+    if (!isHomePage()) { release(); return; }
+    if (document.documentElement.getAttribute('data-notice') === 'off') { release(); return; }
+
+    if (force !== true) {
+      let seen = null;
+      try { seen = localStorage.getItem(SITE_NOTICE_KEY); } catch (e) {}
+      if (seen === SITE_NOTICE_VERSION) { release(); return; }
     }
 
-    let seen = null;
-    try { seen = localStorage.getItem(PREVIEW_NOTICE_KEY); } catch (e) {}
-    if (seen === PREVIEW_NOTICE_VERSION) {
-      if (releaseNoticeGate) releaseNoticeGate();
-      return;
-    }
-
-    const modalId = 'previewNoticeModal';
-    if (document.getElementById(modalId)) return;
+    const modalId = 'siteNoticeModal';
+    const old = document.getElementById(modalId);
+    if (old) old.remove();        /* 已开着就先拆掉重建，保证倒计时重新从 10 秒走 */
 
     const modal = document.createElement('div');
     modal.id = modalId;
-    modal.className = 'modal preview-notice-modal';
+    modal.className = 'modal preview-notice-modal';   /* 复用原来那套弹窗样式 */
+    modal.dataset.static = 'true';                    /* 遮罩不可关（全局也已禁用，这里再表一次态） */
+    modal.dataset.noEsc = 'true';                     /* ESC 也关不掉 */
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-labelledby', modalId + 'Title');
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
-          <span class="preview-notice-badge">🚧 预览版</span><span class="preview-notice-ver">DeepSeek-V4.1-Flash</span>
+          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">2026-09-27</span>
         </div>
-        <h2 id="${modalId}Title">这里是预览版，先跟你说一声</h2>
-        <p class="preview-notice-body">本站由 <strong>DeepSeek-V4.1-Flash</strong> 编写，目前仍是预览版，
-          功能和内容都还在陆续补完，可能会有小毛病或者样式不统一的地方。
-          如果你发现了问题，或者有想加的功能，欢迎随时告诉我们 —— 你的每一条反馈都会被看到。
+        <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
+        <p class="preview-notice-body">
+          宝库里的歌单，此前有一部分是 <strong>duck</strong> 整理的。
+          前段时间我和 duck 之间发生了冲突，为了不再因为这份歌单产生争执、也不把私人矛盾带进站里，我决定：
         </p>
+        <ul class="preview-notice-body site-notice-list">
+          <li>从今天起<strong>不再使用 duck 整理的那份歌单</strong>；</li>
+          <li>宝库主列表<strong>只保留我确认过的这些歌</strong>，其余的歌已经单独存成 JSON 文件留档，不会丢；</li>
+          <li>数据库里已有的歌<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
+        </ul>
+        <p class="preview-notice-body">
+          站还是我一个人在维护，后面会继续按自己的节奏补歌。
+          想加歌、报 BUG、提建议，进我的群说一声就行。
+        </p>
+
+        <!-- 两个 QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
+             ZhiMist = 站主自己的群（提建议 / 报 BUG / 加歌单）；
+             Roblox 枫叶医院 = duck 的群，那份 5000+ 的完整歌单在那边，想要的人自己去拿。 -->
+        <div class="site-notice-groups">
+          <p class="site-notice-groups-title">📮 两个 QQ 群，按需要进</p>
+          <div class="site-notice-group-list">
+            <a class="site-notice-group" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener">
+              <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592">
+              <span class="site-notice-group-name">ZhiMist（我的群）</span>
+              <span class="site-notice-group-no">群号 1125311966</span>
+              <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
+            </a>
+            <a class="site-notice-group" href="images/qq-group-maple.jpg" target="_blank" rel="noopener">
+              <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592">
+              <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
+              <span class="site-notice-group-no">群号 1076510312</span>
+              <span class="site-notice-group-desc">那份 5000+ 的最新最全歌单在这边，想要就去拿</span>
+            </a>
+          </div>
+        </div>
+
         <p class="preview-notice-note">
           <span class="preview-notice-note-icon" aria-hidden="true">⚠️</span>
-          <span>我们不能保证任何事情都没有可能发生。使用本网站时，请对重要内容自行二次确认；如遇数据异常、内容错误或其他问题，欢迎及时反馈。</span>
+          <span>本站目前仍是预览版，功能和内容都在陆续调整；重要内容请自行二次确认。</span>
         </p>
-        <div class="preview-notice-actions">
-          <button type="button" class="btn btn-primary" id="previewNoticeOk">我知道了</button>
-          <a class="btn btn-secondary" id="previewNoticeFeedback" href="feedback.html">💬 去提意见</a>
+        <div class="preview-notice-actions" id="siteNoticeActions">
+          <button type="button" class="btn btn-primary" id="siteNoticeOk" disabled>我已阅读并知晓（10s）</button>
+          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html" aria-disabled="true">💬 去反馈</a>
         </div>
-        <!-- 赞助码【不放在这个弹窗里】了（用户 2026-09-25 要求）：
-             这里只留一句提示，把人指到首页去扫（具体在哪条就不写了，首页一眼能看到）。
-             顺带的好处：首访不用再为这个弹窗下载那张 220KB 的二维码图。
-             花钱的金额和核对日期【也挪走了】（用户 2026-09-26 要求）：
-             全站只有首页「赞助者荣誉榜」显示那个数字，这里再说一遍就重复了。 -->
-        <p class="preview-notice-sponsor-tip">
-          ☕ 想请我喝一杯？<strong>赞助码在首页</strong>，扫码就行；
-          不赞助也完全没关系，照常用。
-        </p>
       </div>
     `;
     document.body.appendChild(modal);
     openModal(modalId);
 
-    /* 让「版本更新」弹窗等这个关掉之后再出现 */
-    const release = () => { if (releaseNoticeGate) { releaseNoticeGate(); releaseNoticeGate = null; } };
-    const markSeen = () => { try { localStorage.setItem(PREVIEW_NOTICE_KEY, PREVIEW_NOTICE_VERSION); } catch (e) {} };
-    const finish = () => { markSeen(); release(); closeModal(modalId); };
+    const okBtn = document.getElementById('siteNoticeOk');
+    const feedbackBtn = document.getElementById('siteNoticeFeedback');
+    const markSeen = () => { try { localStorage.setItem(SITE_NOTICE_KEY, SITE_NOTICE_VERSION); } catch (e) {} };
 
-    document.getElementById('previewNoticeOk').onclick = finish;
-    document.getElementById('previewNoticeFeedback').onclick = () => { markSeen(); release(); };
+    /* 10 秒倒计时：读完之前「我已阅读并知晓」点不动（用户 2026-09-27 要求） */
+    const unlock = () => {
+      if (okBtn) { okBtn.disabled = false; okBtn.textContent = '我已阅读并知晓'; }
+      if (feedbackBtn) {
+        feedbackBtn.removeAttribute('aria-disabled');
+        feedbackBtn.style.pointerEvents = '';
+      }
+    };
+    if (feedbackBtn) feedbackBtn.style.pointerEvents = 'none';
 
-    /* ESC / 点遮罩关闭也算「已经看过」 */
+    let left = SITE_NOTICE_SECONDS;
+    const timer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) { clearInterval(timer); unlock(); return; }
+      if (okBtn) okBtn.textContent = `我已阅读并知晓（${left}s）`;
+    }, 1000);
+    /* 双保险：万一计时器出意外，再多等 2 秒也一定要解锁 —— 绝不能把人锁在弹窗里出不去 */
+    const forceUnlock = setTimeout(unlock, (SITE_NOTICE_SECONDS + 2) * 1000);
+
+    if (okBtn) okBtn.onclick = () => { markSeen(); release(); closeModal(modalId); };
+
+    /* 关闭时收掉计时器（下次再点公告会重新从 10 秒开始） */
     const onClose = e => {
       if (e.detail.id !== modalId) return;
       document.removeEventListener('zm:modalclose', onClose);
+      clearInterval(timer);
+      clearTimeout(forceUnlock);
       markSeen();
       release();
     };
     document.addEventListener('zm:modalclose', onClose);
   }
+
+  /* 首页那条「📢 公告」点开的就是这个弹窗（不受「已经看过」的限制） */
+  function openSiteNotice() { showSiteNotice(true); }
 
   /* 统一初始化 */function initUI() {
   applyLiteMode();
@@ -859,7 +914,7 @@ function fillSiteCost(scope) {
     initPageTransition();
 
     /* 稍微延后一点弹，先让页面画出来，避免「白屏等弹窗」的感觉 */
-    setTimeout(showPreviewNotice, document.documentElement.classList.contains('lite') ? 300 : 700);
+    setTimeout(showSiteNotice, document.documentElement.classList.contains('lite') ? 300 : 700);
 
     /* 反馈处理回执：接口不可用时会被内部 try/catch 静默跳过，不影响页面 */
     checkFeedbackDecision();
@@ -1429,6 +1484,7 @@ function fillSiteCost(scope) {
     showToast,        // 底部短提示
     showNotice,       // 顶部提示条
     showConfirm,      // 确认弹窗（返回 Promise）
+    openSiteNotice,   // 重新打开「全站必读公告」弹窗（首页那条公告用）
     openModal,        // 打开弹窗
     closeModal,       // 关闭弹窗
     copyText,         // 复制到剪贴板

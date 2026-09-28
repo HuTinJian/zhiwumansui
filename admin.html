@@ -1156,9 +1156,9 @@ See You Again 2456502348
     openBtn.addEventListener('click', openModal);
     cancelBtn.addEventListener('click', closeModal);
 
-    modal.addEventListener('click', function (e) {
-      if (e.target === modal) closeModal();
-    });
+    /* 【2026-09-27 用户要求】所有弹窗都不能「点空白处（遮罩）」关闭，
+       这里原来那句 `if (e.target === modal) closeModal()` 已删除。
+       关闭走上面的「取消」按钮。 */
 
     confirmBtn.addEventListener('click', async function () {
       const raw = textarea.value.trim();

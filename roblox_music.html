@@ -1339,6 +1339,11 @@
           <button type="button" class="btn-confirm-other" id="visitOtherConfirm">确认</button>
         </div>
       </div>
+      <!-- 2026-09-27：全站禁止「点空白处关闭弹窗」之后，这个弹窗必须自带关闭按钮，
+           否则只用鼠标的访客会被迫先回答（ESC 虽然还能用，但不能只靠键盘）。 -->
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="visitSourceClose">关闭</button>
+      </div>
     </div>
   </div>
 
@@ -2905,6 +2910,10 @@
     }
 
     openBtn.addEventListener('click', showModal);
+
+    /* 2026-09-27：点空白处关弹窗已全站禁用，这里补一个「关闭」按钮的绑定 */
+    const visitSourceClose = document.getElementById('visitSourceClose');
+    if (visitSourceClose) visitSourceClose.addEventListener('click', () => closeModal(MODAL_ID));
 
     modal.querySelectorAll('.visit-source-btn').forEach(btn => {
       btn.addEventListener('click', () => {

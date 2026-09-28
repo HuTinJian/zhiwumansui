@@ -113,6 +113,66 @@
       100% { transform: scale(1) translateY(0); }
     }
 
+    /* 「预览版」三个字：2026-09-27 用户要求从弹窗挪到这句大标题后面。
+       标题 h1 是 inline-block，所以这个 span 会紧跟在「织雾满穗」右边同一行。 */
+    .hero-ver-badge {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 10px;
+      padding: 3px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--primary-ink);
+      background: var(--bg-tint);
+      border: 1px dashed var(--primary-light);
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) {
+      .hero-ver-badge { margin-left: 7px; padding: 2px 9px; font-size: 0.72rem; }
+    }
+
+    /* ========== 📢 公告条（2026-09-27 新增） ==========
+       讲清「宝库歌单来源变更」；点它 = 重新打开那个必读公告弹窗。 */
+    .site-announce {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 0 0 26px;
+      padding: 14px 18px;
+      text-align: left;
+      font: inherit;
+      color: var(--text);
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-light);
+      border-left: 4px solid var(--gold);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+    }
+    .site-announce:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .site-announce:active { transform: translateY(0); }
+    .site-announce-badge {
+      flex-shrink: 0;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+      background: var(--gold);
+      padding: 4px 11px;
+      border-radius: var(--radius-pill);
+    }
+    /* 深色主题下 .site-announce-badge 的白字压在浅金上对比度不够，换深色字 */
+    [data-theme="dark"] .site-announce-badge { color: #241c22; }
+    .site-announce-text { flex: 1; font-size: 0.9rem; line-height: 1.6; color: var(--text-light); }
+    .site-announce-more { flex-shrink: 0; font-size: 0.84rem; font-weight: 700; color: var(--primary-ink); }
+    @media (max-width: 600px) {
+      .site-announce { flex-wrap: wrap; gap: 8px; }
+      .site-announce-text { flex: 1 1 100%; }
+    }
+
     .hero .subtitle {
       color: var(--text-light);
       font-size: 1.06rem;
@@ -389,7 +449,7 @@
     <section class="hero">
       <span class="hero-eyebrow"><span class="dot" aria-hidden="true"></span>持续更新中 · 欢迎反馈</span>
 
-      <h1 id="mainTitle" title="点我三下有惊喜">织雾满穗</h1>
+      <h1 id="mainTitle" title="点我三下有惊喜">织雾满穗</h1><span class="hero-ver-badge">预览版</span>
 
       <p class="subtitle"><span id="typedText"></span><span class="caret" aria-hidden="true"></span></p>
       <p class="hero-desc">
@@ -414,6 +474,16 @@
         </span>
       </button>
     </section>
+
+    <!-- ==================== 📢 公告条（2026-09-27 新增） ====================
+         说明宝库歌单来源的变更。点它 = 重新打开「必读公告」弹窗
+         （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
+         之所以要单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。 -->
+    <button type="button" class="site-announce" id="siteAnnounce">
+      <span class="site-announce-badge">📢 公告</span>
+      <span class="site-announce-text">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单；想加歌、报 BUG 或有意见，可以进 QQ 群。</span>
+      <span class="site-announce-more">查看说明 →</span>
+    </button>
 
     <!-- ==================== 赞助者荣誉榜（已搬走） ====================
          2026-09-26：这一整段（原来那张金色荣誉卡的标记与样式）搬去了独立的 thanks.html，
@@ -566,11 +636,22 @@
       /* 版本更新检查 */
       checkPageUpdate('index');
 
+      /* 📢 公告条：点开重新看「必读公告」弹窗（弹窗本体在 js/common.js 的 showSiteNotice） */
+      (function siteAnnounce() {
+        var btn = $('siteAnnounce');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          if (typeof window.openSiteNotice === 'function') window.openSiteNotice();
+        });
+      })();
+
       /* ---------- 赞赏码：点卡片看大图 ----------
          用全站同一套弹窗（common.js 的 openModal/closeModal），
-         不另造一个 —— 这样 ESC 关闭、点遮罩关闭、焦点管理都是现成的。 */(function sponsorQr() {/* 能点开大图的只剩 hero 里那条（「开始逛逛」按钮下面）——
+         不另造一个 —— 这样 ESC 关闭、焦点管理都是现成的。
+         注意（2026-09-27 起）：「点空白处关闭」已按用户要求全站禁用，
+         所以每个弹窗都得自带关闭按钮，这个弹窗有「关闭」。 */(function sponsorQr() {/* 能点开大图的只剩 hero 里那条（「开始逛逛」按钮下面）——
            开发者/支持者那排的第三张卡已经删了。
-           大图还是全站同一套弹窗（common.js 的 openModal），ESC / 点遮罩关闭都现成。 */
+           大图还是全站同一套弹窗（common.js 的 openModal），ESC / 关闭按钮都现成。 */
         var heroSponsor = $('heroSponsor');
         if (heroSponsor) heroSponsor.addEventListener('click', function () { openModal('sponsorModal'); });
         var close = $('sponsorClose');
