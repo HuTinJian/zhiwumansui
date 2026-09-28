@@ -760,15 +760,15 @@ function fillSiteCost(scope) {
      · 只在首页（index.html / 站点根路径）弹
      · 每个浏览器只弹一次（记住在 localStorage 里）
      · 想让它重新弹给所有访客看，只要把下面的版本号 +1
-     · 10 秒倒计时读完之前按钮点不动；点空白处、按 ESC 都关不掉
+     · 点空白处、按 ESC 都关不掉，只能点弹窗里的按钮
      · 首页那条「📢 公告」可以再次打开它（window.openSiteNotice）
+     · 倒计时已取消（2026-09-27 用户说「算了，倒计时取消吧」）：
+       不论自动弹还是手动重看，「我已阅读并知晓」一打开就能点
      ============================================================ */
   const SITE_NOTICE_KEY = 'zm_site_notice_seen';
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
      2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。 */
   const SITE_NOTICE_VERSION = '2';
-  /* 强制阅读秒数：倒计时结束前「我已阅读并知晓」是灰的、点不动 */
-  const SITE_NOTICE_SECONDS = 10;
 
   /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
@@ -810,17 +810,10 @@ function fillSiteCost(scope) {
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-labelledby', modalId + 'Title');
 
-    /* 【2026-09-27 用户要求】只有「刚进首页自动弹的那次」要 10 秒倒计时；
-       自己点首页公告条重看的，不倒计时 —— 按钮一打开就是可点的。 */
-    const needCountdown = force !== true;
-    const okAttrs = needCountdown ? ' disabled' : '';
-    const okText = needCountdown ? `我已阅读并知晓（${SITE_NOTICE_SECONDS}s）` : '我已阅读并知晓';
-    const fbAttrs = needCountdown ? ' aria-disabled="true"' : '';
-
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
-          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">2026-09-27</span>
+          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">2026-09-29</span>
         </div>
         <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
         <p class="preview-notice-body">
@@ -885,8 +878,8 @@ function fillSiteCost(scope) {
           <span>本站目前仍是预览版，功能和内容都在陆续调整；重要内容请自行二次确认。</span>
         </p>
         <div class="preview-notice-actions" id="siteNoticeActions">
-          <button type="button" class="btn btn-primary" id="siteNoticeOk"${okAttrs}>${okText}</button>
-          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html"${fbAttrs}>💬 去反馈</a>
+          <button type="button" class="btn btn-primary" id="siteNoticeOk">我已阅读并知晓</button>
+          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html">💬 去反馈</a>
         </div>
       </div>
     `;
@@ -894,42 +887,16 @@ function fillSiteCost(scope) {
     openModal(modalId);
 
     const okBtn = document.getElementById('siteNoticeOk');
-    const feedbackBtn = document.getElementById('siteNoticeFeedback');
     const markSeen = () => { try { localStorage.setItem(SITE_NOTICE_KEY, SITE_NOTICE_VERSION); } catch (e) {} };
 
-    /* 10 秒倒计时：读完之前「我已阅读并知晓」点不动（用户 2026-09-27 要求）
-       —— 只在「自动弹」这条路上跑；手动点公告重看不锁（见下面的 force 分支）。 */
-    let timer = null;
-    let forceUnlock = null;
-    const unlock = () => {
-      if (okBtn) { okBtn.disabled = false; okBtn.textContent = '我已阅读并知晓'; }
-      if (feedbackBtn) {
-        feedbackBtn.removeAttribute('aria-disabled');
-        feedbackBtn.style.pointerEvents = '';
-      }
-    };
-
-    if (needCountdown) {
-      if (feedbackBtn) feedbackBtn.style.pointerEvents = 'none';
-
-      let left = SITE_NOTICE_SECONDS;
-      timer = setInterval(() => {
-        left -= 1;
-        if (left <= 0) { clearInterval(timer); timer = null; unlock(); return; }
-        if (okBtn) okBtn.textContent = `我已阅读并知晓（${left}s）`;
-      }, 1000);
-      /* 双保险：万一计时器出意外，再多等 2 秒也一定要解锁 —— 绝不能把人锁在弹窗里出不去 */
-      forceUnlock = setTimeout(unlock, (SITE_NOTICE_SECONDS + 2) * 1000);
-    }
-
+    /* 【2026-09-27 用户要求】倒计时整个取消：按钮一打开就能点。
+       关弹窗只有两个出口 —— 点「我已阅读并知晓」，或点「💬 去反馈」跳走；
+       点空白处 / 按 ESC 都关不掉（见 bindModalA11y 里的 data-no-esc 判断）。 */
     if (okBtn) okBtn.onclick = () => { markSeen(); release(); closeModal(modalId); };
 
-    /* 关闭时收掉计时器（自动弹的那次关掉后不会留下后台定时器） */
     const onClose = e => {
       if (e.detail.id !== modalId) return;
       document.removeEventListener('zm:modalclose', onClose);
-      if (timer) clearInterval(timer);
-      if (forceUnlock) clearTimeout(forceUnlock);
       markSeen();
       release();
     };
