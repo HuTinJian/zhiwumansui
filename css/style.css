@@ -1251,6 +1251,19 @@ body.modal-open .particles i { animation-play-state: paused; }
   .preview-notice-body.site-notice-list { margin: 0 16px 13px; padding-left: 20px; }
 }
 
+/* 「希望大家帮忙补歌」那句号召（2026-09-27 新增）：给个底色，别让它混在正文里被划过去 */
+.preview-notice-body.site-notice-call {
+  padding: 12px 15px;
+  background: var(--bg-tint);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary-light);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  line-height: 1.8;
+}
+@media (max-width: 768px) {
+  .preview-notice-body.site-notice-call { padding: 10px 12px; font-size: 0.84rem; }
+}
+
 /* ---------- 必读公告弹窗里的两个 QQ 群（2026-09-27 新增） ----------
    两张二维码卡片并排；点卡片 = 新标签打开原图（手机上可长按识别）。 */
 .site-notice-groups { margin: 0 24px 18px; }

@@ -820,9 +820,16 @@ function fillSiteCost(scope) {
         </p>
         <ul class="preview-notice-body site-notice-list">
           <li>从今天起<strong>不再使用 duck 整理的那份歌单</strong>；</li>
-          <li>宝库主列表<strong>只保留我确认过的这些歌</strong>，其余的歌已经单独存成 JSON 文件留档，不会丢；</li>
-          <li>数据库里已有的歌<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
+          <li>宝库主列表<strong>只保留我确认过的这些歌</strong> —— 所以现在站里的歌曲 ID <strong>只剩 100+ 个</strong>，比以前少了很多；</li>
+          <li>其余的歌已经单独存成 JSON 文件留档，不会丢；数据库里已有的歌也<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
         </ul>
+
+        <p class="preview-notice-body site-notice-call">
+          🧩 <strong>希望大家帮忙补歌</strong>：如果你手上有好听的 Roblox 音乐 ID，
+          把「歌名 + ID」发给我就行（进下面的群发，或者去反馈页留言都可以），
+          我会陆续把它们补进宝库，让这里重新热闹起来。
+        </p>
+
         <p class="preview-notice-body">
           站还是我一个人在维护，后面会继续按自己的节奏补歌。
           想加歌、报 BUG、提建议，进我的群说一声就行。
