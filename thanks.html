@@ -89,6 +89,10 @@
       </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
 
+      <!-- 2026-09-29 用户要求：赞助者名单加一句「排名不分先后」
+           （列表顺序只是加入的先后，不代表金额多少或名次） -->
+      <p class="thanks-foot">排名不分先后 ❤️</p>
+
       <p class="thanks-cost">本站的 AI 调用费一直是自己掏的，到现在一共花了
         <b data-site-cost>¥88.71</b>（截至 2026-09-26）。</p>
 
@@ -236,7 +240,9 @@
       /* 赞助者条目：2026-09-26 用户要求「赞助者模仿 Roblox 的鸣谢名单那样写人名等内容」——
          所以这里不再用卡片、也不再用名字/称号两行，而是和右边那一档同一个写法：
          一个类别块（.thanks-group + .cat-title），里面每人是 .thanks-person 一行：
-         👑 名字 · 称号 · 金额 · 感谢语（全部过 esc 转义）。 */
+         👑 名字 · 金额 · 感谢语（全部过 esc 转义）。
+         2026-09-29 用户要求把「荣誉赞助者」这个称号整个删掉 ——
+         所以现在既不读底档的 title，也不再给 D1 加的人兜底一个称号。 */
       function renderSponsors(base, baseOk, extra) {
         var box = $('sponsorGroups');
         if (!box) return;
@@ -251,8 +257,6 @@
           seen[name] = true;
           items.push({
             name: name,
-            /* 称号：底档写 title；D1 那边没有这个字段，统一给「荣誉赞助者」 */
-            title: p.title || '荣誉赞助者',
             /* 金额：底档写 amount；D1 的约定是写在 platform 字段里（后台定的口径），所以两个都认 */
             amount: String(p.amount || p.platform || '').trim(),
             message: p.message || ''
@@ -278,7 +282,6 @@
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
           html += '<span class="p-name">👑 ' + esc(p.name) + '</span>';
-          if (p.title) html += '<span class="p-platform">· ' + esc(p.title) + '</span>';
           if (p.amount) html += '<span class="p-platform">· ' + esc(p.amount) + '</span>';
           if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
           html += '</div>';

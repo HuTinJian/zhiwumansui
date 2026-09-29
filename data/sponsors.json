@@ -2,7 +2,11 @@
   {
     "name": "JR_鲜鱼",
     "amount": "¥10",
-    "title": "荣誉赞助者",
+    "message": "谢谢你的支持 ❤️"
+  },
+  {
+    "name": "0.o",
+    "amount": "¥5",
     "message": "谢谢你的支持 ❤️"
   }
 ]

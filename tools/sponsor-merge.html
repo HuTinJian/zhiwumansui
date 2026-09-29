@@ -327,7 +327,7 @@
     <div class="card">
       <h2>📁 A · 站内底档（data/sponsors.json）</h2>
       <p class="hint">
-        点按钮直接读网站上的那份（随仓库发布的底档，字段：name / amount / title / message）；也可以手动选文件，或者把文件拖进方框。
+        点按钮直接读网站上的那份（随仓库发布的底档，字段：name / amount / message）；也可以手动选文件，或者把文件拖进方框。
         合并时以这一边为准。
       </p>
       <div class="actions">
@@ -347,7 +347,7 @@
       <h2>☁️ B · 线上赞助者（/api/thanks → 👑 赞助者）</h2>
       <p class="hint">
         点按钮直接读线上鸣谢接口里 category === 「👑 赞助者」的那一组（需要登录后台）；也可以手动选择后台导出的 JSON，
-        再映射成底档的字段：金额取 platform、感谢语取 message、称号固定「荣誉赞助者」。
+        再映射成底档的字段：金额取 platform、感谢语取 message（2026-09-29 起不再写「荣誉赞助者」这个称号）。
       </p>
       <div class="actions">
         <button class="btn btn-secondary" id="loadBBtn">📥 读取线上赞助者</button>
@@ -400,7 +400,7 @@
        👑 赞助者合并工具
        ------------------------------------------------------------
        A 边 = 站内底档 data/sponsors.json（随仓库发布，只读；要改就改文件再部署）
-              字段：{ "name": "名字", "amount": "¥10", "title": "荣誉赞助者", "message": "感谢语" }
+              字段：{ "name": "名字", "amount": "¥10", "message": "感谢语" }
        B 边 = 线上 /api/thanks 里 category === '👑 赞助者' 的那一组 people
               （后台「❤️ 鸣谢名单 → 👑 赞助者」里加的人，存在 D1 的 thanks 表里）
 
@@ -412,10 +412,11 @@
        合并规则：按 name 去重，A 边（底档）优先。
          · 两边同名 → 算「覆盖」，保留底档那条，线上那条不采纳；
          · 只有线上有 → 算「新增」，按上面那套字段补进结果；
-         · 输出仍是 [{"name","amount","title","message"}]，可直接覆盖 data/sponsors.json。
+         · 输出仍是 [{"name","amount","message"}]，可直接覆盖 data/sponsors.json。
+       2026-09-29 用户要求删掉「荣誉赞助者」称号，所以底档不再有 title 字段：
+       就算 A 边传进来的老文件里带 title，这里也会丢掉它，导出时不会写回去。
        ============================================================ */
     const SPONSOR_CATEGORY = '👑 赞助者'; /* 必须和后台 js/admin.js 里的 SPONSOR_CATEGORY 一模一样 */
-    const DEFAULT_TITLE = '荣誉赞助者';
 
     let dataA = null;
     let dataB = null;
@@ -458,7 +459,7 @@
 
     /* ---------- 把各种来源的数据整理成统一格式 ---------- */
 
-    /* 一条赞助者记录：名字必须有；金额 / 称号 / 感谢语缺了就填默认值 */
+    /* 一条赞助者记录：名字必须有；金额 / 感谢语缺了就填空（称号 2026-09-29 起不再有） */
     function normalizeRow(item) {
       if (!item || typeof item !== 'object') return null;
       const name = String(item.name === undefined || item.name === null ? '' : item.name).trim();
@@ -472,7 +473,7 @@
       return {
         name: name,
         amount: String(rawAmount === undefined || rawAmount === null ? '' : rawAmount),
-        title: String(item.title || DEFAULT_TITLE),
+        /* 老文件里可能还带 title（「荣誉赞助者」），按用户要求一律丢掉，不再导出 */
         message: String(item.message === undefined || item.message === null ? '' : item.message)
       };
     }
@@ -498,7 +499,6 @@
         const row = normalizeRow({
           name: p ? p.name : '',
           amount: p ? p.platform : '',        /* 金额在 platform 字段里（后台约定） */
-          title: DEFAULT_TITLE,
           message: p ? p.message : ''
         });
         if (row) out.push(row);
@@ -542,7 +542,7 @@
         const list = normalizeList(raw);
         if (!list) {
           clearA('等待读取...');
-          alert('❌ A 边必须是一个 JSON 数组，格式：[{"name":"名字","amount":"¥10","title":"荣誉赞助者","message":"感谢语"}]');
+          alert('❌ A 边必须是一个 JSON 数组，格式：[{"name":"名字","amount":"¥10","message":"感谢语"}]');
           return;
         }
         dataA = list;
