@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roblox ID 宝库 - 织雾满穗</title>
 
-  <meta name="description" content="收录 3400+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与个人隔离区，持续更新。">
+  <meta name="description" content="收录 2900+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与个人隔离区，持续更新。">
   <meta name="keywords" content="Roblox,音乐ID,音效ID,SoundId,Roblox 音乐,织雾满穗">
   <meta name="theme-color" content="#fdf2f5">
   <meta property="og:title" content="Roblox ID 宝库 - 织雾满穗">
-  <meta property="og:description" content="3400+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
+  <meta property="og:description" content="2900+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
@@ -1395,6 +1395,20 @@
       return a < b ? -1 : (a > b ? 1 : 0);
     }
 
+    /* ------------------------------------------------------------
+       中文优先排序
+       ------------------------------------------------------------
+       站主要求：站点主要服务中国玩家，除了「英文热门」那一栏以外，
+       中文（含日文假名）歌名一律排在非中文前面，同类内部再按中文习惯排。
+       ------------------------------------------------------------ */
+    const CJK_NAME_RE = /[\u3400-\u9fff\u3040-\u30ff\uf900-\ufaff]/;
+    function compareNameCnFirst(a, b) {
+      const ca = CJK_NAME_RE.test(a) ? 0 : 1;
+      const cb = CJK_NAME_RE.test(b) ? 0 : 1;
+      if (ca !== cb) return ca - cb;
+      return compareName(a, b);
+    }
+
     /* 热门计数：同一种行为对一个 ID 只上报一次（localStorage 持久保存）。
        旧版只按 ID 去重，导致同一首歌上报过「复制」后永远无法再上报「试听 / 收藏」，
        因此这里改为按「行为 + ID」去重。 */
@@ -1882,7 +1896,9 @@
       } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
       } else {
-        groups.sort((a, b) => compareName(a.name, b.name));
+        /* 「英文热门」保持纯按名字排；其它分类一律中文优先 */
+        const cmp = currentCategory === '英文热门' ? compareName : compareNameCnFirst;
+        groups.sort((a, b) => cmp(a.name, b.name));
       }
       if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
       if (showFavOnly) {
