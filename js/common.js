@@ -768,8 +768,9 @@ function fillSiteCost(scope) {
      ============================================================ */
   const SITE_NOTICE_KEY = 'zm_site_notice_seen';
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
-     2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。 */
-  const SITE_NOTICE_VERSION = '2';
+     2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。
+     2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。 */
+  const SITE_NOTICE_VERSION = '3';
 
   /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
@@ -819,21 +820,22 @@ function fillSiteCost(scope) {
         <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
         <p class="preview-notice-body">
           宝库里的歌单，此前有一部分是 <strong>duck</strong> 整理的。
-          前段时间我和 duck 之间发生了冲突，为了不再因为这份歌单产生争执、也不把私人矛盾带进站里，我决定：
+          前段时间我和 duck 之间有过一点不愉快，现在我们已经<strong>互相道歉、把话说开了</strong>。
+          为了不再因为这份歌单产生争执、也不把私人矛盾带进站里，我决定：
         </p>
         <ul class="preview-notice-body site-notice-list">
           <li>从今天起<strong>不再使用 duck 整理的那份歌单</strong>；</li>
-          <li>宝库主列表<strong>只保留我确认过的这些歌</strong> —— 所以现在站里的歌曲 ID <strong>只剩 100+ 个</strong>，比以前少了很多；</li>
+          <li>宝库主列表<strong>只保留我确认过的这些歌</strong>；</li>
           <li>其余的歌已经单独存成 JSON 文件留档，不会丢；数据库里已有的歌也<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
         </ul>
 
-        <!-- 道歉区块（2026-09-27 用户要求「要特别标注，对 duck 的道歉和对使用我们网站用户的道歉」）：
+        <!-- 道歉区块（2026-09-29 站主要求：把「对 duck 道歉」改成「我和 duck 已经互相道歉」）：
              单独用警示色框起来，见 css/style.css 的 .site-notice-apology。 -->
         <div class="site-notice-apology">
           <p class="site-notice-apology-title">🙏 郑重道歉</p>
           <p class="site-notice-apology-item">
-            <strong>对 duck 道歉：</strong>这件事我处理得不够冷静，把私人之间的不愉快带到了站里，
-            给你的群和歌单添了麻烦，真的很抱歉。如果这里哪句话、哪张图让你不舒服，告诉我，我马上改。
+            <strong>我和 duck 已经互相道歉：</strong>之前是我处理得不够冷静，把私人之间的不愉快带到了站里，
+            给你的群和歌单添了麻烦。现在我们已经互相道歉、把话说开了，这件事就到此为止。
           </p>
           <p class="site-notice-apology-item">
             <strong>对使用本站的大家道歉：</strong>因为我个人的原因，宝库的歌单一下子少了一大截，
@@ -855,7 +857,7 @@ function fillSiteCost(scope) {
 
         <!-- 两个 QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
              ZhiMist = 站主自己的群（提建议 / 报 BUG / 加歌单）；
-             Roblox 枫叶医院 = duck 的群，那份 5000+ 的完整歌单在那边，想要的人自己去拿。 -->
+             Roblox 枫叶医院 = duck 的群，完整歌单在那边，想要的人自己去拿。 -->
         <div class="site-notice-groups">
           <p class="site-notice-groups-title">📮 两个 QQ 群，按需要进</p>
           <div class="site-notice-group-list">
@@ -869,7 +871,7 @@ function fillSiteCost(scope) {
               <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592">
               <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
               <span class="site-notice-group-no">群号 1076510312</span>
-              <span class="site-notice-group-desc">那份 5000+ 的最新最全歌单在这边，想要就去拿</span>
+              <span class="site-notice-group-desc">那份最新最全的歌单在这边，想要就去拿</span>
             </a>
           </div>
         </div>
