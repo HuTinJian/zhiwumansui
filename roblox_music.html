@@ -242,11 +242,21 @@
       box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
     }
     .filter-tabs .btn-multi:active { transform: scale(0.93); }
+    /* 选中态：护眼绿 + 柔和光晕。粉色系主题里绿色最跳，同时绿色本身最不费眼；
+       不用纯白配高饱和色（那种最刺眼），改成深一点的绿配白字 + 淡绿光圈。 */
     .filter-tabs .btn-multi.active {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-color: var(--primary);
+      background: linear-gradient(135deg, #35795a, #3f8f6b);
+      border-color: #2f6b4f;
       color: #fff;
-      box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
+      font-weight: 800;
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 3px rgba(86, 168, 131, 0.22), 0 6px 16px rgba(53, 121, 90, 0.35);
+    }
+    [data-theme="dark"] .filter-tabs .btn-multi.active {
+      background: linear-gradient(135deg, #2f6b4f, #3f8f6b);
+      border-color: #56a883;
+      color: #eafff3;
+      box-shadow: 0 0 0 3px rgba(86, 168, 131, 0.16), 0 6px 16px rgba(0, 0, 0, 0.45);
     }
 
     .btn-fav-filter {
