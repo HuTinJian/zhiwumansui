@@ -14,6 +14,10 @@
     }
     .admin-topbar h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
     .admin-topbar .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    /* 顶部那枚「📦 合并工具」按用户要求从标签栏搬上来，排在「退出登录」后面。
+       它仍然是标签（.tab + data-panel），切换 / 懒加载 / 高亮都走原来那套逻辑，
+       只是内边距调小一点，好跟左右两个 .btn 一样高，不显得突兀。 */
+    .admin-topbar .tab { padding: 8px 22px; font-size: 0.95rem; }
 
     .tabs {
       display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
@@ -432,6 +436,10 @@
       <div class="actions">
         <button class="btn btn-secondary" onclick="location.href='index.html'">返回主页</button>
         <button class="btn btn-danger" id="logoutBtn">退出登录</button>
+        <!--（2026-09-29 用户要求）「📦 合并工具」从下面的标签栏搬到这里，排在「退出登录」后面。
+            故意留着 .tab + data-panel：js/admin.js 里是 querySelectorAll('.tab') 全局绑定，
+            所以搬位置不用改任何 JS，点它照样能切面板、照样触发 iframe 懒加载和选中高亮。 -->
+        <button class="tab" data-panel="panel-merge">📦 合并工具</button>
       </div>
     </div>
 
@@ -439,7 +447,6 @@
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
       <button class="tab" data-panel="panel-updates">📝 更新管理</button>
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
-      <button class="tab" data-panel="panel-merge">📦 合并工具</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📊 数据统计</button>
     </div>

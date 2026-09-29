@@ -417,18 +417,77 @@ async function importSelectedQuarantine(feedbackId, ids) {
   }
 }
 
+/* ============================================================
+   ❤️ 加入鸣谢：自动写描述
+   ------------------------------------------------------------
+   以前描述是写死的一句「反馈了「卡片1」相关问题」。
+   现在先把这条反馈读一遍，再拼一句像人写的话：
+     ① 他在哪个页面提的（类型 → 页面名）
+     ② 他实际做了什么（交了隔离区 ID / 正文里有音乐 ID / 关键词归类）
+   纯前端规则判断，不联网、不动接口；长度上限跟服务端对齐（200 字）。
+   ============================================================ */
+function buildSmartThanksMessage(item) {
+  const type = String(item.type || '').trim();
+  const msg = String(item.message || '').replace(/\s+/g, ' ').trim();
+  /* 隔离区：他勾了「上传隔离区 ID」且真带了数据才算 */
+  const quarantineCount = (item.upload_quarantine === 1 && Array.isArray(item.quarantine_ids))
+    ? item.quarantine_ids.length : 0;
+  /* 正文里 10 位以上的纯数字，算他补了几首音乐 ID */
+  const idCount = (msg.match(/\d{10,}/g) || []).length;
+
+  const whereMap = {
+    '卡片1': '在「🎵 Roblox ID 宝库」',
+    '卡片2': '在「🌾 玩家社区」',
+    '主页': '在首页',
+    '反馈': '在反馈页'
+  };
+  const where = whereMap[type] || '';
+
+  /* 先放「硬证据」（隔离区 ID / 音乐 ID），再用正文关键词补一条，最多两条，
+     免得描述又臭又长 —— 它是给访客看的公开文案。 */
+  const deeds = [];
+  if (quarantineCount > 0) deeds.push('提交了 ' + quarantineCount + ' 个待复核的隔离区 ID');
+  if (idCount > 0) deeds.push('补充了 ' + idCount + ' 个音乐 ID');
+
+  const keywordRules = [
+    [/失效|听不了|播不了|放不了|打不开|没了|下架|搜不到/, '帮着排出了失效的歌'],
+    [/新歌|补充|投稿|添加|加上|收录|推荐/, '推荐了新歌'],
+    [/分类|标签|归类|分组/, '提了分类整理的建议'],
+    [/搜索|筛选|排序|查找/, '提了搜索、筛选的建议'],
+    [/卡顿|很卡|加载慢|闪退|崩溃|白屏|报错|出错/, '反馈了页面体验问题'],
+    [/手机|移动端|安卓|苹果|iOS|触屏/, '反馈了手机端体验'],
+    [/建议|想法|希望|能不能|可不可以|最好/, '提了改进想法'],
+    [/喜欢|好用|太棒|感谢|支持|加油|爱了|赞/, '留下了肯定和鼓励']
+  ];
+  keywordRules.forEach(rule => {
+    if (deeds.length >= 2) return;
+    if (rule[0].test(msg) && deeds.indexOf(rule[1]) === -1) deeds.push(rule[1]);
+  });
+
+  /* 正文啥也没认出来时兜底，别留空 */
+  if (deeds.length === 0) deeds.push('提了反馈');
+
+  /* 拼起来注意别重复：前面已经有「在首页 / 给站点」，所以每条事迹都用能直接接上去的说法 */
+  return ((where || '给站点') + deeds.join('、')).slice(0, 200);
+}
+
 /* 将反馈用户加入鸣谢 */
 async function approveToThanks(feedbackId) {
+  const item = feedbackCache.find(i => i.id === feedbackId);
+  if (!item) { showToast('未找到反馈'); return; }
+
+  /* 描述照这条反馈现算，并在确认框里先给管理员看一眼（想改事后去鸣谢名单改） */
+  const smartMessage = buildSmartThanksMessage(item);
+
   const confirmed = await showConfirm(
     '加入鸣谢',
-    '确认将该反馈用户加入鸣谢名单？\n\n加入后可在后台「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」里编辑类别和描述。'
+    '把「' + item.name + '」加入鸣谢名单？\n\n' +
+    '描述会自动写成：\n「' + smartMessage + '」\n\n' +
+    '加入后可以在「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」里改类别和描述。'
   );
   if (!confirmed) return;
 
   try {
-    const item = feedbackCache.find(i => i.id === feedbackId);
-    if (!item) { showToast('未找到反馈'); return; }
-
     const addRes = await fetch('/api/thanks', {
       method: 'POST',
       credentials: 'include',
@@ -438,7 +497,7 @@ async function approveToThanks(feedbackId) {
         category: '💬 反馈贡献者',
         name: item.name,
         platform: '',
-        message: '反馈了「' + item.type + '」相关问题',
+        message: smartMessage,
         feedbackId: item.id
       })
     });
