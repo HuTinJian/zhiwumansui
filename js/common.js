@@ -770,8 +770,9 @@ function fillSiteCost(scope) {
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
      2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。
      2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。
-     2026-09-29 v3 → v4：删掉道歉区块里「我和 duck 已经互相道歉」那一段。 */
-  const SITE_NOTICE_VERSION = '4';
+     2026-09-29 v3 → v4：删掉道歉区块里「我和 duck 已经互相道歉」那一段。
+     2026-09-29 v4 → v5：加一句「duck 和他的群不归我管」。 */
+  const SITE_NOTICE_VERSION = '5';
 
   /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
@@ -873,6 +874,14 @@ function fillSiteCost(scope) {
             </a>
           </div>
         </div>
+
+        <!-- 2026-09-29 站主要求加这一句：把「duck 那边不归我管」说清楚，
+             免得有人以为枫叶医院的群务 / 歌单维护是该找站主的。 -->
+        <p class="preview-notice-body">
+          ℹ️ <strong>一句说明</strong>：duck 和他的群（Roblox 枫叶医院）<strong>不归我管</strong> ——
+          那边的歌单、群规和一切群务都是他自己在维护，我既管不了也不参与。
+          相关问题请直接找 duck；我这边只负责本站（织雾满穗）的内容。
+        </p>
 
         <p class="preview-notice-note">
           <span class="preview-notice-note-icon" aria-hidden="true">⚠️</span>
