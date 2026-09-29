@@ -2637,8 +2637,10 @@
       renderQuarantineList();
     }
 
-    /* 只保留一个“特殊视图”（收藏 / 最新 / 热门 / 多 ID），避免多个筛选互相打架 */
-    function resetViewFilters(keep) {
+    /* 只保留一个“特殊视图”（收藏 / 最新 / 热门 / 多 ID），避免多个筛选互相打架。
+       options.keepCategory：只切特殊视图，不动当前分类的高亮与选中（「多 ID」用它）。 */
+    function resetViewFilters(keep, options) {
+      const keepCategory = !!(options && options.keepCategory);
       if (keep !== 'fav' && showFavOnly) {
         showFavOnly = false;
         dom.favFilterBtn.classList.remove('active');
@@ -2658,6 +2660,15 @@
         showMultiOnly = false;
         dom.multiToggleBtn.classList.remove('active');
         dom.multiToggleBtn.setAttribute('aria-pressed', 'false');
+      }
+      if (keepCategory) {
+        /* 按当前分类重新同步高亮，然后直接结束，绝不把分类改回「全部」 */
+        dom.filterTabs.querySelectorAll('button[data-cat]').forEach(b => {
+          const on = b.dataset.cat === currentCategory;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        return;
       }
       if (keep !== 'category') {
         currentCategory = 'all';
@@ -2761,7 +2772,8 @@
 
       dom.multiToggleBtn.onclick = () => {
         const willActivate = !showMultiOnly;
-        resetViewFilters(willActivate ? 'multi' : 'none');
+        /* 「多 ID」只是在当前分类上再叠一层筛选，不该把分类踢回「全部」（站主 2026-09-29 要求） */
+        resetViewFilters(willActivate ? 'multi' : 'none', { keepCategory: true });
         showMultiOnly = willActivate;
         dom.multiToggleBtn.classList.toggle('active', showMultiOnly);
         dom.multiToggleBtn.setAttribute('aria-pressed', showMultiOnly ? 'true' : 'false');
