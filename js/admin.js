@@ -68,14 +68,9 @@ let feedbackCache = [];
   document.getElementById('cancelImportQuarantine').onclick = () => closeModal('importQuarantineModal');
   document.getElementById('confirmImportQuarantine').onclick = handleImportQuarantine;
 
-  /* 歌曲管理按钮（2026-09-26：原来那排行内输入框改成「➕ 添加歌曲」按钮 + 弹窗） */
-  document.getElementById('openAddSongBtn').onclick = openAddSongModal;
-  document.getElementById('cancelAddSong').onclick = () => {
-    closeModal('addSongModal');
-    resetSongForm();
-  };
-  document.getElementById('confirmAddSong').onclick = handleAddSong;
-  document.getElementById('exportSongsBtn').onclick = handleExportSongs;
+  /* 歌曲管理按钮（2026-09-29 用户要求把「➕ 添加歌曲」和「📤 导出」两个按钮拿掉，
+     只服务于它们的弹窗和处理函数也一并删了；「📥 导入」是在 admin.html 的内联脚本里
+     单独绑的，跟这里无关）。所以这一块现在只剩「🧹 清空」一条绑定。 */
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
   /* 👑 赞助者：「➕ 添加赞助者」弹窗（行的「✏️ 编辑」复用同一个弹窗）、🔄 刷新 */
@@ -119,6 +114,7 @@ let feedbackCache = [];
     addThanksTrigger.classList.add('selected');
     setAddThanksOpen(false);
     addThanksTrigger.focus();
+    refreshThanksNote();   /* 类别定了，名字也填了的话，顺手把描述补上 */
   }
 
   document.getElementById('openAddThanksBtn').onclick = () => {
@@ -162,6 +158,52 @@ let feedbackCache = [];
       setAddThanksOpen(false);
     }
   });
+
+  /* ============================================================
+     ✍️ 描述留空 → 自动代写（2026-09-29 用户要求，两个加人弹窗都这样）
+     ------------------------------------------------------------
+     lastAutoNote 记住「上一次是我自动填的那句」：
+       · 描述框是空的 → 填建议句；
+       · 里面还是我上次填的那句 → 跟着新名字/类别/平台更新；
+       · 管理员自己改过（值不等于 lastAutoNote）→ 一个字都不碰。
+     触发点：选完类别、名字框失焦、平台框失焦。提交时还有一次兜底。
+     ============================================================ */
+  let lastAutoNote = '';
+
+  function autoFillNote(inputId, builder) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    const cur = el.value.trim();
+    if (cur && cur !== lastAutoNote) return;   /* 管理员自己写的，别覆盖 */
+    const note = builder();
+    if (!note) return;
+    el.value = note;
+    lastAutoNote = note;
+  }
+
+  /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句） */
+  function refreshThanksNote() {
+    const cat = (document.getElementById('addThanksSelectedCat').textContent || '').trim();
+    const name = document.getElementById('addThanksName').value.trim();
+    if (!name || !cat || cat === '请选择类别') return;
+    const platform = document.getElementById('addThanksPlatform').value.trim();
+    autoFillNote('addThanksMessage', () => buildSmartThanksNote(cat, name, platform));
+  }
+
+  /* 添加赞助者：编辑模式不动（那时候留空就是留空，是管理员的选择） */
+  function refreshSponsorNote() {
+    if (editingSponsorId) return;
+    const name = document.getElementById('addSponsorName').value.trim();
+    if (!name) return;
+    autoFillNote('addSponsorMessage', () => buildSmartSponsorNote(name));
+  }
+
+  ['addThanksName', 'addThanksPlatform'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', refreshThanksNote);
+  });
+  const sponsorNameEl = document.getElementById('addSponsorName');
+  if (sponsorNameEl) sponsorNameEl.addEventListener('change', refreshSponsorNote);
 })();
 
 /* ============================================================
@@ -469,6 +511,72 @@ function buildSmartThanksMessage(item) {
 
   /* 拼起来注意别重复：前面已经有「在首页 / 给站点」，所以每条事迹都用能直接接上去的说法 */
   return ((where || '给站点') + deeds.join('、')).slice(0, 200);
+}
+
+/* ============================================================
+   ✍️ 描述留空时自动代写（「➕ 添加鸣谢」和「➕ 添加赞助者」共用）
+   ------------------------------------------------------------
+   用户要求（2026-09-29）：往鸣谢名单里加人时，描述那一栏留空就自己写一句，
+   别让名单上出现空白；两个加人弹窗都这样。
+   做法：名字 / 类别 / 平台填好后，只要描述框还是空的（或还是上一次自动写的那句），
+   就把建议句填进去 —— 提交前就看得见、想改直接改，改过就不再覆盖。
+   提交时如果仍是空的，再兜一次底。纯前端规则，不联网，≤200 字。
+   ============================================================ */
+
+/* 名字 → 一个稳定的序号：同一个人每次拿到的句子一样，不同的人错开，不会千人一面 */
+function pickBy(name, n) {
+  let h = 0;
+  const s = String(name || '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 997;
+  return h % n;
+}
+
+/* 「➕ 添加鸣谢」：按类别写一句，有平台就带上「在××」 */
+function buildSmartThanksNote(category, name, platform) {
+  const cat = String(category || '');
+  const plat = String(platform || '').trim();
+  const at = plat ? '在' + plat : '';
+
+  let options;
+  if (cat.indexOf('ID公益') !== -1 || cat.indexOf('UP主') !== -1 || cat.indexOf('作者') !== -1) {
+    options = [
+      '公开分享了一批 Roblox 音乐 ID，帮宝库补了不少歌',
+      '把整理好的音乐 ID 分享了出来，让大家少走弯路',
+      '无偿公开了自己收集的音乐 ID'
+    ];
+  } else if (cat.indexOf('歌单') !== -1 || cat.indexOf('整理') !== -1) {
+    options = [
+      '整理了歌单，帮我们把曲目信息补齐了',
+      '把歌单整理得清清楚楚，省了我们不少事',
+      '帮忙校对、整理了歌单里的曲目'
+    ];
+  } else if (cat.indexOf('反馈') !== -1) {
+    options = [
+      '给站点提了反馈，帮我们改进了体验',
+      '把遇到的问题告诉了我们，站因此变得更好用',
+      '认真写了反馈，我们照着改了不少地方'
+    ];
+  } else {
+    options = [
+      '帮宝库补了歌，也帮我们改进了站点',
+      '在宝库这件事上帮了忙',
+      '给站点出了一份力'
+    ];
+  }
+
+  const pick = options[pickBy(String(name) + plat, options.length)];
+  return (at + pick).slice(0, 200);
+}
+
+/* 「➕ 添加赞助者」：感谢语留空时写一句
+   （金额已经在旁边单独显示了，句子里就不再重复金额，免得一行里出现两次 ¥5） */
+function buildSmartSponsorNote(name) {
+  const options = [
+    '谢谢你的支持 ❤️',
+    '谢谢你的支持，这份心意收到啦 ❤️',
+    '感谢你的支持，让这个站能继续开下去 ❤️'
+  ];
+  return options[pickBy(name, options.length)];
 }
 
 /* 将反馈用户加入鸣谢 */
@@ -812,51 +920,12 @@ async function loadSongs() {
   }
 }
 
-/* 「➕ 添加歌曲」弹窗：清空三个输入框再打开
-   （2026-09-26：原来是页面里的一排行内输入框，改成按钮 + 弹窗，
-    字段 id / 校验 / 提交接口 /api/songs/add 都没变） */
-function openAddSongModal() {
-  resetSongForm();
-  const titleEl = document.getElementById('addSongModalTitle');
-  if (titleEl) titleEl.textContent = '➕ 添加歌曲';
-  openModal('addSongModal');
-}
+/* 2026-09-29：这里原来有「➕ 添加歌曲」弹窗的三个函数
+   （openAddSongModal / resetSongForm / handleAddSong）。
+   用户要求去掉那个按钮，弹窗 HTML 和这三个函数一起删了。
+   注意：addSongToServer() 还留着 —— 「📥 导入」和它共用同一个 /api/songs/add。 */
 
-function resetSongForm() {
-  ['addSongId', 'addSongName', 'addSongCat'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-}
-
-/* 单曲添加（弹窗里点「✅ 确认添加」；批量导入走 admin.html 内联脚本，互不影响） */
-async function handleAddSong() {
-  const idInput = document.getElementById('addSongId');
-  const nameInput = document.getElementById('addSongName');
-  const catInput = document.getElementById('addSongCat');
-
-  const musicId = idInput.value.trim();
-  const name = nameInput.value.trim();
-  const category = catInput.value.trim() || '未分类';
-
-  if (!musicId) { showToast('请填写歌曲 ID'); idInput.focus(); return; }
-  if (!name) { showToast('请填写歌曲名称'); nameInput.focus(); return; }
-  if (!/^\d+$/.test(musicId)) { showToast('ID 必须是纯数字'); idInput.focus(); return; }
-
-  const data = await addSongToServer({ musicId, name, category });
-
-  if (data && data.ok) {
-    showToast('✅ 已添加');
-    closeModal('addSongModal');
-    resetSongForm();
-    loadSongs();
-    loadRobloxStats();
-  } else {
-    showToast('添加失败：' + ((data && (data.message || data.error)) || '未知'));
-  }
-}
-
-/* 调后端 /api/songs/add（单曲、批量导入都用它） */
+/* 调后端 /api/songs/add（批量导入都用它） */
 async function addSongToServer({ musicId, name, category }) {
   try {
     const res = await fetch('/api/songs/add', {
@@ -927,41 +996,9 @@ async function handleClearSongs() {
   }
 }
 
-/* 导出 D1 歌曲 */
-async function handleExportSongs() {
-  try {
-    const res = await fetch('/api/songs/export', { credentials: 'include' });
-    const data = await res.json();
-    if (!data.ok || !Array.isArray(data.data)) {
-      showToast('导出失败');
-      return;
-    }
-    if (data.data.length === 0) {
-      showToast('D1 里没有歌曲可导出');
-      return;
-    }
-
-    const confirmed = await showConfirm(
-      '导出歌曲',
-      `即将导出 ${data.data.length} 条歌曲。\n\n导出后，用 tools/json-merge.html 工具合并到 roblox_music.json 中。\n\n是否下载？`
-    );
-    if (!confirmed) return;
-
-    const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'songs_extra_' + Date.now() + '.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    showToast('📤 已下载');
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
+/* 2026-09-29：这里原来是「📤 导出」（handleExportSongs），
+   用户要求去掉那个按钮，函数一并删除。后端 /api/songs/export 没有动 ——
+   想临时导出还可以直接在浏览器里请求它，或者用「📦 合并工具」（它直接读线上）。 */
 
 /* ============================================================
    ❤️ 鸣谢名单（后台「🎮 Roblox ID 宝库」子面板；赞助者见下面单独一节）
@@ -1038,10 +1075,19 @@ async function handleAddThanks() {
   const category = (selectedCatEl.textContent || '').trim();
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
-  const message = document.getElementById('addThanksMessage').value.trim();
+  const messageEl = document.getElementById('addThanksMessage');
+  let message = messageEl.value.trim();
 
   if (!category || category === '请选择类别') { showToast('请选择类别'); return; }
   if (!name) { showToast('请填写名字'); return; }
+
+  /* 描述留空 → 自己写一句（2026-09-29 用户要求；填进去再发，返回列表就能看到） */
+  let autoWrote = false;
+  if (!message) {
+    message = buildSmartThanksNote(category, name, platform);
+    messageEl.value = message;
+    autoWrote = true;
+  }
 
   try {
     const res = await fetch('/api/thanks', {
@@ -1058,7 +1104,7 @@ async function handleAddThanks() {
     });
     const data = await res.json();
     if (data.ok) {
-      showToast('✅ 已添加');
+      showToast(autoWrote ? '✅ 已添加（描述留空，已自动代写）' : '✅ 已添加');
       closeModal('addThanksModal');
       loadThanks();
     } else {
@@ -1315,7 +1361,7 @@ async function handleAddSponsor() {
   const messageEl = document.getElementById('addSponsorMessage');
   const name = nameEl.value.trim();
   const amount = amountEl.value.trim();
-  const message = messageEl.value.trim();
+  let message = messageEl.value.trim();
 
   /* 长度上限跟服务端 functions/api/thanks.js 对齐（name 40 / platform 30 / message 200） */
   if (!name) { showToast('请填写名字'); nameEl.focus(); return; }
@@ -1324,6 +1370,16 @@ async function handleAddSponsor() {
   if (message.length > 200) { showToast('感谢语最多 200 个字'); return; }
 
   const editingId = editingSponsorId;
+
+  /* 感谢语留空 → 自己写一句（2026-09-29 用户要求）。
+     只在「新增」时代写：编辑时留空就是留空，那是管理员自己的选择。 */
+  let autoWrote = false;
+  if (!message && !editingId) {
+    message = buildSmartSponsorNote(name);
+    messageEl.value = message;
+    autoWrote = true;
+  }
+
   const btn = document.getElementById('confirmAddSponsor');
   if (btn) btn.disabled = true;
 
@@ -1347,7 +1403,9 @@ async function handleAddSponsor() {
     try { data = await res.json(); } catch (e) { data = null; }
 
     if (data && data.ok) {
-      showToast(editingId ? '✅ 已保存修改' : '✅ 已添加赞助者');
+      showToast(editingId
+        ? '✅ 已保存修改'
+        : (autoWrote ? '✅ 已添加赞助者（感谢语留空，已自动代写）' : '✅ 已添加赞助者'));
       closeModal('addSponsorModal');
       resetSponsorForm();
       loadSponsors();

@@ -343,8 +343,8 @@
     #importQuarantineModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #importQuarantineModal .import-status.err { color: var(--danger); font-weight: 600; }
 
-    /* 三个「单个录入」弹窗（歌曲 / 鸣谢 / 赞助者）保持同一个宽度 */
-    #addSongModal .modal-content { max-width: 520px; }
+    /* 两个「单个录入」弹窗（鸣谢 / 赞助者）保持同一个宽度
+       （原来还有第三个「添加歌曲」弹窗，2026-09-29 用户要求去掉那个按钮，弹窗一并删除） */
     #addThanksModal .modal-content { max-width: 520px; }
     #addSponsorModal .modal-content { max-width: 520px; }
 
@@ -511,14 +511,16 @@
               🎶 D1 歌曲管理
               <span class="count" id="songCount">0</span>
               <span class="head-actions">
-                <button class="btn btn-gold" id="openAddSongBtn">➕ 添加歌曲</button>
-                <button class="btn btn-primary" id="openBatchImportBtn">📥 批量导入</button>
-                <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
+                <!-- 2026-09-29 用户要求去掉「➕ 添加歌曲」和「📤 导出」两个按钮：
+                     歌曲统一从「📥 导入」进来；要整合进主数据走
+                     「📦 合并工具 → 🎮 Roblox ID 宝库 → 🎵 音乐 ID」（那个工具直接读线上，
+                     不再需要先导出一份 JSON）。 -->
+                <button class="btn btn-primary" id="openBatchImportBtn">📥 导入</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
               </span>
             </h2>
             <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-              在此添加的歌曲会存到 D1，宝库页会自动加载并合并显示。当攒够后，点"📤 导出"下载 JSON，再用合并工具整合到主数据中。
+              这里导入的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后走「📦 合并工具 → 🎮 Roblox ID 宝库 → 🎵 音乐 ID」整合进主数据。
             </p>
             <div id="songList">
               <div class="loading">加载中...</div>
@@ -532,7 +534,7 @@
               ⛔ 开发者隔离区
               <span class="count" id="quarantineCount">0</span>
               <span class="head-actions">
-                <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入隔离区</button>
+                <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入</button>
               </span>
             </h2>
             <div id="quarantineList">
@@ -775,29 +777,6 @@ See You Again 2456502348
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelImportQuarantine">取消</button>
         <button class="btn btn-primary" id="confirmImportQuarantine">✅ 确认导入</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 添加歌曲弹窗（2026-09-26：原来是页面里的一排行内输入框，改成按钮 + 弹窗） -->
-  <div class="modal" id="addSongModal">
-    <div class="modal-content">
-      <h2 id="addSongModalTitle">➕ 添加歌曲</h2>
-      <div class="form-group">
-        <label for="addSongId">歌曲 ID</label>
-        <input type="text" id="addSongId" placeholder="纯数字，例如 1876950732" maxlength="30" inputmode="numeric">
-      </div>
-      <div class="form-group">
-        <label for="addSongName">歌曲名称</label>
-        <input type="text" id="addSongName" placeholder="例如：晴天" maxlength="100">
-      </div>
-      <div class="form-group">
-        <label for="addSongCat">分类（选填）</label>
-        <input type="text" id="addSongCat" placeholder="不填就记成「未分类」" maxlength="30">
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelAddSong">取消</button>
-        <button class="btn btn-gold" id="confirmAddSong">✅ 确认添加</button>
       </div>
     </div>
   </div>
