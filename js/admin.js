@@ -73,6 +73,14 @@ let feedbackCache = [];
      单独绑的，跟这里无关）。所以这一块现在只剩「🧹 清空」一条绑定。 */
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
+  /* 📤 导出按钮（2026-09-29 用户要求：「卡片管理」和「鸣谢名单」各加一键导出） */
+  const exportSongsBtn = document.getElementById('exportSongsBtn');
+  if (exportSongsBtn) exportSongsBtn.onclick = handleExportSongs;
+  const exportThanksBtn = document.getElementById('exportThanksBtn');
+  if (exportThanksBtn) exportThanksBtn.onclick = handleExportThanks;
+  const exportSponsorsBtn = document.getElementById('exportSponsorsBtn');
+  if (exportSponsorsBtn) exportSponsorsBtn.onclick = handleExportSponsors;
+
   /* 👑 赞助者：「➕ 添加赞助者」弹窗（行的「✏️ 编辑」复用同一个弹窗）、🔄 刷新 */
   document.getElementById('openAddSponsorBtn').onclick = openAddSponsorModal;
   document.getElementById('cancelAddSponsor').onclick = () => {
@@ -995,9 +1003,106 @@ async function handleClearSongs() {
   }
 }
 
-/* 2026-09-29：这里原来是「📤 导出」（handleExportSongs），
-   用户要求去掉那个按钮，函数一并删除。后端 /api/songs/export 没有动 ——
-   想临时导出还可以直接在浏览器里请求它，或者用「📦 合并工具」（它直接读线上）。 */
+/* ============================================================
+   📤 导出（2026-09-29 用户要求：「卡片管理」和「鸣谢名单」都要一键导出）
+   ------------------------------------------------------------
+   导出的就是站点实际读的那份静态文件的格式，拿到即可直接用 / 直接替换：
+     · 歌曲     → data/roblox_music.json   [{id, name, category, lineIndex}]
+     · 赞助者   → data/sponsors.json       [{name, amount, message}]
+     · 鸣谢名单 → data/thanks.json         [{category, people:[{name, platform, message}]}]
+   ============================================================ */
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportStamp() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+/* 歌曲：后端已经把字段整理成 roblox_music.json 的格式了，直接落盘 */
+async function handleExportSongs() {
+  try {
+    const res = await fetch('/api/songs/export?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json();
+    if (!data || data.ok === false) {
+      showToast('导出失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+      return;
+    }
+    const list = Array.isArray(data.data) ? data.data : [];
+    if (!list.length) { showToast('D1 里还没有歌曲，没什么可导出的'); return; }
+    downloadJson(`roblox_music-${exportStamp()}.json`, list);
+    showToast(`📤 已导出 ${list.length} 首（格式同 data/roblox_music.json）`);
+  } catch (err) {
+    showToast('网络异常，导出失败');
+  }
+}
+
+/* 鸣谢名单：排除「👑 赞助者」那一组（它有自己单独的导出），字段对齐 data/thanks.json */
+async function handleExportThanks() {
+  try {
+    const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json();
+    if (data && data.ok === false) { showToast('导出失败：' + (data.error || '未知错误')); return; }
+    if (!Array.isArray(data)) { showToast('暂无鸣谢可导出'); return; }
+    const groups = data
+      .filter((cat) => cat && cat.category !== SPONSOR_CATEGORY)
+      .map((cat) => ({
+        category: cat.category,
+        people: (cat.people || []).map((p) => ({
+          name: p.name || '',
+          platform: p.platform || '',
+          message: p.message || ''
+        }))
+      }));
+    const total = groups.reduce((n, g) => n + g.people.length, 0);
+    if (!total) { showToast('暂无鸣谢可导出'); return; }
+    downloadJson(`thanks-${exportStamp()}.json`, groups);
+    showToast(`📤 已导出 ${total} 条鸣谢（格式同 data/thanks.json）`);
+  } catch (err) {
+    showToast('网络异常，导出失败');
+  }
+}
+
+/* 赞助者：底档（data/sponsors.json）+ D1 两段合并导出，金额统一落在 amount 字段 */
+async function handleExportSponsors() {
+  try {
+    const baseline = await fetchSponsorBaseline();
+    let d1People = [];
+    try {
+      const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const cat = data.find((c) => c && c.category === SPONSOR_CATEGORY);
+        d1People = (cat && Array.isArray(cat.people)) ? cat.people : [];
+      }
+    } catch (e) { /* D1 拿不到就只导底档 */ }
+
+    const pick = (p) => ({
+      name: p.name || '',
+      amount: String(p.amount === undefined || p.amount === null || p.amount === '' ? (p.platform || '') : p.amount),
+      message: p.message || ''
+    });
+    const list = [...baseline.map(pick), ...d1People.map(pick)];
+    if (!list.length) { showToast('暂无赞助者可导出'); return; }
+    downloadJson(`sponsors-${exportStamp()}.json`, list);
+    showToast(`📤 已导出 ${list.length} 条赞助者（格式同 data/sponsors.json）`);
+  } catch (err) {
+    showToast('网络异常，导出失败');
+  }
+}
+
+/* 2026-09-29：上面三个导出对应的按钮由文件开头的绑定区统一挂钩；
+   后端 /api/songs/export 一直是好的，之前只是按钮被拿掉过。 */
 
 /* ============================================================
    ❤️ 鸣谢名单（后台「🎮 Roblox ID 宝库」子面板；赞助者见下面单独一节）

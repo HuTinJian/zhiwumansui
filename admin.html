@@ -499,10 +499,12 @@
               🎶 D1 歌曲管理
               <span class="count" id="songCount">0</span>
               <span class="head-actions">
-                <!-- 2026-09-29 用户要求去掉「➕ 添加歌曲」和「📤 导出」两个按钮：
-                     歌曲统一从「📥 导入」进来；合并进主数据现在走桌面上的
-                     《织雾满穗-合并工具\3-音乐ID合并.html》（本地版，站长自己双击用）。 -->
+                <!-- 2026-09-29 用户要求去掉「➕ 添加歌曲」：歌曲统一从「📥 导入」进来；
+                     合并进主数据走桌面上的《织雾满穗-合并工具\3-音乐ID合并.html》。
+                     同日稍后用户又要求加回「📤 导出」——所以它回来了，
+                     导出的格式就是 data/roblox_music.json 那份。 -->
                 <button class="btn btn-primary" id="openBatchImportBtn">📥 导入</button>
+                <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
               </span>
             </h2>
@@ -561,6 +563,7 @@
               <!-- 2026-09-26：原来这里还有个「🔄 刷新」按钮，用户要求去掉 ——
                    与「🎮 Roblox ID 宝库」面板保持一致（那边也没有刷新按钮，
                    切标签时会自动拉一次，改完也会自动刷新）。 -->
+              <button class="btn btn-secondary" id="exportSponsorsBtn">📤 导出</button>
               <button class="btn btn-gold" id="openAddSponsorBtn">➕ 添加赞助者</button>
             </span>
           </h2>
@@ -577,6 +580,7 @@
             <!-- 2026-09-26：这里原来又写了一遍「❤️ 鸣谢名单」（子标签上已经有了），按用户要求删掉 -->
             <span class="count" id="thanksCount">0</span>
             <span class="head-actions">
+              <button class="btn btn-secondary" id="exportThanksBtn">📤 导出</button>
               <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
             </span>
           </h2>
