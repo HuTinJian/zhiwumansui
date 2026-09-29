@@ -769,8 +769,9 @@ function fillSiteCost(scope) {
   const SITE_NOTICE_KEY = 'zm_site_notice_seen';
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
      2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。
-     2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。 */
-  const SITE_NOTICE_VERSION = '3';
+     2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。
+     2026-09-29 v3 → v4：删掉道歉区块里「我和 duck 已经互相道歉」那一段。 */
+  const SITE_NOTICE_VERSION = '4';
 
   /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
   let releaseNoticeGate;
@@ -829,14 +830,11 @@ function fillSiteCost(scope) {
           <li>其余的歌已经单独存成 JSON 文件留档，不会丢；数据库里已有的歌也<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
         </ul>
 
-        <!-- 道歉区块（2026-09-29 站主要求：把「对 duck 道歉」改成「我和 duck 已经互相道歉」）：
+        <!-- 道歉区块（2026-09-27 建立；2026-09-29 站主要求删掉其中「我和 duck 已经互相道歉」那一段，
+             只保留对本站用户的道歉）：
              单独用警示色框起来，见 css/style.css 的 .site-notice-apology。 -->
         <div class="site-notice-apology">
           <p class="site-notice-apology-title">🙏 郑重道歉</p>
-          <p class="site-notice-apology-item">
-            <strong>我和 duck 已经互相道歉：</strong>之前是我处理得不够冷静，把私人之间的不愉快带到了站里，
-            给你的群和歌单添了麻烦。现在我们已经互相道歉、把话说开了，这件事就到此为止。
-          </p>
           <p class="site-notice-apology-item">
             <strong>对使用本站的大家道歉：</strong>因为我个人的原因，宝库的歌单一下子少了一大截，
             让你白跑一趟、没找到想听的歌，真的很抱歉。我会尽快把歌单补回来，
