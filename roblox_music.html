@@ -218,7 +218,7 @@
       box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
     }
 
-    .btn-multi {
+    .filter-tabs .btn-multi {
       padding: 8px 18px;
       border: 2px solid var(--primary-light);
       border-radius: var(--radius-pill);
@@ -235,14 +235,14 @@
       align-items: center;
       gap: 4px;
     }
-    .btn-multi:hover {
+    .filter-tabs .btn-multi:hover {
       border-color: var(--primary);
       color: var(--primary-dark);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
     }
-    .btn-multi:active { transform: scale(0.93); }
-    .btn-multi.active {
+    .filter-tabs .btn-multi:active { transform: scale(0.93); }
+    .filter-tabs .btn-multi.active {
       background: linear-gradient(135deg, var(--primary), var(--accent));
       border-color: var(--primary);
       color: #fff;
@@ -1189,8 +1189,8 @@
       <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID..." autocomplete="off" spellcheck="false">
       <div class="filter-tabs" id="filterTabs" role="group" aria-label="按分类筛选">
         <button class="active" data-cat="all">全部</button>
+        <button class="btn-multi" id="multiToggleBtn" type="button" aria-pressed="false">🔁 多 ID</button>
       </div>
-      <button class="btn-multi" id="multiToggleBtn" aria-pressed="false">🔁 多 ID</button>
     </div>
 
     <div class="result-info" id="resultInfo" aria-live="polite"></div>
@@ -1398,8 +1398,8 @@
     /* ------------------------------------------------------------
        中文优先排序
        ------------------------------------------------------------
-       站主要求：站点主要服务中国玩家，除了「英文热门」那一栏以外，
-       中文（含日文假名）歌名一律排在非中文前面，同类内部再按中文习惯排。
+       站主要求：站点主要服务中国玩家，中文（含日文假名）歌名一律排在非中文前面，
+       同类内部再按中文习惯排。所有分类都一样，包括「英文热门」。
        ------------------------------------------------------------ */
     const CJK_NAME_RE = /[\u3400-\u9fff\u3040-\u30ff\uf900-\ufaff]/;
     function compareNameCnFirst(a, b) {
@@ -1741,7 +1741,8 @@
       songDatabase.forEach(i => nameCount[i.name] = (nameCount[i.name] || 0) + 1);
       dom.statMulti.textContent = Object.values(nameCount).filter(c => c > 1).length;
 
-      while (dom.filterTabs.children.length > 1) {
+      /* 保留前两个：静态的「全部」和「多 ID」按钮，其余分类按钮每次重建 */
+      while (dom.filterTabs.children.length > 2) {
         dom.filterTabs.removeChild(dom.filterTabs.lastChild);
       }
       const cats = [...new Set(songDatabase.map(i => i.category).filter(Boolean))];
@@ -1759,7 +1760,7 @@
         currentCategory = 'all';
       }
 
-      dom.filterTabs.querySelectorAll('button').forEach(btn => {
+      dom.filterTabs.querySelectorAll('button[data-cat]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.cat === currentCategory);
         btn.setAttribute('aria-pressed', btn.dataset.cat === currentCategory ? 'true' : 'false');
         btn.onclick = () => {
@@ -1778,7 +1779,7 @@
             dom.hotToggleBtn.classList.remove('active');
             dom.hotToggleBtn.setAttribute('aria-pressed', 'false');
           }
-          dom.filterTabs.querySelectorAll('button').forEach(b => {
+          dom.filterTabs.querySelectorAll('button[data-cat]').forEach(b => {
             b.classList.remove('active');
             b.setAttribute('aria-pressed', 'false');
           });
@@ -1845,7 +1846,7 @@
       [dom.multiToggleBtn, dom.favFilterBtn, dom.latestToggleBtn, dom.hotToggleBtn]
         .forEach(b => b.setAttribute('aria-pressed', 'false'));
 
-      dom.filterTabs.querySelectorAll('button').forEach(b => {
+      dom.filterTabs.querySelectorAll('button[data-cat]').forEach(b => {
         b.classList.toggle('active', b.dataset.cat === 'all');
         b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
       });
@@ -1896,9 +1897,8 @@
       } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
       } else {
-        /* 「英文热门」保持纯按名字排；其它分类一律中文优先 */
-        const cmp = currentCategory === '英文热门' ? compareName : compareNameCnFirst;
-        groups.sort((a, b) => cmp(a.name, b.name));
+        /* 所有分类（含「英文热门」）一律中文优先 */
+        groups.sort((a, b) => compareNameCnFirst(a.name, b.name));
       }
       if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
       if (showFavOnly) {
@@ -2651,14 +2651,14 @@
       }
       if (keep !== 'category') {
         currentCategory = 'all';
-        dom.filterTabs.querySelectorAll('button').forEach(b => {
+        dom.filterTabs.querySelectorAll('button[data-cat]').forEach(b => {
           b.classList.toggle('active', b.dataset.cat === 'all');
           b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
         });
       } else {
         const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
         if (allBtn) {
-          dom.filterTabs.querySelectorAll('button').forEach(b => {
+          dom.filterTabs.querySelectorAll('button[data-cat]').forEach(b => {
             b.classList.remove('active');
             b.setAttribute('aria-pressed', 'false');
           });
