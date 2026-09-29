@@ -11,6 +11,11 @@
         "name": "树立口",
         "platform": "",
         "message": "坚持创作音乐ID，为玩家带来更多好听的歌曲"
+      },
+      {
+        "name": "黎明的阴影",
+        "platform": "哔哩哔哩",
+        "message": "添加自己的原创歌曲，向大家分享共乐"
       }
     ]
   },
@@ -20,12 +25,27 @@
       {
         "name": "冰糖",
         "platform": "",
-        "message": "反馈了歌曲缺失问题"
+        "message": "反馈了「卡片1」相关问题"
       },
       {
         "name": "SKMAOQW",
         "platform": "",
-        "message": "反馈了歌曲缺失问题"
+        "message": "反馈了「卡片1」相关问题"
+      },
+      {
+        "name": "wwwwwqseq",
+        "platform": "",
+        "message": "反馈了「卡片1」相关问题"
+      }
+    ]
+  },
+  {
+    "category": "📋 歌单整理者",
+    "people": [
+      {
+        "name": "duck",
+        "platform": "",
+        "message": "现已停止为本网站提供整理的最新歌单"
       }
     ]
   }
