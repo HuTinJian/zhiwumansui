@@ -241,7 +241,9 @@
          一个类别块（.thanks-group + .cat-title），里面每人是 .thanks-person 一行：
          👑 名字 · 金额 · 感谢语（全部过 esc 转义）。
          2026-09-29 用户要求把「荣誉赞助者」这个称号整个删掉 ——
-         所以现在既不读底档的 title，也不再给 D1 加的人兜底一个称号。 */
+         所以现在既不读底档的 title，也不再给 D1 加的人兜底一个称号。
+         2026-09-29 又按用户要求去掉了人名前面那个 👑（名单里每行只写名字），
+         注意「👑 赞助者」这个**类别字符串**是数据口径，仍然原样保留、不能改。 */
       function renderSponsors(base, baseOk, extra) {
         var box = $('sponsorGroups');
         if (!box) return;
@@ -280,7 +282,7 @@
         var html = '<div class="thanks-group">';
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
-          html += '<span class="p-name">👑 ' + esc(p.name) + '</span>';
+          html += '<span class="p-name">' + esc(p.name) + '</span>';
           if (p.amount) html += '<span class="p-platform">· ' + esc(p.amount) + '</span>';
           if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
           html += '</div>';
