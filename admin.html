@@ -14,10 +14,8 @@
     }
     .admin-topbar h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
     .admin-topbar .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    /* 顶部那枚「📦 合并工具」按用户要求从标签栏搬上来，排在「退出登录」后面。
-       它仍然是标签（.tab + data-panel），切换 / 懒加载 / 高亮都走原来那套逻辑，
-       只是内边距调小一点，好跟左右两个 .btn 一样高，不显得突兀。 */
-    .admin-topbar .tab { padding: 8px 22px; font-size: 0.95rem; }
+    /* 2026-09-29：顶部原来还有一枚「📦 合并工具」标签（连同这条 .admin-topbar .tab 规则），
+       合并工具整体搬去了桌面本地版，这里不再需要这条样式。 */
 
     .tabs {
       display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
@@ -436,10 +434,8 @@
       <div class="actions">
         <button class="btn btn-secondary" onclick="location.href='index.html'">返回主页</button>
         <button class="btn btn-danger" id="logoutBtn">退出登录</button>
-        <!--（2026-09-29 用户要求）「📦 合并工具」从下面的标签栏搬到这里，排在「退出登录」后面。
-            故意留着 .tab + data-panel：js/admin.js 里是 querySelectorAll('.tab') 全局绑定，
-            所以搬位置不用改任何 JS，点它照样能切面板、照样触发 iframe 懒加载和选中高亮。 -->
-        <button class="tab" data-panel="panel-merge">📦 合并工具</button>
+        <!-- 2026-09-29 用户要求：合并工具不再放网站上（改成桌面上双击使用的本地版），
+             所以这里那枚「📦 合并工具」按钮连同它下面的 panel-merge 面板一起删掉了。 -->
       </div>
     </div>
 
@@ -504,15 +500,14 @@
               <span class="count" id="songCount">0</span>
               <span class="head-actions">
                 <!-- 2026-09-29 用户要求去掉「➕ 添加歌曲」和「📤 导出」两个按钮：
-                     歌曲统一从「📥 导入」进来；要整合进主数据走
-                     「📦 合并工具 → 🎮 Roblox ID 宝库 → 🎵 音乐 ID」（那个工具直接读线上，
-                     不再需要先导出一份 JSON）。 -->
+                     歌曲统一从「📥 导入」进来；合并进主数据现在走桌面上的
+                     《织雾满穗-合并工具\3-音乐ID合并.html》（本地版，站长自己双击用）。 -->
                 <button class="btn btn-primary" id="openBatchImportBtn">📥 导入</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
               </span>
             </h2>
             <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-              这里导入的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后走「📦 合并工具 → 🎮 Roblox ID 宝库 → 🎵 音乐 ID」整合进主数据。
+              这里导入的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后用桌面上的「织雾满穗-合并工具 → 3-音乐ID合并.html」整合进主数据。
             </p>
             <div id="songList">
               <div class="loading">加载中...</div>
@@ -540,67 +535,10 @@
            这里的管理面板（社区帖子管理 + 已限制发言的账号）连同上面那颗子标签一起删掉。 -->
     </div>
 
-    <!-- 合并工具（原来的「📦 JSON 合并工具」从卡片管理搬到这里，
-         并按二级 / 三级分开；四个工具都是 iframe 内嵌、用到才加载） -->
-    <div class="panel" id="panel-merge">
-
-      <!-- 2026-09-26：二级标签顺序按用户要求改成「❤️ 鸣谢名单」在前（默认选中），
-           「🎮 Roblox ID 宝库」在后；默认展开的三级标签是鸣谢名单下的「👑 赞助者」。 -->
-      <div class="subtabs" data-tabs-group="merge">
-        <button class="subtab active" data-subpanel="merge-thanks">❤️ 鸣谢名单</button>
-        <button class="subtab" data-subpanel="merge-roblox">🎮 Roblox ID 宝库</button>
-      </div>
-
-      <!-- 二级 · ❤️ 鸣谢名单 -->
-      <div class="subpanel active" id="merge-thanks">
-
-        <div class="subtabs subtabs-lv3" data-tabs-group="merge-thanks">
-          <button class="subtab active" data-subpanel="merge-sponsor">👑 赞助者</button>
-          <button class="subtab" data-subpanel="merge-thanks-list">🎮 Roblox ID 宝库</button>
-        </div>
-
-        <div class="subpanel active" id="merge-sponsor">
-          <div class="panel-card" style="padding:0;overflow:hidden;">
-            <div class="tool-iframe-wrap">
-              <iframe data-src="tools/sponsor-merge.html" data-tool-frame scrolling="no" title="赞助者合并工具"></iframe>
-            </div>
-          </div>
-        </div>
-
-        <div class="subpanel" id="merge-thanks-list">
-          <div class="panel-card" style="padding:0;overflow:hidden;">
-            <div class="tool-iframe-wrap">
-              <iframe data-src="tools/thanks-merge.html" data-tool-frame scrolling="no" title="鸣谢名单合并工具"></iframe>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 二级 · 🎮 Roblox ID 宝库 -->
-      <div class="subpanel" id="merge-roblox">
-
-        <div class="subtabs subtabs-lv3" data-tabs-group="merge-roblox">
-          <button class="subtab active" data-subpanel="merge-songs">🎵 音乐 ID</button>
-          <button class="subtab" data-subpanel="merge-quarantine">⛔ 开发者隔离区</button>
-        </div>
-
-        <div class="subpanel active" id="merge-songs">
-          <div class="panel-card" style="padding:0;overflow:hidden;">
-            <div class="tool-iframe-wrap">
-              <iframe data-src="tools/json-merge.html" data-tool-frame scrolling="no" title="JSON 合并工具"></iframe>
-            </div>
-          </div>
-        </div>
-
-        <div class="subpanel" id="merge-quarantine">
-          <div class="panel-card" style="padding:0;overflow:hidden;">
-            <div class="tool-iframe-wrap">
-              <iframe data-src="tools/quarantine-merge.html" data-tool-frame scrolling="no" title="开发者隔离区合并工具"></iframe>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 2026-09-29 用户要求：合并工具不再放在网站上（只有站长一个人用）。
+         原来这里是「📦 合并工具」一级面板（二级 / 三级标签 + 四个工具 iframe），
+         现在整个删掉 —— 四个工具改成桌面上的本地版，双击就能用，
+         内容部署在：桌面\织雾满穗-合并工具\（含《使用说明.txt》）。 -->
 
     <!-- 鸣谢名单 -->
     <div class="panel" id="panel-thanks">
@@ -878,10 +816,12 @@ See You Again 2456502348
     /* 一级 / 二级 / 三级标签切换时，把对应面板里的 iframe 唤醒。
        面板是分级嵌套的（一级 panel → 二级 subpanel → 三级 subpanel），
        而 el 是个「容器」：它里面可能同时还装着别的、现在根本看不见的子面板
-       （比如 📦 合并工具里就并排放着四个工具）。
+       （原来 📦 合并工具里就并排放着四个工具）。
        所以这里只走「当前可见的那条链」：祖先里但凡有一个 panel / subpanel
        没带 .active，就说明这个 iframe 现在还看不见，先不加载。
-       这样就不写死任何 id，多深都能用。 */
+       这样就不写死任何 id，多深都能用。
+       （2026-09-29：合并工具搬去桌面本地版后，后台里已经一个 iframe 都没有了；
+        这套通用逻辑留着不碍事 —— 哪天再嵌 iframe 就还能直接用。） */
     function isVisibleIn(iframe, root) {
       var node = iframe.parentElement;
       /* root 的父节点是终点：从 iframe 一路查到 root（含 root）为止 */
@@ -927,7 +867,7 @@ See You Again 2456502348
 
           /* 这个子面板（以及它里面仍然可见的下级面板）里的 iframe 该加载了。
              注意不能只取 target.querySelector('iframe')：那是「文档里第一个」，
-             在 📦 合并工具那种「三级子面板里各放一个工具」的结构下不一定可见。 */
+             在「三级子面板里各放一个工具」那种结构下不一定可见。 */
           activateIframesIn(target);
         });
       });

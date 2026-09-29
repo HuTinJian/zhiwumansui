@@ -32,9 +32,8 @@ let feedbackCache = [];
          （打开后台时不加载，省掉几万字符的解析和一次网络请求）。
          这个函数是通用的，没有面板名单，也不写死任何 id：
          它只唤醒「当前可见的那条链」上的 iframe。
-         所以「📦 合并工具」（panel-merge）切过来时先加载的是默认那个
-         「🎵 音乐 ID」（merge-songs），另外三个 —— ⛔ 开发者隔离区 /
-         👑 赞助者 / 🎮 Roblox ID 宝库 —— 等你切到对应的二级 → 三级标签时才加载。 */
+         2026-09-29：合并工具搬去桌面本地版之后，后台里已经没有 iframe 了，
+         这句留着没坏处 —— 以后要嵌工具页，它照样按「用到才加载」的规矩工作。 */
       if (typeof window.__zmLoadPanelIframes === 'function') {
         window.__zmLoadPanelIframes(panel);
       }
@@ -1028,8 +1027,14 @@ async function loadThanks() {
       return;
     }
 
+    /* 2026-09-29 用户要求：这一栏是「🎮 Roblox ID 宝库」的鸣谢名单，
+       「👑 赞助者」有自己单独的子面板，不能在这里再出现一遍
+       （前端鸣谢页 thanks.html 早就跳过它了，后台这栏之前漏了过滤）。
+       注意这个字符串是数据口径，别改。 */
+    const groups = data.filter(cat => cat && cat.category !== SPONSOR_CATEGORY);
+
     let total = 0;
-    data.forEach(cat => { total += (cat.people || []).length; });
+    groups.forEach(cat => { total += (cat.people || []).length; });
     countEl.textContent = total;
 
     if (total === 0) {
@@ -1038,7 +1043,7 @@ async function loadThanks() {
     }
 
     container.innerHTML = '';
-    data.forEach(cat => {
+    groups.forEach(cat => {
       const title = document.createElement('div');
       title.style.cssText = 'font-weight:700;color:var(--gold);margin:16px 0 8px;font-size:1rem;';
       title.textContent = cat.category;
