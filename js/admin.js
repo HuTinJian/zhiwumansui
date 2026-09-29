@@ -80,6 +80,8 @@ let feedbackCache = [];
   if (exportThanksBtn) exportThanksBtn.onclick = handleExportThanks;
   const exportSponsorsBtn = document.getElementById('exportSponsorsBtn');
   if (exportSponsorsBtn) exportSponsorsBtn.onclick = handleExportSponsors;
+  const exportQuarantineBtn = document.getElementById('exportQuarantineBtn');
+  if (exportQuarantineBtn) exportQuarantineBtn.onclick = handleExportQuarantine;
 
   /* 👑 赞助者：「➕ 添加赞助者」弹窗（行的「✏️ 编辑」复用同一个弹窗）、🔄 刷新 */
   document.getElementById('openAddSponsorBtn').onclick = openAddSponsorModal;
@@ -1096,6 +1098,30 @@ async function handleExportSponsors() {
     if (!list.length) { showToast('暂无赞助者可导出'); return; }
     downloadJson(`sponsors-${exportStamp()}.json`, list);
     showToast(`📤 已导出 ${list.length} 条赞助者（格式同 data/sponsors.json）`);
+  } catch (err) {
+    showToast('网络异常，导出失败');
+  }
+}
+
+/* 开发者隔离区：导出成 data/admin_quarantine.json 的格式 [{id, name, category}]。
+   D1 里还多存了 source / quarantinedAt，但静态快照那份文件没有这两个字段，
+   所以导出时按静态文件的格式来 —— 拿到就能直接覆盖 data/admin_quarantine.json。 */
+async function handleExportQuarantine() {
+  try {
+    const res = await fetch('/api/quarantine/list?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json();
+    if (!data || data.ok === false || !Array.isArray(data.data)) {
+      showToast('导出失败：隔离区列表拿不到');
+      return;
+    }
+    const list = data.data.map((it) => ({
+      id: it.id,
+      name: it.name || '未知歌名',
+      category: it.category || '未分类'
+    }));
+    if (!list.length) { showToast('隔离区是空的，没什么可导出的'); return; }
+    downloadJson(`admin_quarantine-${exportStamp()}.json`, list);
+    showToast(`📤 已导出 ${list.length} 条隔离记录（格式同 data/admin_quarantine.json）`);
   } catch (err) {
     showToast('网络异常，导出失败');
   }
