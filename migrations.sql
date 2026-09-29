@@ -17,26 +17,21 @@
 --
 --   ① 网页版（推荐，什么都不用装）
 --      Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
---        · 先一条一条执行下面第 1 组的 3 条 ALTER
---          （某条报 `duplicate column name: xxx` 是正常的，说明那个字段之前加过了，
---            跳过它继续执行后面的就行）
---        · 再整个执行第 2 组（建表 + 索引）
---        · 第 3 组（博客账号表 blog_users + 内容的新字段）
---        · 第 4 组（社区板块字段 kind）
---        · 第 5 组（自定义头像 avatar + 编辑时间 edited_at）
---
---      ⚠️ 五组都要跑，别在中途停手。漏跑的症状很好认：
---         · 漏了第 3 组的 blog_users → 浏览正常，但「注册 / 登录」一律报
---           「出错了：server error」（注册和登录都要读写这张表）。
---         · 漏了第 4 组的 kind → 社区页顶部会自己弹一条提示，
---           告诉你缺哪个字段、该跑哪句 SQL（页面不会崩，发帖也能用，
---           只是所有内容暂时都归到「💬 闲聊」）。
---         新功能一律做了「缺字段就降级」的兜底，所以漏跑不会白屏，
---         但会少一块功能 —— 看到提示就补跑对应的那一句即可。
+--      把第 1 组的三条 ALTER 一条一条执行
+--      （某条报 `duplicate column name: xxx` 是正常的，说明那个字段之前加过了，
+--        跳过它继续执行后面的就行），最后跑一下那条索引。
 --
 --   ② 命令行版（要在你自己电脑的终端里跑，不是在 Cloudflare 网页里）
 --      需要先装 Node.js，然后在项目根目录执行：
 --        npx wrangler d1 execute <你的库名> --remote --file=./migrations.sql
+--
+-- 【2026-09-29 大改动】
+--   原来第 2～5 组全是「玩家社区（卡片2）」的建表和加字段语句
+--   （blog_posts / blog_users / blog_likes / blog_reports / blog_bans、
+--     kind / avatar / edited_at …）。玩家社区已经整个删除：
+--   前端页面、functions/api/blog/* 接口、后台管理面板、D1 表都不要了，
+--   所以那些语句从这里一并删掉 —— 免得哪天照着重跑，又把表建回来。
+--   老库里已经建好的那五张表，按《d1-drop-blog.sql》里的语句 DROP 掉即可。
 -- ============================================================
 
 
@@ -50,99 +45,5 @@ ALTER TABLE feedback ADD COLUMN reply TEXT;
 
 ALTER TABLE feedback ADD COLUMN decided_at TEXT;
 
-
--- ---------- 第 2 组：索引与博客表（可以整段一起执行） ----------
-
 -- 加速「查我自己的反馈」这个查询
 CREATE INDEX IF NOT EXISTS idx_feedback_client ON feedback(client_id);
-
--- 博客（卡片2 · 玩家交流）
--- parent_id 为 NULL 是主帖（文章），否则是对某篇文章的评论（只做一层嵌套）
-CREATE TABLE IF NOT EXISTS blog_posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  parent_id INTEGER,
-  name TEXT NOT NULL,
-  title TEXT,
-  content TEXT NOT NULL,
-  client_id TEXT,
-  likes INTEGER DEFAULT 0,
-  reports INTEGER DEFAULT 0,
-  status TEXT DEFAULT 'visible',
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
-
-CREATE TABLE IF NOT EXISTS blog_likes (
-  post_id INTEGER NOT NULL,
-  client_id TEXT NOT NULL,
-  PRIMARY KEY (post_id, client_id)
-);
-
--- 每人每篇只能举报一次（防止一个人连点三次就把别人的文章刷下线）
-CREATE TABLE IF NOT EXISTS blog_reports (
-  post_id INTEGER NOT NULL,
-  client_id TEXT NOT NULL,
-  reason TEXT,
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  PRIMARY KEY (post_id, client_id)
-);
-
-CREATE TABLE IF NOT EXISTS blog_bans (
-  client_id TEXT PRIMARY KEY,
-  reason TEXT,
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_blog_parent ON blog_posts(parent_id, id DESC);
-CREATE INDEX IF NOT EXISTS idx_blog_status ON blog_posts(status, id DESC);
-
-
--- ---------- 第 3 组：博客账号 + 封面 / 标签 / 浏览量 / 置顶 ----------
--- 同样是「已存在会报 duplicate column，跳过继续」那一套。
-
--- 登录功能：发帖和评论需要登录，浏览不需要。
--- 密码只存「盐 + SHA-512 哈希」，不存明文。
-CREATE TABLE IF NOT EXISTS blog_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL UNIQUE,
-  pass_hash TEXT NOT NULL,
-  salt TEXT NOT NULL,
-  banned INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
-
--- 内容的新字段
-ALTER TABLE blog_posts ADD COLUMN user_id INTEGER;   -- 作者账号 id
-ALTER TABLE blog_posts ADD COLUMN cover TEXT;        -- 封面图地址（选填，不填就用自动渐变封面）
-ALTER TABLE blog_posts ADD COLUMN tags TEXT;         -- 标签，英文逗号分隔
-ALTER TABLE blog_posts ADD COLUMN views INTEGER DEFAULT 0;    -- 浏览量
-ALTER TABLE blog_posts ADD COLUMN pinned INTEGER DEFAULT 0;   -- 是否置顶
-
-CREATE INDEX IF NOT EXISTS idx_blog_user ON blog_posts(user_id);
-CREATE INDEX IF NOT EXISTS idx_blog_pinned ON blog_posts(pinned, id DESC);
-
-
--- ---------- 第 4 组：社区板块（2026-09-24 起，博客改成「玩家社区」） ----------
--- kind 存板块 id：resource 资源分享 / game 游戏交流 / bug BUG反馈 / idea 建议 / chat 闲聊
--- （取值清单在 functions/api/blog/_moderation.js 的 KINDS，前后端必须一致）
---
--- 漏跑也能用：社区页会自己提示缺这个字段，浏览和发帖都照常，
--- 只是所有内容暂时都归到「💬 闲聊」。跑完这一句就正常了。
-ALTER TABLE blog_posts ADD COLUMN kind TEXT;
-
--- 按板块筛列表时用得上
-CREATE INDEX IF NOT EXISTS idx_blog_kind ON blog_posts(kind, id DESC);
-
-
--- ---------- 第 5 组：自定义头像 + 编辑时间（2026-09-24） ----------
--- avatar   ：账号头像。存一个 emoji，或一个 http(s) 图片直链（不做文件上传，
---            因为本站没有对象存储）。没设就是空，页面会按用户名自动生成一个默认 emoji。
--- edited_at：帖子最后一次被作者修改的时间，前台显示成「已编辑 …」。
---
--- 这两组同样「漏跑不崩」：
---   · 缺 avatar   → 账号设置里改头像会被拒并提示这一句；其余功能照常
---   · 缺 edited_at → 只是不显示「已编辑」，编辑功能本身照常可用
-ALTER TABLE blog_users ADD COLUMN avatar TEXT;
-
-ALTER TABLE blog_posts ADD COLUMN edited_at TEXT;
-
-

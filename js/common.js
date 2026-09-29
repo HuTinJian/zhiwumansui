@@ -62,7 +62,8 @@
   initTheme();/* ============================================================
    0.5 这个站到现在花了多少钱
    ------------------------------------------------------------
-   页面上【只有首页「赞助者荣誉榜」那一处】显示这个数字了（用户 2026-09-26 要求）：
+   页面上【只有鸣谢页 thanks.html 的「👑 赞助者」那一处】显示这个数字了（用户 2026-09-26 要求，
+   原来那块在首页「赞助者荣誉榜」，后来搬去了鸣谢页）：
    hero 的赞赏码小条、赞赏码弹窗、新人弹窗都不再写金额和核对日期，
    免得同一个数字在四个地方各写一遍、还容易改漏。
 
@@ -74,9 +75,9 @@
    首页荣誉榜里还写了一份【没脚本时的兜底】数字，换数字时也顺手一起改。
    ============================================================ */
 const SITE_COST = {
-  amount: '¥88.71',         /* 累计花费（元）—— 只改这一个地方 */
+  amount: '¥91.82',         /* 累计花费（元）—— 只改这一个地方 */
   since: '2026-09-12',      /* 从哪天开始算的 */
-  checkedAt: '2026-09-26'   /* 上面这个数字是哪天核对的 */
+  checkedAt: '2026-09-29'   /* 上面这个数字是哪天核对的 */
 };
 
 /* 把金额填进页面里所有占位处（现在只有鸣谢页 thanks.html 的「👑 赞助者」那一处） */
@@ -933,6 +934,36 @@ function fillSiteCost(scope) {
   /* ============================================================
      6. 版本更新检查（图片弹窗版）
      ============================================================ */
+  /* 取某个页面的更新公告。
+     2026-09-29：公告不再走 D1 / 后台 —— 后台的「更新管理」已下线，
+     改成仓库里的静态文件 data/updates.json（AI 完成改动后直接写这个文件）。
+     文件读不到（旧缓存 / 还没部署上）就退回老接口 /api/updates，保证公告不会因此消失。 */
+  async function loadPageUpdate(pageKey, controller) {
+    const signal = controller ? controller.signal : undefined;
+
+    try {
+      const res = await fetch('data/updates.json?t=' + Date.now(), { cache: 'no-store', signal });
+      if (res.ok) {
+        const file = await res.json();
+        const rec = file && file[pageKey];
+        if (rec && rec.version) return rec;
+      }
+    } catch (e) { /* 文件没读到就走下面的老接口 */ }
+
+    try {
+      const res = await fetch(`/api/updates?page=${encodeURIComponent(pageKey)}&t=${Date.now()}`, {
+        cache: 'no-store',
+        signal
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data.ok || !data.data) return null;
+      return data.data;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function checkPageUpdate(pageKey) {
     const storageKey = `pageVersion_${pageKey}`;
 
@@ -942,18 +973,13 @@ function fillSiteCost(scope) {
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
       const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
 
-      const res = await fetch(`/api/updates?page=${encodeURIComponent(pageKey)}&t=${Date.now()}`, {
-        cache: 'no-store',
-        signal: controller ? controller.signal : undefined
-      });
+      const rec = await loadPageUpdate(pageKey, controller);
       if (timer) clearTimeout(timer);
 
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.ok || !data.data) return;
-      version = data.data.version;
-      date = data.data.date;
-      updates = data.data.updates;
+      if (!rec) return;
+      version = rec.version;
+      date = rec.date;
+      updates = rec.updates;
     } catch (e) {
       return;
     }
@@ -1316,12 +1342,13 @@ function fillSiteCost(scope) {
   const CLIENT_ID_KEY = 'zm_client_id';
   const FEEDBACK_SEEN_KEY = 'zm_feedback_seen';
 
-  /* 反馈类型 → 该去哪一页提示（和后台的页面划分一致） */
+  /* 反馈类型 → 该去哪一页提示（和后台的页面划分一致）
+     2026-09-29：「卡片2 / 玩家社区」整个删掉了，这里也去掉它；
+     老数据里可能还有 type 是「卡片2」的反馈，取不到页面键就统一按「本站」提示。 */
   const TYPE_PAGE = {
     '主页': 'index',
     '反馈': 'feedback',
     '卡片1': 'roblox',
-    '卡片2': 'blog',
     '其他': 'feedback'
   };
 
@@ -1351,7 +1378,6 @@ function fillSiteCost(scope) {
     const path = (window.location.pathname || '').toLowerCase();
     if (path.indexOf('roblox_music') !== -1) return 'roblox';
     if (path.indexOf('feedback') !== -1) return 'feedback';
-    if (path.indexOf('blog') !== -1) return 'blog';
     if (path.indexOf('admin') !== -1 || path.indexOf('404') !== -1) return '';
     return 'index';
   }
@@ -1372,7 +1398,7 @@ function fillSiteCost(scope) {
 
   /* 展示处理结果。文案分「受理」和「拒绝」两种，另附管理员可选的说明 */
   function showDecisionModal(item) {
-    const PAGE_LABEL = { index: '首页', feedback: '反馈页', roblox: 'Roblox ID 宝库', blog: '玩家博客' };
+    const PAGE_LABEL = { index: '首页', feedback: '反馈页', roblox: 'Roblox ID 宝库' };
     const pageLabel = PAGE_LABEL[TYPE_PAGE[item.type] || ''] || '本站';
     const approved = item.status === 'approved';
 

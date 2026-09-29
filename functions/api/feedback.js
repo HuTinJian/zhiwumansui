@@ -4,7 +4,8 @@
 
 import { json, clientIp, createRateLimiter, readJsonBody, requireSameOrigin } from './_utils.js';
 
-const VALID_TYPES = ['主页', '反馈', '卡片1', '卡片2', '其他'];
+/* 2026-09-29：「卡片2（玩家社区）」随社区功能一起删除，不再接受这个反馈类型 */
+const VALID_TYPES = ['主页', '反馈', '卡片1', '其他'];
 const CLIENT_ID_PATTERN = /^[a-z0-9]{16,40}$/;
 
 /* 单 IP 10 分钟最多 5 条反馈，避免被刷屏 */

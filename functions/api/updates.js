@@ -26,7 +26,6 @@ export async function onRequestGet(context) {
            WHEN 'index' THEN 1
            WHEN 'feedback' THEN 2
            WHEN 'roblox' THEN 3
-           WHEN 'blog' THEN 4
            ELSE 5
          END`
       ).all();
@@ -91,7 +90,9 @@ export async function onRequestPost(context) {
     if (!page || !version) {
       return json({ ok: false, error: 'missing fields' }, 400);
     }
-    if (!['index', 'feedback', 'roblox', 'blog'].includes(page)) {
+    /* 2026-09-29：'blog'（玩家社区）随社区功能删除；
+       另外页面现在读仓库里的 data/updates.json，这个接口只作为后备。 */
+    if (!['index', 'feedback', 'roblox', 'thanks'].includes(page)) {
       return json({ ok: false, error: 'invalid page' }, 400);
     }
     if (updates.length === 0) {

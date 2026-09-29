@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、卡片管理（歌曲 / 隔离区 / 社区）、
+   反馈管理、卡片管理（歌曲 / 隔离区）、
    📦 合并工具（四个 iframe 工具页，里面分了二级 / 三级）、
    鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
    ============================================================ */
@@ -56,7 +56,8 @@ let feedbackCache = [];
   loadRobloxStats();
   loadSongs();
   loadThanks();
-  // 注：更新管理走 iframe（tools/update-notice.html），不需要在这里加载
+  // 注：2026-09-29 起后台没有「更新管理」了（公告改由 AI 写 data/updates.json），
+  // 所以这里也不需要为任何更新面板做初始化。
 
   /* 导入隔离区弹窗 */
   document.getElementById('openImportQuarantineBtn').onclick = () => {
@@ -479,7 +480,6 @@ function buildSmartThanksMessage(item) {
 
   const whereMap = {
     '卡片1': '在「🎵 Roblox ID 宝库」',
-    '卡片2': '在「🌾 玩家社区」',
     '主页': '在首页',
     '反馈': '在反馈页'
   };
@@ -1596,253 +1596,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ============================================================
-   博客管理（卡片2 · 玩家交流）
-   ------------------------------------------------------------
-   玩家发的帖子都在这里。处置手段分四种：
-     隐藏 / 恢复  —— 单条上下线
-     误报复位     —— 被误举报时清空举报数并恢复显示
-     拉黑作者     —— 按「浏览器身份」拉黑：他名下帖子全部下线且不能再发
-     删除         —— 连同它的回复一起永久删除
-   ============================================================ */
-let blogCache = [];
-
-function blogStatusTag(item) {
-  if (item.status !== 'visible') return '<span class="type-tag red" style="margin-left:6px;">🙈 已隐藏</span>';
-  if (item.reports >= 3) return '<span class="type-tag gold" style="margin-left:6px;">⚠️ 举报较多</span>';
-  return '<span class="type-tag green" style="margin-left:6px;">👁️ 显示中</span>';
-}
-
-async function loadBlogPanel() {
-  const box = document.getElementById('blogList');
-  const banBox = document.getElementById('blogBanList');
-  if (!box) return;
-
-  box.innerHTML = '<div class="loading">加载中...</div>';
-
-  try {
-    const res = await fetch('/api/blog/admin-list', { credentials: 'include' });
-    const data = await res.json();
-
-    if (!data || !data.ok) {
-      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，或数据库还没跑迁移</div>';
-      return;
-    }
-
-    const list = Array.isArray(data.data) ? data.data : [];
-    blogCache = list;
-    document.getElementById('blogCount').textContent = list.length;
-
-    renderBlogBans(
-      Array.isArray(data.bans) ? data.bans : [],
-      Array.isArray(data.bannedUsers) ? data.bannedUsers : [],
-      Number(data.userCount) || 0
-    );
-
-    if (list.length === 0) {
-      box.innerHTML = '<div class="empty-state">还没有人发帖</div>';
-      return;
-    }
-
-    box.innerHTML = '';
-    list.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'list-item';
-
-      const hidden = item.status !== 'visible';
-      const title = item.title ? escapeHtml(item.title) : '<span style="color:var(--text-muted)">（无标题）</span>';
-      const tags = item.tags ? escapeHtml(item.tags) : '';
-
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${item.pinned ? '📌 ' : ''}${title}</span>
-          <span>
-            <span class="type-tag">👤 ${escapeHtml(item.name)}</span>
-            ${blogStatusTag(item)}
-          </span>
-        </div>
-        <div class="meta">
-          🕒 ${escapeHtml(item.createdAt)}
-          · 👁 ${item.views} · 👍 ${item.likes} · 💬 ${item.replies} · ⚠️ ${item.reports}
-          ${item.userId ? ' · 🆔 账号 #' + item.userId : ''}
-          ${tags ? ' · 🏷 ' + tags : ''}
-        </div>
-        <div class="message">${escapeHtml(item.content)}</div>
-        <div class="actions">
-          ${item.pinned
-            ? '<button class="btn-unpin" data-id="' + item.id + '">📌 取消置顶</button>'
-            : '<button class="btn-pin" data-id="' + item.id + '">📌 置顶</button>'}
-          ${hidden
-            ? '<button class="btn-show" data-id="' + item.id + '">👁️ 恢复显示</button>'
-            : '<button class="btn-hide" data-id="' + item.id + '">🙈 隐藏</button>'}
-          <button class="btn-unreport" data-id="${item.id}">🔁 误报复位</button>
-          <button class="btn-ban" data-id="${item.id}">🚫 拉黑作者</button>
-          <button class="btn-delete" data-id="${item.id}">🗑️ 删除</button>
-        </div>
-      `;
-      box.appendChild(el);
-    });
-
-    box.querySelectorAll('.btn-pin').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'pin')));
-    box.querySelectorAll('.btn-unpin').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'unpin')));
-    box.querySelectorAll('.btn-hide').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'hide')));
-    box.querySelectorAll('.btn-show').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'show')));
-    box.querySelectorAll('.btn-unreport').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'resetReports')));
-    box.querySelectorAll('.btn-ban').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'ban')));
-    box.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', () => moderateBlog(Number(b.dataset.id), 'delete')));
-  } catch (err) {
-    box.innerHTML = '<div class="empty-state">加载失败</div>';
-  }
-}
-
-function renderBlogBans(bans, bannedUsers, userCount) {
-  bans = Array.isArray(bans) ? bans : [];
-  bannedUsers = Array.isArray(bannedUsers) ? bannedUsers : [];
-  const box = document.getElementById('blogBanList');
-  if (!box) return;
-
-  const hasBans = bans.length > 0;
-  const hasUsers = bannedUsers.length > 0;
-
-  if (!hasBans && !hasUsers) {
-    box.innerHTML = '<div class="empty-state">暂无限制记录</div>';
-    return;
-  }
-
-  box.innerHTML = '';
-
-  /* 被封的账号（登录用户） */
-  bannedUsers.forEach(u => {
-    const el = document.createElement('div');
-    el.className = 'list-item';
-    el.innerHTML = `
-      <div class="row1">
-        <span class="name">👤 ${escapeHtml(u.username)}</span>
-        <span><span class="type-tag red">🚫 账号已封禁</span></span>
-      </div>
-      <div class="meta">🕒 ${escapeHtml(u.createdAt)} · 🆔 账号 #${u.id}</div>
-      <div class="actions">
-        <button class="btn-unban-user" data-user="${u.id}">✅ 解封账号</button>
-      </div>
-    `;
-    box.appendChild(el);
-  });
-
-  /* 被拉黑的浏览器身份（游客） */
-  bans.forEach(b => {
-    const el = document.createElement('div');
-    el.className = 'list-item';
-    el.innerHTML = `
-      <div class="row1">
-        <span class="name">🔑 ${escapeHtml(String(b.clientId).slice(0, 10))}…</span>
-        <span><span class="type-tag red">🚫 浏览器已限制</span></span>
-      </div>
-      <div class="meta">🕒 ${escapeHtml(b.createdAt)}${b.reason ? ' · 原因：' + escapeHtml(b.reason) : ''}</div>
-      <div class="actions">
-        <button class="btn-unban" data-client="${escapeHtml(b.clientId)}">✅ 解除限制</button>
-      </div>
-    `;
-    box.appendChild(el);
-  });
-
-  box.querySelectorAll('.btn-unban-user').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const ok = await showConfirm('解封账号', '解封后这个账号可以重新登录发帖，之前被隐藏的内容仍需要你手动恢复显示。确定吗？');
-      if (!ok) return;
-      btn.disabled = true;
-      try {
-        const res = await fetch('/api/blog/moderate', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'unbanUser', userId: Number(btn.dataset.user) })
-        });
-        const data = await res.json();
-        if (data && data.ok) { showToast('✅ 已解封'); loadBlogPanel(); }
-        else { btn.disabled = false; showToast('操作失败'); }
-      } catch (e) {
-        btn.disabled = false;
-        showToast('网络异常');
-      }
-    });
-  });
-
-  box.querySelectorAll('.btn-unban').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const clientId = btn.dataset.client;
-      const ok = await showConfirm('解除限制', '解除后这个人可以重新发帖，之前被隐藏的帖子仍需要你手动恢复显示。确定吗？');
-      if (!ok) return;
-
-      btn.disabled = true;
-      try {
-        const res = await fetch('/api/blog/moderate', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'unban', clientId: clientId })
-        });
-        const data = await res.json();
-        if (data && data.ok) { showToast('✅ 已解除限制'); loadBlogPanel(); }
-        else { btn.disabled = false; showToast('操作失败'); }
-      } catch (e) {
-        btn.disabled = false;
-        showToast('网络异常');
-      }
-    });
-  });
-}
-
-async function moderateBlog(id, action) {
-  const item = blogCache.find(i => Number(i.id) === id);
-
-  const CONFIRM = {
-    hide: '隐藏这篇文章？玩家端立刻看不到，但数据保留，随时可以恢复。',
-    delete: '永久删除这篇文章？它下面的评论、点赞、举报记录都会一起消失，无法恢复。',
-    ban: '拉黑作者？他的账号会被封禁、浏览器身份也会被拉黑，名下所有内容一起下线，之后再也发不了。',
-    resetReports: '把举报数清零并恢复显示？用在确认是误报的时候。'
-  };
-
-  if (CONFIRM[action]) {
-    const ok = await showConfirm('确认操作', CONFIRM[action]);
-    if (!ok) return;
-  }
-
-  const payload = { action: action, id: id };
-  if (action === 'ban' && item) payload.reason = '管理员在博客管理中限制发言';
-
-  try {
-    const res = await fetch('/api/blog/moderate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-
-    if (data && data.ok) {
-      if (action === 'delete') showToast('🗑️ 已删除');
-      else if (action === 'hide') showToast('🙈 已隐藏');
-      else if (action === 'show') showToast('👁️ 已恢复显示');
-      else if (action === 'pin') showToast('📌 已置顶');
-      else if (action === 'unpin') showToast('📌 已取消置顶');
-      else if (action === 'ban') showToast('🚫 已拉黑作者，下线了 ' + (data.hidden || 0) + ' 条内容');
-      else showToast('🔁 已复位');
-      loadBlogPanel();
-    } else if (data && data.error === 'no_identity') {
-      showToast('这条内容没有可识别的作者（旧数据），改用「删除」处理吧');
-    } else {
-      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
-    }
-  } catch (e) {
-    showToast('网络异常');
-  }
-}
-
-/* 刷新按钮 */
-(function () {
-  const btn = document.getElementById('refreshBlogBtn');
-  if (btn) btn.addEventListener('click', loadBlogPanel);
-})();
+/* 2026-09-29：这里原来是「博客管理（卡片2 · 玩家交流）」整段 ——
+   社区帖子管理 + 拉黑名单 + 隐藏/恢复/误报复位/拉黑/删除 全部随之删除
+   （用户要求把玩家社区及其相关内容全部清掉，前端、接口、D1 表都不留）。 */
 
 /* ============================================================
    全局暴露（供 admin.html 内联脚本批量导入使用）
@@ -1851,6 +1607,5 @@ window.loadSongs = loadSongs;
 window.loadRobloxStats = loadRobloxStats;
 window.addSongToServer = addSongToServer;
 window.loadStatsPanel = loadStatsPanel;
-window.loadBlogPanel = loadBlogPanel;
 window.loadSponsors = loadSponsors;
 window.ensureSponsors = ensureSponsors;

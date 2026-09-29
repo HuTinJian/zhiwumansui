@@ -445,7 +445,8 @@
 
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
-      <button class="tab" data-panel="panel-updates">📝 更新管理</button>
+      <!-- 2026-09-29 用户要求：去掉「📝 更新管理」（原来是个 iframe 工具页）。
+           公告改成仓库里的静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📊 数据统计</button>
@@ -464,21 +465,12 @@
       </div>
     </div>
 
-    <!-- 更新管理 -->
-    <div class="panel" id="panel-updates">
-      <div class="panel-card" style="padding:0;overflow:hidden;">
-        <div class="tool-iframe-wrap">
-          <iframe data-src="tools/update-notice.html" data-tool-frame scrolling="no" title="更新公告生成工具"></iframe>
-        </div>
-      </div>
-    </div>
-
     <!-- 卡片管理 -->
     <div class="panel" id="panel-cards">
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 Roblox ID 宝库</button>
-        <button class="subtab" data-subpanel="card2-panel">🌾 玩家社区</button>
+        <!-- 2026-09-29：原来第二颗子标签是「🌾 玩家社区」（卡片2），随整个社区功能一起删除 -->
       </div>
 
       <div class="subpanel active" id="card1-panel">
@@ -544,36 +536,8 @@
         </div>
       </div>
 
-      <!-- 卡片2 · 玩家社区 -->
-      <div class="subpanel" id="card2-panel">
-
-        <div class="panel-card">
-          <h2>
-            🌾 社区帖子管理
-            <span class="count" id="blogCount">0</span>
-            <span class="head-actions">
-              <button class="btn btn-secondary" id="refreshBlogBtn">🔄 刷新</button>
-            </span>
-          </h2>
-          <p class="desc" style="margin:-6px 0 14px;font-size:0.85rem;color:var(--text-muted);line-height:1.8;">
-            玩家发的内容都在这里。<b>举报不会自动隐藏内容</b>，只累计次数等你人工判断
-            （列表按举报数排，被集中举报的一眼就能看到）；是否下架由你点「隐藏」决定。
-            <b>拉黑</b>会同时封禁账号与浏览器身份 —— 换个昵称、重新注册都发不出来，他名下已有的内容也会一起下线。
-            置顶的内容会单独显示在社区顶部。
-          </p>
-          <div id="blogList">
-            <div class="loading">加载中...</div>
-          </div>
-        </div>
-
-        <div class="panel-card">
-          <h2>🚫 已限制发言的账号与浏览器</h2>
-          <div id="blogBanList">
-            <div class="empty-state">暂无限制记录</div>
-          </div>
-        </div>
-
-      </div>
+      <!-- 2026-09-29 用户要求：卡片2「🌾 玩家社区」整个功能已删除，
+           这里的管理面板（社区帖子管理 + 已限制发言的账号）连同上面那颗子标签一起删掉。 -->
     </div>
 
     <!-- 合并工具（原来的「📦 JSON 合并工具」从卡片管理搬到这里，
@@ -965,11 +929,6 @@ See You Again 2456502348
              注意不能只取 target.querySelector('iframe')：那是「文档里第一个」，
              在 📦 合并工具那种「三级子面板里各放一个工具」的结构下不一定可见。 */
           activateIframesIn(target);
-
-          /* 博客管理：第一次切到这个面板时才去拉数据 */
-          if (targetId === 'card2-panel' && typeof window.loadBlogPanel === 'function') {
-            window.loadBlogPanel();
-          }
         });
       });
     });

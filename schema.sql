@@ -20,61 +20,10 @@ CREATE TABLE IF NOT EXISTS feedback (
   decided_at TEXT
 );
 
--- 社区账号（发帖 / 评论需要登录；浏览不需要）
-CREATE TABLE IF NOT EXISTS blog_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL UNIQUE,
-  pass_hash TEXT NOT NULL,
-  salt TEXT NOT NULL,
-  avatar TEXT,                     -- 自定义头像：一个 emoji，或一个 http(s) 图片直链
-  banned INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
-
--- 玩家社区（卡片2 · 玩家交流）
--- parent_id 为 NULL 是主帖，否则是对某条内容的评论（只做一层嵌套）
-CREATE TABLE IF NOT EXISTS blog_posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  parent_id INTEGER,
-  user_id INTEGER,
-  name TEXT NOT NULL,
-  title TEXT,
-  content TEXT NOT NULL,
-  cover TEXT,
-  tags TEXT,
-  kind TEXT,                       -- 板块：resource/game/bug/idea/chat（见 _moderation.js 的 KINDS）
-  client_id TEXT,
-  likes INTEGER DEFAULT 0,
-  views INTEGER DEFAULT 0,
-  reports INTEGER DEFAULT 0,
-  pinned INTEGER DEFAULT 0,
-  status TEXT DEFAULT 'visible',
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  edited_at TEXT                   -- 最后一次编辑时间（没编辑过就是空）
-);
-
--- 每人每帖只能点一次赞
-CREATE TABLE IF NOT EXISTS blog_likes (
-  post_id INTEGER NOT NULL,
-  client_id TEXT NOT NULL,
-  PRIMARY KEY (post_id, client_id)
-);
-
--- 每人每帖只能举报一次
-CREATE TABLE IF NOT EXISTS blog_reports (
-  post_id INTEGER NOT NULL,
-  client_id TEXT NOT NULL,
-  reason TEXT,
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  PRIMARY KEY (post_id, client_id)
-);
-
--- 博客封禁名单（按浏览器身份 client_id 拉黑）
-CREATE TABLE IF NOT EXISTS blog_bans (
-  client_id TEXT PRIMARY KEY,
-  reason TEXT,
-  created_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
+-- 2026-09-29：原来这里还有玩家社区（卡片2）的五张表 ——
+--   blog_users / blog_posts / blog_likes / blog_reports / blog_bans。
+-- 用户要求把玩家社区及其数据全部删除，所以建表语句一并去掉，
+-- 老库里那五张表请用 README 里的清理 SQL（或 d1-删除玩家社区.sql）手动 DROP。
 
 -- 开发者隔离区
 CREATE TABLE IF NOT EXISTS quarantine_admin (
