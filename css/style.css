@@ -383,9 +383,18 @@ body.modal-open .particles i { animation-play-state: paused; }
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 10px rgba(220, 107, 130, 0.05);
+  /* 2026-09-29 用户要求「导航栏的颜色换一下」：
+     原来是一条几乎和白底分不出来的 --bg（#fdf2f5），
+     现在换成品牌粉的浅渐变（上淡下稍深）+ 加重的下边框和阴影，
+     一眼就能看出「这是一条粉色导航条」。
+     想换别的方案，只改这一行 background 即可：
+       · 纯白干净：   background: var(--bg-card);
+       · 深粉白字：   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+                      （那样还要把下面 .nav-links a 的 color 改成 #fff）
+       · 金色点缀：   background: linear-gradient(180deg, #fdf3e6, #f8e3c8); */
+  background: linear-gradient(180deg, #fce4eb 0%, #f8cedb 100%);
+  border-bottom: 1px solid #f0bccb;
+  box-shadow: 0 2px 12px rgba(200, 84, 108, 0.10);
   padding: 0 24px;
   padding-left: max(24px, env(safe-area-inset-left));
   padding-right: max(24px, env(safe-area-inset-right));
@@ -401,7 +410,17 @@ body.modal-open .particles i { animation-play-state: paused; }
 .navbar.has-brand { justify-content: space-between; gap: 14px; }
 
 .navbar.scrolled {
-  box-shadow: 0 6px 24px rgba(220, 107, 130, 0.14);
+  box-shadow: 0 6px 24px rgba(200, 84, 108, 0.22);
+}
+
+/* 深色模式：走同一套品牌紫粉，只是整体压暗（跟 .page-header 的深色方案一致） */
+[data-theme="dark"] .navbar {
+  background: linear-gradient(180deg, #2e2029 0%, #3a2733 100%);
+  border-bottom-color: #4c3a46;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] .navbar.scrolled {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
 .navbar .nav-links {
@@ -423,9 +442,13 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 .navbar .nav-links a:hover {
-  background: rgba(220, 107, 130, 0.1);
+  /* 导航条本身已经是粉色了，这里改用白色"磨砂"高亮，比再叠一层粉更清楚 */
+  background: rgba(255, 255, 255, 0.68);
   color: var(--primary-ink);
   transform: translateY(-2px) scale(1.05);
+}
+[data-theme="dark"] .navbar .nav-links a:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .navbar .nav-links a:active {
