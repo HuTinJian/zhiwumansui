@@ -820,11 +820,9 @@ function fillSiteCost(scope) {
           <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">2026-09-29</span>
         </div>
         <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
-        <p class="preview-notice-body">
-          宝库里的歌单，此前有一部分是 <strong>duck</strong> 整理的。
-          前段时间我和 duck 之间有过一点不愉快，现在我们已经<strong>互相道歉、把话说开了</strong>。
-          为了不再因为这份歌单产生争执、也不把私人矛盾带进站里，我决定：
-        </p>
+        <!-- 2026-09-29 站主要求：删掉原来的开头段
+             （「宝库里的歌单，此前有一部分是 duck 整理的…我决定：」），
+             列表直接跟在标题下面。 -->
         <ul class="preview-notice-body site-notice-list">
           <li>从今天起<strong>不再使用 duck 整理的那份歌单</strong>；</li>
           <li>宝库主列表<strong>只保留我确认过的这些歌</strong>；</li>
