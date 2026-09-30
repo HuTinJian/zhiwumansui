@@ -10,8 +10,10 @@
     function body(n) {
       var items = [];
       for (var i = 0; i < 3; i++) {
-        items.push('{"postId":9000000000001,"createTime":173568900' + i +
-                   ',"title":"Song-' + n + '-' + i + '","audioId":' + (1830000000 + n * 100 + i) + '}');
+        items.push('{"postId":1790437565935849744,"createTime":173568900' + i +
+                   ',"title":"Song-' + n + '-' + i + '"' +
+                   ',"audioId":' + (1830000000 + n * 100 + i) +
+                   ',"musicId":' + (100000000000000 + n * 100 + i) + '}');
       }
       return '{"nextPage":' + (n < 4 ? (n + 1) : 'null') + ',"items":[' + items.join(',') + ']}';
     }
@@ -36,7 +38,8 @@
         looseApiHits: keys.filter(function (k) { return api.data[k].src === 'api'; }).length,
         pageHits: keys.filter(function (k) { return api.data[k].src === 'page'; }).length,
         timestampLeaked: keys.some(function (k) { return k.indexOf('1735689') === 0; }),
-        postIdLeaked: keys.some(function (k) { return k.indexOf('9000000') === 0; }),
+        postIdLeaked: keys.some(function (k) { return k.indexOf('1790437565') === 0; }),
+        longIdHits: keys.filter(function (k) { return k.length === 15; }).length,
         endpointCount: api.apis().length,
         topEndpointHits: api.apis().length ? api.apis()[0].hits : -1,
         total: api.total(),

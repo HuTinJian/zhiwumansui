@@ -1,9 +1,11 @@
 (function () {
   'use strict';
 
-  var ID_MIN = 6, ID_MAX = 12;
-  var ID_SRC = '\\b\\d{6,12}\\b';
+  var ID_MIN = 6, ID_MAX = 16;
   var STORE_PREFIX = 'midgrab:';
+
+  function idSrc() { return '\\b\\d{' + ID_MIN + ',' + ID_MAX + '}\\b'; }
+  function setIdRange(min, max) { ID_MIN = min; ID_MAX = max; }
 
   var NOISE_SRC = '[\\u4e07\\u6b21\\u8d5e\\u64ad\\u653e\\u9605\\u8bfb\\u5173\\u6ce8' +
                   '\\u7c89\\u4e1d\\u8bc4\\u8bba\\u56de\\u590d\\u79ef\\u5206\\u7ecf' +
@@ -38,7 +40,7 @@
 
   function nameFromContext(ctx) {
     return ctx
-      .replace(new RegExp(ID_SRC, 'g'), ' ')
+      .replace(new RegExp(idSrc(), 'g'), ' ')
       .replace(/["',:{}[\]\\|]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
@@ -48,14 +50,14 @@
   function extractFromLine(line, strict) {
     var out = [];
     if (!line || line.length > 400) return out;
-    var re = new RegExp(ID_SRC, 'g'), m, ids = [];
+    var re = new RegExp(idSrc(), 'g'), m, ids = [];
     while ((m = re.exec(line)) !== null) {
       if (okNumber(m[0], line, strict)) ids.push(m[0]);
     }
     if (!ids.length) return out;
 
     var name = line
-      .replace(new RegExp(ID_SRC, 'g'), ' ')
+      .replace(new RegExp(idSrc(), 'g'), ' ')
       .replace(/[|\uff5c,\uff0c\u3001:\uff1a;\uff1b\-\u2013\u2014_()\uff08\uff09\[\]\u3010\u3011<>\u300a\u300b]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -82,7 +84,7 @@
   function extractFromBlob(text, strict) {
     var out = [], seen = {};
     if (!text || typeof text !== 'string') return out;
-    var re = new RegExp(ID_SRC, 'g'), m;
+    var re = new RegExp(idSrc(), 'g'), m;
     while ((m = re.exec(text)) !== null) {
       var id = m[0], i = m.index;
       if (seen[id]) continue;
@@ -125,6 +127,8 @@
 
   var PURE = {
     okNumber: okNumber,
+    setIdRange: setIdRange,
+    idSrc: idSrc,
     hasTimeKey: hasTimeKey,
     hasAssetKey: hasAssetKey,
     extractFromLine: extractFromLine,
@@ -247,7 +251,7 @@
             p.then(function (res) {
               try {
                 var ct = (res.headers && res.headers.get('content-type')) || '';
-                if (/json|text|xml|javascript/i.test(ct)) {
+                if (/json|javascript|xml/i.test(ct) || /^text\/plain/i.test(ct)) {
                   res.clone().text().then(function (t) {
                     noteResponse({ method: method, url: url, status: res.status, text: t });
                   })['catch'](function () {});
@@ -475,6 +479,26 @@
     chkRow.appendChild(chk);
     chkRow.appendChild(document.createTextNode('过滤噪声（推荐）'));
     box.appendChild(chkRow);
+
+    var rangeRow = document.createElement('label');
+    rangeRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;color:#a8b0bd';
+    var sel = document.createElement('select');
+    sel.style.cssText = 'flex:1;background:#20242c;color:#e8e8ea;border:1px solid #3a414d;border-radius:6px;font:12px system-ui';
+    [['6-16', 6, 16], ['6-12', 6, 12], ['6-10', 6, 10]].forEach(function (o) {
+      var op = document.createElement('option');
+      op.value = o[1] + '-' + o[2];
+      op.textContent = o[0] + ' 位';
+      sel.appendChild(op);
+    });
+    sel.value = '6-16';
+    sel.onchange = function () {
+      var p = sel.value.split('-');
+      setIdRange(parseInt(p[0], 10), parseInt(p[1], 10));
+      setStatus('ID 位数范围已改为 ' + sel.value + ' 位。');
+    };
+    rangeRow.appendChild(document.createTextNode('ID 位数'));
+    rangeRow.appendChild(sel);
+    box.appendChild(rangeRow);
 
     var close = document.createElement('div');
     close.textContent = '关闭面板（数据保留）';

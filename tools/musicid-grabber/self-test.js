@@ -59,9 +59,9 @@ eq(/^[\x00-\x7F]*$/.test(P.NOISE_SRC), true, 'noise regex source itself is pure 
 
 console.log('\n[5] blob scan (JSON bodies from the network sniffer)');
 const blob = '{"nextPage":2,"items":[' +
-  '{"postId":9000000000001,"createTime":1735689000,"title":"Song-1-0","audioId":1830000100},' +
-  '{"postId":9000000000002,"createTime":1735689001,"title":"Song-1-1","audioId":1830000101},' +
-  '{"postId":9000000000003,"createTime":1735689002,"title":"Song-1-2","soundId":1830000102}' +
+  '{"postId":1790437565935849744,"createTime":1735689000,"title":"Song-1-0","audioId":1830000100},' +
+  '{"postId":1790437565935849745,"createTime":1735689001,"title":"Song-1-1","audioId":1830000101},' +
+  '{"postId":1790437565935849746,"createTime":1735689002,"title":"Song-1-2","soundId":1830000102}' +
   ']}';
 const blobHits = P.extractFromBlob(blob, true);
 eq(blobHits.map(h => Number(h.id)).sort((a, b) => a - b), [1830000100, 1830000101, 1830000102],
@@ -75,6 +75,21 @@ eq(P.hasAssetKey('"audioId":'), true, 'asset key "audioId": detected');
 eq(P.extractFromBlob('{"updateTime":1735689000}', true), [], 'bare timestamp is dropped');
 eq(P.extractFromBlob('{"id":1735689000}', true).length, 1, 'a generic numeric id is still kept (may need manual filtering)');
 eq(P.extractFromBlob(blob, true).length, 3, 'the same id appearing twice inside one blob is kept once');
+
+console.log('\n[6] adjustable ID length range');
+P.setIdRange(6, 12);
+eq(P.extractFromBlob('{"musicId":138765729162919}', true), [], '6-12: a 15 digit id is skipped');
+P.setIdRange(6, 16);
+eq(P.extractFromBlob('{"musicId":138765729162919}', true).length, 1, '6-16: the same 15 digit id is captured');
+eq(P.extractFromBlob('{"musicId":138765729162919}', true)[0].key, true, '6-16: it is still flagged as an explicit asset key');
+eq(P.extractFromBlob('{"postId":1790437565935849744}', true), [], 'a 19 digit internal id stays excluded');
+eq(P.extractFromBlob('{"ts":1735689000,"audioId":1836547291}', true).length, 1, 'timestamp still dropped while the id is kept');
+eq(/^[\x00-\x7F]*$/.test(P.idSrc()), true, 'the dynamic id regex source is pure ASCII');
+eq(P.extractFromBlob('{"postId":9000000000001}', true).length, 1,
+   '6-16: a 13 digit internal id is also captured (pick 6-12 to exclude it)');
+P.setIdRange(6, 12);
+eq(P.extractFromBlob('{"postId":9000000000001}', true), [], '6-12: the same 13 digit internal id is excluded');
+P.setIdRange(6, 16);
 
 console.log('\nresult: ' + pass + ' passed / ' + fail + ' failed\n');
 process.exit(fail ? 1 : 0);
