@@ -501,6 +501,8 @@
       setSniff: function (v) { sniffOn = !!v; sniffBtn.textContent = '5) Sniffer: ' + (sniffOn ? 'ON' : 'OFF'); },
       autoScroll: toggleAutoScroll
     };
+
+    console.log('[MIDG] Music ID Grabber v1.3 ready. Panel is at the bottom-right. Total ' + total());
   }
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
