@@ -1,14 +1,27 @@
 /* ============================================================
- * 音乐 ID 抓取器（控制台版 / Console Grabber）  v1.0
+ * Music ID Grabber (console edition)  v1.1
  * ------------------------------------------------------------
- * 用法：在目标网页按 F12 打开开发者工具 → Console → 粘贴本文件
- *      全部内容 → 回车（首次需先输入 allow pasting 再回车）
+ * HOW TO USE
+ *   1. Open the target page in Chrome / Edge.
+ *   2. Press F12 and switch to the Console tab.
+ *   3. Type this and press Enter (first time only, Chrome/Edge):
+ *          allow pasting
+ *   4. Copy this WHOLE file, paste it into the Console, press Enter.
  *
- * 说明：
- *   - 数据只存在你自己浏览器的 localStorage 里，不会上传到任何地方
- *   - 不读取密码、不读取 cookie、不修改网页内容
- *   - 关掉页面/清空浏览器数据即消失；面板里有「清空」按钮
- *   - 不依赖任何第三方库，不联网（除了「自动翻页」去取同一个站点的下一页）
+ * WHAT IT DOES
+ *   Scans the page text for numeric asset IDs, dedupes them, and can
+ *   export everything as a CSV (Excel-friendly, UTF-8 with BOM).
+ *
+ * SAFETY
+ *   - Results live in your own browser localStorage. Nothing is uploaded.
+ *   - No password / cookie access, no page modification.
+ *   - No third-party library. Only "Auto pages" uses the network, and
+ *     only to request the next page of the SAME site you are already on.
+ *
+ * ENCODING
+ *   This file is intentionally pure ASCII. The Chinese noise words used
+ *   by the strict filter are written as \uXXXX escapes, so the file stays
+ *   ASCII while still matching Chinese text found on real pages.
  * ============================================================ */
 (function () {
   'use strict';
@@ -17,22 +30,29 @@
   var ID_SRC = '\\b\\d{6,12}\\b';
   var STORE_PREFIX = 'midgrab:';
 
-  /* ================= 纯逻辑区（浏览器 / node 都能跑，可单测） ================= */
+  /* Noise words (escaped, keeps this file ASCII):
+     wan ci zan bo fang yue du guan zhu fen si ping lun hui fu
+     ji fen jing yan jin bi xiao shi fen zhong miao tian qian
+     ge yue nian lou  */
+  var NOISE_SRC = '[\\u4e07\\u6b21\\u8d5e\\u64ad\\u653e\\u9605\\u8bfb\\u5173\\u6ce8' +
+                  '\\u7c89\\u4e1d\\u8bc4\\u8bba\\u56de\\u590d\\u79ef\\u5206\\u7ecf' +
+                  '\\u9a8c\\u91d1\\u5e01\\u5c0f\\u65f6\\u5206\\u949f\\u79d2\\u5929' +
+                  '\\u524d\\u4e2a\\u6708\\u5e74\\u697c]';
 
-  // 判断一个数字串像不像素材 ID（尽量少误伤、少漏抓）
+  /* ============ pure logic (runs in browser AND in node) ============ */
+
   function okNumber(num, line, strict) {
     if (!/^\d+$/.test(num)) return false;
     if (num.length < ID_MIN || num.length > ID_MAX) return false;
-    if (/^1[3-9]\d{9}$/.test(num)) return false;               // 手机号
-    if (/^(19|20)\d{2}[01]\d[0-3]\d$/.test(num)) return false; // 20240315 这种日期
+    if (/^1[3-9]\d{9}$/.test(num)) return false;               // phone number
+    if (/^(19|20)\d{2}[01]\d[0-3]\d$/.test(num)) return false; // date 20240315
     if (!strict) return true;
     var i = line.indexOf(num);
     var around = line.slice(Math.max(0, i - 4), i + num.length + 4);
-    if (/(万|次|赞|播放|阅读|关注|粉丝|评论|回复|积分|经验|金币|小时|分钟|秒|天前|个月前|年前|楼)/.test(around)) return false;
+    if (new RegExp(NOISE_SRC).test(around)) return false;      // likes / views / floor ...
     return true;
   }
 
-  // 从一行文字里抠出 {id, name}
   function extractFromLine(line, strict) {
     var out = [];
     if (!line || line.length > 400) return out;
@@ -44,17 +64,18 @@
 
     var name = line
       .replace(new RegExp(ID_SRC, 'g'), ' ')
-      .replace(/[|｜,，、:：;；\-–—_()（）\[\]【】<>《》]+/g, ' ')
+      .replace(/[|\uff5c,\uff0c\u3001:\uff1a;\uff1b\-\u2013\u2014_()\uff08\uff09\[\]\u3010\u3011<>\u300a\u300b]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    if (/^https?:\/\//i.test(name)) name = '';
+    // A bare URL line is not a song name. Note the separators are already gone
+    // by now, so "https://..." has become "https //...", hence both patterns.
+    if (/^https?:\/\//i.test(line.trim()) || /^https?\s*\/\//i.test(name) || /^www\./i.test(name)) name = '';
     name = name.slice(0, 60);
 
     for (var k = 0; k < ids.length; k++) out.push({ id: ids[k], name: name });
     return out;
   }
 
-  // 一组行 → 去重后的 [{id, name}]（同名 ID 保留更长的那个名字）
   function extractFromLines(lines, strict) {
     var map = {}, i, j, h, cur;
     for (i = 0; i < lines.length; i++) {
@@ -68,7 +89,6 @@
     return Object.keys(map).map(function (k) { return map[k]; });
   }
 
-  // 识别 URL 里的翻页参数；识别不到就返回 null
   function detectPager(href) {
     var u;
     try { u = new URL(href); } catch (e) { return null; }
@@ -77,7 +97,7 @@
     if (sp.has('pn')) {
       var v = parseInt(sp.get('pn'), 10);
       if (isNaN(v) || v < 0) v = 0;
-      // 贴吧两种情况：吧列表 pn=0/50/100（步长 50）；帖子页 pn=1/2/3（步长 1）
+      // Two common cases: pn=0/50/100 (step 50) vs pn=1/2/3 (step 1)
       return { key: 'pn', base: v, step: (v % 50 === 0) ? 50 : 1 };
     }
     var keys = [['page', 1], ['pageNo', 1], ['pageNum', 1], ['p', 1], ['offset', 20], ['start', 20]];
@@ -91,7 +111,7 @@
     return null;
   }
 
-  // index 从 0 开始：0 = 当前这一页的 URL
+  // index is 0-based: 0 means the URL you are currently on
   function buildPageUrl(href, cfg, index) {
     var u = new URL(href);
     u.searchParams.set(cfg.key, String(cfg.base + cfg.step * index));
@@ -103,15 +123,15 @@
     extractFromLine: extractFromLine,
     extractFromLines: extractFromLines,
     detectPager: detectPager,
-    buildPageUrl: buildPageUrl
+    buildPageUrl: buildPageUrl,
+    NOISE_SRC: NOISE_SRC
   };
 
-  /* ============================ 浏览器部分 ============================ */
+  /* ========================= browser only ========================= */
 
   function boot() {
-    if (document.getElementById('__mid_grabber__')) {
-      document.getElementById('__mid_grabber__').remove();   // 重复粘贴 = 重置面板，数据保留
-    }
+    var old = document.getElementById('__mid_grabber__');
+    if (old) old.remove();   // pasting again resets the panel, keeps the data
 
     var KEY = STORE_PREFIX + location.host;
     var data = loadData();
@@ -126,11 +146,12 @@
       try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
     }
     function total() { return Object.keys(data).length; }
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
-    /* ---------- 把一页 DOM 变成一行行文字 ---------- */
+    /* ---------- DOM -> array of text lines ---------- */
     function linesOf(root) {
-      // 注意：document.cloneNode(true) 拿到的是没有子节点的空文档，
-      // 所以必须先落到 body（或 documentElement）再克隆。
+      // Note: document.cloneNode(true) returns an EMPTY document (no children),
+      // so we must drop to body (or documentElement) before cloning.
       var src = root.body || root.documentElement || root;
       var c = src.cloneNode(true);
       var doc = c.ownerDocument || document;
@@ -145,11 +166,11 @@
         .filter(Boolean);
     }
 
-    /* ---------- 抓一页 ---------- */
+    /* ---------- grab one page ---------- */
     function harvest(root, url, pageNo) {
       var hits = extractFromLines(linesOf(root), strict);
 
-      // 顺带把 /library/数字 这种链接也算进来
+      // also accept /library/<id> links
       var as = root.querySelectorAll('a[href*="/library/"]');
       for (var i = 0; i < as.length; i++) {
         var m = (as[i].getAttribute('href') || '').match(/library\/(\d{6,12})/);
@@ -171,11 +192,11 @@
       return added;
     }
 
-    /* ---------- 导出 CSV ---------- */
+    /* ---------- export ---------- */
     function exportCsv() {
       var keys = Object.keys(data);
-      if (!keys.length) { setStatus('还没有数据，先抓一页或开跟随模式'); return; }
-      var rows = [['ID', '歌名/上下文', '来源URL', '页号', '抓取时间']];
+      if (!keys.length) { setStatus('No data yet. Grab a page or start follow mode.'); return; }
+      var rows = [['ID', 'Name/Context', 'SourceURL', 'Page', 'CapturedAt']];
       keys.forEach(function (k) {
         var d = data[k];
         rows.push([d.id, d.name || '', d.url || '', d.page || '', d.ts || '']);
@@ -194,17 +215,15 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
-      setStatus('已导出 ' + keys.length + ' 条 → 去「下载」文件夹看 CSV');
+      setStatus('Exported ' + keys.length + ' rows -> check your Downloads folder');
     }
 
-    /* ---------- 自动翻页 ---------- */
-    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-
+    /* ---------- auto pagination ---------- */
     function autoPages() {
-      if (running) { setStatus('正在跑，别重复点'); return; }
+      if (running) { setStatus('Already running, please wait.'); return; }
       var cfg = detectPager(location.href);
       if (!cfg) {
-        setStatus('本页没识别到翻页参数 → 请改用「跟随模式」，自己翻页我自动记');
+        setStatus('No paging parameter found -> use Follow mode and scroll manually.');
         return;
       }
       running = true;
@@ -224,9 +243,9 @@
               var res = await fetch(url, { credentials: 'include' });
               if (res && res.ok) html = await res.text();
             } catch (e) { html = null; }
-            if (html === null) { setStatus('第 ' + i + ' 页请求失败，已停止（共 ' + total() + ' 条）'); break; }
-            if (/安全验证|请输入验证码|访问过于频繁|操作太频繁|Security Verification|captcha/i.test(html.slice(0, 5000))) {
-              setStatus('第 ' + i + ' 页被要求验证 → 已停止。请改用「跟随模式」自己翻页');
+            if (html === null) { setStatus('Page ' + i + ' request failed. Stopped. Total ' + total()); break; }
+            if (/Security Verification|captcha|robot|verify you are human/i.test(html.slice(0, 5000))) {
+              setStatus('Page ' + i + ' wants verification -> stopped. Use Follow mode instead.');
               break;
             }
             root = new DOMParser().parseFromString(html, 'text/html');
@@ -234,31 +253,31 @@
 
           var added = harvest(root, url, i);
           emptyStreak = added === 0 ? emptyStreak + 1 : 0;
-          setStatus('第 ' + i + ' 页：新增 ' + added + ' 条，累计 ' + total() + ' 条');
-          if (emptyStreak >= 3) { setStatus('连续 3 页没新 ID，已停（累计 ' + total() + ' 条）'); break; }
+          setStatus('Page ' + i + ': +' + added + ' new, total ' + total());
+          if (emptyStreak >= 3) { setStatus('3 empty pages in a row. Stopped. Total ' + total()); break; }
 
-          await sleep(1200 + Math.random() * 800);   // 慢一点，别把人家站点搞崩
+          await sleep(1200 + Math.random() * 800);   // stay polite
         }
         running = false;
       })();
     }
 
-    /* ---------- 跟随模式（适合滚动加载的页面） ---------- */
+    /* ---------- follow mode (for infinite-scroll pages) ---------- */
     function toggleFollow() {
       if (followTimer) {
         clearInterval(followTimer); followTimer = null;
-        setStatus('跟随模式已停，累计 ' + total() + ' 条');
+        setStatus('Follow mode stopped. Total ' + total());
         return;
       }
       harvest(document, location.href, 0);
-      setStatus('跟随模式已开：你正常滚动/翻页，我每 2.5 秒自动记一次');
+      setStatus('Follow mode ON: scroll normally, I record every 2.5s.');
       followTimer = setInterval(function () {
         harvest(document, location.href, 0);
-        setStatus('跟随中… 已记录 ' + total() + ' 条');
+        setStatus('Following... recorded ' + total());
       }, 2500);
     }
 
-    /* ---------- 面板 ---------- */
+    /* ---------- panel ---------- */
     var box = document.createElement('div');
     box.id = '__mid_grabber__';
     box.style.cssText = [
@@ -270,7 +289,7 @@
     ].join(';');
 
     var title = document.createElement('div');
-    title.textContent = '🎵 音乐ID抓取器';
+    title.textContent = 'Music ID Grabber v1.1';
     title.style.cssText = 'font-weight:600;font-size:13px;margin-bottom:6px';
     box.appendChild(title);
 
@@ -278,7 +297,7 @@
     stat.style.cssText = 'min-height:36px;color:#9fd3ff;margin-bottom:8px;word-break:break-all';
     box.appendChild(stat);
     function setStatus(t) { stat.textContent = t; }
-    setStatus('已就绪，当前累计 ' + total() + ' 条');
+    setStatus('Ready. Total ' + total());
 
     function mkBtn(label, fn) {
       var b = document.createElement('button');
@@ -291,30 +310,34 @@
       return b;
     }
 
-    mkBtn('① 抓这一页', function () {
+    mkBtn('1) Grab this page', function () {
       var n = harvest(document, location.href, 0);
-      setStatus('本页新增 ' + n + ' 条，累计 ' + total() + ' 条');
+      setStatus('This page: +' + n + ' new, total ' + total());
     });
-    mkBtn('② 自动翻页（列表页用）', autoPages);
-    mkBtn('③ 跟随模式（滚动页用）', toggleFollow);
-    mkBtn('④ 导出 CSV', exportCsv);
-    mkBtn('⑤ 清空全部数据', function () {
-      if (confirm('确定清空这 ' + total() + ' 条？')) {
-        data = {}; saveData(); setStatus('已清空');
+    mkBtn('2) Auto pages (list pages)', autoPages);
+    mkBtn('3) Follow mode (scroll pages)', toggleFollow);
+    mkBtn('4) Export CSV', exportCsv);
+    mkBtn('5) Clear all data', function () {
+      if (confirm('Clear all ' + total() + ' records?')) {
+        data = {}; saveData(); setStatus('Cleared.');
       }
     });
 
     var chkRow = document.createElement('label');
     chkRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;color:#a8b0bd;cursor:pointer';
     var chk = document.createElement('input');
-    chk.type = 'checkbox'; chk.checked = true;
-    chk.onchange = function () { strict = chk.checked; setStatus(strict ? '严格模式（过滤点赞/日期等噪声）' : '宽松模式（什么都抓，可能混入噪声）'); };
+    chk.type = 'checkbox';
+    chk.checked = true;
+    chk.onchange = function () {
+      strict = chk.checked;
+      setStatus(strict ? 'Strict mode (filters noise)' : 'Loose mode (grabs everything)');
+    };
     chkRow.appendChild(chk);
-    chkRow.appendChild(document.createTextNode('过滤噪声（推荐）'));
+    chkRow.appendChild(document.createTextNode('Filter noise (recommended)'));
     box.appendChild(chkRow);
 
     var close = document.createElement('div');
-    close.textContent = '✕ 关闭面板（数据保留）';
+    close.textContent = 'Close panel (keep data)';
     close.style.cssText = 'text-align:center;margin-top:8px;color:#6f7784;cursor:pointer';
     close.onclick = function () {
       if (followTimer) { clearInterval(followTimer); followTimer = null; }

@@ -1,33 +1,52 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head><meta charset="utf-8"><title>grabber smoke test</title></head>
 <body>
-  <div class="post">
-    <p>【歌单】roblox 音乐ID 分享</p>
-    <p>起风了 - 1836547291</p>
-    <p>Something Just Like This：1837007494</p>
-    <p><a href="https://www.roblox.com/library/1838999999">点我下载</a></p>
-    <p>rbxassetid://1841234567 我的世界BGM</p>
-    <p>点赞 12345678 次</p>
-    <p>电话 13800138000</p>
-    <p>更新 20240315</p>
+  <div class="post" id="post">
+    <p>[Playlist] roblox music IDs</p>
+    <p>Song A - 1836547291</p>
+    <p>Something Just Like This: 1837007494</p>
+    <p><a href="https://www.roblox.com/library/1838999999">download</a></p>
+    <p>rbxassetid://1841234567 BGM</p>
   </div>
+
   <script src="musicid-grabber.js"></script>
   <script>
-    /* 端到端冒烟测试：把抓取结果写进 DOM，交给 headless 浏览器 --dump-dom 输出 */
-    (function () {
-      var api = window.__MIDG__;
-      var out = { panel: false, added: -1, ids: [], error: null };
-      try {
-        out.panel = !!document.getElementById('__mid_grabber__');
-        out.added = api.harvestNow();
-        out.ids = Object.keys(api.data).map(Number).sort(function (a, b) { return a - b; });
-      } catch (e) { out.error = String(e && e.message || e); }
-      var pre = document.createElement('pre');
-      pre.id = 'RESULT';
-      pre.textContent = 'SMOKE_RESULT=' + JSON.stringify(out);
-      document.body.appendChild(pre);
-    })();
+  /* End-to-end smoke test.
+   * This file is pure ASCII. Chinese strings are injected at runtime via
+   * \uXXXX escapes so we still test Chinese page text end to end.
+   * Run:  msedge --headless=new --disable-gpu --dump-dom smoke-test.html  */
+  (function () {
+    var SONG = '\u8d77\u98ce\u4e86';        // chinese song title
+    var LIKE = '\u70b9\u8d5e';               // "likes"
+    var CI = '\u6b21';                       // "times"
+
+    var post = document.getElementById('post');
+    function add(text) {
+      var p = document.createElement('p');
+      p.textContent = text;
+      post.appendChild(p);
+    }
+    add(SONG + ' - 1836547290');   // chinese name + id, must be extracted
+    add(LIKE + ' 12345678 ' + CI); // noise, must be filtered
+    add('tel 13800138000');        // noise: phone number
+    add('updated 20240315');       // noise: date
+
+    var api = window.__MIDG__;
+    var out = { panel: false, added: -1, nameOk: false, ids: [], error: null };
+    try {
+      out.panel = !!document.getElementById('__mid_grabber__');
+      out.added = api.harvestNow();
+      out.nameOk = !!(api.data['1836547290'] && api.data['1836547290'].name === SONG);
+      out.ids = Object.keys(api.data).map(Number).sort(function (a, b) { return a - b; });
+    } catch (e) {
+      out.error = String((e && e.message) || e);
+    }
+    var pre = document.createElement('pre');
+    pre.id = 'RESULT';
+    pre.textContent = 'SMOKE_RESULT=' + JSON.stringify(out);
+    document.body.appendChild(pre);
+  })();
   </script>
 </body>
 </html>

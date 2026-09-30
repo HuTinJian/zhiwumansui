@@ -1,51 +1,66 @@
-/* 自测：只测纯逻辑（不碰浏览器），跑法：node self-test.js */
+/* Self test: pure logic only, no browser needed.  Run: node self-test.js
+ * This file is pure ASCII on purpose. Chinese test strings are written as
+ * \uXXXX escapes so the file stays ASCII while still testing Chinese text. */
 const P = require('./musicid-grabber.js');
 
 let pass = 0, fail = 0;
 function eq(actual, expected, label) {
   const a = JSON.stringify(actual), e = JSON.stringify(expected);
   if (a === e) { pass++; console.log('  PASS  ' + label); }
-  else { fail++; console.log('  FAIL  ' + label + '\n        期望 ' + e + '\n        实际 ' + a); }
+  else { fail++; console.log('  FAIL  ' + label + '\n        expected ' + e + '\n        actual   ' + a); }
 }
 
-console.log('\n[1] 翻页参数识别');
-eq(P.detectPager('https://tieba.baidu.com/f?kw=roblox&pn=0'), { key: 'pn', base: 0, step: 50 }, '贴吧吧列表 pn=0 → 步长 50');
-eq(P.detectPager('https://tieba.baidu.com/p/123456789?pn=2'), { key: 'pn', base: 2, step: 1 }, '贴吧帖子页 pn=2 → 步长 1');
-eq(P.detectPager('https://example.com/list?page=3'), { key: 'page', base: 3, step: 1 }, '通用 page=3');
-eq(P.detectPager('https://pd.qq.com/'), null, '没有翻页参数 → null');
+/* escaped Chinese samples */
+const SONG = '\u8d77\u98ce\u4e86';                     // "qi feng le"
+const WORLD = '\u6211\u7684\u4e16\u754c';               // "my world"
+const VER = '\u7248';                                   // "version"
+const LIKE = '\u70b9\u8d5e';                            // "likes"
+const CI = '\u6b21';                                    // "times"
+const LOU = '\u697c';                                   // "floor"
 
-console.log('\n[2] 翻页 URL 生成');
+console.log('\n[1] pager detection');
+eq(P.detectPager('https://tieba.baidu.com/f?kw=roblox&pn=0'), { key: 'pn', base: 0, step: 50 }, 'forum list pn=0 -> step 50');
+eq(P.detectPager('https://tieba.baidu.com/p/123456789?pn=2'), { key: 'pn', base: 2, step: 1 }, 'thread page pn=2 -> step 1');
+eq(P.detectPager('https://example.com/list?page=3'), { key: 'page', base: 3, step: 1 }, 'generic page=3');
+eq(P.detectPager('https://pd.qq.com/'), null, 'no pager -> null');
+
+console.log('\n[2] next page URL');
 eq(P.buildPageUrl('https://tieba.baidu.com/f?kw=roblox&pn=0', P.detectPager('https://tieba.baidu.com/f?kw=roblox&pn=0'), 2),
-   'https://tieba.baidu.com/f?kw=roblox&pn=100', '吧列表第 3 页 → pn=100');
+   'https://tieba.baidu.com/f?kw=roblox&pn=100', 'forum list page 3 -> pn=100');
 eq(P.buildPageUrl('https://tieba.baidu.com/p/123?pn=2', P.detectPager('https://tieba.baidu.com/p/123?pn=2'), 1),
-   'https://tieba.baidu.com/p/123?pn=3', '帖子页下一页 → pn=3');
+   'https://tieba.baidu.com/p/123?pn=3', 'thread next -> pn=3');
 eq(P.buildPageUrl('https://example.com/list?page=3', P.detectPager('https://example.com/list?page=3'), 1),
-   'https://example.com/list?page=4', '通用下一页 → page=4');
+   'https://example.com/list?page=4', 'generic next -> page=4');
 
-console.log('\n[3] 从文字里抠 ID（严格模式）');
+console.log('\n[3] extract IDs from text (strict)');
 const sample = [
-  '【歌单】roblox 音乐ID 大全',
-  '起风了 - 1836547291',
-  'Something Just Like This：1837007494',
-  '点赞 12345678 次',
-  '联系方式 13800138000',
-  '更新日期 20240315',
+  '[Playlist] roblox music IDs',
+  SONG + ' - 1836547291',
+  'Something Just Like This: 1837007494',
+  LIKE + ' 12345678 ' + CI,
+  'tel 13800138000',
+  'updated 20240315',
   'https://www.roblox.com/library/1838999999',
-  'rbxassetid://1841234567 我的世界BGM',
-  '第 12345 楼',
-  '歌名很长的测试曲目名称超过二十个字的时候也应该正常保存下来 999888777'
+  'rbxassetid://1841234567 ' + WORLD,
+  'floor 12345 ' + LOU,
+  'a very long name used to check the 60 char cut off behaviour 999888777'
 ];
 const strictHits = P.extractFromLines(sample, true);
 const strictIds = strictHits.map(h => Number(h.id)).sort((a, b) => a - b);
-eq(strictIds, [999888777, 1836547291, 1837007494, 1838999999, 1841234567].sort((a, b) => a - b), '严格模式抠出 5 个 ID（噪声全被过滤）');
-eq(strictHits.find(h => h.id === '1836547291').name, '起风了', '歌名配对：起风了');
-eq(strictHits.find(h => h.id === '1841234567').name.indexOf('我的世界BGM') >= 0, true, 'rbxassetid:// 形式也认');
+eq(strictIds, [999888777, 1836547291, 1837007494, 1838999999, 1841234567].sort((a, b) => a - b),
+   'strict mode: exactly 5 IDs (all noise filtered)');
+eq(strictHits.find(h => h.id === '1836547291').name, SONG, 'name pairing works for Chinese text');
+eq(strictHits.find(h => h.id === '1841234567').name.indexOf(WORLD) >= 0, true, 'rbxassetid:// form recognized');
+eq(strictHits.find(h => h.id === '1838999999').name, '', 'bare URL gives empty name (not a fake name)');
 
-console.log('\n[4] 宽松模式 / 去重 / 噪声');
-eq(P.extractFromLines(['点赞 12345678 次'], true), [], '严格模式排除「点赞 N 次」');
-eq(P.extractFromLines(['点赞 12345678 次'], false).length, 1, '宽松模式保留它');
-eq(P.extractFromLines(['起风了 1836547291', '起风了（Live版） 1836547291'], true).length, 1, '同一个 ID 只留一条');
-eq(P.extractFromLines(['起风了 1836547291', '起风了（Live版） 1836547291'], true)[0].name, '起风了 Live版', '同名 ID 保留信息更全的那个');
+console.log('\n[4] strict vs loose / dedupe / noise');
+eq(P.extractFromLines([LIKE + ' 12345678 ' + CI], true), [], 'strict drops "likes N times"');
+eq(P.extractFromLines([LIKE + ' 12345678 ' + CI], false).length, 1, 'loose keeps it');
+eq(P.extractFromLines([SONG + ' 1836547291', SONG + ' (Live' + VER + ') 1836547291'], true).length, 1, 'same ID kept once');
+/* NOTE: brackets are treated as separators, so "(Live)" is normalized to "Live" */
+eq(P.extractFromLines([SONG + ' 1836547291', SONG + ' (Live' + VER + ') 1836547291'], true)[0].name,
+   SONG + ' Live' + VER, 'same ID keeps the richer name (brackets normalized)');
+eq(/^[\x00-\x7F]*$/.test(P.NOISE_SRC), true, 'noise regex source itself is pure ASCII');
 
-console.log('\n结果：' + pass + ' 通过 / ' + fail + ' 失败\n');
+console.log('\nresult: ' + pass + ' passed / ' + fail + ' failed\n');
 process.exit(fail ? 1 : 0);

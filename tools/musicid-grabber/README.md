@@ -1,122 +1,149 @@
-# 音乐 ID 抓取器（控制台版）
+# Music ID Grabber (console edition) v1.1
 
-一个**贴进浏览器就能用**的小工具：自动把一个网页里的音乐 ID 抠出来、去重、导出成 Excel 能直接打开的 CSV。
+A paste-into-your-browser tool that pulls numeric music/asset IDs out of a web
+page, dedupes them, and exports a CSV that Excel/WPS can open directly.
 
-专门解决「不能一条条复制」这件事。
+It exists to solve one problem: you should never have to copy thousands of IDs
+by hand.
+
+**Every file in this folder is pure ASCII (zero Chinese bytes).**
 
 ---
 
-## 一、怎么用（三步）
+## 1. Quick start (3 steps)
 
-1. 用浏览器打开目标页面（Chrome / Edge / 360 / QQ 浏览器都行）。
-2. 按 **F12** 打开开发者工具，点上面的 **Console（控制台）** 标签。
-3. 打开 `musicid-grabber.js`，**全选复制**，粘进 Console，按**回车**。
+1. Open the target page in Chrome / Edge / 360 / QQ Browser.
+2. Press **F12** and click the **Console** tab.
+3. Open `musicid-grabber.js`, select all, copy, paste into the Console, press **Enter**.
 
-> ⚠️ **最常见的坑**：Chrome / Edge 第一次粘贴会拦住你，提示
+> **The one trap everyone hits:** Chrome and Edge block the first paste with
 > `Warning: Don't paste code you don't understand...`
-> 解决办法：在 Console 里手动敲 **`allow pasting`** 然后回车，再重新粘贴脚本。
-> （这叫"允许粘贴"，只需要做一次。Firefox 没有这个拦截。）
+> Fix: type **`allow pasting`** in the Console and press Enter, then paste again.
+> You only do this once per browser. Firefox has no such block.
 
-成功后右下角会出现一个黑色小面板 🎵。
+A small dark panel titled **Music ID Grabber v1.1** appears in the bottom-right.
 
 ---
 
-## 二、五个按钮
+## 2. The five buttons
 
-| 按钮 | 作用 | 什么时候用 |
+| Button | What it does | Use it when |
 |---|---|---|
-| ① 抓这一页 | 立刻把当前页面的 ID 抠出来 | 内容都在一页里（比如腾讯频道的一个长贴、一篇文档） |
-| ② 自动翻页 | 自动一页页往下抓，直到抓完或被拦 | **列表页**：贴吧吧列表、论坛列表、有 `page=` 的网页 |
-| ③ 跟随模式 | 每 2.5 秒自动记一次，你正常滚/翻 | **滚动加载页**：B站、腾讯频道、动态加载的列表 |
-| ④ 导出 CSV | 下载成 CSV（带 BOM，Excel 不乱码） | 抓完点一下 |
-| ⑤ 清空全部数据 | 清掉本地记录 | 换歌单前清一次 |
+| `1) Grab this page` | Immediately extracts IDs from the current page | Everything is on one page (a long forum post, a doc) |
+| `2) Auto pages (list pages)` | Walks pages by itself until done or blocked | **List pages**: forums, `?page=` URLs, `pn=` URLs |
+| `3) Follow mode (scroll pages)` | Re-scans every 2.5s while you scroll/click | **Infinite scroll**: Bilibili, Tencent Channels, dynamic lists |
+| `4) Export CSV` | Downloads a CSV (UTF-8 + BOM, no mojibake in Excel) | When you are done |
+| `5) Clear all data` | Wipes stored records | Before switching to another list |
 
-面板底部有个 **「过滤噪声（推荐）」** 勾选框：
-- 勾上 = 严格模式，自动排除点赞数、手机号、日期、楼层数这类假 ID。
-- 取消 = 宽松模式，什么都抓，宁可错抓（混进噪声时用 Excel 筛）。
-
----
-
-## 三、腾讯频道（pd.qq.com）怎么弄
-
-实测腾讯频道网页版 `pd.qq.com` 能正常打开（返回 200）。
-
-- **如果那个频道/帖子在网页版能打开** → 打开它 → 粘脚本 → 点 **③ 跟随模式** → 你正常往下滚 → 滚完点 **④ 导出**。
-  （腾讯频道是滚动加载的，所以用跟随模式，不要用自动翻页。）
-- **如果只能在手机 App 里看** → 两条路：
-  1. 手机复制那段文字，发到电脑（微信文件传输助手/QQ 都行），把文本文件给我，我批量清洗。
-  2. 手机截图，把图给我，我用本机 ffmpeg + 读图工具把数字抠出来。
+Bottom checkbox **Filter noise (recommended)**:
+- checked = strict mode, drops fake IDs such as like counts, phone numbers,
+  dates and floor numbers;
+- unchecked = loose mode, grabs everything (filter later in Excel).
 
 ---
 
-## 四、结果在哪
+## 3. It still reads Chinese pages fine
 
-点「④ 导出 CSV」后会下载一个文件，名字类似：
+The UI is English and the sources are ASCII-only, but that does not limit what
+it can read. Chinese noise words (likes / views / floor) are written as
+`\uXXXX` escapes inside a regex, so the file stays ASCII while the filter still
+works on Chinese text. Chinese song titles are paired with their IDs as usual.
+
+Two automated tests prove it (see section 7).
+
+---
+
+## 4. Tencent Channels (pd.qq.com)
+
+`pd.qq.com` was verified reachable over the web (HTTP 200).
+
+- **If the channel/post opens in the web version** -> open it, paste the script,
+  click **`3) Follow mode`**, scroll to the end, then **`4) Export CSV`**.
+  (Tencent Channels loads on scroll, so follow mode is the right one; auto
+  pagination needs `?page=` style URLs.)
+- **If it only exists inside the phone app** -> either copy the text and send it
+  to your PC, or take screenshots; both can be cleaned up offline afterwards.
+
+---
+
+## 5. Where the result goes
+
+Clicking `4) Export CSV` downloads a file named like:
 
 ```
 music-ids-pd.qq.com-1735689000000.csv
 ```
 
-在浏览器的**下载文件夹**里。双击用 Excel / WPS 打开，列是：
+It lands in your browser's **Downloads** folder. Columns:
 
-| ID | 歌名/上下文 | 来源URL | 页号 | 抓取时间 |
+| ID | Name/Context | SourceURL | Page | CapturedAt |
 |---|---|---|---|---|
 
-「歌名/上下文」是**原页面上那一行的文字**，只用来人工核对，不保证是准确歌名。
+`Name/Context` is the raw text of the line the ID was found on. It is a hint for
+manual checking, not a guaranteed song title.
 
 ---
 
-## 五、安全说明（为什么可以放心用）
+## 6. Safety notes
 
-- **不上传任何数据**。结果只存在你自己浏览器的 localStorage 里。
-- **不读密码、不读 cookie、不改网页内容**。脚本里没有任何联网上传的代码（你可以全文搜 `fetch`，只有「自动翻页」会去请求**你自己正在看的那个站点**的下一页）。
-- **不装任何东西**。就是一段粘贴进去的代码，关掉页面就没了。
-- 面板上有「清空全部数据」和「✕ 关闭面板（数据保留）」。
-- 相比网上随便找的油猴脚本，这个的好处是**你能看见它干了什么**，而且不留常驻。
-
----
-
-## 六、抓不到 / 被拦怎么办
-
-| 现象 | 原因 | 怎么办 |
-|---|---|---|
-| 自动翻页提示"被要求验证" | 站点风控（贴吧、B站常见） | 改用 **③ 跟随模式**，人工翻页，脚本只做记录 |
-| 提示"没识别到翻页参数" | 页面不是用 URL 参数翻页的 | 同上，用跟随模式 |
-| 抓到的全是噪声 | 页面数字太多 | 勾上「过滤噪声」；或导出后用 Excel 按位数筛（ID 一般 6~12 位） |
-| 面板没出现 | 粘贴被拦 / 页面有 CSP 限制 | 先确认执行了 `allow pasting`；换个浏览器或把页面存到本地再试 |
-| 导出没反应 | 浏览器拦了自动下载 | 允许该站点"自动下载多个文件" |
+- **Nothing is uploaded.** Records live in your own browser `localStorage`.
+- **No password or cookie access, no page modification.** Search the source for
+  `fetch`: the only network call is "Auto pages", which requests the next page
+  of the *same site you are already viewing*.
+- **Nothing gets installed.** It is pasted code; closing the tab removes it.
+- The panel has `5) Clear all data` and `Close panel (keep data)`.
+- Compared with random userscripts from the internet, this one you can actually
+  read, and it leaves nothing persistent behind.
 
 ---
 
-## 七、自测（两个，都不用你手动点）
+## 7. Tests (both automated, nothing to click)
 
-**1. 纯逻辑单测**（不需要浏览器）
+**a) Pure logic**
 
 ```bash
 node self-test.js
 ```
 
-检查：翻页参数识别、翻页 URL 生成、ID 抠取、噪声过滤、去重规则。当前 **14 项全过**。
+Covers pager detection, next-page URL building, ID extraction, noise filtering,
+dedupe rules and the ASCII-ness of the noise regex. Currently **16 checks, all pass**.
 
-**2. 端到端冒烟测试**（需要 Edge / Chrome）
+**b) End-to-end in a real browser**
 
 ```bash
 msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=5000 smoke-test.html
 ```
 
-它在一个假页面上真跑一遍脚本，然后把结果写进 DOM 输出。预期：
+Expected output:
 
 ```json
-{"panel":true,"added":4,"ids":[1836547291,1837007494,1838999999,1841234567],"error":null}
+{"panel":true,"added":5,"nameOk":true,"ids":[1836547290,1836547291,1837007494,1838999999,1841234567],"error":null}
 ```
 
-> 这个测试真的救过一次命：v1.0 初版里 `document.cloneNode(true)` 拿到的是**没有子节点的空文档**，
-> 导致正文一个字都抠不出来（只有链接里的 ID 能抓到）。已修成先落到 `body` 再克隆。
+> This test already caught a real bug: in the first version,
+> `document.cloneNode(true)` returns an **empty document with no children**, so
+> no page text was ever scanned (only IDs inside links were found). Fixed by
+> dropping to `body` before cloning. Pure unit tests could never have caught it.
 
 ---
 
-## 八、注意
+## 8. Troubleshooting
 
-- ID 抓到手 ≠ 能用。Roblox 音频大量是私有的，建议抓完后再做一次可用性回查。
-- 请控制速度（脚本已经自带 1.2~2 秒随机延时）。别改成高频并发，那是违规也容易被封。
-- 本工具只做「把你自己能看到的页面内容转成表格」，不绕过任何登录、验证码或付费墙。
+| Symptom | Cause | Fix |
+|---|---|---|
+| "wants verification -> stopped" | Site anti-bot | Use `3) Follow mode` and page manually |
+| "No paging parameter found" | Page does not page via the URL | Same: use follow mode |
+| Only noise captured | Page is full of numbers | Keep "Filter noise" checked, or filter by digit count in Excel |
+| Panel never appears | Paste blocked or page CSP | Confirm `allow pasting`; try another browser |
+| No download | Browser blocked automatic downloads | Allow downloads for that site |
+
+---
+
+## 9. Caveats
+
+- An ID in hand does not mean it is usable. Many Roblox audio assets are
+  private; verify availability after collecting.
+- Keep the pace civil. The script already sleeps 1.2-2s between pages; do not
+  turn it into a fast concurrent crawler.
+- This tool only converts page content **you can already see** into a table. It
+  does not bypass logins, captchas or paywalls.
