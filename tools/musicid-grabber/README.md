@@ -1,196 +1,154 @@
-# Music ID Grabber (console edition) v1.3
+# 音乐ID抓取器（控制台版）v1.4
 
-A paste-into-your-browser tool that pulls numeric music/asset IDs out of a web
-page (or out of the site's own background API traffic), dedupes them, and
-exports a CSV that Excel/WPS can open directly.
+一段**粘进浏览器就能用**的代码：自动把网页里的音乐 ID 抠出来、去重、导出成 Excel 能直接打开的 CSV。
 
-It exists to solve one problem: you should never have to copy thousands of IDs
-by hand, and you should never have to open every single post.
-
-**Every file in this folder is pure ASCII (zero Chinese bytes).**
+专门解决一件事：**你不需要一条一条复制，也不需要逐个帖子点开。**
 
 ---
 
-## 1. Quick start (3 steps)
+## 一、怎么用（三步）
 
-1. Open the target page in Chrome / Edge / 360 / QQ Browser.
-2. Press **F12** and click the **Console** tab.
-3. Open `musicid-grabber.js`, select all, copy, paste into the Console, press **Enter**.
+1. 用浏览器打开目标页面（Edge / Chrome / 360 / QQ 浏览器都行）。
+2. 按 **F12**，点上面的 **`控制台 / Console`** 标签。
+3. 打开 `musicid-grabber.js`，**全选复制**，粘进控制台，按**回车**。
 
-> **The one trap everyone hits:** Chrome and Edge block the first paste with
-> `Warning: Don't paste code you don't understand...`
-> Fix: type **`allow pasting`** in the Console and press Enter, then paste again.
-> You only do this once per browser. Firefox has no such block.
+> **最常见的坑**：Edge / Chrome 第一次粘贴可能弹一条红色警告横幅，把你拦住。
+> 这时**先别急着敲命令**：在控制台里输入 **`allow pasting`** 然后回车，再重新粘贴一次。
+> 如果**没弹横幅**，就说明没被拦，直接粘贴即可——这时候敲 `allow pasting` 反而会报语法错误，不用管。
 
-A dark panel titled **Music ID Grabber v1.3** appears in the bottom-right, and
-the network sniffer starts working immediately.
+> **粘贴总是被拦怎么办（万能方法）**：
+> F12 → 点顶部 **`源代码 / Sources`** → 左侧找 **`代码段 / Snippets`** → 点 **`+ 新建代码段`**
+> → 把代码粘到**右边**的编辑区（这里不拦粘贴）→ 按 **`Ctrl + Enter`** 运行。
+> 好处：代码段会一直存着，以后打开任何页面只要点一下它 + `Ctrl+Enter`。
+
+成功后：**页面右下角出现一个黑色面板，标题是「音乐ID抓取器 v1.4」**。
+控制台也会打印一行：`[MIDG] 音乐ID抓取器 v1.4 已就绪…`
+
+> 控制台如果只显示一个灰色的 **`undefined`**，那是**正常回显**（代码执行完没有返回值），**不是报错**。
+> 红色字 + `Uncaught` 才是报错。
 
 ---
 
-## 2. The eight buttons
+## 二、八个按钮
 
-| Button | What it does | Use it when |
+| 按钮 | 作用 | 什么时候用 |
 |---|---|---|
-| `1) Grab this page` | Extracts IDs from what is rendered right now | One long page holds everything |
-| `2) Auto pages (list pages)` | Walks `?page=` / `pn=` URLs by itself | Classic list pages (forums, BBS) |
-| `3) Follow mode (scroll pages)` | Re-scans the DOM every 2.5s while you browse | Infinite-scroll feeds, Bilibili |
-| `4) Auto-scroll to load all` | Scrolls the page for you so lazy content loads | Long feeds: let it run, do nothing |
-| `5) Sniffer: ON / OFF` | Scans every JSON/text response the site fetches behind the scenes | **App-like sites** (communities, channels, SPAs) |
-| `6) Show captured APIs` | Prints the endpoints that returned IDs; also copies them | When you want to know which API holds the data |
-| `7) Export CSV` | Downloads a CSV (UTF-8 + BOM, no mojibake in Excel) | When you are done |
-| `8) Clear all data` | Wipes stored records | Before switching to another list |
+| `1) 抓这一页` | 立刻把当前页面上能看到的 ID 抠出来 | 内容都集中在一页 |
+| `2) 自动翻页（列表页用）` | 自己一页页往下翻，直到翻完或被拦 | **列表页**：贴吧、论坛、带 `?page=` 的网页 |
+| `3) 跟随模式（滚动页用）` | 每 2.5 秒自动记一次，你正常刷 | **滚动加载页**：B站、社区频道 |
+| `4) 自动滚到底` | 它替你滚，把没加载出来的内容都逼出来 | **长列表**：点一下，然后人走开 |
+| `5) 网络嗅探：开 / 关` | 扫描网页**后台**返回的 JSON 数据 | **App 型网站**（社区、频道）——默认就是开的 |
+| `6) 查看捕获到的接口` | 列出"哪个接口在吐 ID"，并复制到剪贴板 | 想彻底解决整个频道时 |
+| `7) 导出 CSV` | 下载成 CSV（Excel 打开不乱码） | 抓完点一下 |
+| `8) 清空全部数据` | 清掉本地记录 | 换歌单前清一次 |
 
-Bottom checkbox **Filter noise (recommended)**: checked = strict mode, drops
-like counts / phone numbers / dates / floor numbers.
+面板底部有个 **`过滤噪声（推荐）`** 勾选框：
+- **勾上**（默认）= 严格模式，自动排除点赞数、手机号、日期、楼层号这类假 ID。
+- **取消** = 宽松模式，什么都抓，需要你自己在表格里筛。
 
-### Why the sniffer matters
+### 「网络嗅探」为什么是关键
 
-Normal DOM scraping only sees what is painted on screen. App-like sites load
-their content as JSON in the background, and each post may only be fetched when
-you open it. The sniffer hooks `fetch` and `XMLHttpRequest`, reads those
-responses as they fly by, and harvests IDs from them. **You browse; it records.**
+普通抓取只能看到**屏幕上画出来的字**。但社区、频道这类 App 型网站，内容其实是浏览器在后台悄悄拉回来的**数据（JSON）**，而且很多帖子**只有你点开才会去拉**。
 
----
-
-## 3. Working through a whole community channel
-
-Opening every post by hand is the worst possible plan. Do it in this order.
-
-**Step 0 - look for a compiled source first (30 seconds).**
-Check the channel's pinned post, highlights, announcements and any attached
-document. Community channels almost always have one summary post with the full
-list. If it exists, you are already done.
-
-**Step 1 - let the feed load itself.**
-Open the channel's post list on the web, paste the script, then click
-`4) Auto-scroll to load all` and leave the tab in front. The sniffer records
-every post body that arrives with the feed.
-
-**Step 2 - export and look at the count.**
-Click `7) Export CSV`. In the CSV, the `Source` column tells you where each ID
-came from:
-- `api-key` - found next to an explicit key such as `audioId` (highest trust)
-- `api` - found inside some JSON response (good trust)
-- `page` - found in the rendered page text
-
-**Step 3 - only if posts still need opening.**
-If the feed only returns titles, then open posts one by one - but you still do
-**not** copy anything: keep `3) Follow mode` or the sniffer on, click through the
-posts, and every one gets recorded as it loads.
-
-**Step 4 - get the endpoint (this is the real unlock).**
-Click `6) Show captured APIs`. The list is printed in the Console and copied to
-your clipboard. Send that list over: with the real endpoint and its paging
-parameter, a one-click "walk the entire channel" becomes possible, instead of
-scrolling at all.
+嗅探就是拦下这些后台数据，一经过就扫一遍。**你负责刷，它负责记。**
 
 ---
 
-## 4. It still reads Chinese pages fine
+## 三、在腾讯频道/社区里怎么用（整个频道）
 
-The UI is English and the sources are ASCII-only, but that does not limit what
-it can read. Chinese noise words (likes / views / floor) are written as
-`\uXXXX` escapes inside a regex, so the file stays ASCII while the filter still
-works on Chinese text. Chinese titles are paired with their IDs as usual.
+**逐个帖子点开是最笨的做法。** 按这个顺序来：
 
-The same trick protects the timestamp filter: JSON keys like `createTime`,
-`ts`, `updateTime` are matched through escapes, so a Unix timestamp is not
-mistaken for an asset ID.
+**第 0 步：先找"源头"（30 秒）**
+先看频道的**置顶帖、精华、公告、附件文档**。这种汇总帖里往往直接就是整份列表。有的话，你就不用往下折腾了。
+
+**第 1 步：让列表自己加载**
+在网页版打开频道的帖子列表 → 粘上脚本 → 点 **`4) 自动滚到底`** → **别碰它**，让它自己滚到停。
+
+**第 2 步：导出看数量**
+点 **`7) 导出 CSV`**。表格里的 **`来源`** 列告诉你每条 ID 是哪来的：
+
+| 来源 | 含义 |
+|---|---|
+| `api-key` | 在 `audioId` / `musicId` 这种明确字段旁边（**最可信**） |
+| `api` | 在某个后台 JSON 里（较可信） |
+| `page` | 页面上显示的文字里抠的 |
+
+**第 3 步：万一正文非要点开才有**
+那就开 **`3) 跟随模式`**，你只管点开帖子看——**每点开一个自动记一个，你还是不用复制**。
+
+**第 4 步：拿到接口（真正的杀招）**
+点 **`6) 查看捕获到的接口`**，它会打印到控制台并复制到剪贴板。**把这行发我**，我就能给你做"一键翻完整个频道"，连滚都不用滚。
 
 ---
 
-## 5. Where the result goes
+## 四、导出结果长什么样
 
-Clicking `7) Export CSV` downloads a file named like:
+点 `7) 导出 CSV` 会下载一个文件，名字类似：
 
 ```
 music-ids-pd.qq.com-1735689000000.csv
 ```
 
-It lands in your browser's **Downloads** folder. Columns:
+在浏览器的**下载**文件夹里。双击用 Excel / WPS 打开，列是：
 
-| ID | Name/Context | Source | SourceURL | Page | CapturedAt |
+| ID | 歌名或上下文 | 来源 | 来源网址 | 页码 | 抓取时间 |
 |---|---|---|---|---|---|
 
-`Name/Context` is the raw text around the ID. It is a hint for manual checking,
-not a guaranteed song title.
+「歌名或上下文」是 ID 旁边那段原始文字，**只用来人工核对**，不保证是准确歌名。
 
 ---
 
-## 6. Safety notes
+## 五、安全说明（为什么可以放心用）
 
-- **Nothing is uploaded.** Records live in your own browser `localStorage`.
-- The sniffer **only reads** responses. It never modifies, blocks or delays a
-  request, and response bodies are scanned in memory then discarded - only the
-  extracted IDs and the endpoint URL are kept.
-- No password or cookie access, no page modification, no third-party library.
-- Nothing is installed. It is pasted code; closing the tab removes it.
-- The panel has `8) Clear all data` and `Close panel (keep data)`.
+- **不上传任何数据**。结果只存在你自己浏览器的 localStorage 里。
+- **嗅探只读不写**：它不改、不拦、不延迟任何请求；响应内容扫完就丢，只留下抠出来的数字和接口网址。
+- **不读密码、不读 cookie、不改网页内容**。
+- **不装任何东西**。就是一段粘贴进去的代码，关掉页面就没了。
+- 面板上有「8) 清空全部数据」和「关闭面板（数据保留）」。
+- 比网上随便找的油猴脚本强的地方：**这份代码你能看懂它干了什么**，而且不留常驻。
+
+> 文件编码：这几个文件都是 **UTF-8**。如果你的记事本打开是乱码，说明它按 GBK 解了——换 VS Code 打开，或另存为时编码选 UTF-8 即可。
 
 ---
 
-## 7. Tests (all automated, nothing to click)
-
-**a) Pure logic**
+## 六、自测（开发者用，你不需要跑）
 
 ```bash
 node self-test.js
 ```
 
-Pager detection, next-page URL building, ID extraction, noise filtering, dedupe,
-JSON blob scanning, timestamp-key filtering. Currently **26 checks, all pass**.
+覆盖：翻页参数识别、下一页 URL 生成、ID 抠取、噪声过滤、去重、JSON 数据扫描、时间戳过滤。当前 **26 项全部通过**。
 
-**b) Rendered page, end to end**
+浏览器端到端测试（需要 Edge / Chrome）：
 
 ```bash
 msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=6000 smoke-test.html
-```
-
-```json
-{"panel":true,"added":5,"nameOk":true,"ids":[1836547290,1836547291,1837007494,1838999999,1841234567],"error":null}
-```
-
-**c) Network sniffer, end to end**
-
-```bash
 msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=9000 sniffer-test.html
 ```
 
-Simulates an app-like site serving 4 pages of JSON, containing real asset ids, a
-13-digit post id and Unix timestamps. Expected:
-
-```json
-{"jsonCalls":4,"apiKeyHits":12,"looseApiHits":0,"pageHits":0,"timestampLeaked":false,
- "postIdLeaked":false,"endpointCount":1,"topEndpointHits":12,"total":12,
- "ids":[1830000100,...,1830000402]}
-```
-
-All 12 asset ids captured, zero timestamps leaked, zero post ids leaked.
-
-> These browser tests already caught two real bugs that unit tests could not:
-> `document.cloneNode(true)` returns an **empty** document (no page text was
-> ever scanned), and the endpoint grouping collapsed because a `data:` URL has
-> no origin.
+> 这两个测试真抓到过两个只有真浏览器才能发现的 bug：
+> `document.cloneNode(true)` 拿到的是**没有子节点的空文档**（导致正文一个字都抠不出来），
+> 以及 `data:` 网址没有 origin 导致接口清单被拆散。纯逻辑单测查不出这类问题。
 
 ---
 
-## 8. Troubleshooting
+## 七、遇到问题怎么办
 
-| Symptom | Cause | Fix |
+| 现象 | 原因 | 怎么办 |
 |---|---|---|
-| "wants verification -> stopped" | Site anti-bot | Switch to `3) Follow mode` and page manually |
-| "No paging parameter found" | Page does not page via URL | Use `3)` or `4)` instead |
-| Sniffer finds nothing | Content is rendered from HTML, not JSON | Click `1) Grab this page` instead |
-| Too many `api` rows, few `api-key` rows | JSON full of unrelated numbers | Sort the CSV by `Source` and keep `api-key` first |
-| Panel never appears | Paste blocked, or page CSP | Confirm `allow pasting`; try another browser |
+| 控制台显示 `undefined` | 正常回显，不是错误 | 去看页面右下角有没有面板 |
+| 敲 `allow pasting` 报语法错误 | 当时没弹警告横幅，命令不生效 | 直接粘贴即可，忽略这个错 |
+| 粘贴被拦 | 浏览器的防粘贴保护 | 按 `allow pasting`；或走「源代码 → 代码段」 |
+| 提示"第 N 页被要求验证" | 网站风控 | 改用 `3) 跟随模式` 手动翻 |
+| 提示"没识别到翻页参数" | 这个页面不是靠网址翻页的 | 改用 `3)` 或 `4)` |
+| 嗅探什么都没抓到 | 内容不是 JSON，是页面文字 | 用 `1) 抓这一页` |
+| 抓到的噪声很多 | 页面数字太多 | 勾上「过滤噪声」；或在 Excel 里按位数筛（ID 一般 6~12 位） |
+| 面板一直不出现 | 粘贴被拦，或页面有 CSP 限制 | 确认没被拦；换个浏览器 |
 
 ---
 
-## 9. Caveats
+## 八、注意
 
-- An ID in hand does not mean it is usable. Many Roblox audio assets are
-  private; verify availability after collecting.
-- Keep the pace civil. The script sleeps between requests and autoscroll runs at
-  1.6s per round; do not turn it into a fast concurrent crawler.
-- This tool only converts content **you can already see** into a table. It does
-  not bypass logins, captchas or paywalls.
+- **抓到 ID ≠ 能用**。Roblox 上大量音频是私有的，建议抓完后再做一次可用性核对。
+- **速度悠着点**。脚本自带延时（翻页 1.2~2 秒、自动滚动 1.6 秒一轮），别改成高频并发，那是违规也容易被封。
+- 这个工具只做一件事：**把你自己能看到的页面内容转成表格**。它不绕登录、不绕验证码、不绕付费墙。

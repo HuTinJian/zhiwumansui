@@ -230,7 +230,7 @@
         added += put(hits[i], hits[i].key ? 'api-key' : 'api', url.slice(0, 200), 0);
       }
       saveData();
-      if (added) setStatus('Sniffer: +' + added + ' new from ' + info.method + ' ' + path.slice(-40) + ' (total ' + total() + ')');
+      if (added) setStatus('嗅探到 ' + added + ' 条新 ID（来自 ' + info.method + ' ' + path.slice(-30) + '），累计 ' + total() + ' 条');
     }
 
     function installHooks() {
@@ -295,22 +295,22 @@
     function showApis() {
       var list = apiList();
       if (!list.length) {
-        setStatus('No JSON response captured yet. Keep the sniffer ON and scroll.');
+        setStatus('还没捕获到任何接口。保持「网络嗅探」开着，然后滚动页面。');
         return;
       }
       var lines = list.slice(0, 25).map(function (r) {
         return r.hits + ' ids / ' + r.calls + ' calls / ' + r.status + '  ' + r.method + '  ' + r.url;
       });
-      try { console.log('[MIDG] captured endpoints:\n' + lines.join('\n')); } catch (e) {}
+      try { console.log('[MIDG] 捕获到的接口：\n' + lines.join('\n')); } catch (e) {}
       try { if (navigator.clipboard) navigator.clipboard.writeText(lines.join('\n')); } catch (e) {}
-      setStatus('Top: ' + list[0].method + ' ' + list[0].url.slice(0, 70) + '  -> ' + list[0].hits +
-                ' ids. Full list printed in Console and copied to clipboard.');
+      setStatus('最佳接口：' + list[0].method + ' ' + list[0].url.slice(0, 60) + ' → ' + list[0].hits +
+                ' 条。完整列表已打印到控制台并复制到剪贴板，把它发给我。');
     }
 
     function exportCsv() {
       var keys = Object.keys(data);
-      if (!keys.length) { setStatus('No data yet. Grab a page or turn on follow mode.'); return; }
-      var rows = [['ID', 'Name/Context', 'Source', 'SourceURL', 'Page', 'CapturedAt']];
+      if (!keys.length) { setStatus('还没有数据。先点「抓这一页」，或开启「跟随模式」。'); return; }
+      var rows = [['ID', '歌名或上下文', '来源', '来源网址', '页码', '抓取时间']];
       keys.forEach(function (k) {
         var d = data[k];
         rows.push([d.id, d.name || '', d.src || 'page', d.url || '', d.page || '', d.ts || '']);
@@ -329,14 +329,14 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
-      setStatus('Exported ' + keys.length + ' rows -> check your Downloads folder');
+      setStatus('已导出 ' + keys.length + ' 条 → 去浏览器的「下载」文件夹找 CSV');
     }
 
     function autoPages() {
-      if (running) { setStatus('Already running, please wait.'); return; }
+      if (running) { setStatus('正在运行，请稍候，不要重复点。'); return; }
       var cfg = detectPager(location.href);
       if (!cfg) {
-        setStatus('No paging parameter found -> use follow mode or auto-scroll.');
+        setStatus('本页没识别到翻页参数 → 请改用「跟随模式」或「自动滚到底」。');
         return;
       }
       running = true;
@@ -356,9 +356,9 @@
               var res = await fetch(url, { credentials: 'include' });
               if (res && res.ok) html = await res.text();
             } catch (e) { html = null; }
-            if (html === null) { setStatus('Page ' + i + ' request failed. Stopped. Total ' + total()); break; }
+            if (html === null) { setStatus('第 ' + i + ' 页请求失败，已停止。累计 ' + total() + ' 条'); break; }
             if (/Security Verification|captcha|robot|verify you are human/i.test(html.slice(0, 5000))) {
-              setStatus('Page ' + i + ' wants verification -> stopped. Use follow mode.');
+              setStatus('第 ' + i + ' 页被要求验证 → 已停止。请改用「跟随模式」。');
               break;
             }
             root = new DOMParser().parseFromString(html, 'text/html');
@@ -366,8 +366,8 @@
 
           var added = harvest(root, url, i);
           emptyStreak = added === 0 ? emptyStreak + 1 : 0;
-          setStatus('Page ' + i + ': +' + added + ' new, total ' + total());
-          if (emptyStreak >= 3) { setStatus('3 empty pages in a row. Stopped. Total ' + total()); break; }
+          setStatus('第 ' + i + ' 页：新增 ' + added + ' 条，累计 ' + total() + ' 条');
+          if (emptyStreak >= 3) { setStatus('连续 3 页没有新 ID，已停止。累计 ' + total() + ' 条'); break; }
           await sleep(1200 + Math.random() * 800);
         }
         running = false;
@@ -377,25 +377,25 @@
     function toggleFollow() {
       if (followTimer) {
         clearInterval(followTimer); followTimer = null;
-        setStatus('Follow mode stopped. Total ' + total());
+        setStatus('跟随模式已停，累计 ' + total() + ' 条');
         return;
       }
       harvest(document, location.href, 0);
-      setStatus('Follow mode ON: browse normally, I record every 2.5s.');
+      setStatus('跟随模式已开：你正常滚动、点开帖子，我每 2.5 秒自动记一次。');
       followTimer = setInterval(function () {
         harvest(document, location.href, 0);
-        setStatus('Following... recorded ' + total());
+        setStatus('跟随中……已记录 ' + total() + ' 条');
       }, 2500);
     }
 
     function toggleAutoScroll() {
       if (scrollTimer) {
         clearInterval(scrollTimer); scrollTimer = null;
-        setStatus('Auto-scroll stopped. Total ' + total());
+        setStatus('自动滚动已停，累计 ' + total() + ' 条');
         return;
       }
       var lastH = 0, still = 0, rounds = 0;
-      setStatus('Auto-scrolling... keep this tab in front.');
+      setStatus('自动滚动中……请让这个标签页保持在前台。');
       scrollTimer = setInterval(function () {
         rounds++;
         var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
@@ -403,10 +403,10 @@
         harvest(document, location.href, 0);
         if (h <= lastH + 5) still++; else still = 0;
         lastH = h;
-        setStatus('Auto-scroll round ' + rounds + ': total ' + total());
+        setStatus('自动滚动第 ' + rounds + ' 轮：累计 ' + total() + ' 条');
         if (still >= 5 || rounds >= 400) {
           clearInterval(scrollTimer); scrollTimer = null;
-          setStatus('Auto-scroll finished (' + rounds + ' rounds). Total ' + total());
+          setStatus('自动滚动结束（共 ' + rounds + ' 轮），累计 ' + total() + ' 条');
         }
       }, 1600);
     }
@@ -422,7 +422,7 @@
     ].join(';');
 
     var title = document.createElement('div');
-    title.textContent = 'Music ID Grabber v1.3';
+    title.textContent = '音乐ID抓取器 v1.4';
     title.style.cssText = 'font-weight:600;font-size:13px;margin-bottom:6px';
     box.appendChild(title);
 
@@ -430,7 +430,7 @@
     stat.style.cssText = 'min-height:52px;color:#9fd3ff;margin-bottom:8px;word-break:break-word';
     box.appendChild(stat);
     function setStatus(t) { stat.textContent = t; }
-    setStatus('Ready. Sniffer is ON. Total ' + total());
+    setStatus('已就绪。网络嗅探已开启。当前累计 ' + total() + ' 条');
 
     function mkBtn(label, fn) {
       var b = document.createElement('button');
@@ -443,23 +443,23 @@
       return b;
     }
 
-    mkBtn('1) Grab this page', function () {
+    mkBtn('1) 抓这一页', function () {
       var n = harvest(document, location.href, 0);
-      setStatus('This page: +' + n + ' new, total ' + total());
+      setStatus('本页新增 ' + n + ' 条，累计 ' + total() + ' 条');
     });
-    mkBtn('2) Auto pages (list pages)', autoPages);
-    mkBtn('3) Follow mode (scroll pages)', toggleFollow);
-    mkBtn('4) Auto-scroll to load all', toggleAutoScroll);
-    var sniffBtn = mkBtn('5) Sniffer: ON', function () {
+    mkBtn('2) 自动翻页（列表页用）', autoPages);
+    mkBtn('3) 跟随模式（滚动页用）', toggleFollow);
+    mkBtn('4) 自动滚到底', toggleAutoScroll);
+    var sniffBtn = mkBtn('5) 网络嗅探：开', function () {
       sniffOn = !sniffOn;
-      sniffBtn.textContent = '5) Sniffer: ' + (sniffOn ? 'ON' : 'OFF');
-      setStatus(sniffOn ? 'Sniffer ON: every JSON response is scanned.' : 'Sniffer OFF.');
+      sniffBtn.textContent = '5) 网络嗅探：' + (sniffOn ? '开' : '关');
+      setStatus(sniffOn ? '网络嗅探已开：后台每个 JSON 响应都会被扫描。' : '网络嗅探已关。');
     });
-    mkBtn('6) Show captured APIs', showApis);
-    mkBtn('7) Export CSV', exportCsv);
-    mkBtn('8) Clear all data', function () {
-      if (confirm('Clear all ' + total() + ' records?')) {
-        data = {}; saveData(); setStatus('Cleared.');
+    mkBtn('6) 查看捕获到的接口', showApis);
+    mkBtn('7) 导出 CSV', exportCsv);
+    mkBtn('8) 清空全部数据', function () {
+      if (confirm('确定清空这 ' + total() + ' 条？')) {
+        data = {}; saveData(); setStatus('已清空。');
       }
     });
 
@@ -470,14 +470,14 @@
     chk.checked = true;
     chk.onchange = function () {
       strict = chk.checked;
-      setStatus(strict ? 'Strict mode (filters noise)' : 'Loose mode (grabs everything)');
+      setStatus(strict ? '严格模式：自动过滤点赞数、手机号、日期这类噪声。' : '宽松模式：什么都抓，需要你自己在表格里筛。');
     };
     chkRow.appendChild(chk);
-    chkRow.appendChild(document.createTextNode('Filter noise (recommended)'));
+    chkRow.appendChild(document.createTextNode('过滤噪声（推荐）'));
     box.appendChild(chkRow);
 
     var close = document.createElement('div');
-    close.textContent = 'Close panel (keep data)';
+    close.textContent = '关闭面板（数据保留）';
     close.style.cssText = 'text-align:center;margin-top:8px;color:#6f7784;cursor:pointer';
     close.onclick = function () {
       if (followTimer) { clearInterval(followTimer); followTimer = null; }
@@ -498,11 +498,11 @@
       apis: apiList,
       apiLog: apiLog,
       jsonCalls: function () { return jsonCalls; },
-      setSniff: function (v) { sniffOn = !!v; sniffBtn.textContent = '5) Sniffer: ' + (sniffOn ? 'ON' : 'OFF'); },
+      setSniff: function (v) { sniffOn = !!v; sniffBtn.textContent = '5) 网络嗅探：' + (sniffOn ? '开' : '关'); },
       autoScroll: toggleAutoScroll
     };
 
-    console.log('[MIDG] Music ID Grabber v1.3 ready. Panel is at the bottom-right. Total ' + total());
+    console.log('[MIDG] 音乐ID抓取器 v1.4 已就绪，面板在页面右下角。当前累计 ' + total() + ' 条。');
   }
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
