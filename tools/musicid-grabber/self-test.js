@@ -1,6 +1,3 @@
-/* Self test: pure logic only, no browser needed.  Run: node self-test.js
- * This file is pure ASCII on purpose. Chinese test strings are written as
- * \uXXXX escapes so the file stays ASCII while still testing Chinese text. */
 const P = require('./musicid-grabber.js');
 
 let pass = 0, fail = 0;
@@ -10,13 +7,12 @@ function eq(actual, expected, label) {
   else { fail++; console.log('  FAIL  ' + label + '\n        expected ' + e + '\n        actual   ' + a); }
 }
 
-/* escaped Chinese samples */
-const SONG = '\u8d77\u98ce\u4e86';                     // "qi feng le"
-const WORLD = '\u6211\u7684\u4e16\u754c';               // "my world"
-const VER = '\u7248';                                   // "version"
-const LIKE = '\u70b9\u8d5e';                            // "likes"
-const CI = '\u6b21';                                    // "times"
-const LOU = '\u697c';                                   // "floor"
+const SONG = '\u8d77\u98ce\u4e86';
+const WORLD = '\u6211\u7684\u4e16\u754c';
+const VER = '\u7248';
+const LIKE = '\u70b9\u8d5e';
+const CI = '\u6b21';
+const LOU = '\u697c';
 
 console.log('\n[1] pager detection');
 eq(P.detectPager('https://tieba.baidu.com/f?kw=roblox&pn=0'), { key: 'pn', base: 0, step: 50 }, 'forum list pn=0 -> step 50');
@@ -57,7 +53,6 @@ console.log('\n[4] strict vs loose / dedupe / noise');
 eq(P.extractFromLines([LIKE + ' 12345678 ' + CI], true), [], 'strict drops "likes N times"');
 eq(P.extractFromLines([LIKE + ' 12345678 ' + CI], false).length, 1, 'loose keeps it');
 eq(P.extractFromLines([SONG + ' 1836547291', SONG + ' (Live' + VER + ') 1836547291'], true).length, 1, 'same ID kept once');
-/* NOTE: brackets are treated as separators, so "(Live)" is normalized to "Live" */
 eq(P.extractFromLines([SONG + ' 1836547291', SONG + ' (Live' + VER + ') 1836547291'], true)[0].name,
    SONG + ' Live' + VER, 'same ID keeps the richer name (brackets normalized)');
 eq(/^[\x00-\x7F]*$/.test(P.NOISE_SRC), true, 'noise regex source itself is pure ASCII');

@@ -6,13 +6,6 @@
 
   <script src="musicid-grabber.js"></script>
   <script>
-  /* End-to-end test of the v1.2 network sniffer.
-   * Simulates an app-like site: 4 pages of JSON pulled by fetch(), each item
-   * carrying an asset id (audioId), a POST id (13 digits, must be ignored) and
-   * a Unix timestamp under a time-ish key (must be ignored).
-   * Run:
-   *   msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=9000 sniffer-test.html
-   */
   (function () {
     function body(n) {
       var items = [];

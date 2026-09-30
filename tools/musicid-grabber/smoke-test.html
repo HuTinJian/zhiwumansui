@@ -12,14 +12,10 @@
 
   <script src="musicid-grabber.js"></script>
   <script>
-  /* End-to-end smoke test.
-   * This file is pure ASCII. Chinese strings are injected at runtime via
-   * \uXXXX escapes so we still test Chinese page text end to end.
-   * Run:  msedge --headless=new --disable-gpu --dump-dom smoke-test.html  */
   (function () {
-    var SONG = '\u8d77\u98ce\u4e86';        // chinese song title
-    var LIKE = '\u70b9\u8d5e';               // "likes"
-    var CI = '\u6b21';                       // "times"
+    var SONG = '\u8d77\u98ce\u4e86';
+    var LIKE = '\u70b9\u8d5e';
+    var CI = '\u6b21';
 
     var post = document.getElementById('post');
     function add(text) {
@@ -27,10 +23,10 @@
       p.textContent = text;
       post.appendChild(p);
     }
-    add(SONG + ' - 1836547290');   // chinese name + id, must be extracted
-    add(LIKE + ' 12345678 ' + CI); // noise, must be filtered
-    add('tel 13800138000');        // noise: phone number
-    add('updated 20240315');       // noise: date
+    add(SONG + ' - 1836547290');
+    add(LIKE + ' 12345678 ' + CI);
+    add('tel 13800138000');
+    add('updated 20240315');
 
     var api = window.__MIDG__;
     var out = { panel: false, added: -1, nameOk: false, ids: [], error: null };

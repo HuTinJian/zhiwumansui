@@ -1,4 +1,4 @@
-# Music ID Grabber (console edition) v1.2
+# Music ID Grabber (console edition) v1.3
 
 A paste-into-your-browser tool that pulls numeric music/asset IDs out of a web
 page (or out of the site's own background API traffic), dedupes them, and
@@ -22,7 +22,7 @@ by hand, and you should never have to open every single post.
 > Fix: type **`allow pasting`** in the Console and press Enter, then paste again.
 > You only do this once per browser. Firefox has no such block.
 
-A dark panel titled **Music ID Grabber v1.2** appears in the bottom-right, and
+A dark panel titled **Music ID Grabber v1.3** appears in the bottom-right, and
 the network sniffer starts working immediately.
 
 ---

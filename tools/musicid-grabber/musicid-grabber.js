@@ -1,31 +1,3 @@
-/* ============================================================
- * Music ID Grabber (console edition)  v1.2
- * ------------------------------------------------------------
- * HOW TO USE
- *   1. Open the target page in Chrome / Edge.
- *   2. Press F12 and switch to the Console tab.
- *   3. Type this and press Enter (first time only, Chrome/Edge):
- *          allow pasting
- *   4. Copy this WHOLE file, paste it into the Console, press Enter.
- *
- * WHAT'S NEW IN v1.2 (for app-like sites such as community channels)
- *   - Network sniffer: hooks fetch/XHR and scans every JSON/text response.
- *     You no longer have to open and copy each post by hand; just browse.
- *   - Auto-scroll: keeps scrolling so an infinite feed loads everything.
- *   - Captured endpoints: shows which internal API is returning the IDs,
- *     which is the key to walking a whole channel later.
- *
- * SAFETY
- *   - Results live in your own browser localStorage. Nothing is uploaded.
- *   - The sniffer only READS responses. It never changes, blocks or delays a
- *     request. Response bodies are scanned in memory and thrown away; only the
- *     extracted numeric IDs and the endpoint URL are kept.
- *   - No password / cookie access, no page modification, no third-party library.
- *
- * ENCODING
- *   This file is intentionally pure ASCII. Chinese noise words are written as
- *   \uXXXX escapes, so the file stays ASCII while still matching Chinese pages.
- * ============================================================ */
 (function () {
   'use strict';
 
@@ -33,41 +5,33 @@
   var ID_SRC = '\\b\\d{6,12}\\b';
   var STORE_PREFIX = 'midgrab:';
 
-  /* Noise words (escaped, keeps this file ASCII):
-     likes / views / floor / credits and time units that sit next to numbers */
   var NOISE_SRC = '[\\u4e07\\u6b21\\u8d5e\\u64ad\\u653e\\u9605\\u8bfb\\u5173\\u6ce8' +
                   '\\u7c89\\u4e1d\\u8bc4\\u8bba\\u56de\\u590d\\u79ef\\u5206\\u7ecf' +
                   '\\u9a8c\\u91d1\\u5e01\\u5c0f\\u65f6\\u5206\\u949f\\u79d2\\u5929' +
                   '\\u524d\\u4e2a\\u6708\\u5e74\\u697c]';
 
-  /* JSON keys that mean "this number is a clock, not an asset id" */
   var TIME_KEY_SRC = '(create_?time|update_?time|modify_?time|post_?time|send_?time|' +
                      'publish_?time|timestamp|ts|ctime|mtime|utime|expire[sd]?|_at|date|time)';
 
-  /* JSON keys that make a number a strong candidate */
   var ASSET_KEY_SRC = '(asset_?id|audio_?id|music_?id|song_?id|sound_?id|' +
                       'audioid|musicid|assetid|soundid|songid)';
-
-  /* ============ pure logic (runs in browser AND in node) ============ */
 
   function okNumber(num, line, strict) {
     if (!/^\d+$/.test(num)) return false;
     if (num.length < ID_MIN || num.length > ID_MAX) return false;
-    if (/^1[3-9]\d{9}$/.test(num)) return false;               // phone number
-    if (/^(19|20)\d{2}[01]\d[0-3]\d$/.test(num)) return false; // date 20240315
+    if (/^1[3-9]\d{9}$/.test(num)) return false;
+    if (/^(19|20)\d{2}[01]\d[0-3]\d$/.test(num)) return false;
     if (!strict) return true;
     var i = line.indexOf(num);
     var around = line.slice(Math.max(0, i - 4), i + num.length + 4);
-    if (new RegExp(NOISE_SRC).test(around)) return false;      // likes / views / floor
+    if (new RegExp(NOISE_SRC).test(around)) return false;
     return true;
   }
 
-  // Is this number preceded by a JSON key that means "timestamp"?
   function hasTimeKey(before) {
     return new RegExp(TIME_KEY_SRC + '["\']?\\s*[:=]\\s*["\']?\\s*$', 'i').test(before.slice(-40));
   }
 
-  // Is this number preceded by a JSON key that means "asset id"?
   function hasAssetKey(before) {
     return new RegExp(ASSET_KEY_SRC + '["\']?\\s*[:=]\\s*["\']?\\s*$', 'i').test(before.slice(-40));
   }
@@ -95,7 +59,6 @@
       .replace(/[|\uff5c,\uff0c\u3001:\uff1a;\uff1b\-\u2013\u2014_()\uff08\uff09\[\]\u3010\u3011<>\u300a\u300b]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    // A bare URL line is not a song name; separators are already stripped by now.
     if (/^https?:\/\//i.test(line.trim()) || /^https?\s*\/\//i.test(name) || /^www\./i.test(name)) name = '';
     name = name.slice(0, 60);
 
@@ -116,8 +79,6 @@
     return Object.keys(map).map(function (k) { return map[k]; });
   }
 
-  // Scan a big blob (JSON body, HTML fragment ...). No line-length limit,
-  // timestamps under time-ish keys are dropped, asset-ish keys are flagged.
   function extractFromBlob(text, strict) {
     var out = [], seen = {};
     if (!text || typeof text !== 'string') return out;
@@ -126,7 +87,7 @@
       var id = m[0], i = m.index;
       if (seen[id]) continue;
       var before = text.slice(Math.max(0, i - 40), i);
-      if (hasTimeKey(before)) continue;                       // it is a clock
+      if (hasTimeKey(before)) continue;
       var ctx = text.slice(Math.max(0, i - 80), i + id.length + 80).replace(/\s+/g, ' ');
       if (!okNumber(id, ctx, strict)) continue;
       seen[id] = 1;
@@ -143,7 +104,6 @@
     if (sp.has('pn')) {
       var v = parseInt(sp.get('pn'), 10);
       if (isNaN(v) || v < 0) v = 0;
-      // Two common cases: pn=0/50/100 (step 50) vs pn=1/2/3 (step 1)
       return { key: 'pn', base: v, step: (v % 50 === 0) ? 50 : 1 };
     }
     var keys = [['page', 1], ['pageNo', 1], ['pageNum', 1], ['p', 1], ['offset', 20], ['start', 20]];
@@ -157,7 +117,6 @@
     return null;
   }
 
-  // index is 0-based: 0 means the URL you are currently on
   function buildPageUrl(href, cfg, index) {
     var u = new URL(href);
     u.searchParams.set(cfg.key, String(cfg.base + cfg.step * index));
@@ -176,11 +135,9 @@
     NOISE_SRC: NOISE_SRC
   };
 
-  /* ========================= browser only ========================= */
-
   function boot() {
     var old = document.getElementById('__mid_grabber__');
-    if (old) old.remove();   // pasting again resets the panel, keeps the data
+    if (old) old.remove();
 
     var KEY = STORE_PREFIX + location.host;
     var data = loadData();
@@ -189,7 +146,7 @@
     var scrollTimer = null;
     var strict = true;
     var sniffOn = true;
-    var apiLog = {};        // path -> { method, url, calls, hits, status }
+    var apiLog = {};
     var jsonCalls = 0;
 
     function loadData() {
@@ -203,10 +160,7 @@
     function now() { return new Date().toISOString().slice(0, 19).replace('T', ' '); }
     function absUrl(u) { try { return new URL(u, location.href).href; } catch (e) { return String(u); } }
 
-    /* ---------- DOM -> array of text lines ---------- */
     function linesOf(root) {
-      // Note: document.cloneNode(true) returns an EMPTY document (no children),
-      // so we must drop to body (or documentElement) before cloning.
       var src = root.body || root.documentElement || root;
       var c = src.cloneNode(true);
       var doc = c.ownerDocument || document;
@@ -230,11 +184,9 @@
       return 0;
     }
 
-    /* ---------- grab the rendered page ---------- */
     function harvest(root, url, pageNo) {
       var hits = extractFromLines(linesOf(root), strict);
 
-      // also accept /library/<id> links
       var as = root.querySelectorAll('a[href*="/library/"]');
       for (var i = 0; i < as.length; i++) {
         var m = (as[i].getAttribute('href') || '').match(/library\/(\d{6,12})/);
@@ -247,11 +199,10 @@
       return added;
     }
 
-    /* ---------- network sniffer ---------- */
     function noteResponse(info) {
       var text = info.text;
       if (!text || typeof text !== 'string') return;
-      if (text.length > 400000) text = text.slice(0, 400000);   // keep memory sane
+      if (text.length > 400000) text = text.slice(0, 400000);
       jsonCalls++;
       if (!sniffOn) return;
 
@@ -260,7 +211,6 @@
       var path;
       try {
         var u = new URL(url);
-        // group by endpoint, not by full query string
         path = (u.protocol === 'data:') ? 'data:url' : u.origin + u.pathname;
       } catch (e) { path = String(info.url).split('?')[0]; }
 
@@ -357,7 +307,6 @@
                 ' ids. Full list printed in Console and copied to clipboard.');
     }
 
-    /* ---------- export ---------- */
     function exportCsv() {
       var keys = Object.keys(data);
       if (!keys.length) { setStatus('No data yet. Grab a page or turn on follow mode.'); return; }
@@ -383,7 +332,6 @@
       setStatus('Exported ' + keys.length + ' rows -> check your Downloads folder');
     }
 
-    /* ---------- auto pagination (URL based) ---------- */
     function autoPages() {
       if (running) { setStatus('Already running, please wait.'); return; }
       var cfg = detectPager(location.href);
@@ -420,13 +368,12 @@
           emptyStreak = added === 0 ? emptyStreak + 1 : 0;
           setStatus('Page ' + i + ': +' + added + ' new, total ' + total());
           if (emptyStreak >= 3) { setStatus('3 empty pages in a row. Stopped. Total ' + total()); break; }
-          await sleep(1200 + Math.random() * 800);   // stay polite
+          await sleep(1200 + Math.random() * 800);
         }
         running = false;
       })();
     }
 
-    /* ---------- follow mode ---------- */
     function toggleFollow() {
       if (followTimer) {
         clearInterval(followTimer); followTimer = null;
@@ -441,7 +388,6 @@
       }, 2500);
     }
 
-    /* ---------- auto scroll ---------- */
     function toggleAutoScroll() {
       if (scrollTimer) {
         clearInterval(scrollTimer); scrollTimer = null;
@@ -465,7 +411,6 @@
       }, 1600);
     }
 
-    /* ---------- panel ---------- */
     var box = document.createElement('div');
     box.id = '__mid_grabber__';
     box.style.cssText = [
@@ -477,7 +422,7 @@
     ].join(';');
 
     var title = document.createElement('div');
-    title.textContent = 'Music ID Grabber v1.2';
+    title.textContent = 'Music ID Grabber v1.3';
     title.style.cssText = 'font-weight:600;font-size:13px;margin-bottom:6px';
     box.appendChild(title);
 
@@ -543,7 +488,7 @@
 
     document.body.appendChild(box);
 
-    installHooks();   // start watching network traffic
+    installHooks();
 
     window.__MIDG__ = {
       data: data,
