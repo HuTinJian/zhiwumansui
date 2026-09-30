@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>sniffer smoke test</title></head>
+<body>
+  <pre id="out">running</pre>
+
+  <script src="musicid-grabber.js"></script>
+  <script>
+  /* End-to-end test of the v1.2 network sniffer.
+   * Simulates an app-like site: 4 pages of JSON pulled by fetch(), each item
+   * carrying an asset id (audioId), a POST id (13 digits, must be ignored) and
+   * a Unix timestamp under a time-ish key (must be ignored).
+   * Run:
+   *   msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=9000 sniffer-test.html
+   */
+  (function () {
+    function body(n) {
+      var items = [];
+      for (var i = 0; i < 3; i++) {
+        items.push('{"postId":9000000000001,"createTime":173568900' + i +
+                   ',"title":"Song-' + n + '-' + i + '","audioId":' + (1830000000 + n * 100 + i) + '}');
+      }
+      return '{"nextPage":' + (n < 4 ? (n + 1) : 'null') + ',"items":[' + items.join(',') + ']}';
+    }
+
+    var seq = Promise.resolve();
+    for (var n = 1; n <= 4; n++) {
+      (function (n) {
+        seq = seq.then(function () {
+          return fetch('data:application/json,' + body(n)).then(function (r) { return r.text(); });
+        });
+      })(n);
+    }
+
+    seq.then(function () {
+      return new Promise(function (r) { setTimeout(r, 1500); });
+    }).then(function () {
+      var api = window.__MIDG__;
+      var keys = Object.keys(api.data);
+      var out = {
+        jsonCalls: api.jsonCalls(),
+        apiKeyHits: keys.filter(function (k) { return api.data[k].src === 'api-key'; }).length,
+        looseApiHits: keys.filter(function (k) { return api.data[k].src === 'api'; }).length,
+        pageHits: keys.filter(function (k) { return api.data[k].src === 'page'; }).length,
+        timestampLeaked: keys.some(function (k) { return k.indexOf('1735689') === 0; }),
+        postIdLeaked: keys.some(function (k) { return k.indexOf('9000000') === 0; }),
+        endpointCount: api.apis().length,
+        topEndpointHits: api.apis().length ? api.apis()[0].hits : -1,
+        total: api.total(),
+        ids: keys.map(Number).sort(function (a, b) { return a - b; })
+      };
+      document.getElementById('out').textContent = 'SNIFF_RESULT=' + JSON.stringify(out);
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /* ============================================================
- * Music ID Grabber (console edition)  v1.1
+ * Music ID Grabber (console edition)  v1.2
  * ------------------------------------------------------------
  * HOW TO USE
  *   1. Open the target page in Chrome / Edge.
@@ -8,20 +8,23 @@
  *          allow pasting
  *   4. Copy this WHOLE file, paste it into the Console, press Enter.
  *
- * WHAT IT DOES
- *   Scans the page text for numeric asset IDs, dedupes them, and can
- *   export everything as a CSV (Excel-friendly, UTF-8 with BOM).
+ * WHAT'S NEW IN v1.2 (for app-like sites such as community channels)
+ *   - Network sniffer: hooks fetch/XHR and scans every JSON/text response.
+ *     You no longer have to open and copy each post by hand; just browse.
+ *   - Auto-scroll: keeps scrolling so an infinite feed loads everything.
+ *   - Captured endpoints: shows which internal API is returning the IDs,
+ *     which is the key to walking a whole channel later.
  *
  * SAFETY
  *   - Results live in your own browser localStorage. Nothing is uploaded.
- *   - No password / cookie access, no page modification.
- *   - No third-party library. Only "Auto pages" uses the network, and
- *     only to request the next page of the SAME site you are already on.
+ *   - The sniffer only READS responses. It never changes, blocks or delays a
+ *     request. Response bodies are scanned in memory and thrown away; only the
+ *     extracted numeric IDs and the endpoint URL are kept.
+ *   - No password / cookie access, no page modification, no third-party library.
  *
  * ENCODING
- *   This file is intentionally pure ASCII. The Chinese noise words used
- *   by the strict filter are written as \uXXXX escapes, so the file stays
- *   ASCII while still matching Chinese text found on real pages.
+ *   This file is intentionally pure ASCII. Chinese noise words are written as
+ *   \uXXXX escapes, so the file stays ASCII while still matching Chinese pages.
  * ============================================================ */
 (function () {
   'use strict';
@@ -31,13 +34,19 @@
   var STORE_PREFIX = 'midgrab:';
 
   /* Noise words (escaped, keeps this file ASCII):
-     wan ci zan bo fang yue du guan zhu fen si ping lun hui fu
-     ji fen jing yan jin bi xiao shi fen zhong miao tian qian
-     ge yue nian lou  */
+     likes / views / floor / credits and time units that sit next to numbers */
   var NOISE_SRC = '[\\u4e07\\u6b21\\u8d5e\\u64ad\\u653e\\u9605\\u8bfb\\u5173\\u6ce8' +
                   '\\u7c89\\u4e1d\\u8bc4\\u8bba\\u56de\\u590d\\u79ef\\u5206\\u7ecf' +
                   '\\u9a8c\\u91d1\\u5e01\\u5c0f\\u65f6\\u5206\\u949f\\u79d2\\u5929' +
                   '\\u524d\\u4e2a\\u6708\\u5e74\\u697c]';
+
+  /* JSON keys that mean "this number is a clock, not an asset id" */
+  var TIME_KEY_SRC = '(create_?time|update_?time|modify_?time|post_?time|send_?time|' +
+                     'publish_?time|timestamp|ts|ctime|mtime|utime|expire[sd]?|_at|date|time)';
+
+  /* JSON keys that make a number a strong candidate */
+  var ASSET_KEY_SRC = '(asset_?id|audio_?id|music_?id|song_?id|sound_?id|' +
+                      'audioid|musicid|assetid|soundid|songid)';
 
   /* ============ pure logic (runs in browser AND in node) ============ */
 
@@ -49,8 +58,27 @@
     if (!strict) return true;
     var i = line.indexOf(num);
     var around = line.slice(Math.max(0, i - 4), i + num.length + 4);
-    if (new RegExp(NOISE_SRC).test(around)) return false;      // likes / views / floor ...
+    if (new RegExp(NOISE_SRC).test(around)) return false;      // likes / views / floor
     return true;
+  }
+
+  // Is this number preceded by a JSON key that means "timestamp"?
+  function hasTimeKey(before) {
+    return new RegExp(TIME_KEY_SRC + '["\']?\\s*[:=]\\s*["\']?\\s*$', 'i').test(before.slice(-40));
+  }
+
+  // Is this number preceded by a JSON key that means "asset id"?
+  function hasAssetKey(before) {
+    return new RegExp(ASSET_KEY_SRC + '["\']?\\s*[:=]\\s*["\']?\\s*$', 'i').test(before.slice(-40));
+  }
+
+  function nameFromContext(ctx) {
+    return ctx
+      .replace(new RegExp(ID_SRC, 'g'), ' ')
+      .replace(/["',:{}[\]\\|]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 60);
   }
 
   function extractFromLine(line, strict) {
@@ -67,12 +95,11 @@
       .replace(/[|\uff5c,\uff0c\u3001:\uff1a;\uff1b\-\u2013\u2014_()\uff08\uff09\[\]\u3010\u3011<>\u300a\u300b]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    // A bare URL line is not a song name. Note the separators are already gone
-    // by now, so "https://..." has become "https //...", hence both patterns.
+    // A bare URL line is not a song name; separators are already stripped by now.
     if (/^https?:\/\//i.test(line.trim()) || /^https?\s*\/\//i.test(name) || /^www\./i.test(name)) name = '';
     name = name.slice(0, 60);
 
-    for (var k = 0; k < ids.length; k++) out.push({ id: ids[k], name: name });
+    for (var k = 0; k < ids.length; k++) out.push({ id: ids[k], name: name, key: false });
     return out;
   }
 
@@ -87,6 +114,25 @@
       }
     }
     return Object.keys(map).map(function (k) { return map[k]; });
+  }
+
+  // Scan a big blob (JSON body, HTML fragment ...). No line-length limit,
+  // timestamps under time-ish keys are dropped, asset-ish keys are flagged.
+  function extractFromBlob(text, strict) {
+    var out = [], seen = {};
+    if (!text || typeof text !== 'string') return out;
+    var re = new RegExp(ID_SRC, 'g'), m;
+    while ((m = re.exec(text)) !== null) {
+      var id = m[0], i = m.index;
+      if (seen[id]) continue;
+      var before = text.slice(Math.max(0, i - 40), i);
+      if (hasTimeKey(before)) continue;                       // it is a clock
+      var ctx = text.slice(Math.max(0, i - 80), i + id.length + 80).replace(/\s+/g, ' ');
+      if (!okNumber(id, ctx, strict)) continue;
+      seen[id] = 1;
+      out.push({ id: id, name: nameFromContext(ctx), key: hasAssetKey(before) });
+    }
+    return out;
   }
 
   function detectPager(href) {
@@ -120,8 +166,11 @@
 
   var PURE = {
     okNumber: okNumber,
+    hasTimeKey: hasTimeKey,
+    hasAssetKey: hasAssetKey,
     extractFromLine: extractFromLine,
     extractFromLines: extractFromLines,
+    extractFromBlob: extractFromBlob,
     detectPager: detectPager,
     buildPageUrl: buildPageUrl,
     NOISE_SRC: NOISE_SRC
@@ -137,7 +186,11 @@
     var data = loadData();
     var running = false;
     var followTimer = null;
+    var scrollTimer = null;
     var strict = true;
+    var sniffOn = true;
+    var apiLog = {};        // path -> { method, url, calls, hits, status }
+    var jsonCalls = 0;
 
     function loadData() {
       try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; }
@@ -147,6 +200,8 @@
     }
     function total() { return Object.keys(data).length; }
     function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function now() { return new Date().toISOString().slice(0, 19).replace('T', ' '); }
+    function absUrl(u) { try { return new URL(u, location.href).href; } catch (e) { return String(u); } }
 
     /* ---------- DOM -> array of text lines ---------- */
     function linesOf(root) {
@@ -166,7 +221,16 @@
         .filter(Boolean);
     }
 
-    /* ---------- grab one page ---------- */
+    function put(hit, src, url, pageNo) {
+      if (!data[hit.id]) {
+        data[hit.id] = { id: hit.id, name: hit.name || '', src: src, url: url, page: pageNo, ts: now() };
+        return 1;
+      }
+      if (hit.name && hit.name.length > (data[hit.id].name || '').length) data[hit.id].name = hit.name;
+      return 0;
+    }
+
+    /* ---------- grab the rendered page ---------- */
     function harvest(root, url, pageNo) {
       var hits = extractFromLines(linesOf(root), strict);
 
@@ -174,32 +238,133 @@
       var as = root.querySelectorAll('a[href*="/library/"]');
       for (var i = 0; i < as.length; i++) {
         var m = (as[i].getAttribute('href') || '').match(/library\/(\d{6,12})/);
-        if (m) hits.push({ id: m[1], name: (as[i].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) });
+        if (m) hits.push({ id: m[1], name: (as[i].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60), key: false });
       }
 
-      var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
       var added = 0;
-      for (var j = 0; j < hits.length; j++) {
-        var h = hits[j];
-        if (!data[h.id]) {
-          added++;
-          data[h.id] = { id: h.id, name: h.name || '', url: url, page: pageNo, ts: now };
-        } else if (h.name && h.name.length > (data[h.id].name || '').length) {
-          data[h.id].name = h.name;
-        }
-      }
+      for (var j = 0; j < hits.length; j++) added += put(hits[j], 'page', url, pageNo);
       saveData();
       return added;
+    }
+
+    /* ---------- network sniffer ---------- */
+    function noteResponse(info) {
+      var text = info.text;
+      if (!text || typeof text !== 'string') return;
+      if (text.length > 400000) text = text.slice(0, 400000);   // keep memory sane
+      jsonCalls++;
+      if (!sniffOn) return;
+
+      var hits = extractFromBlob(text, strict);
+      var url = absUrl(info.url);
+      var path;
+      try {
+        var u = new URL(url);
+        // group by endpoint, not by full query string
+        path = (u.protocol === 'data:') ? 'data:url' : u.origin + u.pathname;
+      } catch (e) { path = String(info.url).split('?')[0]; }
+
+      var rec = apiLog[path];
+      if (!rec) {
+        rec = apiLog[path] = { method: info.method, url: url, calls: 0, hits: 0, status: info.status, keyed: 0 };
+      }
+      rec.calls++;
+      rec.status = info.status;
+      if (url.length > rec.url.length) rec.url = url;
+
+      if (!hits.length) { saveData(); return; }
+      rec.hits += hits.length;
+      var added = 0;
+      for (var i = 0; i < hits.length; i++) {
+        if (hits[i].key) rec.keyed++;
+        added += put(hits[i], hits[i].key ? 'api-key' : 'api', url.slice(0, 200), 0);
+      }
+      saveData();
+      if (added) setStatus('Sniffer: +' + added + ' new from ' + info.method + ' ' + path.slice(-40) + ' (total ' + total() + ')');
+    }
+
+    function installHooks() {
+      if (window.__MIDG_HOOKS__) return;
+      window.__MIDG_HOOKS__ = true;
+
+      var origFetch = window.fetch;
+      if (typeof origFetch === 'function') {
+        window.fetch = function (input, init) {
+          var url = (typeof input === 'string') ? input : ((input && input.url) || '');
+          var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+          var p = origFetch.apply(this, arguments);
+          try {
+            p.then(function (res) {
+              try {
+                var ct = (res.headers && res.headers.get('content-type')) || '';
+                if (/json|text|xml|javascript/i.test(ct)) {
+                  res.clone().text().then(function (t) {
+                    noteResponse({ method: method, url: url, status: res.status, text: t });
+                  })['catch'](function () {});
+                }
+              } catch (e) {}
+              return res;
+            })['catch'](function () {});
+          } catch (e) {}
+          return p;
+        };
+      }
+
+      var XO = XMLHttpRequest.prototype.open, XS = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function (m, u) {
+        this.__midg = { method: String(m || 'GET').toUpperCase(), url: String(u || '') };
+        return XO.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function () {
+        var xhr = this;
+        try {
+          xhr.addEventListener('load', function () {
+            try {
+              var ct = xhr.getResponseHeader('content-type') || '';
+              if (/json|text|xml/i.test(ct)) {
+                noteResponse({
+                  method: (xhr.__midg && xhr.__midg.method) || 'GET',
+                  url: (xhr.__midg && xhr.__midg.url) || '',
+                  status: xhr.status,
+                  text: xhr.responseText
+                });
+              }
+            } catch (e) {}
+          });
+        } catch (e) {}
+        return XS.apply(this, arguments);
+      };
+    }
+
+    function apiList() {
+      return Object.keys(apiLog)
+        .map(function (k) { return apiLog[k]; })
+        .sort(function (a, b) { return b.hits - a.hits || b.calls - a.calls; });
+    }
+
+    function showApis() {
+      var list = apiList();
+      if (!list.length) {
+        setStatus('No JSON response captured yet. Keep the sniffer ON and scroll.');
+        return;
+      }
+      var lines = list.slice(0, 25).map(function (r) {
+        return r.hits + ' ids / ' + r.calls + ' calls / ' + r.status + '  ' + r.method + '  ' + r.url;
+      });
+      try { console.log('[MIDG] captured endpoints:\n' + lines.join('\n')); } catch (e) {}
+      try { if (navigator.clipboard) navigator.clipboard.writeText(lines.join('\n')); } catch (e) {}
+      setStatus('Top: ' + list[0].method + ' ' + list[0].url.slice(0, 70) + '  -> ' + list[0].hits +
+                ' ids. Full list printed in Console and copied to clipboard.');
     }
 
     /* ---------- export ---------- */
     function exportCsv() {
       var keys = Object.keys(data);
-      if (!keys.length) { setStatus('No data yet. Grab a page or start follow mode.'); return; }
-      var rows = [['ID', 'Name/Context', 'SourceURL', 'Page', 'CapturedAt']];
+      if (!keys.length) { setStatus('No data yet. Grab a page or turn on follow mode.'); return; }
+      var rows = [['ID', 'Name/Context', 'Source', 'SourceURL', 'Page', 'CapturedAt']];
       keys.forEach(function (k) {
         var d = data[k];
-        rows.push([d.id, d.name || '', d.url || '', d.page || '', d.ts || '']);
+        rows.push([d.id, d.name || '', d.src || 'page', d.url || '', d.page || '', d.ts || '']);
       });
       var csv = rows.map(function (r) {
         return r.map(function (c) {
@@ -218,12 +383,12 @@
       setStatus('Exported ' + keys.length + ' rows -> check your Downloads folder');
     }
 
-    /* ---------- auto pagination ---------- */
+    /* ---------- auto pagination (URL based) ---------- */
     function autoPages() {
       if (running) { setStatus('Already running, please wait.'); return; }
       var cfg = detectPager(location.href);
       if (!cfg) {
-        setStatus('No paging parameter found -> use Follow mode and scroll manually.');
+        setStatus('No paging parameter found -> use follow mode or auto-scroll.');
         return;
       }
       running = true;
@@ -245,7 +410,7 @@
             } catch (e) { html = null; }
             if (html === null) { setStatus('Page ' + i + ' request failed. Stopped. Total ' + total()); break; }
             if (/Security Verification|captcha|robot|verify you are human/i.test(html.slice(0, 5000))) {
-              setStatus('Page ' + i + ' wants verification -> stopped. Use Follow mode instead.');
+              setStatus('Page ' + i + ' wants verification -> stopped. Use follow mode.');
               break;
             }
             root = new DOMParser().parseFromString(html, 'text/html');
@@ -255,14 +420,13 @@
           emptyStreak = added === 0 ? emptyStreak + 1 : 0;
           setStatus('Page ' + i + ': +' + added + ' new, total ' + total());
           if (emptyStreak >= 3) { setStatus('3 empty pages in a row. Stopped. Total ' + total()); break; }
-
           await sleep(1200 + Math.random() * 800);   // stay polite
         }
         running = false;
       })();
     }
 
-    /* ---------- follow mode (for infinite-scroll pages) ---------- */
+    /* ---------- follow mode ---------- */
     function toggleFollow() {
       if (followTimer) {
         clearInterval(followTimer); followTimer = null;
@@ -270,11 +434,35 @@
         return;
       }
       harvest(document, location.href, 0);
-      setStatus('Follow mode ON: scroll normally, I record every 2.5s.');
+      setStatus('Follow mode ON: browse normally, I record every 2.5s.');
       followTimer = setInterval(function () {
         harvest(document, location.href, 0);
         setStatus('Following... recorded ' + total());
       }, 2500);
+    }
+
+    /* ---------- auto scroll ---------- */
+    function toggleAutoScroll() {
+      if (scrollTimer) {
+        clearInterval(scrollTimer); scrollTimer = null;
+        setStatus('Auto-scroll stopped. Total ' + total());
+        return;
+      }
+      var lastH = 0, still = 0, rounds = 0;
+      setStatus('Auto-scrolling... keep this tab in front.');
+      scrollTimer = setInterval(function () {
+        rounds++;
+        var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+        window.scrollBy(0, Math.round((window.innerHeight || 600) * 0.9));
+        harvest(document, location.href, 0);
+        if (h <= lastH + 5) still++; else still = 0;
+        lastH = h;
+        setStatus('Auto-scroll round ' + rounds + ': total ' + total());
+        if (still >= 5 || rounds >= 400) {
+          clearInterval(scrollTimer); scrollTimer = null;
+          setStatus('Auto-scroll finished (' + rounds + ' rounds). Total ' + total());
+        }
+      }, 1600);
     }
 
     /* ---------- panel ---------- */
@@ -282,22 +470,22 @@
     box.id = '__mid_grabber__';
     box.style.cssText = [
       'position:fixed', 'right:14px', 'bottom:14px', 'z-index:2147483647',
-      'width:240px', 'padding:11px 12px', 'border-radius:12px',
+      'width:250px', 'padding:11px 12px', 'border-radius:12px',
       'background:#15171c', 'color:#e8e8ea', 'border:1px solid #2b303a',
       'font:12px/1.7 system-ui,"Microsoft YaHei",sans-serif',
       'box-shadow:0 8px 28px rgba(0,0,0,.45)'
     ].join(';');
 
     var title = document.createElement('div');
-    title.textContent = 'Music ID Grabber v1.1';
+    title.textContent = 'Music ID Grabber v1.2';
     title.style.cssText = 'font-weight:600;font-size:13px;margin-bottom:6px';
     box.appendChild(title);
 
     var stat = document.createElement('div');
-    stat.style.cssText = 'min-height:36px;color:#9fd3ff;margin-bottom:8px;word-break:break-all';
+    stat.style.cssText = 'min-height:52px;color:#9fd3ff;margin-bottom:8px;word-break:break-word';
     box.appendChild(stat);
     function setStatus(t) { stat.textContent = t; }
-    setStatus('Ready. Total ' + total());
+    setStatus('Ready. Sniffer is ON. Total ' + total());
 
     function mkBtn(label, fn) {
       var b = document.createElement('button');
@@ -316,8 +504,15 @@
     });
     mkBtn('2) Auto pages (list pages)', autoPages);
     mkBtn('3) Follow mode (scroll pages)', toggleFollow);
-    mkBtn('4) Export CSV', exportCsv);
-    mkBtn('5) Clear all data', function () {
+    mkBtn('4) Auto-scroll to load all', toggleAutoScroll);
+    var sniffBtn = mkBtn('5) Sniffer: ON', function () {
+      sniffOn = !sniffOn;
+      sniffBtn.textContent = '5) Sniffer: ' + (sniffOn ? 'ON' : 'OFF');
+      setStatus(sniffOn ? 'Sniffer ON: every JSON response is scanned.' : 'Sniffer OFF.');
+    });
+    mkBtn('6) Show captured APIs', showApis);
+    mkBtn('7) Export CSV', exportCsv);
+    mkBtn('8) Clear all data', function () {
       if (confirm('Clear all ' + total() + ' records?')) {
         data = {}; saveData(); setStatus('Cleared.');
       }
@@ -341,17 +536,25 @@
     close.style.cssText = 'text-align:center;margin-top:8px;color:#6f7784;cursor:pointer';
     close.onclick = function () {
       if (followTimer) { clearInterval(followTimer); followTimer = null; }
+      if (scrollTimer) { clearInterval(scrollTimer); scrollTimer = null; }
       box.remove();
     };
     box.appendChild(close);
 
     document.body.appendChild(box);
 
+    installHooks();   // start watching network traffic
+
     window.__MIDG__ = {
       data: data,
       exportCsv: exportCsv,
       harvestNow: function () { return harvest(document, location.href, 0); },
-      total: total
+      total: total,
+      apis: apiList,
+      apiLog: apiLog,
+      jsonCalls: function () { return jsonCalls; },
+      setSniff: function (v) { sniffOn = !!v; sniffBtn.textContent = '5) Sniffer: ' + (sniffOn ? 'ON' : 'OFF'); },
+      autoScroll: toggleAutoScroll
     };
   }
 

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>data url fetch probe</title></head>
+<body>
+  <pre id="out">running</pre>
+  <script>
+    var out = document.getElementById('out');
+    // Can a file:// page fetch a data: URL? Decides how we test the network sniffer.
+    fetch('data:application/json,{"audioId":1836547291,"createTime":1735689000}')
+      .then(function (r) { return r.text(); })
+      .then(function (t) { out.textContent = 'PROBE_OK len=' + t.length + ' body=' + t; })
+      .catch(function (e) { out.textContent = 'PROBE_FAIL ' + ((e && e.message) || e); });
+  </script>
+</body>
+</html>

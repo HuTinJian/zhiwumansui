@@ -1,10 +1,11 @@
-# Music ID Grabber (console edition) v1.1
+# Music ID Grabber (console edition) v1.2
 
 A paste-into-your-browser tool that pulls numeric music/asset IDs out of a web
-page, dedupes them, and exports a CSV that Excel/WPS can open directly.
+page (or out of the site's own background API traffic), dedupes them, and
+exports a CSV that Excel/WPS can open directly.
 
 It exists to solve one problem: you should never have to copy thousands of IDs
-by hand.
+by hand, and you should never have to open every single post.
 
 **Every file in this folder is pure ASCII (zero Chinese bytes).**
 
@@ -21,54 +22,86 @@ by hand.
 > Fix: type **`allow pasting`** in the Console and press Enter, then paste again.
 > You only do this once per browser. Firefox has no such block.
 
-A small dark panel titled **Music ID Grabber v1.1** appears in the bottom-right.
+A dark panel titled **Music ID Grabber v1.2** appears in the bottom-right, and
+the network sniffer starts working immediately.
 
 ---
 
-## 2. The five buttons
+## 2. The eight buttons
 
 | Button | What it does | Use it when |
 |---|---|---|
-| `1) Grab this page` | Immediately extracts IDs from the current page | Everything is on one page (a long forum post, a doc) |
-| `2) Auto pages (list pages)` | Walks pages by itself until done or blocked | **List pages**: forums, `?page=` URLs, `pn=` URLs |
-| `3) Follow mode (scroll pages)` | Re-scans every 2.5s while you scroll/click | **Infinite scroll**: Bilibili, Tencent Channels, dynamic lists |
-| `4) Export CSV` | Downloads a CSV (UTF-8 + BOM, no mojibake in Excel) | When you are done |
-| `5) Clear all data` | Wipes stored records | Before switching to another list |
+| `1) Grab this page` | Extracts IDs from what is rendered right now | One long page holds everything |
+| `2) Auto pages (list pages)` | Walks `?page=` / `pn=` URLs by itself | Classic list pages (forums, BBS) |
+| `3) Follow mode (scroll pages)` | Re-scans the DOM every 2.5s while you browse | Infinite-scroll feeds, Bilibili |
+| `4) Auto-scroll to load all` | Scrolls the page for you so lazy content loads | Long feeds: let it run, do nothing |
+| `5) Sniffer: ON / OFF` | Scans every JSON/text response the site fetches behind the scenes | **App-like sites** (communities, channels, SPAs) |
+| `6) Show captured APIs` | Prints the endpoints that returned IDs; also copies them | When you want to know which API holds the data |
+| `7) Export CSV` | Downloads a CSV (UTF-8 + BOM, no mojibake in Excel) | When you are done |
+| `8) Clear all data` | Wipes stored records | Before switching to another list |
 
-Bottom checkbox **Filter noise (recommended)**:
-- checked = strict mode, drops fake IDs such as like counts, phone numbers,
-  dates and floor numbers;
-- unchecked = loose mode, grabs everything (filter later in Excel).
+Bottom checkbox **Filter noise (recommended)**: checked = strict mode, drops
+like counts / phone numbers / dates / floor numbers.
+
+### Why the sniffer matters
+
+Normal DOM scraping only sees what is painted on screen. App-like sites load
+their content as JSON in the background, and each post may only be fetched when
+you open it. The sniffer hooks `fetch` and `XMLHttpRequest`, reads those
+responses as they fly by, and harvests IDs from them. **You browse; it records.**
 
 ---
 
-## 3. It still reads Chinese pages fine
+## 3. Working through a whole community channel
+
+Opening every post by hand is the worst possible plan. Do it in this order.
+
+**Step 0 - look for a compiled source first (30 seconds).**
+Check the channel's pinned post, highlights, announcements and any attached
+document. Community channels almost always have one summary post with the full
+list. If it exists, you are already done.
+
+**Step 1 - let the feed load itself.**
+Open the channel's post list on the web, paste the script, then click
+`4) Auto-scroll to load all` and leave the tab in front. The sniffer records
+every post body that arrives with the feed.
+
+**Step 2 - export and look at the count.**
+Click `7) Export CSV`. In the CSV, the `Source` column tells you where each ID
+came from:
+- `api-key` - found next to an explicit key such as `audioId` (highest trust)
+- `api` - found inside some JSON response (good trust)
+- `page` - found in the rendered page text
+
+**Step 3 - only if posts still need opening.**
+If the feed only returns titles, then open posts one by one - but you still do
+**not** copy anything: keep `3) Follow mode` or the sniffer on, click through the
+posts, and every one gets recorded as it loads.
+
+**Step 4 - get the endpoint (this is the real unlock).**
+Click `6) Show captured APIs`. The list is printed in the Console and copied to
+your clipboard. Send that list over: with the real endpoint and its paging
+parameter, a one-click "walk the entire channel" becomes possible, instead of
+scrolling at all.
+
+---
+
+## 4. It still reads Chinese pages fine
 
 The UI is English and the sources are ASCII-only, but that does not limit what
 it can read. Chinese noise words (likes / views / floor) are written as
 `\uXXXX` escapes inside a regex, so the file stays ASCII while the filter still
-works on Chinese text. Chinese song titles are paired with their IDs as usual.
+works on Chinese text. Chinese titles are paired with their IDs as usual.
 
-Two automated tests prove it (see section 7).
-
----
-
-## 4. Tencent Channels (pd.qq.com)
-
-`pd.qq.com` was verified reachable over the web (HTTP 200).
-
-- **If the channel/post opens in the web version** -> open it, paste the script,
-  click **`3) Follow mode`**, scroll to the end, then **`4) Export CSV`**.
-  (Tencent Channels loads on scroll, so follow mode is the right one; auto
-  pagination needs `?page=` style URLs.)
-- **If it only exists inside the phone app** -> either copy the text and send it
-  to your PC, or take screenshots; both can be cleaned up offline afterwards.
+The same trick protects the timestamp filter: JSON keys like `createTime`,
+`ts`, `updateTime` are matched through escapes, so a Unix timestamp is not
+mistaken for an asset ID.
 
 ---
 
 ## 5. Where the result goes
 
-Clicking `4) Export CSV` downloads a file named like:
+Clicking `7) Export CSV` downloads a file named like:
 
 ```
 music-ids-pd.qq.com-1735689000000.csv
@@ -76,28 +109,27 @@ music-ids-pd.qq.com-1735689000000.csv
 
 It lands in your browser's **Downloads** folder. Columns:
 
-| ID | Name/Context | SourceURL | Page | CapturedAt |
-|---|---|---|---|---|
+| ID | Name/Context | Source | SourceURL | Page | CapturedAt |
+|---|---|---|---|---|---|
 
-`Name/Context` is the raw text of the line the ID was found on. It is a hint for
-manual checking, not a guaranteed song title.
+`Name/Context` is the raw text around the ID. It is a hint for manual checking,
+not a guaranteed song title.
 
 ---
 
 ## 6. Safety notes
 
 - **Nothing is uploaded.** Records live in your own browser `localStorage`.
-- **No password or cookie access, no page modification.** Search the source for
-  `fetch`: the only network call is "Auto pages", which requests the next page
-  of the *same site you are already viewing*.
-- **Nothing gets installed.** It is pasted code; closing the tab removes it.
-- The panel has `5) Clear all data` and `Close panel (keep data)`.
-- Compared with random userscripts from the internet, this one you can actually
-  read, and it leaves nothing persistent behind.
+- The sniffer **only reads** responses. It never modifies, blocks or delays a
+  request, and response bodies are scanned in memory then discarded - only the
+  extracted IDs and the endpoint URL are kept.
+- No password or cookie access, no page modification, no third-party library.
+- Nothing is installed. It is pasted code; closing the tab removes it.
+- The panel has `8) Clear all data` and `Close panel (keep data)`.
 
 ---
 
-## 7. Tests (both automated, nothing to click)
+## 7. Tests (all automated, nothing to click)
 
 **a) Pure logic**
 
@@ -105,25 +137,40 @@ manual checking, not a guaranteed song title.
 node self-test.js
 ```
 
-Covers pager detection, next-page URL building, ID extraction, noise filtering,
-dedupe rules and the ASCII-ness of the noise regex. Currently **16 checks, all pass**.
+Pager detection, next-page URL building, ID extraction, noise filtering, dedupe,
+JSON blob scanning, timestamp-key filtering. Currently **26 checks, all pass**.
 
-**b) End-to-end in a real browser**
+**b) Rendered page, end to end**
 
 ```bash
-msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=5000 smoke-test.html
+msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=6000 smoke-test.html
 ```
-
-Expected output:
 
 ```json
 {"panel":true,"added":5,"nameOk":true,"ids":[1836547290,1836547291,1837007494,1838999999,1841234567],"error":null}
 ```
 
-> This test already caught a real bug: in the first version,
-> `document.cloneNode(true)` returns an **empty document with no children**, so
-> no page text was ever scanned (only IDs inside links were found). Fixed by
-> dropping to `body` before cloning. Pure unit tests could never have caught it.
+**c) Network sniffer, end to end**
+
+```bash
+msedge --headless=new --disable-gpu --dump-dom --virtual-time-budget=9000 sniffer-test.html
+```
+
+Simulates an app-like site serving 4 pages of JSON, containing real asset ids, a
+13-digit post id and Unix timestamps. Expected:
+
+```json
+{"jsonCalls":4,"apiKeyHits":12,"looseApiHits":0,"pageHits":0,"timestampLeaked":false,
+ "postIdLeaked":false,"endpointCount":1,"topEndpointHits":12,"total":12,
+ "ids":[1830000100,...,1830000402]}
+```
+
+All 12 asset ids captured, zero timestamps leaked, zero post ids leaked.
+
+> These browser tests already caught two real bugs that unit tests could not:
+> `document.cloneNode(true)` returns an **empty** document (no page text was
+> ever scanned), and the endpoint grouping collapsed because a `data:` URL has
+> no origin.
 
 ---
 
@@ -131,11 +178,11 @@ Expected output:
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| "wants verification -> stopped" | Site anti-bot | Use `3) Follow mode` and page manually |
-| "No paging parameter found" | Page does not page via the URL | Same: use follow mode |
-| Only noise captured | Page is full of numbers | Keep "Filter noise" checked, or filter by digit count in Excel |
-| Panel never appears | Paste blocked or page CSP | Confirm `allow pasting`; try another browser |
-| No download | Browser blocked automatic downloads | Allow downloads for that site |
+| "wants verification -> stopped" | Site anti-bot | Switch to `3) Follow mode` and page manually |
+| "No paging parameter found" | Page does not page via URL | Use `3)` or `4)` instead |
+| Sniffer finds nothing | Content is rendered from HTML, not JSON | Click `1) Grab this page` instead |
+| Too many `api` rows, few `api-key` rows | JSON full of unrelated numbers | Sort the CSV by `Source` and keep `api-key` first |
+| Panel never appears | Paste blocked, or page CSP | Confirm `allow pasting`; try another browser |
 
 ---
 
@@ -143,7 +190,7 @@ Expected output:
 
 - An ID in hand does not mean it is usable. Many Roblox audio assets are
   private; verify availability after collecting.
-- Keep the pace civil. The script already sleeps 1.2-2s between pages; do not
-  turn it into a fast concurrent crawler.
-- This tool only converts page content **you can already see** into a table. It
-  does not bypass logins, captchas or paywalls.
+- Keep the pace civil. The script sleeps between requests and autoscroll runs at
+  1.6s per round; do not turn it into a fast concurrent crawler.
+- This tool only converts content **you can already see** into a table. It does
+  not bypass logins, captchas or paywalls.
