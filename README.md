@@ -487,7 +487,9 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 - **数据口径一个字符都没改**：类别固定 `'👑 赞助者'`、**金额写在 `platform` 字段**、感谢语写在 `message`。
 
 顺带说明：那个「到目前一共花了多少钱」（`js/common.js` 里的 `SITE_COST`），
-现在**只在 `thanks.html` 的「👑 赞助者」里显示**这一处（首页原来那块已经搬走）。
+**2026-09-30 起挪到首页 hero 那条赞赏码的右边单独显示**（`.hero-sponsor-cost`，
+数字由 `fillSiteCost` 回填）；原来在 `thanks.html`「👑 赞助者」里那一行
+（`.thanks-cost`）按用户要求删掉了，鸣谢页不再写金额。
 
 ### 6）📦 合并工具：后台新开的一级标签
 
@@ -741,8 +743,8 @@ DOM 和变量（它们都用 `fileA` / `fileB` / `mergeBtn` / `merged` 这些同
 | **更新公告** | `data/updates.json` | **2026-09-29 起后台没有「更新管理」了**，这个文件由 AI 在完成任务后直接写：每个页面一个 `version`（改了就弹一次）+ `updates`（弹窗内容）。改完版本号，访客下次打开对应页面就会看到弹窗。详见附一第 11 节 |
 | **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来；点「🔄 刷新」重新拉一次。**（2026-09-26）后台的「🔥 热门 Top 100」排行榜已按用户要求下线**，只留「有热度的曲目 / 总互动次数」两张汇总卡 + 📢 访问渠道来源；宝库页自己的热门榜不受影响 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
-| **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在 `thanks.html` 的「👑 赞助者」显示这一处**（首页的「赞助者荣誉榜」已经搬到那个页面；hero 的赞赏码小条、赞赏码弹窗、新人弹窗都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；名单里还有一份**没脚本时的兜底**数字（占位元素，属性名见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改 |
-| **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单和一行金额 |
+| **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示这一处**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改 |
+| **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗），**右边那一小块就是「本站花了多少钱」**（`.hero-sponsor-cost`）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里两个切换：**👑 赞助者 / 🎮 Roblox ID 宝库**，导航栏和页脚都有入口；宝库页原来那个鸣谢弹窗现在直接跳到这个页面，不再单独弹 |
 | **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`💬 反馈贡献者`）；`data/thanks.json` 是同结构的**本地档案**，供桌面上的 `合并工具.html`（❤️ 鸣谢名单那个标签）合并、对账、存档用 —— **页面目前不读它**，想让名单在接口挂掉时也能显示，得照赞助者那样把这份底档接进 `thanks.html` |

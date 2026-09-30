@@ -1103,18 +1103,10 @@ body.modal-open .particles i { animation-play-state: paused; }
    .thanks-info / .thanks-top / .thanks-name / .thanks-title / .thanks-note /
    .thanks-amount*）都删掉了。 */
 
-/* 全站唯一那处金额 —— 占位元素由 js/common.js 的 fillSiteCost 启动时回填。
-   2026-09-26：原来是一条拉满整页宽、上面还画了虚线分隔的说明；用户嫌「每样都拉满整页宽」，
-   改成一条普通小字（不画横线、限宽）。 */
-.thanks-cost {
-  margin: 14px auto 0;
-  max-width: 640px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  text-align: center;
-}
-.thanks-cost b { color: var(--gold-ink); font-weight: 800; }
+/* 2026-09-30：原来这里是「全站唯一那处金额」.thanks-cost（鸣谢页那行小字）。
+   用户要求把金额挪到首页 hero 的赞赏码右边单独显示，鸣谢页不再写它 ——
+   标记与样式都删了，新那一块的样式跟着 hero 赞赏码写在 index.html 的内联 <style> 里
+   （.hero-sponsor-cost，见 index.html）。 */
 
 /* 2026-09-26：这一块原来是「☕ 请我喝一杯」+ 赞赏码小图（.thanks-support / -qr / -txt / -t / -s）。
    用户要求「把鸣谢里面赞助码有关的删掉」，标记与样式都移除了 —— 赞赏入口只在首页 hero 那条。 */
@@ -1544,12 +1536,12 @@ html.lite .seg-panel:not([hidden]) {
      跟首页原来的做法一样：窄屏只留图标，导航项就还在一行里。 */
   .nav-brand .brand-text { display: none; }
   .navbar .nav-links a { padding: 6px 10px; white-space: nowrap; }
-  /* 鸣谢页：名字长、右边还有金额，窄屏上允许金额换到第二行，免得撑破卡片 */
+  /* 鸣谢页：名字长、名字后面还跟着金额或说明，窄屏上允许它们换到第二行，
+     免得撑破卡片 */
   .section-head { margin: 26px 0 14px; }
   .seg-tabs { gap: 6px; padding: 5px; }
   .seg-tab { padding: 7px 12px; font-size: 0.8rem; }
   .thanks-person { font-size: 0.82rem; }
-  .thanks-cost { font-size: 0.75rem; }
 }
 
 /* ============================================================

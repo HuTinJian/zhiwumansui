@@ -212,8 +212,8 @@
     /* ========== 赞赏码小条（「开始逛逛」按钮下面那条） ==========
        它就是「想支持就扫这个码」，所以图直接露出来，不藏在二级页面里；
        整条可点（点开看大图，手机上才扫得动）。
-       金额【不写在这条里了】（用户 2026-09-26 要求）：花多少只在 thanks.html 的
-       「赞助者」面板显示那一处。
+       金额（用户 2026-09-30 要求）：单独一小块挂在赞赏码【右边】，
+       原文案不动；鸣谢页 thanks.html 那行金额同时删掉了，全站只此一处。
        尺寸压得比按钮还小一号：它是补充信息，不该抢 hero 的焦点。 */
     .hero-sponsor {
       display: inline-flex;
@@ -242,6 +242,29 @@
     .hero-sponsor-s { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
     .hero-sponsor-s b { color: var(--primary-ink); font-weight: 800; }
     .hero-sponsor-h { font-size: 0.74rem; color: var(--text-muted); }
+
+    /* 金额那一小块：单独一块，贴在赞赏码右边（用户 2026-09-30 要求），
+       和左边那列文案用一条浅色竖虚线隔开。
+       数字 / 日期都由 js/common.js 的 fillSiteCost 启动时回填
+       （占位属性 data-site-cost、data-site-cost-date），HTML 里那份是没脚本时的兜底。 */
+    .hero-sponsor-cost {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      margin-left: 4px;
+      padding-left: 18px;
+      border-left: 1px dashed var(--border);
+      white-space: nowrap;
+    }
+    .hero-sponsor-cost b {
+      font-size: 1.16rem;
+      font-weight: 800;
+      color: var(--gold-ink);
+      letter-spacing: -0.3px;
+    }
+    .hero-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
 
     /* ========== 区块标题 ========== */
     .section-head {
@@ -412,8 +435,24 @@
       .hero { padding: 46px 0 34px; }
       .hero .subtitle { font-size: 0.96rem; }
       .hero .hero-desc { font-size: 0.88rem; }.hero-actions .btn { flex: 1 1 140px; padding: 12px 20px; }
-      .hero-sponsor { display: flex; width: 100%; margin-top: 20px; padding: 10px 14px 10px 10px; gap: 11px; }
+      .hero-sponsor { display: flex; flex-wrap: wrap; width: 100%; margin-top: 20px; padding: 10px 14px 10px 10px; gap: 11px; }
       .hero-sponsor-qr { width: 62px; height: 62px; }
+      /* 窄屏上金额块换到下一行：竖虚线改横虚线，免得把文案挤成一长条。
+         flex: 1 1 0 是必需的 —— 不加的话文案那列按「不换行有多宽」参与换行计算，
+         会被挤到自己单独一行（二维码孤零零留在上面）。 */
+      .hero-sponsor-txt { flex: 1 1 0; min-width: 0; }
+      .hero-sponsor-cost {
+        flex: 1 1 100%;
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: center;
+        gap: 8px;
+        margin-left: 0;
+        padding: 8px 0 2px;
+        border-left: none;
+        border-top: 1px dashed var(--border);
+      }
+      .hero-sponsor-cost b { font-size: 1.05rem; }
       .section-head { margin: 42px 0 16px; }
       .content-grid { grid-template-columns: 1fr; }
       .nav-brand .brand-text { display: none; }
@@ -462,8 +501,10 @@
 
       <!-- 赞赏码小条：位置就是这里（「开始逛逛」那排按钮下面）。
            图直接露出来（点一下开大图，手机上才扫得动）。
-           这里【不写金额了】（用户 2026-09-26 要求）：花了多少钱全站只出现在
-           thanks.html 的「赞助者」那一处，数字的唯一来源是 js/common.js 的 SITE_COST。 -->
+           金额【单独一小块，放在赞赏码右边】（用户 2026-09-30 要求）：
+           数字和核对日期由 js/common.js 的 SITE_COST 回填，占位属性见
+           data-site-cost / data-site-cost-date；HTML 里写的那份只是没脚本时的兜底，
+           换数字时记得一起改。 -->
       <button type="button" class="hero-sponsor" id="heroSponsor" aria-label="查看赞赏码大图">
         <img class="hero-sponsor-qr" src="images/sponsor-qrcode.png"
              alt="HuTinJian 的赞赏码" width="76" height="76" loading="lazy">
@@ -471,6 +512,10 @@
           <span class="hero-sponsor-t">☕ 请我喝一杯</span>
           <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
           <span class="hero-sponsor-h">点我看大图 · 扫一扫就是最大的支持</span>
+        </span>
+        <span class="hero-sponsor-cost">
+          <b data-site-cost>¥105.04</b>
+          <span class="hero-sponsor-cost-d">截至 <span data-site-cost-date>2026-09-30</span></span>
         </span>
       </button>
     </section>
@@ -488,8 +533,8 @@
     <!-- ==================== 赞助者荣誉榜（已搬走） ====================
          2026-09-26：这一整段（原来那张金色荣誉卡的标记与样式）搬去了独立的 thanks.html，
          和「Roblox ID 宝库」的鸣谢名单合成一页（顶部用切换器换名单）。
-         首页从此不出现赞助者、也不出现任何金额 ——
-         全站唯一那处金额在 thanks.html 的「赞助者」里，
+         首页从此不出现赞助者名单。
+         金额只出现在上面 hero 那条赞赏码右边（2026-09-30 起），
          数字的唯一来源还是 js/common.js 的 SITE_COST。 -->
 
     <!-- 内容卡片 -->
