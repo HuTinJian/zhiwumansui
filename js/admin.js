@@ -21,6 +21,99 @@ function setStatText(id, value) {
   if (el) el.textContent = value;
 }
 
+/* ============================================================
+   分页（2026-10-01 站主要求）
+   ------------------------------------------------------------
+   歌曲管理 / 开发者隔离区 / 鸣谢名单那两栏，都按「100 组/页」分页，
+   样式跟宝库页（roblox_music.html）那套一模一样 —— 宝库页那边是
+   .pager + pagerNumbers()，这里照搬过来，只是换成后台这几个列表用。
+   ============================================================ */
+const ADMIN_PAGE_SIZE = 100;
+
+function clampPage(page, total) {
+  const pages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE));
+  return Math.min(Math.max(1, page), pages);
+}
+
+/* 页码按钮：页数少就全列，页数多只列当前页附近；窄屏只留首/当前/末 */
+function adminPagerNumbers(page, pages) {
+  const span = window.innerWidth < 520 ? 0 : 1;
+
+  if (pages <= span * 2 + 5) {
+    const all = [];
+    for (let i = 1; i <= pages; i++) all.push(i);
+    return all;
+  }
+
+  const list = [1];
+  const from = Math.max(2, page - span);
+  const to = Math.min(pages - 1, page + span);
+  if (from > 2) list.push('…');
+  for (let p = from; p <= to; p++) list.push(p);
+  if (to < pages - 1) list.push('…');
+  list.push(pages);
+
+  return list.filter((n, i, arr) => {
+    if (n !== '…') return true;
+    const prev = arr[i - 1];
+    const next = arr[i + 1];
+    return typeof prev === 'number' && typeof next === 'number' && next - prev > 1;
+  });
+}
+
+/* 画分页器。box：容器；total：总条数；page：当前页；unit：单位（条 / 人）；
+   onGo：点了某页要干什么。总条数不到一页就整个藏起来（跟宝库页一致）。 */
+function renderAdminPager(box, total, page, unit, onGo) {
+  if (!box) return;
+  const pages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE));
+  const show = total > ADMIN_PAGE_SIZE;
+
+  box.hidden = !show;
+  box.innerHTML = '';
+  if (!show) return;
+
+  const mk = (label, target, opts) => {
+    const o = opts || {};
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = label;
+    if (o.disabled) btn.disabled = true;
+    if (o.current) { btn.classList.add('current'); btn.setAttribute('aria-current', 'page'); }
+    if (o.edge) btn.classList.add('pager-edge');
+    if (o.aria) btn.setAttribute('aria-label', o.aria);
+    btn.addEventListener('click', () => { if (!btn.disabled) onGo(target); });
+    return btn;
+  };
+
+  box.appendChild(mk('«', 1, { disabled: page === 1, aria: '第一页', edge: true }));
+  box.appendChild(mk('‹', page - 1, { disabled: page === 1, aria: '上一页' }));
+
+  adminPagerNumbers(page, pages).forEach(n => {
+    if (n === '…') {
+      const gap = document.createElement('span');
+      gap.className = 'pager-gap';
+      gap.textContent = '…';
+      box.appendChild(gap);
+    } else {
+      box.appendChild(mk(String(n), n, { current: n === page, disabled: n === page }));
+    }
+  });
+
+  box.appendChild(mk('›', page + 1, { disabled: page === pages, aria: '下一页' }));
+  box.appendChild(mk('»', pages, { disabled: page === pages, aria: '最后一页', edge: true }));
+
+  const info = document.createElement('span');
+  info.className = 'pager-info';
+  info.textContent = '第 ' + page + ' / ' + pages + ' 页 · 每页 ' + ADMIN_PAGE_SIZE + ' ' + unit +
+    ' · 共 ' + total.toLocaleString('en-US') + ' ' + unit;
+  box.appendChild(info);
+}
+
+/* 翻页后把列表滚回可视区顶部，不用自己找 */
+function scrollListIntoView(el) {
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
 /* ========== 初始化 ========== */
 (async function init() {
   const ok = await requireAuth();
@@ -748,38 +841,65 @@ async function loadRobloxStats() {
     });
     setStatText('statQuarantineCats', qCats.size);
 
-    if (quarantine.length === 0) {
-      container.innerHTML = '<div class="empty-state">隔离区是空的</div>';
-      return;
-    }
-
-    container.innerHTML = '';
-    quarantine.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'list-item';
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(item.name || '未知歌名')}</span>
-          <span class="type-tag">${escapeHtml(item.category || '未分类')}</span>
-        </div>
-        <div class="meta">
-          🆔 ${escapeHtml(item.id)}
-          ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
-          ${item.quarantinedAt ? ' · 🕒 ' + escapeHtml(item.quarantinedAt) : ''}
-        </div>
-        <div class="actions">
-          <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 移除</button>
-        </div>
-      `;
-      container.appendChild(el);
-    });
-
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteQuarantineItem(btn.dataset.id));
-    });
+    quarantineCache = quarantine;
+    renderQuarantinePage();
   } catch (err) {
     document.getElementById('quarantineList').innerHTML = '<div class="empty-state">加载失败</div>';
+    const pager = document.getElementById('quarantinePager');
+    if (pager) pager.hidden = true;
   }
+}
+
+/* 隔离区列表：每页 100 条（2026-10-01 站主要求，跟宝库页一样） */
+let quarantineCache = [];
+let quarantinePage = 1;
+
+function renderQuarantinePage() {
+  const container = document.getElementById('quarantineList');
+  const pager = document.getElementById('quarantinePager');
+  const total = quarantineCache.length;
+
+  quarantinePage = clampPage(quarantinePage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">隔离区是空的</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (quarantinePage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = quarantineCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name || '未知歌名')}</span>
+        <span class="type-tag">${escapeHtml(item.category || '未分类')}</span>
+      </div>
+      <div class="meta">
+        🆔 ${escapeHtml(item.id)}
+        ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
+        ${item.quarantinedAt ? ' · 🕒 ' + escapeHtml(item.quarantinedAt) : ''}
+      </div>
+      <div class="actions">
+        <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 移除</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteQuarantineItem(btn.dataset.id));
+  });
+
+  renderAdminPager(pager, total, quarantinePage, '条', (p) => {
+    quarantinePage = p;
+    renderQuarantinePage();
+    scrollListIntoView(container);
+  });
 }
 
 /* 从隔离区移除单个 ID */
@@ -908,22 +1028,31 @@ async function handleImportQuarantine() {
 
 /* ============================================================
    歌曲管理（D1）
+   ------------------------------------------------------------
+   2026-10-01：
+     · 标题后面的数字徽章（songCount）已删掉，条数写在统计卡「D1 歌曲数量」里；
+     · 列表按「100 组/页」分页（跟宝库页一样），所以要先把整份数据存下来
+       （songCache），只渲染当前这一页。
    ============================================================ */
+let songCache = [];
+let songPage = 1;
+
 async function loadSongs() {
   const container = document.getElementById('songList');
-  /* 2026-10-01：标题后面的数字徽章（songCount）已删掉；
-     条数改成写到统计卡「D1 歌曲数量」里（statD1Songs）。 */
+  const pager = document.getElementById('songPager');
   container.innerHTML = '<div class="loading">加载中...</div>';
 
   try {
     const res = await fetch('/api/songs/list?t=' + Date.now());
     if (!res.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
+      if (pager) pager.hidden = true;
       return;
     }
     const data = await res.json();
     if (data && data.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
+      if (pager) pager.hidden = true;
       return;
     }
 
@@ -932,38 +1061,60 @@ async function loadSongs() {
       list = data.data;
     }
     setStatText('statD1Songs', list.length);
-
-    if (list.length === 0) {
-      container.innerHTML = '<div class="empty-state">D1 里还没有歌曲</div>';
-      return;
-    }
-
-    container.innerHTML = '';
-    list.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'list-item';
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(item.name)}</span>
-          <span class="type-tag">${escapeHtml(item.category)}</span>
-        </div>
-        <div class="meta">
-          🆔 ${escapeHtml(item.id)}
-          · 📌 lineIndex: ${escapeHtml(String(item.lineIndex || 0))}
-        </div>
-        <div class="actions">
-          <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除</button>
-        </div>
-      `;
-      container.appendChild(el);
-    });
-
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteSong(btn.dataset.id));
-    });
+    songCache = list;
+    renderSongPage();
   } catch (err) {
     container.innerHTML = '<div class="empty-state">加载失败</div>';
+    if (pager) pager.hidden = true;
   }
+}
+
+/* 只画当前这一页（每页 100 条） */
+function renderSongPage() {
+  const container = document.getElementById('songList');
+  const pager = document.getElementById('songPager');
+  const total = songCache.length;
+
+  songPage = clampPage(songPage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">D1 里还没有歌曲</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (songPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = songCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span class="type-tag">${escapeHtml(item.category)}</span>
+      </div>
+      <div class="meta">
+        🆔 ${escapeHtml(item.id)}
+        · 📌 lineIndex: ${escapeHtml(String(item.lineIndex || 0))}
+      </div>
+      <div class="actions">
+        <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteSong(btn.dataset.id));
+  });
+
+  renderAdminPager(pager, total, songPage, '条', (p) => {
+    songPage = p;
+    renderSongPage();
+    scrollListIntoView(container);
+  });
 }
 
 /* 2026-09-29：这里原来有「➕ 添加歌曲」弹窗的三个函数
@@ -1211,41 +1362,75 @@ async function loadThanks() {
     /* 收录类别：只数真的有人在那儿的类别，空类别不算 */
     setStatText('statThanksCats', groups.filter(cat => (cat.people || []).length > 0).length);
 
-    if (total === 0) {
-      container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
-      return;
-    }
-
-    container.innerHTML = '';
+    /* 平铺成「一行一个人」，好按 100 人一页翻（类别名跟着每个人走） */
+    thanksCache = [];
     groups.forEach(cat => {
-      const title = document.createElement('div');
-      title.style.cssText = 'font-weight:700;color:var(--gold);margin:16px 0 8px;font-size:1rem;';
-      title.textContent = cat.category;
-      container.appendChild(title);
-
-      (cat.people || []).forEach(person => {
-        const el = document.createElement('div');
-        el.className = 'list-item';
-        el.innerHTML = `
-          <div class="row1">
-            <span class="name">${escapeHtml(person.name)}</span>
-            ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
-          </div>
-          ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
-          <div class="actions">
-            <button class="btn-delete" data-id="${escapeHtml(person.id)}">🗑️ 删除</button>
-          </div>
-        `;
-        container.appendChild(el);
-      });
+      (cat.people || []).forEach(person => thanksCache.push({ category: cat.category, person }));
     });
-
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteThanks(Number(btn.dataset.id)));
-    });
+    renderThanksPage();
   } catch (err) {
     container.innerHTML = '<div class="empty-state">加载失败</div>';
+    const pager = document.getElementById('thanksPager');
+    if (pager) pager.hidden = true;
   }
+}
+
+/* 鸣谢名单：每页 100 人（2026-10-01 站主要求，跟宝库页一样） */
+let thanksCache = [];
+let thanksPage = 1;
+
+function renderThanksPage() {
+  const container = document.getElementById('thanksList');
+  const pager = document.getElementById('thanksPager');
+  const total = thanksCache.length;
+
+  thanksPage = clampPage(thanksPage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (thanksPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = thanksCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  let lastCat = '';
+  pageItems.forEach(({ category, person }) => {
+    /* 类别标题只在换类别时出现一次；翻到第二页时也会先报一下当前是哪个类别 */
+    if (category !== lastCat) {
+      const title = document.createElement('div');
+      title.style.cssText = 'font-weight:700;color:var(--gold);margin:16px 0 8px;font-size:1rem;';
+      title.textContent = category;
+      container.appendChild(title);
+      lastCat = category;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(person.name)}</span>
+        ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
+      </div>
+      ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
+      <div class="actions">
+        <button class="btn-delete" data-id="${escapeHtml(person.id)}">🗑️ 删除</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteThanks(Number(btn.dataset.id)));
+  });
+
+  renderAdminPager(pager, total, thanksPage, '人', (p) => {
+    thanksPage = p;
+    renderThanksPage();
+    scrollListIntoView(container);
+  });
 }
 
 /* 添加鸣谢 */
@@ -1418,27 +1603,59 @@ async function loadSponsors() {
   setStatText('statSponsorBase', baseline.length);
   setStatText('statSponsorD1', d1People.length);
 
-  container.innerHTML = '';
+  /* 平铺成一个列表（底档行 + D1 行），好按 100 人一页翻 */
+  sponsorRows = [
+    ...baseline.map(item => ({ group: 'base', item })),
+    ...d1People.map(person => ({ group: 'd1', item: person }))
+  ];
+  sponsorD1Error = d1Error;
+  renderSponsorPage();
+}
 
-  if (total === 0 && !d1Error) {
+/* 赞助者：每页 100 人（2026-10-01 站主要求，跟宝库页一样）。
+   底档和 D1 两段还是分开带小标题，只是跟着行一起翻页。 */
+let sponsorRows = [];
+let sponsorPage = 1;
+let sponsorD1Error = '';
+
+function renderSponsorPage() {
+  const container = document.getElementById('sponsorList');
+  const pager = document.getElementById('sponsorPager');
+  const total = sponsorRows.length;
+
+  sponsorPage = clampPage(sponsorPage, total);
+
+  if (total === 0 && !sponsorD1Error) {
     container.innerHTML = '<div class="empty-state">暂无赞助者</div>';
+    if (pager) pager.hidden = true;
     return;
   }
 
-  /* ---- 底档行：只读，标一句「改文件」 ---- */
-  if (baseline.length) {
-    const head = document.createElement('div');
-    head.className = 'sponsor-group-title';
-    head.textContent = '📄 底档 · data/sponsors.json（只读，改文件 + 重新部署才会变）';
-    container.appendChild(head);
+  const start = (sponsorPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = sponsorRows.slice(start, start + ADMIN_PAGE_SIZE);
 
-    baseline.forEach(item => {
+  container.innerHTML = '';
+  let lastGroup = '';
+
+  pageItems.forEach(({ group, item }) => {
+    if (group !== lastGroup) {
+      const head = document.createElement('div');
+      head.className = 'sponsor-group-title';
+      head.textContent = group === 'base'
+        ? '📄 底档 · data/sponsors.json（只读，改文件 + 重新部署才会变）'
+        : '☁️ 后台添加 · 存在 D1（category = 👑 赞助者）';
+      container.appendChild(head);
+      lastGroup = group;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'list-item';
+
+    if (group === 'base') {
       const p = item || {};
       const amount = (p.amount === undefined || p.amount === null || p.amount === '')
         ? String(p.platform || '')
         : String(p.amount);
-      const el = document.createElement('div');
-      el.className = 'list-item';
       el.innerHTML = `
         <div class="row1">
           <span class="name">${escapeHtml(p.name || '匿名')}</span>
@@ -1448,20 +1665,8 @@ async function loadSponsors() {
         ${p.message ? '<div class="message">' + escapeHtml(p.message) + '</div>' : ''}
         <div class="meta" style="margin:0;">📄 底档 · 改 data/sponsors.json</div>
       `;
-      container.appendChild(el);
-    });
-  }
-
-  /* ---- D1 行：可编辑、可删除 ---- */
-  if (d1People.length) {
-    const head = document.createElement('div');
-    head.className = 'sponsor-group-title';
-    head.textContent = '☁️ 后台添加 · 存在 D1（category = 👑 赞助者）';
-    container.appendChild(head);
-
-    d1People.forEach(person => {
-      const el = document.createElement('div');
-      el.className = 'list-item';
+    } else {
+      const person = item || {};
       el.innerHTML = `
         <div class="row1">
           <span class="name">${escapeHtml(person.name)}</span>
@@ -1473,24 +1678,31 @@ async function loadSponsors() {
           <button class="btn-delete" data-id="${escapeHtml(String(person.id))}">🗑️ 删除</button>
         </div>
       `;
-      container.appendChild(el);
-    });
+    }
 
-    container.querySelectorAll('.btn-edit-sponsor').forEach(btn => {
-      btn.addEventListener('click', () => startEditSponsor(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteSponsor(Number(btn.dataset.id)));
-    });
-  }
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-edit-sponsor').forEach(btn => {
+    btn.addEventListener('click', () => startEditSponsor(Number(btn.dataset.id)));
+  });
+  container.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteSponsor(Number(btn.dataset.id)));
+  });
 
   /* D1 拉挂了也要说清楚，但不挡住底档已经渲染出来的部分 */
-  if (d1Error) {
+  if (sponsorD1Error) {
     const warn = document.createElement('div');
     warn.className = 'empty-state';
-    warn.textContent = '⚠️ D1 那部分没加载出来：' + d1Error;
+    warn.textContent = '⚠️ D1 那部分没加载出来：' + sponsorD1Error;
     container.appendChild(warn);
   }
+
+  renderAdminPager(pager, total, sponsorPage, '人', (p) => {
+    sponsorPage = p;
+    renderSponsorPage();
+    scrollListIntoView(container);
+  });
 }
 
 /* 编辑：打开同一个弹窗、把这一行的值填进去
