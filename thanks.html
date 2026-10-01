@@ -288,7 +288,7 @@
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
           html += '<span class="p-name">' + esc(p.name) + '</span>';
-          if (p.amount) html += '<span class="p-platform">· ' + esc(p.amount) + '</span>';
+          if (p.amount) html += '<span class="p-amount">· ' + esc(p.amount) + '</span>';
           if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
           html += '</div>';
         });

@@ -1163,6 +1163,10 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .thanks-person .p-name { font-weight: 600; color: var(--primary-ink); }
 .thanks-person .p-platform { color: var(--text-muted); font-size: 0.78rem; }
+/* 2026-10-01 站主要求：赞助者的**金额**用金色。
+   用 --gold-ink 而不是 --gold —— 它是专门给「浅底上的金色文字」准备的（对比度 5.2:1），
+   深色模式下会自动换成浅金，两种主题都看得清。 */
+.thanks-person .p-amount { color: var(--gold-ink); font-size: 0.78rem; font-weight: 700; }
 .thanks-person .p-message { color: var(--text-light); font-size: 0.8rem; }
 
 .thanks-foot { margin: 18px 0 10px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
