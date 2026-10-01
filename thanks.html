@@ -141,6 +141,11 @@
       /* D1 里赞助者用的类别名，固定这个字符串（别改，后台也按它存） */
       var SPONSOR_CATEGORY = '👑 赞助者';
 
+      /* 2026-10-01：后台「删除」底档里的赞助者时，会在 D1 存一条隐藏标记
+         （类别就是下面这个字符串）。看到它，就把同名的人从名单里去掉。
+         ⚠️ 同样是数据口径，改它要跟后台 js/admin.js 一起改。 */
+      var SPONSOR_HIDDEN_CATEGORY = '🚫 已删除赞助者';
+
       $('year').textContent = new Date().getFullYear();
 
       /* 版本更新检查（跟其它页一样，带页面对应的 key） */
@@ -252,7 +257,7 @@
         function push(p) {
           if (!p) return;
           var name = String(p.name === undefined || p.name === null ? '' : p.name).trim();
-          if (!name || seen[name]) return;   /* 按名字去重：先来的赢 —— 底档先入，所以底档优先 */
+          if (!name || seen[name]) return;   /* 按名字去重：先来的赢 —— 见下面入列顺序 */
           seen[name] = true;
           items.push({
             name: name,
@@ -262,10 +267,11 @@
           });
         }
 
-        /* 底档优先入列 */
-        (Array.isArray(base) ? base : []).forEach(function (p) { push(p); });
-        /* D1 里同名的会被上面挡掉，剩下的才追加 */
+        /* 2026-10-01：改成「D1 优先」。因为后台现在也能改底档里的人 ——
+           改法是存一条同名的 D1 记录把它盖住，所以同名时以 D1 那条为准；
+           底档里没被改过的照常显示。 */
         (Array.isArray(extra) ? extra : []).forEach(function (p) { push(p); });
+        (Array.isArray(base) ? base : []).forEach(function (p) { push(p); });
 
         if (items.length === 0) {
           box.innerHTML = '<div class="thanks-empty">' +
@@ -307,14 +313,26 @@
         var groups = results[1];
 
         var extra = [];
+        var hidden = [];   /* 后台「删除」底档里的人时留下的隐藏标记 */
         if (Array.isArray(groups)) {
           groups.forEach(function (cat) {
-            if (cat && cat.category === SPONSOR_CATEGORY && Array.isArray(cat.people)) {
-              extra = extra.concat(cat.people);
-            }
+            if (!cat || !Array.isArray(cat.people)) return;
+            if (cat.category === SPONSOR_CATEGORY) extra = extra.concat(cat.people);
+            if (cat.category === SPONSOR_HIDDEN_CATEGORY) hidden = hidden.concat(cat.people);
           });
         }
-        renderSponsors(base.list, base.ok, extra);
+
+        /* 2026-10-01：被后台删掉的（名字进隐藏名单）就不显示了 —— 底档和 D1 两边都过滤 */
+        var hiddenNames = Object.create(null);
+        hidden.forEach(function (p) {
+          var n = String((p && p.name) || '').trim();
+          if (n) hiddenNames[n] = true;
+        });
+        var notHidden = function (p) {
+          return !hiddenNames[String((p && p.name) || '').trim()];
+        };
+
+        renderSponsors(base.list.filter(notHidden), base.ok, extra.filter(notHidden));
         renderRoblox(groups);
       });
 
@@ -336,8 +354,10 @@
         groups.forEach(function (cat) {
           if (!cat || !cat.people || cat.people.length === 0) return;
           /* 赞助者（👑 赞助者）上面那一栏已经专门展示了，这里跳过 ——
-             同一个机构/人不在两个 tab 里重复出现（它们本来就是两个名单）。 */
+             同一个机构/人不在两个 tab 里重复出现（它们本来就是两个名单）。
+             2026-10-01：底档删除用的「🚫 已删除赞助者」隐藏标记也跳过。 */
           if (cat.category === SPONSOR_CATEGORY) return;
+          if (cat.category === SPONSOR_HIDDEN_CATEGORY) return;
           html += '<div class="thanks-group">';
           html += '<div class="cat-title">' + esc(cat.category) + '</div>';
           /* 每个类别自己是一列（三个类别并排，由 css 的 .thanks-groups 栅格决定），

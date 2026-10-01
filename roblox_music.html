@@ -1499,6 +1499,9 @@
        既省内存，也让定位算法的误差小了一个数量级。
        ============================================================ */
     const PAGE_SIZE = 100;
+    /* 2026-10-01 站主要求：「🔥 热门推荐」里是 100 组（按歌名合并后的组），
+       不是 100 个 ID —— 一个歌名可能挂好几个 ID，所以不能拿 ID 数当上限。 */
+    const HOT_GROUP_LIMIT = 100;
     let currentGroups = [];
     let currentPage = 1;
     let isLoadingMore = false;
@@ -1625,7 +1628,10 @@
 
     async function loadHotList() {
       try {
-        const res = await fetch('/api/hot/list?t=' + Date.now(), { cache: 'no-store' });
+        /* 2026-10-01 站主要求「热门按 100 组算，不是 100 个 ID」：
+           所以这里多拿一些 ID（上限 500），前端再按歌名合并成组、取前 100 组
+           （见 renderList 里的 HOT_GROUP_LIMIT）。 */
+        const res = await fetch('/api/hot/list?limit=500&t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.ok && Array.isArray(data.data)) {
@@ -1904,6 +1910,10 @@
 
       if (showHotOnly) {
         groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0) || compareName(a.name, b.name));
+        /* 2026-10-01 站主要求：热门里是「100 组」，不是「100 个 ID」——
+           ID 已经在上面按名字合并成组了（同名多 ID 算一组），
+           这里再按热度取前 100 组；一页正好 100 组，所以热门视图就是一页。 */
+        groups = groups.slice(0, HOT_GROUP_LIMIT);
       } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
       } else {

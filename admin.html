@@ -705,6 +705,11 @@
               <div class="num" id="statSponsorD1">-</div>
               <div class="label">后台添加</div>
             </div>
+            <!-- 2026-10-01：底档里的人也能在后台删（存一条隐藏标记），所以多这张卡 -->
+            <div class="stat-card">
+              <div class="num" id="statSponsorHidden">-</div>
+              <div class="label">已删除（隐藏）</div>
+            </div>
           </div>
         </div>
 
@@ -720,7 +725,7 @@
             </span>
           </h2>
           <p class="panel-desc">
-            底档 data/sponsors.json 是只读的（改文件 + 重新部署才生效）；这里添加的存 D1，鸣谢页把两处合起来显示，同名的以底档为准。
+            底档 data/sponsors.json 里的人和后台添加的都能在这一栏改 / 删：改底档那条会在 D1 存一条同名记录盖住它，删底档那条会存一条「已删除」标记把页面隐藏（文件本身不动，想彻底清掉再改一次 data/sponsors.json）；鸣谢页两处合起来显示，同名的以后台那条为准。
           </p>
           <div id="sponsorList">
             <div class="loading">加载中...</div>
