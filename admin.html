@@ -86,11 +86,21 @@
       margin-bottom: 16px; display: flex; align-items: center;
       justify-content: space-between; flex-wrap: wrap; gap: 10px;
     }
-    .panel-card h2 .count {
-      font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
-      background: var(--bg); padding: 3px 12px; border-radius: 20px;
+    /* 2026-10-01 用户要求：原来每个面板标题后面都跟着一个灰色数字徽章（.count），
+       现在全部删掉 —— 数字只留在「📊 数据统计」的卡片里，标题那一行只管按钮。
+       所以 .count 这条样式也没人要了，一并删掉。 */
+    .panel-card h2 .head-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      /* 「❤️ 鸣谢名单」那两个面板的 h2 里只有按钮（标题已经写在子标签上了），
+         补一个 auto 左边距，让按钮照样靠右，跟别的面板排在同一列上 */
+      margin-left: auto;
     }
-    .panel-card h2 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* 每个面板标题下面那行灰色说明文字：四个面板统一走这个类，
+       保证「歌曲管理 / 开发者隔离区 / 鸣谢名单」的说明格式一模一样。
+       （选择器不加 .panel-card 前缀 —— 添加弹窗里的说明文字也用这个类） */
+    .panel-desc {
+      color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;
+    }
     .panel-card h2 .head-actions button { font-size: 0.85rem; padding: 6px 16px; }
 
     .list-item {
@@ -320,6 +330,24 @@
     }
     #batchImportModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #batchImportModal .import-status.err { color: var(--danger); font-weight: 600; }
+    /* 「➕ 添加歌曲」的识别预览（2026-10-01 加的）：贴进去就显示认出了几首、
+       歌名对不对、各归到哪个分类，确认前心里有数 */
+    #batchImportModal .import-preview {
+      display: none; font-size: 0.82rem; line-height: 1.7;
+      background: var(--bg-tint); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px;
+      max-height: 176px; overflow: auto;
+    }
+    #batchImportModal .import-preview.show { display: block; }
+    #batchImportModal .import-preview .pv-sum {
+      font-weight: 700; color: var(--primary-ink); margin-bottom: 4px;
+    }
+    #batchImportModal .import-preview .pv-row {
+      display: flex; justify-content: space-between; gap: 10px;
+    }
+    #batchImportModal .import-preview .pv-row .pv-cat { color: var(--text-muted); flex: none; }
+    #batchImportModal .import-preview .pv-exist { color: var(--gold-ink); }
+    #batchImportModal .import-preview .pv-more { color: var(--text-muted); margin-top: 4px; }
 
     #importQuarantineModal .modal-content { max-width: 680px; }
     #importQuarantineModal textarea {
@@ -453,7 +481,8 @@
       <div class="panel-card">
         <h2>
           所有反馈
-          <span class="count" id="feedbackCount">0</span>
+          <!-- 2026-10-01 用户要求：标题后面那个灰色数字（截图里圈出来的「0」）删掉，
+               连同 js/admin.js 里写它的那几行一起清掉。 -->
         </h2>
         <div id="feedbackList">
           <div class="loading">加载中...</div>
@@ -487,9 +516,11 @@
                 <div class="num" id="statGroup">-</div>
                 <div class="label">歌曲组数</div>
               </div>
+              <!-- 2026-10-01 用户要求：这里补一张「D1 歌曲数量」（D1 里真正存了多少条）；
+                   原来那张「开发者隔离区」搬到开发者隔离区自己的面板去了。 -->
               <div class="stat-card">
-                <div class="num" id="statQuarantine">-</div>
-                <div class="label">开发者隔离区</div>
+                <div class="num" id="statD1Songs">-</div>
+                <div class="label">D1 歌曲数量</div>
               </div>
             </div>
           </div>
@@ -497,19 +528,19 @@
           <div class="panel-card">
             <h2>
               🎶 D1 歌曲管理
-              <span class="count" id="songCount">0</span>
               <span class="head-actions">
-                <!-- 2026-09-29 用户要求去掉「➕ 添加歌曲」：歌曲统一从「📥 导入」进来；
-                     合并进主数据走桌面上的《织雾满穗-合并工具\3-音乐ID合并.html》。
-                     同日稍后用户又要求加回「📤 导出」——所以它回来了，
-                     导出的格式就是 data/roblox_music.json 那份。 -->
-                <button class="btn btn-primary" id="openBatchImportBtn">📥 导入</button>
+                <!-- 2026-10-01 用户要求：这两颗按钮的叫法跟「❤️ 鸣谢名单」里的
+                     「➕ 添加鸣谢」对齐 ——「📥 导入」改成「➕ 添加歌曲」，
+                     开发者隔离区那颗同理改成「➕ 添加隔离歌曲」。
+                     按钮背后的弹窗和接口都没变（还是贴一段文字批量加，比一条条填快）；
+                     标题后面那个灰色数字也按用户要求删掉了，数字在下面的统计卡里。 -->
+                <button class="btn btn-gold" id="openBatchImportBtn">➕ 添加歌曲</button>
                 <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
               </span>
             </h2>
-            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">
-              这里导入的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后用桌面上的「织雾满穗-合并工具 → 3-音乐ID合并.html」整合进主数据。
+            <p class="panel-desc">
+              这里添加的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后用桌面上的「织雾满穗-合并工具 → 3-音乐ID合并.html」整合进主数据。
             </p>
             <div id="songList">
               <div class="loading">加载中...</div>
@@ -519,14 +550,32 @@
 
         <div class="subpanel" id="card1-quarantine">
           <div class="panel-card">
+            <h2>📊 数据统计</h2>
+            <!-- 2026-10-01 用户要求：隔离区也该有自己的统计（原来只有歌曲管理有），
+                 而且「开发者隔离区」那张卡本来就该在这儿、不在歌曲管理那栏。 -->
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="num" id="statQuarantine">-</div>
+                <div class="label">隔离区 ID 数</div>
+              </div>
+              <div class="stat-card">
+                <div class="num" id="statQuarantineCats">-</div>
+                <div class="label">涉及分类</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
             <h2>
               ⛔ 开发者隔离区
-              <span class="count" id="quarantineCount">0</span>
               <span class="head-actions">
-                <button class="btn btn-primary" id="openImportQuarantineBtn">📥 导入</button>
+                <button class="btn btn-gold" id="openImportQuarantineBtn">➕ 添加隔离歌曲</button>
                 <button class="btn btn-secondary" id="exportQuarantineBtn">📤 导出</button>
               </span>
             </h2>
+            <p class="panel-desc">
+              这里添加的 ID 不会出现在宝库页（相当于先下架、留着复核），移除后马上恢复显示；攒够之后用桌面上的合并工具整理进 data/admin_quarantine.json。
+            </p>
             <div id="quarantineList">
               <div class="loading">加载中...</div>
             </div>
@@ -556,10 +605,29 @@
 
       <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
       <div class="subpanel active" id="sponsor-panel">
+        <!-- 2026-10-01 用户要求：鸣谢名单这两栏也补上「📊 数据统计」，
+             跟歌曲管理 / 开发者隔离区保持一致；标题后面那个数字徽章同时删掉。 -->
+        <div class="panel-card">
+          <h2>📊 数据统计</h2>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="num" id="statSponsorTotal">-</div>
+              <div class="label">赞助者人数</div>
+            </div>
+            <div class="stat-card">
+              <div class="num" id="statSponsorBase">-</div>
+              <div class="label">底档人数</div>
+            </div>
+            <div class="stat-card">
+              <div class="num" id="statSponsorD1">-</div>
+              <div class="label">后台添加</div>
+            </div>
+          </div>
+        </div>
+
         <div class="panel-card">
           <h2>
             <!-- 2026-09-26：这里原来又写了一遍「👑 赞助者」（子标签上已经有了），按用户要求删掉 -->
-            <span class="count" id="sponsorCount">0</span>
             <span class="head-actions">
               <!-- 2026-09-26：原来这里还有个「🔄 刷新」按钮，用户要求去掉 ——
                    与「🎮 Roblox ID 宝库」面板保持一致（那边也没有刷新按钮，
@@ -568,6 +636,9 @@
               <button class="btn btn-gold" id="openAddSponsorBtn">➕ 添加赞助者</button>
             </span>
           </h2>
+          <p class="panel-desc">
+            底档 data/sponsors.json 是只读的（改文件 + 重新部署才生效）；这里添加的存 D1，鸣谢页把两处合起来显示，同名的以底档为准。
+          </p>
           <div id="sponsorList">
             <div class="loading">加载中...</div>
           </div>
@@ -577,14 +648,30 @@
       <!-- 子面板 · Roblox ID 宝库（原来的鸣谢管理，整块搬过来） -->
       <div class="subpanel" id="thanks-panel">
         <div class="panel-card">
+          <h2>📊 数据统计</h2>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="num" id="statThanksPeople">-</div>
+              <div class="label">鸣谢人数</div>
+            </div>
+            <div class="stat-card">
+              <div class="num" id="statThanksCats">-</div>
+              <div class="label">收录类别</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
           <h2>
             <!-- 2026-09-26：这里原来又写了一遍「❤️ 鸣谢名单」（子标签上已经有了），按用户要求删掉 -->
-            <span class="count" id="thanksCount">0</span>
             <span class="head-actions">
               <button class="btn btn-secondary" id="exportThanksBtn">📤 导出</button>
               <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
             </span>
           </h2>
+          <p class="panel-desc">
+            这里添加的存 D1，鸣谢页「🎮 Roblox ID 宝库」那一栏读的就是这份；「👑 赞助者」不在这一栏，在旁边的子标签里单独管。
+          </p>
           <div id="thanksList">
             <div class="loading">加载中...</div>
           </div>
@@ -601,7 +688,7 @@
             <button class="btn btn-secondary" id="refreshStatsBtn">🔄 刷新</button>
           </span>
         </h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+        <p class="panel-desc">
           这些数字全部来自 D1 数据库，是访客真实操作累积出来的。
         </p>
 
@@ -644,46 +731,66 @@
     <p>© 2026 织雾满穗 · 用知识照亮世界</p>
   </footer>
 
-  <!-- 批量导入弹窗 -->
+  <!-- 添加歌曲弹窗（按钮已改名「➕ 添加歌曲」，弹窗还是原来那个：
+       贴多行文本批量加，比一条条填表单快；接口仍是 /api/songs/add） -->
   <div class="modal" id="batchImportModal">
     <div class="modal-content">
-      <h2>📥 批量导入歌曲</h2>
+      <h2>➕ 添加歌曲</h2>
       <div class="import-hint">
-        <strong>每行一首</strong>，支持多种格式混用：<br>
-        · <code>歌名 1234567890</code>（自动智能分类）<br>
-        · <code>1234567890 歌名</code>（ID 在前也行）<br>
-        · <code>歌名 【古风国风】1234567890</code>（显式指定分类，优先级最高）<br>
-        · 一行多个 ID 时，会作为"同名多 ID"一起导入<br>
-        · ID 必须是 <strong>10 位及以上的纯数字</strong>
+        <strong>每行一首，怎么排都行</strong>（自己会认）：<br>
+        · <code>晴天 1876950732</code> 或 <code>晴天1876950732</code>（中间没空格也认）<br>
+        · <code>1876950732 晴天</code> 或 <code>1876950732《晴天》</code>（ID 在前也行）<br>
+        · <code>晴天：1876950732</code> / <code>晴天-1876950732</code> / <code>晴天、1876950732</code>
+          （冒号、顿号、破折号、竖线这些夹在中间的东西都会清掉）<br>
+        · <code>《晴天》1876950732</code>、<code>"晴天" 1876950732</code>（书名号、引号、括号、emoji 自动清掉）<br>
+        · <code>晴天 【古风国风】1876950732</code> 或 <code>分类：古风国风 晴天 1876950732</code>（手动指定分类，优先级最高）<br>
+        · 歌名一行、ID 另一行分开贴也能配上对；一行多个 ID 会作为"同名多 ID"一起加<br>
+        · 分类不用自己写：认不出来时按关键词 + 中/英/日文自动归到站内那 14 个分类里<br>
+        · ID 必须是 <strong>9 位及以上的纯数字</strong>
       </div>
-      <textarea id="batchImportText" placeholder="示例：
+      <textarea id="batchImportText" placeholder="示例（下面这些格式混在一起贴都行）：
 晴天 1876950732
-稻香 1441450732
-See You Again 2456502348
+稻香1441450732
+1876950732《See You Again》
 老八秘制小汉堡 1234567890
 红昭愿 【古风国风】1234567890
+分类：电子舞曲 MESMERIZER 1234567890
 ..."></textarea>
+      <div class="import-preview" id="batchImportPreview"></div>
       <div class="import-status" id="batchImportStatus"></div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelBatchImport">取消</button>
-        <button class="btn btn-primary" id="confirmBatchImport">✅ 确认导入</button>
+        <button class="btn btn-gold" id="confirmBatchImport">✅ 确认添加</button>
       </div>
     </div>
   </div>
 
-  <!-- 导入隔离区弹窗 -->
+  <!-- 添加隔离歌曲弹窗（按钮 2026-09-29 由「导入隔离区」改成「📥 导入」，
+       2026-10-01 又按用户要求改成「➕ 添加隔离歌曲」。
+       2026-10-01 起这里两种贴法都收：JSON 数组，或者「歌名 + ID」的多行文本
+       —— 后者跟「➕ 添加歌曲」共用同一套智能解析，省得还要手写 JSON） -->
   <div class="modal" id="importQuarantineModal">
     <div class="modal-content">
-      <h2>📥 导入隔离区</h2>
-      <p style="font-size:0.85rem;">粘贴 JSON 数组，格式：<br><code>[{"id":"xxx","name":"歌名","category":"分类"}]</code></p>
-      <textarea id="importQuarantineText" placeholder='[
-  {"id": "123456", "name": "歌名", "category": "中文流行"},
-  {"id": "789012", "name": "歌名2", "category": "英文热门"}
-]'></textarea>
+      <h2>➕ 添加隔离歌曲</h2>
+      <p class="panel-desc">
+        两种贴法都行：<br>
+        · JSON 数组：<code>[{"id":"xxx","name":"歌名","category":"分类"}]</code><br>
+        · 或者直接贴「歌名 + ID」的多行文本（跟「➕ 添加歌曲」一样自己认 ID、自己判断分类）
+      </p>
+      <textarea id="importQuarantineText" placeholder='两种都行，例如：
+1) JSON：
+[
+  {"id": "123456789", "name": "歌名", "category": "中文流行"}
+]
+
+2) 或者直接贴：
+歌名 123456789
+《另一首歌》123456788
+分类：搞笑音效 第三首 123456787'></textarea>
       <div class="import-status" id="importQuarantineStatus"></div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelImportQuarantine">取消</button>
-        <button class="btn btn-primary" id="confirmImportQuarantine">✅ 确认导入</button>
+        <button class="btn btn-gold" id="confirmImportQuarantine">✅ 确认添加</button>
       </div>
     </div>
   </div>
@@ -880,92 +987,333 @@ See You Again 2456502348
   })();
 
   /* ============================================================
-     批量导入歌曲
+     ➕ 添加歌曲：智能解析（认 ID / 认歌名）+ 智能分类
+     ------------------------------------------------------------
+     2026-10-01 用户要求「添加的时候更智能」，这一版做了三件事：
+       ① 歌名和 ID 之间没空格也认：「晴天1876950732」「1876950732《晴天》」都行；
+       ② 歌名里混着的《》【】「」引号括号 emoji「ID:」这类杂物自动清掉；
+       ③ 分类自己判断，而且只往站点现有的 14 个分类里归
+          —— 以前会冒出「周杰伦」「Phonk/DJ」这种站点里根本没有的类别，
+             宝库页会因此多出一颗没人认识的分类标签。
+     全是本地规则、不联网、不调任何接口。
      ============================================================ */
   (function () {
     'use strict';
 
-    const SOUND_KEYWORDS = [
-      '搞笑', '音效', '惨叫', '笑声', '魔性', '鬼畜', '沙雕', '梗',
-      '唉哟', '我去', '哎呀', '卧槽', '哈哈', '嘿嘿', '呵呵', '呜呜',
-      '救命', '哦豁', '哎哟', '啊这', '哦哦', '嗯嗯'
+    /* 站点现有的 14 个分类（宝库页的分类标签就是按数据里的 category 生成的，
+       所以分类结果只能是这里面的一个，绝不能自己造新类别） */
+    const KNOWN_CATEGORIES = [
+      '搞笑音效', '音效素材', '恐怖紧张', '舒缓治愈', '电子舞曲', '剧情情绪',
+      '游戏动漫', '嘻哈说唱', '古典器乐', '摇滚金属', '中文流行', '影视节日',
+      '英文热门', '古风国风'
     ];
 
-    /* 单字关键词（啊/哦/嗯/欸/喂）命中面太大：一条「周杰伦 - 喂」也会被它判成搞笑音效，
-       所以挪到所有分类之后，只当最后兜底 */
-    const SOUND_KEYWORDS_SINGLE = ['啊', '哦', '嗯', '欸', '喂'];
+    /* 分类关键词表：从前往后扫，第一条命中的就是结果 —— 所以越特殊的排越前面。
+       比较前统一转小写，中文不受影响。
+       中英两套词都有：中文词按中文习惯写，英文词是照着库里 2916 首歌
+       实际怎么分类挖出来的（.verify/mine-category-words.mjs 那个脚本挖的），
+       所以英文歌名也能落到用户平时放的那一栏，而不是一股脑全进「英文热门」。
+       注意「音效素材」出现两次：先认具体的实物声（枪、门、电梯、天气），
+       再在最后收「音效/声效/素材」这类泛词 —— 这样「Shotgun Sound Effect」
+       不会因为带个 effect 就被当成梗音效。 */
+    const CATEGORY_RULES = [
+      { cat: '古风国风', words: [
+        '古风', '国风', '戏腔', '汉服', '江湖', '武侠', '红尘', '相思', '长安', '洛阳',
+        '敦煌', '山河', '红昭愿', '牵丝戏', '赤伶', '琵琶', '古筝', '二胡', '箜篌', '唢呐',
+        '竹笛', '洞箫', '古琴', '编钟', '笙'
+      ] },
+      { cat: '嘻哈说唱', words: [
+        '说唱', '饶舌', '嘻哈', 'rap', 'hiphop', 'hip-hop', 'hip hop', 'trap', 'diss',
+        '押韵', 'beatbox', 'flow', 'latin', 'latina', 'latino', '808', 'grime'
+      ] },
+      { cat: '恐怖紧张', words: [
+        '恐怖', '惊悚', '诡异', '阴森', '灵异', '悬疑', '紧张', '突脸', '追逐', '慎入',
+        '怪谈', '鬼故事', '惊魂', '压迫感', 'horror', 'scary', 'creepy', 'spooky',
+        'tense', 'tension', 'suspense', 'eerie', 'dread', 'thriller', 'dark', 'darkness',
+        'chase', 'mystery', 'halloween', 'haunted', 'shadow', 'shadows', 'escape',
+        'fight', 'evil', 'atmosphere', 'danger', 'dangerous', 'thrilling', 'vampire',
+        /* 注意别收「boss」这个单词 ——「Bossa Nova」会被它误伤（库里 31 首） */
+        'boss battle', 'boss fight', 'boss music'
+      ] },
+      /* 音效素材（一）：具体的实物声 / 环境声 */
+      { cat: '音效素材', words: [
+        '开门', '关门', '敲门', '脚步声', '玻璃碎', '爆炸', '枪声', '开枪', '门铃',
+        '钟声', '闹钟', '警报', '相机', '咔嚓', '雷声', '风声', '水声', '火声',
+        'shotgun', 'gunshot', 'barrel', 'reload', 'door', 'elevator', 'slash', 'sword',
+        'bell', 'bells', 'chime', 'storm', 'engine', 'footstep', 'footsteps', 'glass',
+        'paper', 'wood', 'rope', 'drawer', 'switch', 'alarm', 'siren', 'clock',
+        'knock', 'creak', 'thunder', 'typing'
+      ] },
+      /* 搞笑音效：梗音、UI 音、游戏音 —— 库里那 556 首「SFX / 按钮 / 电话 / 撞击」
+         都在这一栏，所以英文的 sfx / effect / click 也归这儿（不是「音效素材」） */
+      { cat: '搞笑音效', words: [
+        '搞笑', '魔性', '鬼畜', '沙雕', '抽象', '整活', '离谱', '社死', '打脸', '惨叫',
+        '笑声', '大笑', '狂笑', '嘲笑', '哈哈', '嘿嘿', '呵呵', '呜呜', '卧槽', '我丢',
+        '唉哟', '哎哟', '哎呀', '我去', '救命', '哦豁', '啊这', '咕噜', '放屁', '打嗝',
+        '猪叫', '鸡叫', '鸭叫', '狗叫', '猴子叫', '学猫叫',
+        'sfx', 'sound effect', 'effect', 'funny', 'comedy', 'cartoon', 'silly', 'meme',
+        'bruh', 'metal pipe', 'vine boom', 'goofy', 'troll', 'boing', 'whoop', 'click',
+        'clicks', 'clack', 'button', 'buttons', 'cell', 'phone', 'pressing', 'volume',
+        'hit', 'hits', 'impact', 'block', 'blocks', 'bubble', 'drip', 'drips', 'conch',
+        'beep', 'emmm', 'oof', 'airhorn', 'fart', 'earrape', 'rickroll', 'quack',
+        'toilet', 'skibidi', 'ohio', 'rizz', 'sigma', 'griddy', 'headshot', 'coin',
+        'buzzer', 'ding', 'scream', 'laugh', 'buzzer',
+        /* 库里那批「轻松 / 搞笑」气氛曲（Happy Song、Cartoon Scene… 100 多首）
+           也是放在这一栏的，所以这几个词跟着归这儿 —— 刻意不收裸的 happy，
+           不然「Happy Birthday」会被从「影视节日」里抢过来 */
+        'cute', 'cheerful', 'playful', 'quirky', 'bouncy', 'upbeat', 'joyful',
+        'sunshine', 'picnic', 'carnival', 'parade', 'whimsical', 'clumsy', 'mischief'
+      ] },
+      { cat: '舒缓治愈', words: [
+        '舒缓', '治愈', '放松', '安静', '睡前', '助眠', '催眠', '冥想', '白噪', '轻音乐',
+        '纯音乐', '雨声', '海浪', '森林', '咖啡', '温暖', '温柔',
+        'lofi', 'lo-fi', 'chill', 'relax', 'calm', 'sleep', 'ambient', 'peaceful',
+        'serene', 'quiet', 'soft', 'gentle', 'study', 'spa', 'yoga', 'dream', 'dreamy',
+        'beach', 'paradise', 'garden', 'sunset', 'sunrise', 'morning', 'sky', 'breeze',
+        'meadow', 'coffee', 'home', 'warm', 'jazz', 'acoustic', 'white noise',
+        /* 「温馨 / 治愈」气氛 + 库里的风景类配乐（Alpine Lodge、Paradise Falls…） */
+        'tender', 'lullaby', 'cozy', 'heartwarming', 'hope', 'rise', 'snow', 'forest',
+        'ocean', 'comfort', 'spring', 'blossom', 'childhood', 'tranquil', 'serenity',
+        'twilight', 'dawn', 'dusk', 'cloud', 'bamboo', 'drifting', 'floating', 'lodge',
+        'alpine', 'mountain', 'lake', 'river', 'falls', 'vibes', 'lounge', 'smooth'
+      ] },
+      { cat: '游戏动漫', words: [
+        '游戏', '动漫', '番剧', '二次元', '像素', '8bit', '8-bit', 'chiptune', '原神',
+        '崩坏', '星穹', '火影', '海贼', '龙珠', '死神', '柯南', '进击', '鬼灭', '咒术',
+        'jojo', 'undertale', 'minecraft', '我的世界', 'mario', '马里奥', 'zelda', '塞尔达',
+        'pokemon', '宝可梦', 'roblox', 'fnaf', 'genshin', 'anime', 'vocaloid', '初音',
+        'sonic', 'retro', 'arcade', 'robot', 'robotic', 'pixel', 'neon',
+        'gaming', 'game over', 'level up', 'tetris', 'kirby', 'doom eternal', 'game boy',
+        /* 动漫 / 科幻未来气氛（Cyber Space、Space Race…）也在这一栏 */
+        'naruto', 'jujutsu', 'demon slayer', 'attack on titan', 'one piece', 'bleach',
+        'dragon ball', 'eurobeat', 'touhou', 'hatsune', 'kawaii', 'j-pop', 'jpop',
+        'sci fi', 'sci-fi', 'scifi', 'space', 'cosmic', 'cyber', 'futuristic', 'alien',
+        'galaxy', 'stellar', 'android', 'orbit', 'nebula'
+      ] },
+      { cat: '影视节日', words: [
+        '电影', '影视', '电视剧', '插曲', '片头', '片尾', '主题曲', '原声', 'ost',
+        'soundtrack', '配乐', '圣诞', 'christmas', '新年', '春节', '生日', '婚礼',
+        '节日', 'jingle', 'happy birthday', 'we wish you',
+        'holiday', 'holidays', 'marvel', 'disney', 'festival', 'celebration', 'winter',
+        'xmas', 'santa', 'silent night', 'merry', 'feliz navidad', 'rudolph', 'frosty',
+        'movie', 'film', 'netflix', 'trailer', 'star wars', 'harry potter',
+        'pirates of the caribbean', 'avengers', 'interstellar', 'titanic'
+      ] },
+      { cat: '古典器乐', words: [
+        '古典', '钢琴', 'piano', '小提琴', 'violin', '大提琴', 'cello', '长笛', 'flute',
+        '交响', 'symphony', '协奏曲', 'concerto', '奏鸣曲', 'sonata', '夜曲', 'nocturne',
+        '圆舞曲', 'waltz', '前奏曲', 'prelude', '练习曲', 'etude', '管弦', 'orchestra',
+        '室内乐', '弦乐', 'baroque', 'suite', 'opus', 'op.', 'major', 'minor',
+        'mozart', 'beethoven', 'chopin', 'bach', 'vivaldi', 'liszt', 'debussy', 'grieg',
+        'requiem', 'allegro', 'movement', 'gymnopedie', 'clair de lune', 'fur elise',
+        'jesu', 'carmen', 'ode to joy', 'canon in d'
+      ] },
+      { cat: '电子舞曲', words: [
+        '电音', '电子', 'dj', 'remix', 'phonk', 'drift', 'edm', 'house', 'techno',
+        'trance', 'dubstep', 'hardstyle', '蹦迪', '卡点', '鼓点', '车载', 'bass', 'synth',
+        'club', 'dance', 'nightcore', 'sped up', 'slowed',
+        'funk', 'funky', 'party', 'bounce', 'electro', 'electronic', 'disco', 'rave',
+        'groove', 'hyperpop', 'afrobeat', 'amapiano',
+        /* 「律动 / 舞曲」气氛 + 那几个 EDM 厂牌 */
+        'rhythm', 'swing', 'boogie', 'get down', 'shake', 'beat drop', 'ncs',
+        'no copyright', 'nocopyrightsounds', 'monstercat', 'synthwave', 'drum and bass',
+        'alan walker', 'marshmello', 'skrillex', 'avicii', 'martin garrix', 'tiesto',
+        'kygo', 'zedd', 'hardwell', 'afrojack', 'diplo'
+      ] },
+      { cat: '剧情情绪', words: [
+        '悲伤', '伤感', '泪', '哭', '心碎', '失恋', '离别', '孤独', '思念', '回忆',
+        '绝望', '压抑', '崩溃', '愤怒', '燃', '史诗', '激昂', '悲壮', '宿命',
+        'sad', 'emo', 'epic', 'emotional', 'dramatic', 'tragic', 'cinematic',
+        'bittersweet', 'acceptance', 'tear', 'tears', 'goodbye', 'farewell', 'broken',
+        'warrior', 'victory', 'interlude', 'memory', 'memories', 'lonely',
+        'alone', 'regret',
+        /* 「悲伤 / 忧郁」「史诗 / 燃」「剧情 / 过场」三层气氛，还有库里的
+           Menu Theme / Main Menu 那种菜单配乐，都归这一栏 */
+        'melancholy', 'melancholic', 'sorrow', 'longing', 'somber', 'mournful',
+        'rainy', 'lost', 'heroic', 'triumph', 'glory', 'powerful', 'legend', 'courage',
+        'inspir', 'grand', 'majestic', 'overcome', 'champion', 'story', 'narrative',
+        'cutscene', 'prologue', 'epilogue', 'credits', 'menu', 'loading', 'transition',
+        'finale', 'sacrifice', 'destiny', 'promise', 'remember', 'empty room'
+      ] },
+      { cat: '摇滚金属', words: [
+        '摇滚', 'rock', '重金属', '金属乐', 'metal', '朋克', 'punk', '乐队', 'grunge',
+        'hardcore', '电吉他', 'rocks', 'rocking', 'hard rock', 'guitar', 'nirvana',
+        'metallica', 'ac/dc', 'acdc', 'linkin park', 'green day', 'slipknot', 'queen',
+        'guns n', 'bon jovi', 'led zeppelin', 'pink floyd', 'rolling stones', 'aerosmith'
+      ] },
+      /* 音效素材（二）：泛词兜底 —— 放到最后，免得把上面的梗音 / 助眠抢走 */
+      { cat: '音效素材', words: [
+        '音效', '声效', '特效', '素材', '环境音', 'noise', 'foley'
+      ] }
+    ];
 
-    function cleanName(name) {
-      if (!name) return '未知歌名';
-      return name
-        .replace(/[《》]/g, '')
-        .replace(/\s*[｜|]\s*/g, '')
-        .replace(/\s*[（(][^）)]*[）)]\s*$/, '')
-        .replace(/[，。、：；！？.,;:!?]+$/, '')
-        .trim() || '未知歌名';
+    /* 手动写分类时的常见叫法 → 站点现有分类（免得又冒出「Phonk/DJ」这种没人认识的类别） */
+    const CATEGORY_ALIASES = {
+      'phonk/dj': '电子舞曲', 'dj': '电子舞曲', 'phonk': '电子舞曲', '电音': '电子舞曲',
+      '电子': '电子舞曲', '周杰伦': '中文流行', '华语流行': '中文流行', '流行': '中文流行',
+      '中文': '中文流行', '音效': '音效素材', '搞笑': '搞笑音效', '纯音乐': '舒缓治愈',
+      '轻音乐': '舒缓治愈', '治愈': '舒缓治愈', '古典': '古典器乐', '古风': '古风国风',
+      '说唱': '嘻哈说唱', '摇滚': '摇滚金属', '游戏': '游戏动漫', '动漫': '游戏动漫',
+      '影视': '影视节日', '节日': '影视节日', '英文': '英文热门', '恐怖': '恐怖紧张',
+      '剧情': '剧情情绪', '情绪': '剧情情绪'
+    };
+
+    /* 很短、整条都是拟声词的歌名（「啊」「哦豁」「喵」「叮咚」这类）多半是梗音效 */
+    const ONOMATOPOEIA = /^[啊哦嗯欸喂哎咦嘿哈呵嗷呜喵汪哞叽喳呱咩嘶嗡咚咔嘻咕唧呀哟噢嘞咯哒啵嘟呃唉叮滴哐唰砰嘭铛铃嘀嗒]+$/;
+
+    /* ID 规则：站点现有数据里最短的 ID 是 8 位，主流是 10～15 位。
+       这里按「9 位及以上的连续数字」认，既收得下老 ID，也不会把歌名里的
+       年份（2024）、倍速（1.0x）这种短数字误当成 ID。 */
+    const ID_RE = /\d{9,}/g;
+
+    function extractIds(line) {
+      const ids = [];
+      let m;
+      ID_RE.lastIndex = 0;
+      while ((m = ID_RE.exec(line)) !== null) {
+        if (ids.indexOf(m[0]) === -1) ids.push(m[0]);
+      }
+      return ids;
     }
 
+    /* 把歌名收拾干净。用户那边歌名和 ID 之间什么都可能夹：
+       空格、冒号（「晴天：1876950732」）、顿号、破折号、竖线、书名号……
+       所以这里不一个个列字符，直接用 Unicode 的「标点 / 符号」分类一刀切，
+       只削行首行尾，歌名中间的字一个都不动。
+       注意括号只去掉符号本身、里面的字留着 ——「(Clown Remix)」要留下 Remix，
+       分类判断还得靠它认出这是电子舞曲。 */
+    function cleanName(raw) {
+      let s = String(raw == null ? '' : raw);
+
+      /* ① emoji、箭头、带圈数字等符号（复制粘贴时经常跟着一起来） */
+      s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2460}-\u{24FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ');
+
+      /* ② 「ID：」「音乐ID:」「歌曲ID：」这类前后缀没人想看 */
+      s = s.replace(/(?:music\s*id|音乐\s*id|歌曲\s*id|ids?)\s*[:：]/gi, ' ');
+      /* ③ 「歌曲名：」「歌名:」这种标签也去掉 */
+      s = s.replace(/^(?:歌曲名|歌名|曲名|音乐名|名字|歌曲|song\s*name|title)\s*[:：]\s*/i, '');
+
+      /* ④ 书名号、各种括号：换成空格（里面的字留着） */
+      s = s.replace(/[《》〈〉「」『』【】\[\]{}（）()]/g, ' ');
+      /* ⑤ 引号：包在歌名外面的脱掉；英文名里的撇号（Don't / Don’t）留着 */
+      s = s.replace(/["“”]/g, ' ');
+      s = s.replace(/(^|[^A-Za-z])['‘’]|['‘’](?![A-Za-z])/g, '$1');
+
+      /* ⑥ 行首的序号和项目符号：「1. 」「2、」「1：」「- 」「| 」「🆔」 */
+      s = s.replace(/^(?:id|🆔)\s*[:：]?\s*/i, '');
+      s = s.replace(/^[\s\d]*[.、,，)）:：\]】]+/, '');
+
+      /* ⑦ 首尾剩下的标点、符号、空格一律削掉
+            —— 冒号、破折号、竖线、顿号、书名号残留、引号残留都在这一步清干净 */
+      s = s.replace(/^[\p{P}\p{S}\s]+/u, '');
+      s = s.replace(/[\p{P}\p{S}\s]+$/u, '');
+
+      /* ⑧ 多出来的空格收一收；服务端名字上限 100 字，这里先切好 */
+      return s.replace(/\s{2,}/g, ' ').trim().slice(0, 100);
+    }
+
+    /* 从一行里挖出手动指定的分类：【古风国风】/ [古风国风] / 分类：古风国风 */
+    function extractExplicitCategory(line) {
+      let cat = '';
+      let rest = line;
+      const bracket = rest.match(/[\[【｛{]\s*([^\]】｝}]{1,20}?)\s*[\]】｝}]/);
+      if (bracket) {
+        cat = bracket[1].trim();
+        rest = rest.replace(bracket[0], ' ');
+      } else {
+        const prefix = rest.match(/(?:分类|类别|类型|category)\s*[:：]\s*([^\s,，;；、]{1,20})/i);
+        if (prefix) {
+          cat = prefix[1].trim();
+          rest = rest.replace(prefix[0], ' ');
+        }
+      }
+      return { cat, rest };
+    }
+
+    /* 把（手动写的）分类名对齐到站点现有分类 */
+    function normalizeCategory(cat) {
+      const c = String(cat || '').trim();
+      if (!c) return '';
+      if (KNOWN_CATEGORIES.indexOf(c) !== -1) return c;
+      const alias = CATEGORY_ALIASES[c.toLowerCase()] || CATEGORY_ALIASES[c];
+      if (alias) return alias;
+      const hit = KNOWN_CATEGORIES.find(k => c.indexOf(k) !== -1);
+      return hit || c;
+    }
+
+    /* 智能分类：先关键词，再拟声词，最后按文字种类兜底（日韩文→游戏动漫、
+       有汉字→中文流行、纯英文→英文热门）。返回的一定是站点现有的分类之一。 */
     function guessCategory(name) {
-      const lower = name.toLowerCase();
-      if (SOUND_KEYWORDS.some(k => lower.includes(k))) return '搞笑音效';
-      if (lower.includes('phonk') || lower.includes('drift') ||
-          lower.includes('卡点') || lower.includes('dj')) return 'Phonk/DJ';
-      if (
-        lower.includes('古风') || lower.includes('国风') || lower.includes('琵琶') ||
-        lower.includes('古筝') || lower.includes('二胡') || lower.includes('箫') ||
-        lower.includes('笛') || lower.includes('琴') ||
-        lower.includes('红昭愿') || lower.includes('牵丝戏') || lower.includes('赤伶')
-      ) return '古风国风';
-      if (lower.includes('周杰伦') || lower.includes('杰伦')) return '周杰伦';
-      if (lower.includes('英文') || (/[a-zA-Z]/.test(name) && !lower.includes('中文'))) return '英文热门';
-      if (SOUND_KEYWORDS_SINGLE.some(k => lower.includes(k))) return '搞笑音效';
-      return '中文流行';
+      const raw = String(name || '').trim();
+      if (!raw || raw === '未知歌名') return '未分类';
+      const lower = raw.toLowerCase();
+
+      for (const rule of CATEGORY_RULES) {
+        if (rule.words.some(w => lower.indexOf(w) !== -1)) return rule.cat;
+      }
+      if (raw.length <= 6 && ONOMATOPOEIA.test(raw)) return '搞笑音效';
+
+      const kana = (raw.match(/[\u3040-\u30ff]/g) || []).length;
+      const hangul = (raw.match(/[\uac00-\ud7af]/g) || []).length;
+      const han = (raw.match(/[\u4e00-\u9fff]/g) || []).length;
+      const latin = (raw.match(/[a-z]/gi) || []).length;
+
+      if (kana > 0 || hangul > 0) return '游戏动漫';   /* 日文 / 韩文，多半是番剧或游戏曲 */
+      if (han > 0) return '中文流行';
+      if (latin >= 2) return '英文热门';
+      return '未分类';
     }
 
+    /* 解析粘贴进来的文本，能认的形式（混着贴也行）：
+         · 晴天 1876950732          · 晴天1876950732（中间没空格）
+         · 1876950732 晴天          · 1876950732《晴天》（ID 在前、带书名号）
+         · 晴天 【古风国风】1876950732  · 分类：古风国风 晴天 1876950732（手动指定分类）
+         · 歌名一行、ID 另一行（会自己配上对）
+         · 一行多个 ID（作为「同名多 ID」一起加）
+       返回 [{ id, name, category, lineIndex }]，同一个 ID 只留第一条。 */
     function parseRawText(text) {
-      const lines = String(text).split(/\r?\n/);
+      const lines = String(text == null ? '' : text).split(/\r?\n/);
       const result = [];
-      const idRegex = /\b(\d{10,})\b/g;
-      let globalLineIndex = 0;
+      const seen = new Set();
+      let pendingName = '';   /* 上一行留下、还没配上 ID 的歌名 */
+      let lineNo = 0;
 
-      for (let line of lines) {
-        line = line.trim();
-        if (!line) { globalLineIndex++; continue; }
+      for (const rawLine of lines) {
+        lineNo++;
+        const line = rawLine.trim();
+        if (!line) continue;
 
-        const ids = [];
-        let match;
-        idRegex.lastIndex = 0;
-        while ((match = idRegex.exec(line)) !== null) ids.push(match[1]);
-        if (ids.length === 0) { globalLineIndex++; continue; }
+        const ids = extractIds(line);
 
-        let name = line;
-        for (const id of ids) name = name.replace(id, '');
-
-        let explicitCat = '';
-        const catMatch = name.match(/[\[【]([^\]】]{1,20})[\]】]/);
-        if (catMatch) {
-          explicitCat = catMatch[1].trim();
-          name = name.replace(catMatch[0], '');
+        /* 这一行一个 ID 都没有：先当歌名记着，下一行若是光秃秃的 ID 就能配上对 */
+        if (ids.length === 0) {
+          const maybe = cleanName(line);
+          if (maybe) pendingName = maybe;
+          continue;
         }
 
-        name = name
-          .replace(/^[\d]+[\.\、\s]+/, '')
-          .replace(/^[\d]+[\s]*[\)）]/, '')
-          .replace(/^[\|•·\-\s]+/, '')
-          .replace(/[\|•·\-]+$/, '');
-        name = cleanName(name) || '未知歌名';
+        const ex = extractExplicitCategory(line);
+        let namePart = ex.rest;
+        ids.forEach(id => { namePart = namePart.split(id).join(' '); });
 
+        let name = cleanName(namePart);
+        if (!name && pendingName) name = pendingName;   /* 只有 ID 的那一行，用上一行记下的歌名 */
+        if (name) pendingName = '';
+        if (!name) name = '未知歌名';
+
+        const category = normalizeCategory(ex.cat) || guessCategory(name);
+
+        let dupIndex = 0;
         for (const id of ids) {
-          if (result.some(r => r.id === id)) continue;
-          const category = explicitCat || guessCategory(name);
+          if (seen.has(id)) { dupIndex++; continue; }
+          seen.add(id);
           result.push({
             id,
             name,
             category,
-            lineIndex: globalLineIndex + ids.indexOf(id) * 0.1
+            lineIndex: lineNo + dupIndex * 0.1
           });
         }
-        globalLineIndex++;
       }
       return result;
     }
@@ -1015,19 +1363,92 @@ See You Again 2456502348
     const modal = document.getElementById('batchImportModal');
     const textarea = document.getElementById('batchImportText');
     const statusEl = document.getElementById('batchImportStatus');
+    const previewEl = document.getElementById('batchImportPreview');
     const cancelBtn = document.getElementById('cancelBatchImport');
     const confirmBtn = document.getElementById('confirmBatchImport');
 
     if (!openBtn || !modal) return;
+
+    /* D1 里已经有的 ID 集合（打开弹窗时拉一次）：预览里标出「已存在」，
+       因为服务端是 ON CONFLICT DO UPDATE，重复添加 = 覆盖名字和分类 */
+    let existingIds = null;
+
+    async function loadExistingIds() {
+      try {
+        const res = await fetch('/api/songs/list?t=' + Date.now(), { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : null);
+        if (!list) return;
+        existingIds = new Set(list.map(it => String(it && it.id)).filter(Boolean));
+        if (textarea.value.trim()) renderPreview();
+      } catch (e) { /* 拉不到就不标「已存在」，不影响添加 */ }
+    }
+
+    /* 贴进去就立刻告诉管理员：认出了几首、歌名对不对、各归到哪个分类 */
+    function renderPreview() {
+      if (!previewEl) return;
+      const raw = textarea.value.trim();
+      if (!raw) {
+        previewEl.className = 'import-preview';
+        previewEl.innerHTML = '';
+        return;
+      }
+
+      const parsed = parseRawText(raw);
+      previewEl.className = 'import-preview show';
+
+      if (parsed.length === 0) {
+        previewEl.innerHTML = '<div class="pv-sum">⚠️ 还没认出任何 ID —— ID 要是 9 位及以上的纯数字</div>';
+        return;
+      }
+
+      const byCat = {};
+      parsed.forEach(it => { byCat[it.category] = (byCat[it.category] || 0) + 1; });
+      const catText = Object.keys(byCat)
+        .sort((a, b) => byCat[b] - byCat[a])
+        .map(c => c + ' ' + byCat[c])
+        .join(' · ');
+
+      const rows = parsed.slice(0, 8).map(it => {
+        const exists = existingIds && existingIds.has(String(it.id));
+        return '<div class="pv-row"><span>' + escapeHtml(it.name) +
+          (exists ? ' <span class="pv-exist">（已存在）</span>' : '') +
+          '</span><span class="pv-cat">' + escapeHtml(it.category) + '</span></div>';
+      }).join('');
+
+      const existCount = existingIds ? parsed.filter(it => existingIds.has(String(it.id))).length : 0;
+
+      previewEl.innerHTML =
+        '<div class="pv-sum">🔎 认出 ' + parsed.length + ' 首 · ' + escapeHtml(catText) + '</div>' +
+        rows +
+        (parsed.length > 8 ? '<div class="pv-more">… 还有 ' + (parsed.length - 8) + ' 首</div>' : '') +
+        (existCount > 0
+          ? '<div class="pv-more">⏩ 其中 ' + existCount + ' 首 D1 里已经有了，会更新它们的名字和分类</div>'
+          : '');
+    }
+
+    let previewTimer = null;
+    textarea.addEventListener('input', () => {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(renderPreview, 250);
+    });
+
+    /* 2026-10-01：把解析器和分类器挂到 window 上，
+       「➕ 添加隔离歌曲」那边（js/admin.js）也复用同一套智能解析。 */
+    window.zmParseSongText = parseRawText;
+    window.zmGuessCategory = guessCategory;
 
     function openModal() {
       textarea.value = '';
       statusEl.textContent = '';
       statusEl.className = 'import-status';
       confirmBtn.disabled = false;
-      confirmBtn.textContent = '✅ 确认导入';
+      confirmBtn.textContent = '✅ 确认添加';
+      if (previewEl) { previewEl.className = 'import-preview'; previewEl.innerHTML = ''; }
       modal.classList.add('show');
       document.body.classList.add('modal-open');
+      loadExistingIds();
       setTimeout(() => textarea.focus(), 80);
     }
 
@@ -1072,7 +1493,7 @@ See You Again 2456502348
       }
 
       confirmBtn.disabled = true;
-      confirmBtn.textContent = '导入中...';
+      confirmBtn.textContent = '添加中...';
 
       let ok = 0;
       let fail = 0;
@@ -1080,7 +1501,7 @@ See You Again 2456502348
 
       for (let i = 0; i < unique.length; i++) {
         const item = unique[i];
-        setStatus(`⏳ 正在导入 ${i + 1} / ${unique.length} ...\n（${item.name} · ${item.category}）`);
+        setStatus(`⏳ 正在添加 ${i + 1} / ${unique.length} ...\n（${item.name} · ${item.category}）`);
         const r = await addSongToD1(item);
         if (r.ok) ok++;
         else {
@@ -1090,7 +1511,7 @@ See You Again 2456502348
       }
 
       if (fail === 0) {
-        setStatus(`✅ 导入完成，共 ${ok} 首`, 'ok');
+        setStatus(`✅ 添加完成，共 ${ok} 首`, 'ok');
         if (typeof window.loadSongs === 'function') window.loadSongs();
         if (typeof window.loadRobloxStats === 'function') window.loadRobloxStats();
       } else {
@@ -1101,7 +1522,7 @@ See You Again 2456502348
       }
 
       confirmBtn.disabled = false;
-      confirmBtn.textContent = '✅ 确认导入';
+      confirmBtn.textContent = '✅ 确认添加';
     });
   })();
   </script>

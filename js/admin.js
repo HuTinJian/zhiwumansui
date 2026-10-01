@@ -1,12 +1,25 @@
 /* ============================================================
    织雾满穗 · 后台管理
    反馈管理、卡片管理（歌曲 / 隔离区）、
-   📦 合并工具（四个 iframe 工具页，里面分了二级 / 三级）、
    鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
+   ------------------------------------------------------------
+   2026-10-01 用户要求：
+     · 每个列表面板都配上「📊 数据统计」，卡片内容各归各位
+       （「开发者隔离区」那张卡从歌曲管理搬到隔离区自己那儿，
+        歌曲管理这边换成「D1 歌曲数量」）；
+     · 标题后面那些灰色数字徽章全部删掉（数字只看统计卡）；
+     · 「📥 导入」改名「➕ 添加歌曲 / ➕ 添加隔离歌曲」，跟鸣谢名单的叫法对齐。
    ============================================================ */
 
 /* 缓存反馈列表，用于展开查看隔离区时定位 */
 let feedbackCache = [];
+
+/* 给统计卡安全赋值：元素不在页面上（比如以后又删了某张卡）就安静跳过，
+   不会像 countEl.textContent 那样直接把整个函数崩掉 */
+function setStatText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
 
 /* ========== 初始化 ========== */
 (async function init() {
@@ -221,20 +234,19 @@ let feedbackCache = [];
    ============================================================ */
 async function loadFeedback() {
   const container = document.getElementById('feedbackList');
-  const countEl = document.getElementById('feedbackCount');
+  /* 2026-10-01：标题后面那个数字徽章（feedbackCount）已按用户要求删除，
+     这里不再去写它；反馈条数本来在列表里一眼就能数。 */
   container.innerHTML = '<div class="loading">加载中...</div>';
 
   try {
     const res = await fetch('/api/feedback/list', { credentials: 'include' });
     if (!res.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      countEl.textContent = '-';
       return;
     }
     const data = await res.json();
     if (data && data.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
-      countEl.textContent = '-';
       return;
     }
 
@@ -245,12 +257,10 @@ async function loadFeedback() {
 
     if (list === null) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
-      countEl.textContent = '0';
       return;
     }
 
     feedbackCache = list;
-    countEl.textContent = (data && typeof data.total === 'number') ? data.total : list.length;
 
     if (list.length === 0) {
       container.innerHTML = '<div class="empty-state">暂无反馈</div>';
@@ -669,7 +679,12 @@ async function deleteFeedback(id) {
 }
 
 /* ============================================================
-   Roblox 数据（统计 + 开发者隔离区）
+   Roblox 数据（歌曲管理的统计 + 开发者隔离区列表与统计）
+   ------------------------------------------------------------
+   2026-10-01 用户要求：
+     · 歌曲管理的统计卡 = 总 ID 数 / 歌曲组数 / **D1 歌曲数量**（新加）；
+     · 「开发者隔离区」那张卡从歌曲管理搬进隔离区自己的统计里，
+       号码改成「隔离区 ID 数」，并配一张「涉及分类」。
    ============================================================ */
 async function loadRobloxStats() {
   try {
@@ -698,23 +713,24 @@ async function loadRobloxStats() {
       if (item.id) seenIds.add(String(item.id));
       if (item.name) seenNames.add(item.name);
     });
-    document.getElementById('statTotal').textContent = extraOk ? seenIds.size : '-';
-    document.getElementById('statGroup').textContent = extraOk ? seenNames.size : '-';
+    setStatText('statTotal', extraOk ? seenIds.size : '-');
+    setStatText('statGroup', extraOk ? seenNames.size : '-');
+    /* D1 歌曲数量 = /api/songs/list 回来的条数（就是「🎶 D1 歌曲管理」下面列出来的那些） */
+    setStatText('statD1Songs', extraOk ? extraData.length : '-');
 
     const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
     const container = document.getElementById('quarantineList');
-    const countEl = document.getElementById('quarantineCount');
     if (!res2.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res2.status + '）· 登录可能已过期，请重新登录</div>';
-      countEl.textContent = '-';
-      document.getElementById('statQuarantine').textContent = '-';
+      setStatText('statQuarantine', '-');
+      setStatText('statQuarantineCats', '-');
       return;
     }
     const qData = await res2.json();
     if (qData && qData.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(qData.error || '未知错误') + '</div>';
-      countEl.textContent = '-';
-      document.getElementById('statQuarantine').textContent = '-';
+      setStatText('statQuarantine', '-');
+      setStatText('statQuarantineCats', '-');
       return;
     }
 
@@ -723,8 +739,14 @@ async function loadRobloxStats() {
       quarantine = qData.data;
     }
 
-    document.getElementById('statQuarantine').textContent = quarantine.length;
-    countEl.textContent = quarantine.length;
+    setStatText('statQuarantine', quarantine.length);
+
+    /* 涉及分类：隔离区里的歌一共牵扯到多少种分类（前端现算，不额外发请求） */
+    const qCats = new Set();
+    quarantine.forEach(it => {
+      qCats.add(String((it && it.category) || '').trim() || '未分类');
+    });
+    setStatText('statQuarantineCats', qCats.size);
 
     if (quarantine.length === 0) {
       container.innerHTML = '<div class="empty-state">隔离区是空的</div>';
@@ -787,7 +809,8 @@ async function deleteQuarantineItem(musicId) {
   }
 }
 
-/* 批量导入隔离区（JSON 数组格式） */
+/* 添加隔离歌曲：JSON 数组，或「歌名 + ID」多行文本
+   （2026-10-01 用户要求加的后一种：跟「➕ 添加歌曲」共用同一套智能解析） */
 async function handleImportQuarantine() {
   const text = document.getElementById('importQuarantineText').value.trim();
   const status = document.getElementById('importQuarantineStatus');
@@ -796,16 +819,31 @@ async function handleImportQuarantine() {
 
   if (!text) {
     status.classList.add('err');
-    status.textContent = '⚠️ 请粘贴 JSON 数据';
+    status.textContent = '⚠️ 请粘贴内容（JSON 数组，或者「歌名 + ID」的多行文本）';
     return;
   }
 
   let items;
-  try {
-    items = JSON.parse(text);
-  } catch (e) {
+  if (text.charAt(0) === '[' || text.charAt(0) === '{') {
+    try {
+      items = JSON.parse(text);
+    } catch (e) {
+      status.classList.add('err');
+      status.textContent = '⚠️ JSON 格式错误：' + e.message;
+      return;
+    }
+  } else if (typeof window.zmParseSongText === 'function') {
+    /* 不是 JSON：当成「歌名 + ID」的多行文本，
+       用 admin.html 里那套智能解析（自己认 ID、清杂物、判分类） */
+    items = window.zmParseSongText(text);
+    if (!items.length) {
+      status.classList.add('err');
+      status.textContent = '⚠️ 没认出任何 ID（ID 要 9 位及以上的纯数字）；要贴 JSON 的话请以 [ 开头';
+      return;
+    }
+  } else {
     status.classList.add('err');
-    status.textContent = '⚠️ JSON 格式错误：' + e.message;
+    status.textContent = '⚠️ 这里要贴 JSON 数组，或者「歌名 + ID」的多行文本';
     return;
   }
 
@@ -873,20 +911,19 @@ async function handleImportQuarantine() {
    ============================================================ */
 async function loadSongs() {
   const container = document.getElementById('songList');
-  const countEl = document.getElementById('songCount');
+  /* 2026-10-01：标题后面的数字徽章（songCount）已删掉；
+     条数改成写到统计卡「D1 歌曲数量」里（statD1Songs）。 */
   container.innerHTML = '<div class="loading">加载中...</div>';
 
   try {
     const res = await fetch('/api/songs/list?t=' + Date.now());
     if (!res.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      countEl.textContent = '-';
       return;
     }
     const data = await res.json();
     if (data && data.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
-      countEl.textContent = '-';
       return;
     }
 
@@ -894,7 +931,7 @@ async function loadSongs() {
     if (data.ok && Array.isArray(data.data)) {
       list = data.data;
     }
-    countEl.textContent = list.length;
+    setStatText('statD1Songs', list.length);
 
     if (list.length === 0) {
       container.innerHTML = '<div class="empty-state">D1 里还没有歌曲</div>';
@@ -1135,26 +1172,30 @@ async function handleExportQuarantine() {
    ============================================================ */
 async function loadThanks() {
   const container = document.getElementById('thanksList');
-  const countEl = document.getElementById('thanksCount');
+  /* 2026-10-01：标题后面的数字徽章（thanksCount）已删掉，
+     人数 / 类别数改写进上面那两张统计卡 */
   container.innerHTML = '<div class="loading">加载中...</div>';
 
   try {
     const res = await fetch('/api/thanks?t=' + Date.now());
     if (!res.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      countEl.textContent = '-';
+      setStatText('statThanksPeople', '-');
+      setStatText('statThanksCats', '-');
       return;
     }
     const data = await res.json();
     if (data && data.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
-      countEl.textContent = '-';
+      setStatText('statThanksPeople', '-');
+      setStatText('statThanksCats', '-');
       return;
     }
 
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
-      countEl.textContent = '0';
+      setStatText('statThanksPeople', 0);
+      setStatText('statThanksCats', 0);
       return;
     }
 
@@ -1166,7 +1207,9 @@ async function loadThanks() {
 
     let total = 0;
     groups.forEach(cat => { total += (cat.people || []).length; });
-    countEl.textContent = total;
+    setStatText('statThanksPeople', total);
+    /* 收录类别：只数真的有人在那儿的类别，空类别不算 */
+    setStatText('statThanksCats', groups.filter(cat => (cat.people || []).length > 0).length);
 
     if (total === 0) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
@@ -1339,7 +1382,7 @@ async function loadSponsors() {
   sponsorsLoaded = true;
 
   const container = document.getElementById('sponsorList');
-  const countEl = document.getElementById('sponsorCount');
+  /* 2026-10-01：标题后面的数字徽章（sponsorCount）已删掉，人数写进统计卡 */
   if (!container) return;
   container.innerHTML = '<div class="loading">加载中...</div>';
 
@@ -1369,9 +1412,11 @@ async function loadSponsors() {
 
   sponsorCache = d1People;
 
-  /* 计数 = 底档 + D1 两段之和 */
+  /* 计数 = 底档 + D1 两段之和；三个数分别写进「👑 赞助者」上面那三张统计卡 */
   const total = baseline.length + d1People.length;
-  if (countEl) countEl.textContent = total;
+  setStatText('statSponsorTotal', total);
+  setStatText('statSponsorBase', baseline.length);
+  setStatText('statSponsorD1', d1People.length);
 
   container.innerHTML = '';
 
