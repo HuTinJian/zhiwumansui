@@ -1261,37 +1261,26 @@ async function handleExportThanks() {
   }
 }
 
-/* 赞助者：底档（data/sponsors.json）+ D1 两段合并导出，金额统一落在 amount 字段。
-   2026-10-01：已删除（隐藏标记）的人不再导出 —— 不然拿这份覆盖回底档，
-   刚删掉的人又被写回文件里了；隐藏标记本身也不导出。 */
+/* 赞助者：导出 D1 里现有的赞助者（金额统一落在 amount 字段）。
+   2026-10-01 晚：赞助者只在 D1 里管，导出的就是这一份 ——
+   拿到可以直接覆盖 data/sponsors.json 当存档（页面已经不读那个文件了）。 */
 async function handleExportSponsors() {
   try {
-    const baseline = await fetchSponsorBaseline();
-    let d1People = [];
-    let hiddenNames = new Set();
-    try {
-      const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        const cat = data.find((c) => c && c.category === SPONSOR_CATEGORY);
-        d1People = (cat && Array.isArray(cat.people)) ? cat.people : [];
-        const hid = data.find((c) => c && c.category === SPONSOR_HIDDEN_CATEGORY);
-        hiddenNames = new Set((hid && Array.isArray(hid.people) ? hid.people : [])
-          .map((p) => String((p && p.name) || '').trim()));
-      }
-    } catch (e) { /* D1 拿不到就只导底档 */ }
+    const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json();
+    if (!Array.isArray(data)) { showToast('导出失败：名单拿不到'); return; }
 
-    const pick = (p) => ({
+    const cat = data.find((c) => c && c.category === SPONSOR_CATEGORY);
+    const d1People = (cat && Array.isArray(cat.people)) ? cat.people : [];
+
+    const list = d1People.map((p) => ({
       name: p.name || '',
       amount: String(p.amount === undefined || p.amount === null || p.amount === '' ? (p.platform || '') : p.amount),
       message: p.message || ''
-    });
-    const notHidden = (p) => !hiddenNames.has(String((p && p.name) || '').trim());
-    const list = [...baseline.filter(notHidden).map(pick), ...d1People.filter(notHidden).map(pick)];
+    }));
     if (!list.length) { showToast('暂无赞助者可导出'); return; }
     downloadJson(`sponsors-${exportStamp()}.json`, list);
-    showToast(`📤 已导出 ${list.length} 条赞助者（格式同 data/sponsors.json）`
-      + (hiddenNames.size ? `，已跳过 ${hiddenNames.size} 位删除状态的人` : ''));
+    showToast(`📤 已导出 ${list.length} 条赞助者（格式同 data/sponsors.json）`);
   } catch (err) {
     showToast('网络异常，导出失败');
   }
@@ -1327,48 +1316,69 @@ async function handleExportQuarantine() {
 /* ============================================================
    ❤️ 鸣谢名单（后台「🎮 Roblox ID 宝库」子面板；赞助者见下面单独一节）
    ============================================================ */
+/* 2026-10-01 站主要求：宝库鸣谢上面的统计改成「那 3 个类别」——
+   每个类别一张卡，显示这个类别有几个人。卡片按 D1 里实际的类别动态生成，
+   以后加 / 删类别会自动跟着变，不用改代码。 */
+function renderThanksStats(groups) {
+  const box = document.getElementById('thanksStatGrid');
+  if (!box) return;
+
+  box.innerHTML = '';
+  const list = (Array.isArray(groups) ? groups : []).filter(cat => cat);
+
+  if (list.length === 0) {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = '<div class="num">0</div><div class="label">还没有类别</div>';
+    box.appendChild(card);
+    return;
+  }
+
+  list.forEach(cat => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = '<div class="num">' + Number((cat.people || []).length) + '</div>' +
+      '<div class="label">' + escapeHtml(cat.category) + '</div>';
+    box.appendChild(card);
+  });
+}
+
 async function loadThanks() {
   const container = document.getElementById('thanksList');
   /* 2026-10-01：标题后面的数字徽章（thanksCount）已删掉，
-     人数 / 类别数改写进上面那两张统计卡 */
+     统计改成上面那排「每个类别一张卡」（见 renderThanksStats） */
   container.innerHTML = '<div class="loading">加载中...</div>';
 
   try {
     const res = await fetch('/api/thanks?t=' + Date.now());
     if (!res.ok) {
       container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      setStatText('statThanksPeople', '-');
-      setStatText('statThanksCats', '-');
+      renderThanksStats(null);
       return;
     }
     const data = await res.json();
     if (data && data.ok === false) {
       container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
-      setStatText('statThanksPeople', '-');
-      setStatText('statThanksCats', '-');
+      renderThanksStats(null);
       return;
     }
 
     if (!Array.isArray(data)) {
       container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
-      setStatText('statThanksPeople', 0);
-      setStatText('statThanksCats', 0);
+      renderThanksStats([]);
       return;
     }
 
     /* 2026-09-29 用户要求：这一栏是「🎮 Roblox ID 宝库」的鸣谢名单，
        「👑 赞助者」有自己单独的子面板，不能在这里再出现一遍
        （前端鸣谢页 thanks.html 早就跳过它了，后台这栏之前漏了过滤）。
-       2026-10-01 又排除掉「🚫 已删除赞助者」——那是底档删除用的隐藏标记，
-       不是鸣谢内容，不能混进这份名单里。
+       2026-10-01 又排除掉「🚫 已删除赞助者」——那是白天那版删除用过、
+       现在已经废掉的隐藏标记类别，万一 D1 里还剩着，不许混进这份名单。
        注意这两个字符串都是数据口径，别改。 */
     const groups = data.filter(cat => cat && cat.category !== SPONSOR_CATEGORY && cat.category !== SPONSOR_HIDDEN_CATEGORY);
 
-    let total = 0;
-    groups.forEach(cat => { total += (cat.people || []).length; });
-    setStatText('statThanksPeople', total);
-    /* 收录类别：只数真的有人在那儿的类别，空类别不算 */
-    setStatText('statThanksCats', groups.filter(cat => (cat.people || []).length > 0).length);
+    /* 统计卡：只算真的有人在那儿的类别，跟列表口径一致 */
+    renderThanksStats(groups.filter(cat => (cat.people || []).length > 0));
 
     /* 平铺成「一行一个人」，好按 100 人一页翻（类别名跟着每个人走） */
     thanksCache = [];
@@ -1593,41 +1603,30 @@ async function deleteThanks(id) {
 /* ============================================================
    👑 赞助者（新「❤️ 鸣谢名单」页里赞助者那一栏）
    ------------------------------------------------------------
-   约定（本轮定的，前端 thanks.html 也按同一套读，别自行改名）：
-   · 类别固定写死 '👑 赞助者'；
-   · 「金额」存 platform 字段（例如 '¥10'），「感谢语」存 message 字段；
-   · 两处来源：随仓库发布的底档 data/sponsors.json，
-     以及 D1 的 thanks 表里 category='👑 赞助者' 的行（这个面板负责增 / 删 / 改）。
+   2026-10-01 晚（站主：「删除就是删除了，不要搞什么隐藏」）：
+   赞助者**只在 D1 里管** —— 加 / 改 / 删都直接生效，删除就是真删掉。
+   仓库里的 data/sponsors.json 保留成一份存档，页面不再读它，
+   所以这里也不再需要「同名覆盖」「隐藏标记」那套东西。
    ------------------------------------------------------------
-   2026-10-01 站主要求「底档里的也要能删能改」——
-   网页改不了仓库里的静态文件，所以底档那几行这样处理：
-     · 改：后台存一条同名的 D1 行，鸣谢页显示时**以后台这条为准**（盖住底档那条）；
-     · 删：后台存一条隐藏标记（下面的 SPONSOR_HIDDEN_CATEGORY），鸣谢页就不再显示这个人。
-   两条都不动文件；想彻底清干净，再改一次 data/sponsors.json 就行。
+   字段口径（前端 thanks.html 按同一套读，别改名）：
+   · 类别固定写死 '👑 赞助者'；
+   · 「金额」存 platform 字段（例如 '¥10'），「感谢语」存 message 字段。
    ============================================================ */
 const SPONSOR_CATEGORY = '👑 赞助者';
 
-/* 「已删除」标记存这个类别里（name = 底档里那个名字）。
-   ⚠️ 这个字符串同样是数据口径：前台 thanks.html 靠它过滤、导出也靠它过滤，别改。 */
+/* 2026-10-01 白天那版「删除」曾用这个类别存隐藏标记。
+   现在改了做法（真删），这里只留一个过滤：万一 D1 里还躺着这种老标记，
+   不许它混进鸣谢名单里显示。新代码不再往里写东西。 */
 const SPONSOR_HIDDEN_CATEGORY = '🚫 已删除赞助者';
 
-/* D1 那部分（可管理）的缓存：编辑时按 id 取回原值 */
+/* D1 那部分的缓存：编辑时按 id 取回原值 */
 let sponsorCache = [];
-
-/* 底档（文件）那份 + 已删除标记，列表渲染和统计都要用 */
-let sponsorBaseline = [];
-let sponsorHidden = [];
 
 /* 已经拉过一次没有？用来避免来回切标签反复请求 */
 let sponsorsLoaded = false;
 
 /* 正在编辑的 D1 记录 id；0 表示「新增」模式 */
 let editingSponsorId = 0;
-
-/* 正在编辑的是底档里的哪一条（空字符串 = 不是底档）。底档改不了文件，
-   保存时会新写一条同名的 D1 行来「盖住」它；要是名字也改了，
-   就给原名补一条隐藏标记，免得底档那行又冒出来。 */
-let editingBaselineName = '';
 
 /* 第一次进面板才拉一次；之后靠「🔄 刷新」或增删后自动刷新 */
 function ensureSponsors() {
@@ -1668,17 +1667,13 @@ async function loadSponsors() {
   sponsorsLoaded = true;
 
   const container = document.getElementById('sponsorList');
-  /* 2026-10-01：标题后面的数字徽章（sponsorCount）已删掉，人数写进统计卡 */
   if (!container) return;
   container.innerHTML = '<div class="loading">加载中...</div>';
 
-  /* ① 底档（静态文件） */
-  const baseline = await fetchSponsorBaseline();
-  sponsorBaseline = Array.isArray(baseline) ? baseline : [];
-
-  /* ② D1 里 category === '👑 赞助者' 的行（可增删改）+ 「已删除」标记 */
+  /* 只有一处来源：D1 的 thanks 表里 category = '👑 赞助者' 的行。
+     （2026-10-01 晚站主：「删除就是删除了，不要搞什么隐藏」——
+      原来那份仓库底档 data/sponsors.json 不再参与显示，只当存档。） */
   let d1People = [];
-  let hiddenPeople = [];
   let d1Error = '';
 
   try {
@@ -1692,44 +1687,21 @@ async function loadSponsors() {
       } else if (Array.isArray(data)) {
         const cat = data.find(c => c && c.category === SPONSOR_CATEGORY);
         d1People = (cat && Array.isArray(cat.people)) ? cat.people : [];
-        const hid = data.find(c => c && c.category === SPONSOR_HIDDEN_CATEGORY);
-        hiddenPeople = (hid && Array.isArray(hid.people)) ? hid.people : [];
       }
     }
   } catch (err) {
-    d1Error = '网络异常，D1 那部分没加载出来';
+    d1Error = '网络异常，名单没加载出来';
   }
 
   sponsorCache = d1People;
-  sponsorHidden = hiddenPeople;
+  setStatText('statSponsorTotal', d1People.length);
 
-  const nameOf = (p) => String((p && p.name) || '').trim();
-  const hiddenNames = new Set(hiddenPeople.map(nameOf));
-  /* 已删除的不再当正式行显示（它们在下面「已删除」那一组里） */
-  const visibleBase = sponsorBaseline.filter(p => !hiddenNames.has(nameOf(p)));
-  const visibleD1 = d1People.filter(p => !hiddenNames.has(nameOf(p)));
-  /* 跟底档同名的 D1 行：显示时以 D1 为准（鸣谢页也是这个规矩） */
-  const d1Names = new Set(visibleD1.map(nameOf));
-
-  /* 统计卡：赞助者人数 = 页面真正会显示的人数；另外三个分别是底档 / 后台 / 已删除 */
-  setStatText('statSponsorTotal',
-    visibleBase.filter(p => !d1Names.has(nameOf(p))).length + visibleD1.length);
-  setStatText('statSponsorBase', sponsorBaseline.length);
-  setStatText('statSponsorD1', d1People.length);
-  setStatText('statSponsorHidden', hiddenPeople.length);
-
-  /* 平铺成一个列表（底档行 + D1 行 + 已删除标记），好按 100 人一页翻 */
-  sponsorRows = [
-    ...visibleBase.map(item => ({ group: 'base', item, overridden: d1Names.has(nameOf(item)) })),
-    ...visibleD1.map(person => ({ group: 'd1', item: person })),
-    ...hiddenPeople.map(person => ({ group: 'hidden', item: person }))
-  ];
+  sponsorRows = d1People.map(person => ({ item: person }));
   sponsorD1Error = d1Error;
   renderSponsorPage();
 }
 
-/* 赞助者：每页 100 人（2026-10-01 站主要求，跟宝库页一样）。
-   三段各带小标题：底档 / 后台添加 / 已删除，跟着行一起翻页。 */
+/* 赞助者：每页 100 人（2026-10-01 站主要求，跟宝库页一样） */
 let sponsorRows = [];
 let sponsorPage = 1;
 let sponsorD1Error = '';
@@ -1741,8 +1713,14 @@ function renderSponsorPage() {
 
   sponsorPage = clampPage(sponsorPage, total);
 
-  if (total === 0 && !sponsorD1Error) {
-    container.innerHTML = '<div class="empty-state">暂无赞助者</div>';
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">' + (sponsorD1Error ? '名单加载失败' : '暂无赞助者') + '</div>';
+    if (sponsorD1Error) {
+      const warn = document.createElement('div');
+      warn.className = 'empty-state';
+      warn.textContent = '⚠️ ' + sponsorD1Error;
+      container.appendChild(warn);
+    }
     if (pager) pager.hidden = true;
     return;
   }
@@ -1751,71 +1729,21 @@ function renderSponsorPage() {
   const pageItems = sponsorRows.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
-  let lastGroup = '';
-
-  pageItems.forEach(({ group, item, overridden }) => {
-    if (group !== lastGroup) {
-      const head = document.createElement('div');
-      head.className = 'sponsor-group-title';
-      head.textContent = group === 'base'
-        ? '📄 底档 · data/sponsors.json（这里也能改能删：改/删记在 D1，文件本身不动）'
-        : (group === 'd1'
-          ? '☁️ 后台添加 · 存在 D1（category = 👑 赞助者）'
-          : '🚫 已删除（底档文件里还留着，鸣谢页已经不显示）');
-      container.appendChild(head);
-      lastGroup = group;
-    }
-
+  pageItems.forEach(({ item }) => {
+    const person = item || {};
     const el = document.createElement('div');
     el.className = 'list-item';
-
-    if (group === 'base') {
-      const p = item || {};
-      const amount = (p.amount === undefined || p.amount === null || p.amount === '')
-        ? String(p.platform || '')
-        : String(p.amount);
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(p.name || '匿名')}</span>
-          ${amount ? '<span class="type-tag gold">' + escapeHtml(amount) + '</span>' : ''}
-        </div>
-        ${p.title ? '<div class="meta">' + escapeHtml(p.title) + '</div>' : ''}
-        ${p.message ? '<div class="message">' + escapeHtml(p.message) + '</div>' : ''}
-        <div class="meta" style="margin:0;">📄 底档 · data/sponsors.json${
-          overridden ? ' ·（已被后台的同名行盖住，页面显示后台那条）' : ''}</div>
-        <div class="actions">
-          <button class="btn-edit-sponsor-name" data-name="${escapeHtml(String(p.name || ''))}">✏️ 编辑</button>
-          <button class="btn-delete-name" data-name="${escapeHtml(String(p.name || ''))}">🗑️ 删除</button>
-        </div>
-      `;
-    } else if (group === 'd1') {
-      const person = item || {};
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(person.name)}</span>
-          ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
-        </div>
-        ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
-        <div class="actions">
-          <button class="btn-edit-sponsor" data-id="${escapeHtml(String(person.id))}">✏️ 编辑</button>
-          <button class="btn-delete" data-id="${escapeHtml(String(person.id))}">🗑️ 删除</button>
-        </div>
-      `;
-    } else {
-      const marker = item || {};
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(marker.name || '')}</span>
-          <span class="type-tag red">已删除</span>
-        </div>
-        ${marker.platform ? '<div class="meta">🗓️ ' + escapeHtml(marker.platform) + '</div>' : ''}
-        <div class="message">${escapeHtml(marker.message || '')}</div>
-        <div class="actions">
-          <button class="btn-restore-sponsor" data-id="${escapeHtml(String(marker.id))}" data-name="${escapeHtml(String(marker.name || ''))}">♻️ 恢复显示</button>
-        </div>
-      `;
-    }
-
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(person.name)}</span>
+        ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
+      </div>
+      ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
+      <div class="actions">
+        <button class="btn-edit-sponsor" data-id="${escapeHtml(String(person.id))}">✏️ 编辑</button>
+        <button class="btn-delete" data-id="${escapeHtml(String(person.id))}">🗑️ 删除</button>
+      </div>
+    `;
     container.appendChild(el);
   });
 
@@ -1825,20 +1753,11 @@ function renderSponsorPage() {
   container.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', () => deleteSponsor(Number(btn.dataset.id)));
   });
-  container.querySelectorAll('.btn-edit-sponsor-name').forEach(btn => {
-    btn.addEventListener('click', () => startEditBaselineSponsor(btn.dataset.name));
-  });
-  container.querySelectorAll('.btn-delete-name').forEach(btn => {
-    btn.addEventListener('click', () => deleteSponsorByName(btn.dataset.name));
-  });
-  container.querySelectorAll('.btn-restore-sponsor').forEach(btn => {
-    btn.addEventListener('click', () => restoreSponsorMarker(Number(btn.dataset.id), btn.dataset.name));
-  });
-  /* D1 拉挂了也要说清楚，但不挡住底档已经渲染出来的部分 */
+
   if (sponsorD1Error) {
     const warn = document.createElement('div');
     warn.className = 'empty-state';
-    warn.textContent = '⚠️ D1 那部分没加载出来：' + sponsorD1Error;
+    warn.textContent = '⚠️ ' + sponsorD1Error;
     container.appendChild(warn);
   }
 
@@ -1849,99 +1768,6 @@ function renderSponsorPage() {
   });
 }
 
-/* 按名字删赞助者：底档里的写一条隐藏标记（文件不动），D1 里同名的行一并删掉。
-   —— 2026-10-01 站主要求「不论是不是在底档里面都可以删除」。 */
-async function deleteSponsorByName(rawName) {
-  const name = String(rawName || '').trim();
-  if (!name) { showToast('⚠️ 这一行没有名字，删不了'); return; }
-
-  const inBaseline = sponsorBaseline.some(p => String((p && p.name) || '').trim() === name);
-  const d1Matches = sponsorCache.filter(p => String((p && p.name) || '').trim() === name);
-
-  const lines = ['确定删除「' + name + '」吗？', ''];
-  if (inBaseline) {
-    lines.push('它在底档 data/sponsors.json 里 —— 网页动不了仓库文件，');
-    lines.push('所以会在 D1 记一条「已删除」标记，鸣谢页马上不再显示；');
-    lines.push('以后想彻底清掉，再改一次 data/sponsors.json 就行。');
-  }
-  if (d1Matches.length) {
-    lines.push((inBaseline ? '另外，' : '') + 'D1 里同名的 ' + d1Matches.length + ' 行会一起删掉。');
-  }
-
-  const confirmed = await showConfirm('删除赞助者', lines.join('\n'));
-  if (!confirmed) return;
-
-  try {
-    if (inBaseline) {
-      const r = await fetch('/api/thanks', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add',
-          category: SPONSOR_HIDDEN_CATEGORY,
-          name,
-          platform: new Date().toISOString().slice(0, 10),
-          message: '从后台删除：底档文件里还留着这个名字，鸣谢页已隐藏'
-        })
-      });
-      const d = await r.json().catch(() => null);
-      if (!d || d.ok !== true) {
-        showToast('删除失败：' + sponsorErrorText(d, r.status));
-        return;
-      }
-    }
-
-    let failed = 0;
-    for (const p of d1Matches) {
-      const r = await fetch('/api/thanks', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id: Number(p.id) })
-      });
-      const d = await r.json().catch(() => null);
-      if (!d || d.ok !== true) failed++;
-    }
-
-    if (failed) showToast('⚠️ 有 ' + failed + ' 行没删掉，刷新看一眼');
-    else showToast(inBaseline ? '🗑️ 已删除（鸣谢页已隐藏）' : '🗑️ 已删除');
-    if (editingSponsorId && d1Matches.some(p => Number(p.id) === Number(editingSponsorId))) resetSponsorForm();
-    loadSponsors();
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* 恢复：把那条「已删除」标记删掉，底档里那个人又回来了 */
-async function restoreSponsorMarker(id, name) {
-  if (!id || isNaN(Number(id))) { showToast('⚠️ 这条标记的 ID 无效'); return; }
-
-  const confirmed = await showConfirm(
-    '恢复显示',
-    '确定把「' + (name || '这位赞助者') + '」恢复显示吗？\n\n（只删掉那条「已删除」标记，底档文件本来就没动过）'
-  );
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch('/api/thanks', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', id: Number(id) })
-    });
-    const data = await res.json().catch(() => null);
-    if (data && data.ok) {
-      showToast('♻️ 已恢复显示');
-      loadSponsors();
-    } else {
-      showToast('恢复失败：' + sponsorErrorText(data, res.status));
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
 /* 编辑：打开同一个弹窗、把这一行的值填进去
    （2026-09-26：原来是填回上面那排行内表单，现在统一走弹窗；
     值一律用 .value 赋值，不拼 HTML） */
@@ -1950,7 +1776,6 @@ function startEditSponsor(id) {
   if (!person) { showToast('未找到这条记录，刷新后再试'); return; }
 
   editingSponsorId = Number(id);
-  editingBaselineName = '';
   document.getElementById('addSponsorName').value = person.name || '';
   document.getElementById('addSponsorAmount').value = person.platform || '';
   document.getElementById('addSponsorMessage').value = person.message || '';
@@ -1970,38 +1795,9 @@ function openAddSponsorModal() {
   openModal('addSponsorModal');
 }
 
-/* 编辑底档里的那一条（2026-10-01 站主要求「底档的也要能改」）：
-   文件动不了，所以把底档的值填进弹窗，保存时写一条同名的 D1 行盖住它；
-   这个名字在 D1 里已经有一条（之前改过）的话，就直接改那一条。 */
-function startEditBaselineSponsor(rawName) {
-  const name = String(rawName || '').trim();
-  const base = sponsorBaseline.find(p => String((p && p.name) || '').trim() === name);
-  if (!base) { showToast('未找到这条底档记录，刷新后再试'); return; }
-
-  const d1Hit = sponsorCache.find(p => String((p && p.name) || '').trim() === name);
-  if (d1Hit) { startEditSponsor(Number(d1Hit.id)); return; }
-
-  editingSponsorId = 0;
-  editingBaselineName = name;
-  document.getElementById('addSponsorName').value = base.name || '';
-  document.getElementById('addSponsorAmount').value = String(
-    (base.amount === undefined || base.amount === null || base.amount === '') ? (base.platform || '') : base.amount
-  );
-  document.getElementById('addSponsorMessage').value = base.message || '';
-
-  const titleEl = document.getElementById('addSponsorModalTitle');
-  if (titleEl) titleEl.textContent = '✏️ 编辑赞助者（底档）';
-  const okBtn = document.getElementById('confirmAddSponsor');
-  if (okBtn) okBtn.textContent = '💾 保存修改';
-
-  openModal('addSponsorModal');
-  showToast('✏️ 正在改底档里的「' + name + '」；保存后页面以这条后台记录为准（文件本身不动）');
-}
-
 /* 清空表单 + 退出编辑模式（「取消」按钮和提交成功后都走这里） */
 function resetSponsorForm() {
   editingSponsorId = 0;
-  editingBaselineName = '';
   ['addSponsorName', 'addSponsorAmount', 'addSponsorMessage'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -2012,9 +1808,9 @@ function resetSponsorForm() {
   if (okBtn) { okBtn.textContent = '✅ 确认添加'; okBtn.disabled = false; }
 }
 
-/* 添加 / 保存赞助者
+/* 添加 / 保存赞助者（2026-10-01 晚：赞助者只在 D1 里管，没有底档那套了）
    ⚠️ 约定：金额写进 platform 字段、感谢语写进 message 字段，类别固定 '👑 赞助者'
-   —— 这是本轮定下来的，别改成别的字段名，thanks.html 前端按同一套读。 */
+   —— 前端 thanks.html 按同一套读，别改成别的字段名。 */
 async function handleAddSponsor() {
   const nameEl = document.getElementById('addSponsorName');
   const amountEl = document.getElementById('addSponsorAmount');
@@ -2030,12 +1826,11 @@ async function handleAddSponsor() {
   if (message.length > 200) { showToast('感谢语最多 200 个字'); return; }
 
   const editingId = editingSponsorId;
-  const baselineName = editingBaselineName;   /* 从底档那行点「✏️ 编辑」进来的话，这里是底档原名 */
 
   /* 感谢语留空 → 自己写一句（2026-09-29 用户要求）。
      只在「新增」时代写：编辑时留空就是留空，那是管理员自己的选择。 */
   let autoWrote = false;
-  if (!message && !editingId && !baselineName) {
+  if (!message && !editingId) {
     message = buildSmartSponsorNote(name);
     messageEl.value = message;
     autoWrote = true;
@@ -2045,7 +1840,6 @@ async function handleAddSponsor() {
   if (btn) btn.disabled = true;
 
   try {
-    /* 底档那份是静态文件，这里动不了：改底档 = 写一条同名的 D1 行把它盖住 */
     const res = await fetch('/api/thanks', {
       method: 'POST',
       credentials: 'include',
@@ -2064,37 +1858,9 @@ async function handleAddSponsor() {
     try { data = await res.json(); } catch (e) { data = null; }
 
     if (data && data.ok) {
-      /* ① 底档那行如果被改了名字：给原名补一条隐藏标记，否则底档那行还会冒出来 */
-      if (baselineName && baselineName !== name) {
-        await fetch('/api/thanks', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'add',
-            category: SPONSOR_HIDDEN_CATEGORY,
-            name: baselineName,
-            platform: new Date().toISOString().slice(0, 10),
-            message: '后台把底档这条改名成了「' + name + '」，原名字自动隐藏'
-          })
-        }).catch(() => null);
-      }
-      /* ② 这个名字之前在「已删除」名单里的话，顺手撤掉标记（加回来就该显示） */
-      const markers = sponsorHidden.filter(p => String((p && p.name) || '').trim() === name);
-      for (const m of markers) {
-        await fetch('/api/thanks', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete', id: Number(m.id) })
-        }).catch(() => null);
-      }
-
       showToast(editingId
         ? '✅ 已保存修改'
-        : (baselineName
-          ? '✅ 已保存（底档那条会在页面显示成后台这条）'
-          : (autoWrote ? '✅ 已添加赞助者（感谢语留空，已自动代写）' : '✅ 已添加赞助者')));
+        : (autoWrote ? '✅ 已添加赞助者（感谢语留空，已自动代写）' : '✅ 已添加赞助者'));
       closeModal('addSponsorModal');
       resetSponsorForm();
       loadSponsors();
@@ -2108,13 +1874,34 @@ async function handleAddSponsor() {
   }
 }
 
-/* D1 那行的「🗑️ 删除」按钮：统一走「按名字删」（deleteSponsorByName）——
-   2026-10-01 起，底档里要是有同名的人，一起处理掉（记隐藏标记），
-   免得删了 D1 那行、底档那行又冒出来，看起来像没删掉。 */
+/* 删除赞助者：真删（2026-10-01 晚站主：「删除就是删除了，不要搞什么隐藏」） */
 async function deleteSponsor(id) {
+  if (!id || isNaN(Number(id))) { showToast('⚠️ ID 无效，无法删除'); return; }
+
   const person = sponsorCache.find(p => Number(p.id) === Number(id));
-  if (!person) { showToast('未找到这条记录，刷新后再试'); return; }
-  return deleteSponsorByName(person.name);
+  const label = person && person.name ? '「' + person.name + '」' : '这位赞助者';
+
+  const confirmed = await showConfirm('删除赞助者', '确定删除' + label + '吗？\n\n删掉就直接没了（D1 里真删），要去鸣谢页看效果刷新一下就行。');
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/thanks', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast('🗑️ 已删除');
+      if (editingSponsorId === Number(id)) resetSponsorForm();
+      loadSponsors();
+    } else {
+      showToast('删除失败：' + sponsorErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
 }
 
 /* ============================================================

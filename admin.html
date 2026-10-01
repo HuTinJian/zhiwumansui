@@ -87,7 +87,7 @@
       justify-content: space-between; flex-wrap: wrap; gap: 10px;
     }
     /* 2026-10-01 用户要求：原来每个面板标题后面都跟着一个灰色数字徽章（.count），
-       现在全部删掉 —— 数字只留在「📊 数据统计」的卡片里，标题那一行只管按钮。
+       现在全部删掉 —— 数字只留在「📈 数据统计」的卡片里，标题那一行只管按钮。
        所以 .count 这条样式也没人要了，一并删掉。 */
     .panel-card h2 .head-actions {
       display: flex; gap: 8px; flex-wrap: wrap;
@@ -143,6 +143,19 @@
       background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
     }
     .list-item .actions .btn-edit-sponsor:hover { background: var(--bg-tint); transform: translateY(-2px); }
+    /* 2026-10-01 补：同一批新按钮换过类名（底档行按「名字」删 / 鸣谢行的编辑 /
+       恢复显示），漏写样式就会掉回浏览器默认的灰按钮 —— 站主一眼就看出来了。
+       这里跟上面几款对齐：编辑 = 中性描边、删除 = 危险红、恢复 = 跟「受理」同款金色。 */
+    .list-item .actions .btn-edit-sponsor-name,
+    .list-item .actions .btn-edit-thanks {
+      background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
+    }
+    .list-item .actions .btn-edit-sponsor-name:hover,
+    .list-item .actions .btn-edit-thanks:hover { background: var(--bg-tint); transform: translateY(-2px); }
+    .list-item .actions .btn-delete-name { background: var(--danger); color: #fff; }
+    .list-item .actions .btn-delete-name:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-restore-sponsor { background: var(--gold); color: #fff; }
+    .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-2px); }
     .list-item .actions button:active { transform: scale(0.92); }
 
     /* ---------- 反馈处理结果 ---------- */
@@ -233,18 +246,20 @@
     }
 
     .stat-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px; margin-bottom: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+      gap: 10px; margin-bottom: 16px;
     }
+    /* 2026-10-01 站主：「统计的大小变小」——数字和留白都收了一档，
+       卡片不再一大块，一行能放下更多张 */
     .stat-card {
       background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft));
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 18px; text-align: center;
+      border-radius: var(--radius-sm); padding: 12px 12px 10px; text-align: center;
       transition: transform 0.35s var(--ease-bounce), border-color 0.25s var(--ease-soft);
     }
-    .stat-card:hover { transform: translateY(-4px) rotate(-1deg); border-color: var(--primary-light); }
-    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: var(--primary-ink); line-height: 1.2; }
-    .stat-card .label { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
+    .stat-card:hover { transform: translateY(-3px) rotate(-1deg); border-color: var(--primary-light); }
+    .stat-card .num { font-size: 1.3rem; font-weight: 800; color: var(--primary-ink); line-height: 1.15; }
+    .stat-card .label { font-size: 0.74rem; color: var(--text-light); margin-top: 3px; line-height: 1.35; }
 
     /* ========== 数据统计面板 ========== */
     .stats-sub {
@@ -553,7 +568,7 @@
            公告改成仓库里的静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
       <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
-      <button class="tab" data-panel="panel-stats">📊 数据统计</button>
+      <button class="tab" data-panel="panel-stats">📈 数据统计</button>
     </div>
 
     <!-- 反馈管理 -->
@@ -586,7 +601,7 @@
 
         <div class="subpanel active" id="card1-songs">
           <div class="panel-card">
-            <h2>📊 数据统计</h2>
+            <h2>📈 数据统计</h2>
             <div class="stat-grid">
               <div class="stat-card">
                 <div class="num" id="statTotal">-</div>
@@ -632,7 +647,7 @@
 
         <div class="subpanel" id="card1-quarantine">
           <div class="panel-card">
-            <h2>📊 数据统计</h2>
+            <h2>📈 数据统计</h2>
             <!-- 2026-10-01 用户要求：隔离区也该有自己的统计（原来只有歌曲管理有），
                  而且「开发者隔离区」那张卡本来就该在这儿、不在歌曲管理那栏。 -->
             <div class="stat-grid">
@@ -688,27 +703,14 @@
 
       <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
       <div class="subpanel active" id="sponsor-panel">
-        <!-- 2026-10-01 用户要求：鸣谢名单这两栏也补上「📊 数据统计」，
+        <!-- 2026-10-01 用户要求：鸣谢名单这两栏也补上「📈 数据统计」，
              跟歌曲管理 / 开发者隔离区保持一致；标题后面那个数字徽章同时删掉。 -->
         <div class="panel-card">
-          <h2>📊 数据统计</h2>
+          <h2>📈 数据统计</h2>
           <div class="stat-grid">
             <div class="stat-card">
               <div class="num" id="statSponsorTotal">-</div>
               <div class="label">赞助者人数</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="statSponsorBase">-</div>
-              <div class="label">底档人数</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="statSponsorD1">-</div>
-              <div class="label">后台添加</div>
-            </div>
-            <!-- 2026-10-01：底档里的人也能在后台删（存一条隐藏标记），所以多这张卡 -->
-            <div class="stat-card">
-              <div class="num" id="statSponsorHidden">-</div>
-              <div class="label">已删除（隐藏）</div>
             </div>
           </div>
         </div>
@@ -725,7 +727,7 @@
             </span>
           </h2>
           <p class="panel-desc">
-            底档 data/sponsors.json 里的人和后台添加的都能在这一栏改 / 删：改底档那条会在 D1 存一条同名记录盖住它，删底档那条会存一条「已删除」标记把页面隐藏（文件本身不动，想彻底清掉再改一次 data/sponsors.json）；鸣谢页两处合起来显示，同名的以后台那条为准。
+            赞助者现在就在这一栏管：加、改、删都直接生效（存在 D1）。删除就是真删掉，没有「隐藏」那一套；data/sponsors.json 保留成一份存档，页面不再读它。
           </p>
           <div id="sponsorList">
             <div class="loading">加载中...</div>
@@ -738,15 +740,13 @@
       <!-- 子面板 · Roblox ID 宝库（原来的鸣谢管理，整块搬过来） -->
       <div class="subpanel" id="thanks-panel">
         <div class="panel-card">
-          <h2>📊 数据统计</h2>
-          <div class="stat-grid">
+          <h2>📈 数据统计</h2>
+          <!-- 2026-10-01 站主要求：这里改成「那 3 个类别」各一张卡（类别有几个人）。
+               卡片由 js/admin.js 按 D1 里实际的类别动态生成，以后加类别会自动多一张。 -->
+          <div class="stat-grid" id="thanksStatGrid">
             <div class="stat-card">
-              <div class="num" id="statThanksPeople">-</div>
-              <div class="label">鸣谢人数</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="statThanksCats">-</div>
-              <div class="label">收录类别</div>
+              <div class="num">-</div>
+              <div class="label">加载中…</div>
             </div>
           </div>
         </div>
@@ -774,7 +774,7 @@
     <div class="panel" id="panel-stats">
       <div class="panel-card">
         <h2>
-          📊 站内数据总览
+          📈 站内数据总览
           <span class="head-actions">
             <button class="btn btn-secondary" id="refreshStatsBtn">🔄 刷新</button>
           </span>

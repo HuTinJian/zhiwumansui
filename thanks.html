@@ -73,10 +73,10 @@
     </div>
 
     <!-- ==================== 面板一：👑 赞助者 ====================
-         名单来源有两处，脚本合并去重（按名字，底档优先）：
-           1) 仓库里的底档 data/sponsors.json —— 静态文件，不发接口也看得到；
-           2) D1 thanks 表里 category === '👑 赞助者' 的行（后台加的）。
-         接口挂了 / 返回空都不影响底档：两者各拉各的，互不牵连。 -->
+         名单只有一处来源（2026-10-01 晚站主要求「删除就是删除了，不要搞什么隐藏」）：
+           D1 thanks 表里 category === '👑 赞助者' 的行 —— 后台那一栏加 / 改 / 删
+           就是最终结果，删掉就是真没了。
+         仓库里的 data/sponsors.json 不再参与显示，只当一份存档。 -->
     <section class="seg-panel active" id="panelSponsors" role="tabpanel"
              aria-labelledby="tabSponsors" tabindex="0">
       <!-- 2026-09-26：原来这里是 ul.thanks-list 的卡片列表；
@@ -237,7 +237,8 @@
       show(initial, false);
 
       /* ============================================================
-         ② 赞助者：底档（data/sponsors.json）+ 后台加的（D1）
+         ② 赞助者：只从 D1 读（category = '👑 赞助者'）
+            —— 2026-10-01 晚起不再读仓库底档 data/sponsors.json
          ============================================================ */
       /* 赞助者条目：2026-09-26 用户要求「赞助者模仿 Roblox 的鸣谢名单那样写人名等内容」——
          所以这里不再用卡片、也不再用名字/称号两行，而是和右边那一档同一个写法：
@@ -297,42 +298,26 @@
         box.removeAttribute('aria-busy');
       }
 
-      /* 两条数据链同时发、各错各的：
-         · 底档 = 仓库里的静态 JSON，跟接口没关系 —— 接口挂了它照常显示；
-         · 接口 = D1 里后台加的人（可能 404 / 断了），拿不到就当没有。 */
-      var basePromise = fetchJson('data/sponsors.json?t=' + Date.now())
-        .then(function (data) { return { list: Array.isArray(data) ? data : [], ok: true }; })
-        .catch(function () { return { list: [], ok: false }; });
-
+      /* 2026-10-01 晚（站主：「删除就是删除了，不要搞什么隐藏」）：
+         赞助者现在**只从 D1 读**（/api/thanks 里 category = '👑 赞助者' 的那些行），
+         后台那一栏加 / 改 / 删就是最终结果 —— 删掉就是真没了。
+         仓库里的 data/sponsors.json 不再参与显示，只当一份存档。
+         接口拿不到就照实说「读不出来」，不去翻旧文件充数。 */
       var groupsPromise = fetchJson('/api/thanks?t=' + Date.now())
         .then(function (groups) { return Array.isArray(groups) ? groups : null; })
         .catch(function () { return null; });
 
-      Promise.all([basePromise, groupsPromise]).then(function (results) {
-        var base = results[0];
-        var groups = results[1];
-
-        var extra = [];
-        var hidden = [];   /* 后台「删除」底档里的人时留下的隐藏标记 */
+      groupsPromise.then(function (groups) {
+        var sponsors = [];
         if (Array.isArray(groups)) {
           groups.forEach(function (cat) {
             if (!cat || !Array.isArray(cat.people)) return;
-            if (cat.category === SPONSOR_CATEGORY) extra = extra.concat(cat.people);
-            if (cat.category === SPONSOR_HIDDEN_CATEGORY) hidden = hidden.concat(cat.people);
+            if (cat.category === SPONSOR_CATEGORY) sponsors = sponsors.concat(cat.people);
           });
         }
 
-        /* 2026-10-01：被后台删掉的（名字进隐藏名单）就不显示了 —— 底档和 D1 两边都过滤 */
-        var hiddenNames = Object.create(null);
-        hidden.forEach(function (p) {
-          var n = String((p && p.name) || '').trim();
-          if (n) hiddenNames[n] = true;
-        });
-        var notHidden = function (p) {
-          return !hiddenNames[String((p && p.name) || '').trim()];
-        };
-
-        renderSponsors(base.list.filter(notHidden), base.ok, extra.filter(notHidden));
+        /* 第二个参数 = 「名单读到了吗」，renderSponsors 用它决定空状态那句话 */
+        renderSponsors([], Array.isArray(groups), sponsors);
         renderRoblox(groups);
       });
 
