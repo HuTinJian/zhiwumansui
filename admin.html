@@ -1017,6 +1017,11 @@
        再在最后收「音效/声效/素材」这类泛词 —— 这样「Shotgun Sound Effect」
        不会因为带个 effect 就被当成梗音效。 */
     const CATEGORY_RULES = [
+      /* 节日套话先认：「Happy Birthday」不能被下面梗音效那条的 happy 抢走 */
+      { cat: '影视节日', words: [
+        'happy birthday', 'merry christmas', 'jingle bell', 'jingle bells', 'silent night',
+        'we wish you', 'feliz navidad', 'santa claus', '生日快乐', '新年好'
+      ] },
       { cat: '古风国风', words: [
         '古风', '国风', '戏腔', '汉服', '江湖', '武侠', '红尘', '相思', '长安', '洛阳',
         '敦煌', '山河', '红昭愿', '牵丝戏', '赤伶', '琵琶', '古筝', '二胡', '箜篌', '唢呐',
@@ -1032,6 +1037,8 @@
         'tense', 'tension', 'suspense', 'eerie', 'dread', 'thriller', 'dark', 'darkness',
         'chase', 'mystery', 'halloween', 'haunted', 'shadow', 'shadows', 'escape',
         'fight', 'evil', 'atmosphere', 'danger', 'dangerous', 'thrilling', 'vampire',
+        'ghost', 'ghostly', 'phantom', 'specter', 'spectre', 'cursed', 'monster',
+        'nightmare', 'ominous', 'disturbing', 'abandoned', 'stalker', 'demon', 'sinister',
         /* 注意别收「boss」这个单词 ——「Bossa Nova」会被它误伤（库里 31 首） */
         'boss battle', 'boss fight', 'boss music'
       ] },
@@ -1058,11 +1065,16 @@
         'beep', 'emmm', 'oof', 'airhorn', 'fart', 'earrape', 'rickroll', 'quack',
         'toilet', 'skibidi', 'ohio', 'rizz', 'sigma', 'griddy', 'headshot', 'coin',
         'buzzer', 'ding', 'scream', 'laugh', 'buzzer',
+        /* 用户那份文件里的梗音：哈基米、难绷、爆音、炸麦 */
+        '哈基米', '难绷', '爆音', '炸麦',
         /* 库里那批「轻松 / 搞笑」气氛曲（Happy Song、Cartoon Scene… 100 多首）
            也是放在这一栏的，所以这几个词跟着归这儿 —— 刻意不收裸的 happy，
            不然「Happy Birthday」会被从「影视节日」里抢过来 */
         'cute', 'cheerful', 'playful', 'quirky', 'bouncy', 'upbeat', 'joyful',
-        'sunshine', 'picnic', 'carnival', 'parade', 'whimsical', 'clumsy', 'mischief'
+        'sunshine', 'picnic', 'carnival', 'parade', 'whimsical', 'clumsy', 'mischief',
+        /* 库里那批 Happy Song / Happy Shoppers 也是放这一栏的。
+           注意别收「fun」——「FUNK」会被它抢走（实测 83 首） */
+        'happy', 'sunny', 'joy'
       ] },
       { cat: '舒缓治愈', words: [
         '舒缓', '治愈', '放松', '安静', '睡前', '助眠', '催眠', '冥想', '白噪', '轻音乐',
@@ -1070,12 +1082,14 @@
         'lofi', 'lo-fi', 'chill', 'relax', 'calm', 'sleep', 'ambient', 'peaceful',
         'serene', 'quiet', 'soft', 'gentle', 'study', 'spa', 'yoga', 'dream', 'dreamy',
         'beach', 'paradise', 'garden', 'sunset', 'sunrise', 'morning', 'sky', 'breeze',
-        'meadow', 'coffee', 'home', 'warm', 'jazz', 'acoustic', 'white noise',
+        'meadow', 'coffee', 'home', 'warm', 'jazz', 'acoustic', 'white noise', '失眠',,
         /* 「温馨 / 治愈」气氛 + 库里的风景类配乐（Alpine Lodge、Paradise Falls…） */
         'tender', 'lullaby', 'cozy', 'heartwarming', 'hope', 'rise', 'snow', 'forest',
         'ocean', 'comfort', 'spring', 'blossom', 'childhood', 'tranquil', 'serenity',
         'twilight', 'dawn', 'dusk', 'cloud', 'bamboo', 'drifting', 'floating', 'lodge',
-        'alpine', 'mountain', 'lake', 'river', 'falls', 'vibes', 'lounge', 'smooth'
+        'alpine', 'mountain', 'lake', 'river', 'falls', 'vibes', 'lounge', 'smooth',
+        /* 库里那批「窗边购物」「Bossa Nova」类的场景曲也在这栏 */
+        'bossa nova', 'window shopping', 'low cortisol'
       ] },
       { cat: '游戏动漫', words: [
         '游戏', '动漫', '番剧', '二次元', '像素', '8bit', '8-bit', 'chiptune', '原神',
@@ -1084,6 +1098,11 @@
         'pokemon', '宝可梦', 'roblox', 'fnaf', 'genshin', 'anime', 'vocaloid', '初音',
         'sonic', 'retro', 'arcade', 'robot', 'robotic', 'pixel', 'neon',
         'gaming', 'game over', 'level up', 'tetris', 'kirby', 'doom eternal', 'game boy',
+        '8 bit', '8-bit tune', 'bit tune',
+        /* 用户那份《歌曲ID.txt》里成片出现的：奥特曼（一堆主题曲 / 进行曲）、
+           迷你世界、蔚蓝档案、赛博朋克、FNF —— 都算游戏 / 番剧这一栏 */
+        '奥特曼', '特摄', '迷你世界', '蔚蓝档案', '赛博朋克', 'fnf',
+        '特利迦', '赛迦', '奈克赛斯',
         /* 动漫 / 科幻未来气氛（Cyber Space、Space Race…）也在这一栏 */
         'naruto', 'jujutsu', 'demon slayer', 'attack on titan', 'one piece', 'bleach',
         'dragon ball', 'eurobeat', 'touhou', 'hatsune', 'kawaii', 'j-pop', 'jpop',
@@ -1133,7 +1152,10 @@
         'rainy', 'lost', 'heroic', 'triumph', 'glory', 'powerful', 'legend', 'courage',
         'inspir', 'grand', 'majestic', 'overcome', 'champion', 'story', 'narrative',
         'cutscene', 'prologue', 'epilogue', 'credits', 'menu', 'loading', 'transition',
-        'finale', 'sacrifice', 'destiny', 'promise', 'remember', 'empty room'
+        'finale', 'sacrifice', 'destiny', 'promise', 'remember', 'empty room',
+        /* 「进行曲」= march：文件里「祖国人进行曲」「中长跑进行曲」这种，
+           归剧情情绪（史诗 / 大气那一类） */
+        '进行曲'
       ] },
       { cat: '摇滚金属', words: [
         '摇滚', 'rock', '重金属', '金属乐', 'metal', '朋克', 'punk', '乐队', 'grunge',
@@ -1158,21 +1180,120 @@
       '剧情': '剧情情绪', '情绪': '剧情情绪'
     };
 
+    /* 手动写的分类名里带「风格词」时按它认（「中文摇滚」→ 摇滚金属）。
+       顺序有讲究：先具体后笼统 —— 「搞笑音效」不能被「音效」抢走，
+       「中文摇滚」也不能被「中文」抢成中文流行。 */
+    const STYLE_WORDS = [
+      { word: '摇滚', cat: '摇滚金属' }, { word: '金属', cat: '摇滚金属' },
+      { word: '说唱', cat: '嘻哈说唱' }, { word: '嘻哈', cat: '嘻哈说唱' }, { word: 'rap', cat: '嘻哈说唱' },
+      { word: '古风', cat: '古风国风' }, { word: '国风', cat: '古风国风' },
+      { word: '恐怖', cat: '恐怖紧张' }, { word: '惊悚', cat: '恐怖紧张' },
+      { word: '古典', cat: '古典器乐' }, { word: '器乐', cat: '古典器乐' },
+      { word: '游戏', cat: '游戏动漫' }, { word: '动漫', cat: '游戏动漫' },
+      { word: '搞笑', cat: '搞笑音效' }, { word: '音效', cat: '音效素材' },
+      { word: '治愈', cat: '舒缓治愈' }, { word: '舒缓', cat: '舒缓治愈' }, { word: '助眠', cat: '舒缓治愈' },
+      { word: '电音', cat: '电子舞曲' }, { word: '电子', cat: '电子舞曲' }, { word: 'dj', cat: '电子舞曲' },
+      { word: '影视', cat: '影视节日' }, { word: '节日', cat: '影视节日' },
+      { word: '剧情', cat: '剧情情绪' }, { word: '情绪', cat: '剧情情绪' },
+      { word: '英文', cat: '英文热门' },
+      { word: '中文', cat: '中文流行' }, { word: '流行', cat: '中文流行' }, { word: '华语', cat: '中文流行' }
+    ];
+
+    /* 关键词匹配：≤4 个字符的纯英文 / 数字词要求「词首边界」——
+       不然 BuildingDance 会被 'ding' 命中、white 会被 'hit' 命中。
+       中文词和带符号的词（op.）继续用包含匹配。 */
+    const MATCHER_CACHE = new Map();
+    function hitWord(lower, word) {
+      let re = MATCHER_CACHE.get(word);
+      if (re === undefined) {
+        re = (/^[a-z0-9]+$/.test(word) && word.length <= 4) ? new RegExp('\\b' + word) : null;
+        MATCHER_CACHE.set(word, re);
+      }
+      return re ? re.test(lower) : lower.indexOf(word) !== -1;
+    }
+
     /* 很短、整条都是拟声词的歌名（「啊」「哦豁」「喵」「叮咚」这类）多半是梗音效 */
     const ONOMATOPOEIA = /^[啊哦嗯欸喂哎咦嘿哈呵嗷呜喵汪哞叽喳呱咩嘶嗡咚咔嘻咕唧呀哟噢嘞咯哒啵嘟呃唉叮滴哐唰砰嘭铛铃嘀嗒]+$/;
 
-    /* ID 规则：站点现有数据里最短的 ID 是 8 位，主流是 10～15 位。
+    /* ID 规则：站点现有数据里最短的 ID 是 8 位，主流 10～16 位。
        这里按「9 位及以上的连续数字」认，既收得下老 ID，也不会把歌名里的
        年份（2024）、倍速（1.0x）这种短数字误当成 ID。 */
+    const ID_MIN = 9;
+    const ID_MAX = 16;     /* 单条 ID 最长按 16 位算 */
     const ID_RE = /\d{9,}/g;
 
-    function extractIds(line) {
-      const ids = [];
+    /* 一串数字太长（> 16 位）说明好几条 ID 粘在一起了 ——
+       用户文件里真出现过「112834898401032138570939058838」（两个 15 位 ID 挨着）。
+       切法：优先等分成几段（每段 9～16 位），挑最接近「本行其它 ID 的长度」的那种；
+       实在等分不了就按同样的长度从头切。切不成就当它是一条长 ID，别硬拆。 */
+    function splitLongRun(run, hintLen) {
+      const L = run.length;
+      if (L <= ID_MAX) return [run];
+
+      const sizes = [];
+      for (let parts = 2; parts * ID_MIN <= L; parts++) {
+        if (L % parts !== 0) continue;
+        const size = L / parts;
+        if (size >= ID_MIN && size <= ID_MAX) sizes.push(size);
+      }
+      if (sizes.length) {
+        const want = hintLen && hintLen >= ID_MIN && hintLen <= ID_MAX ? hintLen : 15;
+        sizes.sort((a, b) => Math.abs(a - want) - Math.abs(b - want));
+        const size = sizes[0];
+        const out = [];
+        for (let i = 0; i < L / size; i++) out.push(run.substr(i * size, size));
+        return out;
+      }
+
+      const len = hintLen && hintLen >= ID_MIN && hintLen <= ID_MAX ? hintLen : 15;
+      const parts = Math.max(1, Math.round(L / len));
+      if (parts < 2) return [run];
+      const out = [];
+      let at = 0;
+      for (let i = 0; i < parts; i++) {
+        const size = Math.floor(L / parts) + (i < L % parts ? 1 : 0);
+        if (size < ID_MIN || size > ID_MAX) return [run];
+        out.push(run.substr(at, size));
+        at += size;
+      }
+      return out;
+    }
+
+    /* 找出这一行所有 ID，并记住每个 ID 在行里的位置（后面切歌名要用）。
+       一行里 ID 的主流长度当「切长数字」的参考。 */
+    function extractIdSpans(line) {
+      const runs = [];
       let m;
       ID_RE.lastIndex = 0;
       while ((m = ID_RE.exec(line)) !== null) {
-        if (ids.indexOf(m[0]) === -1) ids.push(m[0]);
+        runs.push({ text: m[0], start: m.index });
       }
+
+      const lenCount = {};
+      runs.forEach(r => {
+        if (r.text.length <= ID_MAX) lenCount[r.text.length] = (lenCount[r.text.length] || 0) + 1;
+      });
+      let hintLen = 0;
+      let best = 0;
+      Object.keys(lenCount).forEach(k => {
+        if (lenCount[k] > best) { best = lenCount[k]; hintLen = Number(k); }
+      });
+
+      const spans = [];
+      for (const r of runs) {
+        let at = r.start;
+        for (const id of splitLongRun(r.text, hintLen)) {
+          spans.push({ id, start: at, end: at + id.length });
+          at += id.length;
+        }
+      }
+      return spans;
+    }
+
+    /* 兼容老调用：只要 ID 列表 */
+    function extractIds(line) {
+      const ids = [];
+      extractIdSpans(line).forEach(sp => { if (ids.indexOf(sp.id) === -1) ids.push(sp.id); });
       return ids;
     }
 
@@ -1212,33 +1333,62 @@
       return s.replace(/\s{2,}/g, ' ').trim().slice(0, 100);
     }
 
-    /* 从一行里挖出手动指定的分类：【古风国风】/ [古风国风] / 分类：古风国风 */
+    /* 从一行里挖出手动指定的分类：
+         【古风国风】/ [古风国风] / 分类：古风国风 / （中文摇滚）
+       最后那种（括号里写分类）只有「能对上站内分类」时才算数 —— 用户文件里
+       写的是「《海浪》（中文摇滚）」，站内分类叫「摇滚金属」，靠别名 / 风格词
+       对得上去；对不上的（「（原版）」「（Live）」「（Sl柚子厨版）」）就留在歌名里。
+       认出来的那一段在 rest 里用等长空格顶掉 —— 这样 ID 的位置不会错位。 */
     function extractExplicitCategory(line) {
       let cat = '';
       let rest = line;
+      const blank = (token) => {
+        const at = rest.indexOf(token);
+        if (at < 0) return;
+        rest = rest.slice(0, at) + ' '.repeat(token.length) + rest.slice(at + token.length);
+      };
+
       const bracket = rest.match(/[\[【｛{]\s*([^\]】｝}]{1,20}?)\s*[\]】｝}]/);
       if (bracket) {
         cat = bracket[1].trim();
-        rest = rest.replace(bracket[0], ' ');
-      } else {
-        const prefix = rest.match(/(?:分类|类别|类型|category)\s*[:：]\s*([^\s,，;；、]{1,20})/i);
-        if (prefix) {
-          cat = prefix[1].trim();
-          rest = rest.replace(prefix[0], ' ');
+        blank(bracket[0]);
+        return { cat, rest };
+      }
+
+      const prefix = rest.match(/(?:分类|类别|类型|category)\s*[:：]\s*([^\s,，;；、]{1,20})/i);
+      if (prefix) {
+        cat = prefix[1].trim();
+        blank(prefix[0]);
+        return { cat, rest };
+      }
+
+      for (const m of rest.matchAll(/[（(]\s*([^）)]{1,20}?)\s*[）)]/g)) {
+        const inner = normalizeCategory(m[1]);
+        if (KNOWN_CATEGORIES.indexOf(inner) !== -1) {
+          cat = inner;
+          blank(m[0]);
+          break;
         }
       }
       return { cat, rest };
     }
 
-    /* 把（手动写的）分类名对齐到站点现有分类 */
+    /* 手动写的分类名对齐到站点现有分类：
+       ① 名字就是站内分类 → 直接用；
+       ② 别名表（phonk/dj → 电子舞曲…）；
+       ③ 名字里含站内分类（「古风国风类」→ 古风国风）；
+       ④ 名字里含风格词（「中文摇滚」→ 摇滚金属）。 */
     function normalizeCategory(cat) {
       const c = String(cat || '').trim();
       if (!c) return '';
       if (KNOWN_CATEGORIES.indexOf(c) !== -1) return c;
-      const alias = CATEGORY_ALIASES[c.toLowerCase()] || CATEGORY_ALIASES[c];
+      const low = c.toLowerCase();
+      const alias = CATEGORY_ALIASES[low] || CATEGORY_ALIASES[c];
       if (alias) return alias;
       const hit = KNOWN_CATEGORIES.find(k => c.indexOf(k) !== -1);
-      return hit || c;
+      if (hit) return hit;
+      const style = STYLE_WORDS.find(w => low.indexOf(w.word) !== -1);
+      return style ? style.cat : c;
     }
 
     /* 智能分类：先关键词，再拟声词，最后按文字种类兜底（日韩文→游戏动漫、
@@ -1249,7 +1399,7 @@
       const lower = raw.toLowerCase();
 
       for (const rule of CATEGORY_RULES) {
-        if (rule.words.some(w => lower.indexOf(w) !== -1)) return rule.cat;
+        if (rule.words.some(w => hitWord(lower, w))) return rule.cat;
       }
       if (raw.length <= 6 && ONOMATOPOEIA.test(raw)) return '搞笑音效';
 
@@ -1267,10 +1417,14 @@
     /* 解析粘贴进来的文本，能认的形式（混着贴也行）：
          · 晴天 1876950732          · 晴天1876950732（中间没空格）
          · 1876950732 晴天          · 1876950732《晴天》（ID 在前、带书名号）
-         · 晴天 【古风国风】1876950732  · 分类：古风国风 晴天 1876950732（手动指定分类）
+         · 晴天：1876950732（冒号 / 顿号 / 破折号 / 竖线都能夹）
+         · 晴天 【古风国风】1876950732  · 分类：古风国风 晴天 1876950732
+         · 《海浪》（中文摇滚）95728570379323（括号里直接写分类）
          · 歌名一行、ID 另一行（会自己配上对）
-         · 一行多个 ID（作为「同名多 ID」一起加）
-       返回 [{ id, name, category, lineIndex }]，同一个 ID 只留第一条。 */
+         · 一行多组串在一起（2026-10-01 用户特意点名的格式）：
+             难绷电音笑99474474122230 飞起来！112064181015623 嘿嘿嘿嗨104492649688505
+           —— 每个 ID 认自己两边夹着的歌名，不会把整行文字塞给第一个 ID
+        返回 [{ id, name, category, lineIndex }]，同一个 ID 只留第一条。 */
     function parseRawText(text) {
       const lines = String(text == null ? '' : text).split(/\r?\n/);
       const result = [];
@@ -1283,34 +1437,58 @@
         const line = rawLine.trim();
         if (!line) continue;
 
-        const ids = extractIds(line);
+        /* 先把手动指定的分类摘出来（摘掉的地方用等长空格填，ID 位置不受影响） */
+        const ex = extractExplicitCategory(line);
+        const spans = extractIdSpans(ex.rest);
 
         /* 这一行一个 ID 都没有：先当歌名记着，下一行若是光秃秃的 ID 就能配上对 */
-        if (ids.length === 0) {
-          const maybe = cleanName(line);
+        if (spans.length === 0) {
+          const maybe = cleanName(ex.rest);
           if (maybe) pendingName = maybe;
           continue;
         }
 
-        const ex = extractExplicitCategory(line);
-        let namePart = ex.rest;
-        ids.forEach(id => { namePart = namePart.split(id).join(' '); });
+        /* 按 ID 把这一行切成若干段：segs[i] 夹在第 i 个 ID 前面，
+           segs[i+1] 夹在它后面 —— 每段文字归给紧挨着它的那个 ID */
+        const segs = [];
+        let cursor = 0;
+        for (const sp of spans) {
+          segs.push(ex.rest.slice(cursor, sp.start));
+          cursor = sp.end;
+        }
+        segs.push(ex.rest.slice(cursor));
 
-        let name = cleanName(namePart);
-        if (!name && pendingName) name = pendingName;   /* 只有 ID 的那一行，用上一行记下的歌名 */
-        if (name) pendingName = '';
-        if (!name) name = '未知歌名';
+        const segUsed = new Array(segs.length).fill(false);
+        let names = spans.map((sp, i) => {
+          const before = cleanName(segs[i]);
+          const after = cleanName(segs[i + 1]);
+          /* 优先用 ID 前面的（「歌名 ID」最常见），前面没有或已被邻居用了才用后面的 */
+          if (before && !segUsed[i]) { segUsed[i] = true; return before; }
+          if (after && !segUsed[i + 1]) { segUsed[i + 1] = true; return after; }
+          return '';
+        });
 
-        const category = normalizeCategory(ex.cat) || guessCategory(name);
+        /* 一行只认出一个名字 → 其余 ID 跟它同名（老的「同名多 ID」行为） */
+        const named = names.filter(Boolean);
+        if (named.length === 1) names = names.map(n => n || named[0]);
+        /* 整行都没名字 → 用上一行留下的歌名（歌名一行、ID 一行的情况） */
+        if (names.every(n => !n) && pendingName) names = names.map(() => pendingName);
+        if (names.some(Boolean)) pendingName = '';
+
+        const lineCat = normalizeCategory(ex.cat);   /* 手动指定的分类，整行共用 */
 
         let dupIndex = 0;
-        for (const id of ids) {
+        for (let i = 0; i < spans.length; i++) {
+          const id = spans[i].id;
           if (seen.has(id)) { dupIndex++; continue; }
           seen.add(id);
+          const nameForId = names[i] || '';
           result.push({
             id,
-            name,
-            category,
+            /* 一行多组时每条自己判自己的分类 —— 不然「迷你世界野人」会被
+               同一行第一首的名字带跑（那个 bug 是拿真实文件测出来的） */
+            name: nameForId || '未知歌名',
+            category: lineCat || guessCategory(nameForId),
             lineIndex: lineNo + dupIndex * 0.1
           });
         }
