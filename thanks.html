@@ -299,15 +299,22 @@
       }
 
       /* 2026-10-01 晚（站主：「删除就是删除了，不要搞什么隐藏」）：
-         赞助者现在**只从 D1 读**（/api/thanks 里 category = '👑 赞助者' 的那些行），
-         后台那一栏加 / 改 / 删就是最终结果 —— 删掉就是真没了。
-         仓库里的 data/sponsors.json 不再参与显示，只当一份存档。
-         接口拿不到就照实说「读不出来」，不去翻旧文件充数。 */
+         赞助者 = **后台（D1）那一份 + 仓库底档 data/sponsors.json**，按名字去重、
+         同名的以后台为准。后台加 / 改 / 删立刻生效（删就是真删）；
+         底档文件里那几位还是文件说了算（要改要删跟 AI 说一声，改文件推送）。
+         加上底档这份兜底，也是为了 D1 里空着的时候名单不至于开天窗。 */
       var groupsPromise = fetchJson('/api/thanks?t=' + Date.now())
         .then(function (groups) { return Array.isArray(groups) ? groups : null; })
         .catch(function () { return null; });
 
-      groupsPromise.then(function (groups) {
+      var basePromise = fetchJson('data/sponsors.json?t=' + Date.now())
+        .then(function (list) { return Array.isArray(list) ? list : []; })
+        .catch(function () { return []; });
+
+      Promise.all([basePromise, groupsPromise]).then(function (res) {
+        var fileList = res[0];
+        var groups = res[1];
+
         var sponsors = [];
         if (Array.isArray(groups)) {
           groups.forEach(function (cat) {
@@ -316,8 +323,9 @@
           });
         }
 
-        /* 第二个参数 = 「名单读到了吗」，renderSponsors 用它决定空状态那句话 */
-        renderSponsors([], Array.isArray(groups), sponsors);
+        /* 第二个参数 = 「名单读到了吗」，renderSponsors 用它决定空状态那句话；
+           第三个参数（后台那份）先入列 → 同名的以后台为准，底档里剩下的才追加 */
+        renderSponsors(fileList, Array.isArray(groups), sponsors);
         renderRoblox(groups);
       });
 

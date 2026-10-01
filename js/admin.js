@@ -1670,9 +1670,10 @@ async function loadSponsors() {
   if (!container) return;
   container.innerHTML = '<div class="loading">加载中...</div>';
 
-  /* 只有一处来源：D1 的 thanks 表里 category = '👑 赞助者' 的行。
+  /* 名单只有一处来源：D1 的 thanks 表里 category = '👑 赞助者' 的行。
      （2026-10-01 晚站主：「删除就是删除了，不要搞什么隐藏」——
-      原来那份仓库底档 data/sponsors.json 不再参与显示，只当存档。） */
+      仓库底档 data/sponsors.json 不再参与显示，只当存档；
+      但切换那天 D1 里一个赞助者都没有，所以要给个「一键把底档搬进 D1」的入口。） */
   let d1People = [];
   let d1Error = '';
 
@@ -1713,8 +1714,13 @@ function renderSponsorPage() {
 
   sponsorPage = clampPage(sponsorPage, total);
 
+  container.innerHTML = '';
+
   if (total === 0) {
-    container.innerHTML = '<div class="empty-state">' + (sponsorD1Error ? '名单加载失败' : '暂无赞助者') + '</div>';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = sponsorD1Error ? '名单加载失败' : '暂无赞助者';
+    container.appendChild(empty);
     if (sponsorD1Error) {
       const warn = document.createElement('div');
       warn.className = 'empty-state';
