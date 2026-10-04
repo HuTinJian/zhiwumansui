@@ -248,3 +248,106 @@ export function safeParse(str, fallback = []) {
     return fallback;
   }
 }
+
+/* ============================================================
+   Cloudflare Turnstile 人机验证（2026-10-05 新增）
+   ------------------------------------------------------------
+   为什么加：公开写接口（登录、无效上报、撤销、渠道上报）原来只靠
+   「单实例内存限速」，换台机器/多开脚本就能绕。Turnstile 是免费的，
+   验证次数不限，能在请求到达 Functions 之前先把脚本挡掉。
+
+   三种模式（由环境变量 TURNSTILE_MODE 决定）：
+     · 未配置 TURNSTILE_SECRET 或缺省 → off   ：完全不检查，与老版本一模一样
+     · soft  ：带了 token 就验；没带 / 验不过只打日志放行（**上线观察期用**）
+     · strict：必须带有效 token，否则 403（**确认前端没问题后再切**）
+
+   回退方式：把 TURNSTILE_MODE 删掉 / 改成 soft，或删掉 TURNSTILE_SECRET，
+   不需要重新部署代码，下一次请求立刻生效。
+   ============================================================ */
+
+export const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+/* 读模式：只要没有密钥就一律 off，避免「配了模式忘了密钥」把站点锁死 */
+export function turnstileMode(env) {
+  if (!env || !env.TURNSTILE_SECRET) return 'off';
+  const raw = String(env.TURNSTILE_MODE || '').trim().toLowerCase();
+  if (raw === 'strict') return 'strict';
+  if (raw === 'soft') return 'soft';
+  /* 配了密钥但没写模式：默认 soft（只观察不拦人），避免误伤访客 */
+  return 'soft';
+}
+
+/* 校验一个 Turnstile token。
+   返回 { ok } ：ok=false 只会在 strict 模式下出现，调用方据此返回 403。
+   · 「没带 token」在 soft 下放行、在 strict 下拒绝
+   · 「验不过（success:false）」同上
+   · 「验证服务本身连不上（网络错误）」一律放行 —— 宁可漏掉脚本，
+     也不能让正常访客因为 Cloudflare 抖动而提交不了 */
+export async function verifyTurnstile(request, env, token) {
+  const mode = turnstileMode(env);
+  if (mode === 'off') return { ok: true, mode: 'off' };
+
+  const value = String(token === undefined || token === null ? '' : token).trim();
+  if (!value) {
+    if (mode === 'soft') {
+      console.warn('[turnstile] 缺少 token（soft 模式放行）');
+      return { ok: true, mode, missing: true };
+    }
+    return { ok: false, mode, error: 'turnstile_required' };
+  }
+
+  try {
+    const form = new URLSearchParams();
+    form.set('secret', String(env.TURNSTILE_SECRET));
+    form.set('response', value);
+    const ip = clientIp(request);
+    if (ip && ip !== 'unknown') form.set('remoteip', ip);
+
+    const res = await fetch(TURNSTILE_VERIFY_URL, { method: 'POST', body: form });
+    const data = await res.json().catch(() => null);
+    const success = !!(data && data.success === true);
+
+    if (success) return { ok: true, mode, verified: true };
+
+    const codes = (data && Array.isArray(data['error-codes']))
+      ? data['error-codes'].join(',')
+      : 'unknown';
+    if (mode === 'soft') {
+      console.warn('[turnstile] 校验未通过（soft 模式放行）：' + codes);
+      return { ok: true, mode, failed: codes };
+    }
+    return { ok: false, mode, error: 'turnstile_failed', codes };
+  } catch (err) {
+    console.error('[turnstile] 校验服务不可达，放行：', err);
+    return { ok: true, mode, unreachable: true };
+  }
+}
+
+/* 取 token：优先 JSON body 的 turnstileToken 字段，
+   也接受 Cloudflare 惯用的 CF-Turnstile-Response 请求头 */
+export function turnstileTokenFrom(request, body) {
+  const fromBody = (body && typeof body === 'object' && !Array.isArray(body))
+    ? body.turnstileToken
+    : '';
+  const fromHeader = request && request.headers
+    ? request.headers.get('CF-Turnstile-Response')
+    : '';
+  return String(fromBody || fromHeader || '').trim();
+}
+
+/* 各写接口统一入口：从 body 里取 token → 校验 */
+export async function checkTurnstile(request, env, body) {
+  return verifyTurnstile(request, env, turnstileTokenFrom(request, body));
+}
+
+/* strict 模式下统一的 403 文案，前端识别 error 前缀做提示 */
+export function turnstileRejection(result) {
+  return json(
+    {
+      ok: false,
+      error: result && result.error ? result.error : 'turnstile_failed',
+      hint: '请完成人机验证后重试'
+    },
+    403
+  );
+}

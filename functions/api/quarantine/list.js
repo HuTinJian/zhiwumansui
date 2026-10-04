@@ -4,6 +4,14 @@
 
 import { json } from '../_utils.js';
 
+/* 2026-10-05：**故意不加缓存头**（保持 _utils.json() 默认的 no-store）。
+   我一度给它加过 `public, max-age=60`（想省掉重复访问那次 617ms 的 D1 查询），
+   但独立验收的端到端用例 E34 当场证伪：管理员在后台「✅ 确认无效并下架」之后，
+   访客的下一次宝库页加载**因为浏览器缓存命中而没有重新拉这个接口**，
+   那条 ID 依旧显示 —— 也就是最关键的「下架生效」闭环被打断了。
+   结论：已下架名单属于「必须立刻生效」的数据，宁可每次多花一次往返，也不能缓存。
+   （性能收益改由 HTML 缓存 + 主数据缓存 + 静态快照 data/admin_quarantine.json 去拿。） */
+
 export async function onRequestGet(context) {
   const { env } = context;
 

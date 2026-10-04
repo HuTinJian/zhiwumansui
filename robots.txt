@@ -1,0 +1,76 @@
+# 织雾满穗 · robots.txt（2026-10-05 新增）
+# ------------------------------------------------------------
+# 先说实话：robots.txt 只是「请勿抓取」的君子协定，
+# 守规矩的搜索引擎会听，恶意爬虫和 AI 采集器根本不看这个文件。
+# 这里能做的只有两件事：
+#   ① 挡掉规矩的 AI 训练爬虫；
+#   ② 告诉搜索引擎别去爬后台和接口（它们本来也爬不到有用东西）。
+# 真正的拦挡要靠 Cloudflare 那一侧（Turnstile / Bot 策略 / WAF），
+# 详见 README 的「安全说明」一节。
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+
+# ---- AI 训练 / 采集类爬虫（明确拒绝）----
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+# Content Signals（Cloudflare 推动的内容使用意愿声明）：
+# 允许搜索引擎索引，不允许用于 AI 训练。老爬虫会忽略这一行，无害。
+Content-Signal: search=yes, ai-train=no

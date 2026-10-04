@@ -32,6 +32,12 @@
 --   前端页面、functions/api/blog/* 接口、后台管理面板、D1 表都不要了，
 --   所以那些语句从这里一并删掉 —— 免得哪天照着重跑，又把表建回来。
 --   老库里已经建好的那五张表，按《d1-drop-blog.sql》里的语句 DROP 掉即可。
+--
+-- 【2026-10-05 大改动】
+--   反馈功能整体下线：feedback.html、functions/api/feedback* 全部删除，
+--   feedback 表保留仅供考古（不读不写，也不要 DROP）。
+--   新增「无效音乐 ID 上报」链路 → 见文件最后的第 2 组（可重复执行，不会报错）。
+--   第 1 组那三条 ALTER 只对考古老库有意义，新库不用跑。
 -- ============================================================
 
 
@@ -47,3 +53,23 @@ ALTER TABLE feedback ADD COLUMN decided_at TEXT;
 
 -- 加速「查我自己的反馈」这个查询
 CREATE INDEX IF NOT EXISTS idx_feedback_client ON feedback(client_id);
+
+
+-- ---------- 第 2 组：无效音乐 ID 上报（2026-10-05 新增） ----------
+-- 这一组【可以整段重复执行】：全部是 IF NOT EXISTS，跑第二遍也不会报错，
+-- 所以网页版 D1 Console 里直接把下面四条一起粘进去执行就行。
+-- 表结构说明见 schema.sql 里的注释（status：pending / ignored / removed）。
+CREATE TABLE IF NOT EXISTS invalid_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  music_id TEXT NOT NULL,
+  name TEXT,
+  category TEXT,
+  reporter TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id, reporter);
+
+CREATE INDEX IF NOT EXISTS idx_invalid_status ON invalid_reports(status, music_id);

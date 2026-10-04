@@ -5,10 +5,21 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-
-/admin.html
+  Strict-Transport-Security: max-age=31536000
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+# 2026-10-05 加固说明：
+#   · HSTS        —— 强制浏览器以后只走 HTTPS（本站本来就只有 HTTPS，纯保险）
+#   · X-Frame-Options / frame-ancestors —— 禁止任何网站把本站嵌进 iframe
+#     （防点击劫持；站内一个 iframe 都没有，所以不会影响任何页面）
+#   · Permissions-Policy —— 明确关掉摄像头/麦克风/定位/支付，减少被滥用的面
+
+# 2026-10-05：这里原来还有一段 /admin.html 单独设置 X-Frame-Options 与 frame-ancestors。
+# 现在上面 /* 已经把这两条罩住全站，重复设置会被 Cloudflare 用「逗号拼接」处理
+# （变成 `X-Frame-Options: DENY, DENY`）—— 而 X-Frame-Options 只认单个值，
+# 浏览器遇到认不出的值可能整条忽略，等于白设。所以这一段删掉，只留 /* 那一份。
 
 # ------------------------------------------------------------
 # 缓存策略
@@ -23,20 +34,41 @@
 /data/roblox_music.json
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# CSS / JS：只缓存 60 秒。
-# 为什么不用更长的缓存？因为这是你自己在维护的网站，
-# 「改完看不到效果」比「多几次请求」麻烦得多。
-# 60 秒之后浏览器会自动去问一句「有没有变」，没变就返回 304，几乎不花流量。
-# 想立刻看到：Ctrl + F5。
+# CSS / JS：缓存 60 秒（这条不变，方便你改完就看到效果）。
+# 2026-10-05 性能补丁：加上 stale-while-revalidate —— 60 秒过后浏览器
+# 会用手里那份旧的**立刻渲染**，同时在后台问一句「有没有变」：
+# 变了下次导航就是新版、没变就 304。
+# ⚠️ 说清代价（之前这段注释写得不准）：SWR 生效时访客这一次看到的仍是旧文件，
+# 要**再打开一次**才是新版 —— 所以「改完看不到效果」的窗口不是精确的 60 秒，
+# 而是「60 秒 + 一次导航」。要立刻看到就 Ctrl + F5。
 /css/*
-  Cache-Control: public, max-age=60
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
 
 /js/*
-  Cache-Control: public, max-age=60
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
 
-# 图片：5 分钟。换图标之后最多等 5 分钟，或者 Ctrl + F5。
+# 图片：5 分钟（同样加 stale-while-revalidate，换了图标最多等 5 分钟，或 Ctrl + F5）
 /images/*
-  Cache-Control: public, max-age=300
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# HTML 页面本身【不在这里设缓存】—— 必须是每次都拿最新的，
-# 否则你改了页面内容，别人却还看到旧的。
+# ------------------------------------------------------------
+# HTML 页面：2026-10-05 新增「短缓存 + 后台校验」
+# ------------------------------------------------------------
+# 背景（性能审计实测）：Cloudflare Pages 给 HTML 的响应里**既没有 ETag 也没有
+# Last-Modified**，所以「浏览器问一句有没有变、没变回 304」这条路根本走不通 ——
+# 不设缓存就意味着**每次点开页面都要把整份 HTML 重新下一遍**（宝库页 32KB、首页 12KB，
+# 外加一次 250~460ms 的 TTFB）。这是重复访问里最大的一笔固定开销。
+#
+# 折中：只缓存 60 秒，且用 stale-while-revalidate —— 回头客立刻拿到页面（零等待），
+# 后台同时校验；你改了 HTML 最多 60 秒 + 一次导航对外生效（想立刻看到：Ctrl + F5）。
+# 注意：HTML 里内联了各页自己的 CSS/JS，所以这条同时也决定了「页面结构改动」的生效速度。
+/
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/*.html
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+# 说明：2026-10-05 之前这里写的是「HTML 不设缓存、必须每次拿最新」，
+# 原因是当时以为浏览器能靠 ETag/Last-Modified 走 304 —— 实测 Cloudflare Pages
+# 的 HTML 响应两者都没有，于是「不设缓存」变成了「每次都整份重下」。
+# 现在改成上面那两条 60 秒规则：新鲜度只差 60 秒，但重复访问快了一个来回。

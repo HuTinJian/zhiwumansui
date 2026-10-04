@@ -21,15 +21,20 @@ async function isLoggedIn() {
   }
 }
 
-/* 提交密码到后端 */
+/* 提交密码到后端
+   （2026-10-05：优先走 ZMTurnstile.postJson —— 如果站点配了 Turnstile，
+   登录请求会带上一张一次性通行证；没配就是普通 fetch，行为与以前一致） */
 async function submitPassword(password) {
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: String(password ?? '') })
-    });
+    const body = { password: String(password ?? '') };
+    const res = (typeof ZMTurnstile !== 'undefined' && ZMTurnstile.postJson)
+      ? await ZMTurnstile.postJson('/api/auth/login', body, 'login')
+      : await fetch('/api/auth/login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
     if (!res.ok) return false;
     const data = await res.json();
     return data && data.ok === true;
@@ -70,6 +75,8 @@ function ensureAuthModal(modalId = 'authModal') {
         <input type="password" id="${modalId}Input" placeholder="请输入" autocomplete="current-password">
         <div class="form-error" id="${modalId}Error" role="alert" hidden>凭证不正确，请重试</div>
       </div>
+      <!-- Turnstile 挂了才有东西显示（未配置站点时这段是空的） -->
+      <div class="zm-ts-slot" data-zm-turnstile="login"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="${modalId}Cancel">取消</button>
         <button type="button" class="btn btn-primary" id="${modalId}Confirm">确认</button>

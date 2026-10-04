@@ -971,7 +971,7 @@ function initShareTriggers() {
   /* 兜底：万一弹窗没跑起来，20 秒后也必须放行 */
   setTimeout(() => { if (releaseNoticeGate) releaseNoticeGate(); }, 20000);
 
-  /* 只在首页弹：站点根路径 / 与 /index.html 都算首页，其它页面（宝库/反馈/社区/鸣谢/后台/404）不弹 */
+  /* 只在首页弹：站点根路径 / 与 /index.html 都算首页，其它页面（宝库/鸣谢/后台/404）不弹 */
   function isHomePage() {
     const path = (window.location.pathname || '').toLowerCase();
     if (path === '' || path === '/') return true;
@@ -1034,8 +1034,9 @@ function initShareTriggers() {
 
         <p class="preview-notice-body site-notice-call">
           🧩 <strong>希望大家帮忙补歌</strong>：如果你手上有好听的 Roblox 音乐 ID，
-          把「歌名 + ID」发给我就行（进下面的群发，或者去反馈页留言都可以），
+          把「歌名 + ID」发给我就行（进下面的群发即可），
           我会陆续把它们补进宝库，让这里重新热闹起来。
+          <!-- 2026-10-05：这里原来还写着「或者去反馈页留言都可以」，反馈页已删除，去掉这半句。 -->
         </p>
 
         <p class="preview-notice-body">
@@ -1050,13 +1051,15 @@ function initShareTriggers() {
           <p class="site-notice-groups-title">📮 两个 QQ 群，按需要进</p>
           <div class="site-notice-group-list">
             <a class="site-notice-group" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener">
-              <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592">
+              <!-- 2026-10-05 性能：这两张群图加起来 162KB，位置在公告弹窗的**下半部分**，
+                   多数访客不会往下滚 —— 加 loading="lazy" 后不滚就不下载（滚到了照常显示）。 -->
+              <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">ZhiMist（我的群）</span>
               <span class="site-notice-group-no">群号 1125311966</span>
               <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
             </a>
             <a class="site-notice-group" href="images/qq-group-maple.jpg" target="_blank" rel="noopener">
-              <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592">
+              <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
               <span class="site-notice-group-no">群号 1076510312</span>
               <span class="site-notice-group-desc">那份最新最全的歌单在这边，想要就去拿</span>
@@ -1077,8 +1080,10 @@ function initShareTriggers() {
           <span>本站目前仍是预览版，功能和内容都在陆续调整；重要内容请自行二次确认。</span>
         </p>
         <div class="preview-notice-actions" id="siteNoticeActions">
+          <!-- 2026-10-05：站主要求反馈功能整页下线，这里原来那颗
+               「💬 去反馈」（href="feedback.html"）随之删除，
+               公告弹窗只剩「我已阅读并知晓」一个出口。 -->
           <button type="button" class="btn btn-primary" id="siteNoticeOk">我已阅读并知晓</button>
-          <a class="btn btn-secondary" id="siteNoticeFeedback" href="feedback.html">💬 去反馈</a>
         </div>
       </div>
     `;
@@ -1089,8 +1094,9 @@ function initShareTriggers() {
     const markSeen = () => { try { localStorage.setItem(SITE_NOTICE_KEY, SITE_NOTICE_VERSION); } catch (e) {} };
 
     /* 【2026-09-27 用户要求】倒计时整个取消：按钮一打开就能点。
-       关弹窗只有两个出口 —— 点「我已阅读并知晓」，或点「💬 去反馈」跳走；
-       点空白处 / 按 ESC 都关不掉（见 bindModalA11y 里的 data-no-esc 判断）。 */
+       这个弹窗是「必须读完」的：遮罩不可关、ESC 也关不掉（data-static / data-no-esc），
+       2026-10-05 反馈页删除后只剩「我已阅读并知晓」这一个出口
+       （原来还有一个「💬 去反馈」跳走的出口，已随反馈功能一起下线）。 */
     if (okBtn) okBtn.onclick = () => { markSeen(); release(); closeModal(modalId); };
 
     const onClose = e => {
@@ -1121,8 +1127,8 @@ function initShareTriggers() {
     /* 稍微延后一点弹，先让页面画出来，避免「白屏等弹窗」的感觉 */
     setTimeout(showSiteNotice, document.documentElement.classList.contains('lite') ? 300 : 700);
 
-    /* 反馈处理回执：接口不可用时会被内部 try/catch 静默跳过，不影响页面 */
-    checkFeedbackDecision();
+    /* 2026-10-05：原来这里还会调 checkFeedbackDecision() 去查「我提过的反馈有没有被处理」。
+       反馈功能整页下线（feedback.html 已删、/api/feedback/* 已删），回执弹窗一并删除。 */
   }
 
   if (document.readyState === 'loading') {
@@ -1529,28 +1535,19 @@ function initShareTriggers() {
   }
 
   /* ============================================================
-     10.5 浏览器身份 & 反馈回执
+     10.5 浏览器身份
      ------------------------------------------------------------
      · getClientId()：给每个浏览器生成一串随机身份存在本地。
-       它不是账号、不含任何个人信息，只在两处用到：
-         ① 提交反馈时带上，管理员受理/拒绝后才能找到"是谁提的"
-         ② 博客里区分"哪些帖是我发的 / 我赞过的 / 我举报过的"
-     · 管理员处理完一条反馈后，访客下次进入他当初选择的那个页面，
-       会看到一次回执弹窗。同一条反馈只提示一次（状态记在本地）。
+       它不是账号、不含任何个人信息，现在只有一处用到：
+         宝库页的「无效处理」上报 —— 带着它去重（同一个人报同一条只算一份），
+         撤销时也只允许撤销自己那一份（见 functions/api/invalid/*）。
+     · 2026-10-05：原来这里还有一整套「反馈处理回执」
+       （FEEDBACK_SEEN_KEY / TYPE_PAGE / currentPageKey / readSeen / writeSeen /
+        showDecisionModal / checkFeedbackDecision）。反馈功能整页下线，
+       这些函数全都没有调用点了，一并删除，只留下 getClientId()。
      ============================================================ */
 
   const CLIENT_ID_KEY = 'zm_client_id';
-  const FEEDBACK_SEEN_KEY = 'zm_feedback_seen';
-
-  /* 反馈类型 → 该去哪一页提示（和后台的页面划分一致）
-     2026-09-29：「卡片2 / 玩家社区」整个删掉了，这里也去掉它；
-     老数据里可能还有 type 是「卡片2」的反馈，取不到页面键就统一按「本站」提示。 */
-  const TYPE_PAGE = {
-    '主页': 'index',
-    '反馈': 'feedback',
-    '卡片1': 'roblox',
-    '其他': 'feedback'
-  };
 
   function getClientId() {
     let id = null;
@@ -1573,136 +1570,6 @@ function initShareTriggers() {
     return next;
   }
 
-  /* 当前页面属于哪一个反馈页面键 */
-  function currentPageKey() {
-    const path = (window.location.pathname || '').toLowerCase();
-    if (path.indexOf('roblox_music') !== -1) return 'roblox';
-    if (path.indexOf('feedback') !== -1) return 'feedback';
-    if (path.indexOf('admin') !== -1 || path.indexOf('404') !== -1) return '';
-    return 'index';
-  }
-
-  function readSeen() {
-    try {
-      const raw = localStorage.getItem(FEEDBACK_SEEN_KEY);
-      const obj = raw ? JSON.parse(raw) : {};
-      return (obj && typeof obj === 'object') ? obj : {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  function writeSeen(seen) {
-    try { localStorage.setItem(FEEDBACK_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
-  }
-
-  /* 展示处理结果。文案分「受理」和「拒绝」两种，另附管理员可选的说明 */
-  function showDecisionModal(item) {
-    const PAGE_LABEL = { index: '首页', feedback: '反馈页', roblox: 'Roblox ID 宝库' };
-    const pageLabel = PAGE_LABEL[TYPE_PAGE[item.type] || ''] || '本站';
-    const approved = item.status === 'approved';
-
-    const modalId = 'feedbackDecisionModal';
-    const old = document.getElementById(modalId);
-    if (old) old.remove();
-
-    const modal = document.createElement('div');
-    modal.id = modalId;
-    modal.className = 'modal';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', modalId + 'Title');
-
-    const icon = approved ? '✅' : '🙏';
-    const title = approved ? '你提的建议已受理' : '你提的建议暂时没法采纳';
-    const lead = approved
-      ? '你在「' + pageLabel + '」提交的那条反馈，我们看过并且已经受理了。'
-      : '你在「' + pageLabel + '」提交的那条反馈，我们认真看过了，很遗憾这次没能采纳。';
-
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h2 id="${modalId}Title" style="display:flex;align-items:center;gap:8px;">
-          <span aria-hidden="true">${icon}</span>${escapeHtml(title)}
-        </h2>
-        <p style="margin:10px 0 6px;color:var(--text-light);line-height:1.8;font-size:0.92rem;">
-          ${escapeHtml(lead)}
-        </p>
-        <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg-tint);border:1px solid var(--border);">
-          <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">
-            📌 你当时提交的内容${item.createdAt ? '（' + escapeHtml(item.createdAt) + '）' : ''}
-          </div>
-          <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.excerpt || '（你当时没有写内容）')}</div>
-        </div>
-        ${item.reply ? `
-          <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg-soft);border:1px dashed var(--border-strong);">
-            <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">💬 站长说明</div>
-            <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.reply)}</div>
-          </div>` : ''}
-        <div style="margin-top:16px;text-align:center;font-size:0.82rem;color:var(--text-muted);">
-          感谢你的反馈，它真的帮到了这个站点 ❤️
-        </div>
-        <div class="update-footer" style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary" id="${modalId}Ok">我知道了</button>
-          <a class="btn btn-secondary" href="feedback.html">💬 再提一条</a>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-    openModal(modalId);
-
-    const ok = document.getElementById(modalId + 'Ok');
-    if (ok) ok.onclick = () => closeModal(modalId);
-  }
-
-  /* 查一次"我提过的反馈有没有被处理"，有新的结果就弹窗。
-     用 try/catch 包住：接口不可用（比如本地没有后端）时静默跳过，不影响页面。 */
-  async function checkFeedbackDecision() {
-    const pageKey = currentPageKey();
-    if (!pageKey) return;
-    if (document.documentElement.getAttribute('data-notice') === 'off') return;
-
-    const clientId = getClientId();
-
-    let list = null;
-    try {
-      const res = await fetch('/api/feedback/mine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId })
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || !data.ok || !Array.isArray(data.data)) return;
-      list = data.data;
-    } catch (e) {
-      return;
-    }
-
-    const seen = readSeen();
-    let changed = false;
-    let target = null;
-
-    list.forEach(item => {
-      /* 只关心已经出结果、且属于当前这个页面的 */
-      if (item.status !== 'approved' && item.status !== 'rejected') return;
-      if (TYPE_PAGE[item.type] !== pageKey) return;
-      if (seen[item.id] === item.status) return;
-
-      seen[item.id] = item.status;
-      changed = true;
-      /* 一次只弹一条，最新的优先（接口已按 id 倒序） */
-      if (!target) target = item;
-    });
-
-    if (changed) writeSeen(seen);
-    if (!target) return;
-
-    /* 等「预览版告知」和「版本更新」两个弹窗先处理完，避免三个撞在一起 */
-    await noticeGate;
-    setTimeout(() => showDecisionModal(target), 300);
-  }
-
   /* ============================================================
      11. 导出到全局
      ------------------------------------------------------------
@@ -1723,6 +1590,6 @@ function initShareTriggers() {
     escapeHtml,       // 转义，防 XSS
     formatVersion,    // 把版本号排成好看的样子
     checkPageUpdate,  // 检查该页面是否有新版本公告
-    getClientId       // 本浏览器的随机身份（反馈回执 / 博客归属都用它）
+    getClientId       // 本浏览器的随机身份（宝库页「无效处理」上报的去重 / 撤销靠它）
   });
 })();

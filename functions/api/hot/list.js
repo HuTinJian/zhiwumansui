@@ -10,6 +10,13 @@
 
 import { json } from '../_utils.js';
 
+/* 2026-10-05：公开只读的「统计/名单」接口，允许浏览器与 Cloudflare 边缘缓存 60 秒
+   （stale-while-revalidate 600 秒：过期后先拿旧的顶上，再后台刷新）。
+   口径：热门计数晚 60 秒对外生效对访客毫无影响，换来的是重复访问不再每次都打 D1（实测 599–873ms）。
+   ⚠️ 必须配合前端去掉 `?t=Date.now()`：URL 每次都不一样的话缓存永远不命中，这个头就是白加。
+   ⚠️ 500 分支不加这个头：一次 D1 抖动不能被缓存 60 秒。 */
+const CACHE_HEADERS = { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=600' };
+
 export async function onRequestGet(context) {
   const { request, env } = context;
 
@@ -40,7 +47,7 @@ export async function onRequestGet(context) {
       total: r.total || 0
     }));
 
-    return json({ ok: true, data: list });
+    return json({ ok: true, data: list }, 200, CACHE_HEADERS);
   } catch (err) {
     console.error('[hot/list]', err);
     return json({ ok: false, error: 'server error' }, 500);

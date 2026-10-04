@@ -259,23 +259,22 @@
   <span class="mist" aria-hidden="true">🌫️</span>
   <div class="err-code">404</div>
   <h1>这片雾里没有你要找的页面</h1>
+  <!-- 2026-10-05：反馈功能整体下线（反馈页已删），
+       这段文案里原来那句「或者把问题反馈给我们」不再提反馈，也不另造新的联系方式 -->
   <p class="desc">
     链接可能已经失效，或者地址被拼错了。<br>
-    不妨回到首页看看，或者把问题反馈给我们。
+    不妨回到首页看看，也许能从这里找到你想去的地方。
   </p>
 
   <div class="actions">
     <a class="btn btn-primary" id="homeLink" href="../index.html">🏠 返回首页</a>
     <button type="button" class="btn btn-secondary" id="backBtn">↩ 返回上一页</button>
-    <a class="btn btn-secondary" id="feedbackLink" href="../feedback.html">💬 反馈</a>
+    <!-- 2026-10-05：原反馈按钮随反馈页一起删掉（站主决定反馈功能下线） -->
     <a class="btn btn-secondary" id="thanksLink" href="../thanks.html">❤️ 鸣谢</a>
   </div>
 
-  <p class="hint">
-    如果你确信这是个错误，欢迎在
-    <a id="feedbackLinkText" href="../feedback.html">反馈页</a>
-    告诉我们当时点的是哪个链接。
-  </p>
+  <!-- 2026-10-05：原来这里有一行「如果确信是错误，欢迎在反馈页告诉我们」，
+       反馈页已经删除，这行连同它的链接一起去掉，页面上不留任何指向反馈页的引用。 -->
 
   <script>
     (function () {
@@ -308,9 +307,9 @@
          因此从当前路径逐级向上探测，找到真正存在 images/favicon.svg 的那一级作为站点根。 */
       var links = {
         homeLink: 'index.html',
-        feedbackLink: 'feedback.html',
-        thanksLink: 'thanks.html',
-        feedbackLinkText: 'feedback.html'
+        thanksLink: 'thanks.html'
+        /* 2026-10-05：原来那两条指向反馈页的映射（按钮那条 + 正文链接那条）
+           随反馈页一起删除，这里不再保留 —— 所以下面 applyBase 也不会再去设置它们 */
       };
 
       function applyBase(base) {

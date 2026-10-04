@@ -6,6 +6,12 @@
 
 import { json, checkAuth, requireSameOrigin, safeParse } from './_utils.js';
 
+/* 2026-10-05：反馈页下线（feedback.html 已删），page_key 'feedback' 不再接受 ——
+   单页查询直接 400，别再把访客引向已经删掉的页面。
+   注意：D1 里历史的 page_key='feedback' 公告行【不删】（考古资料，删了不可回退），
+   所以后台的 ?all=1 列表里仍然能看到它。 */
+const RETIRED_PAGES = ['feedback'];
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -18,13 +24,14 @@ export async function onRequestGet(context) {
         return json({ ok: false, error: 'unauthorized' }, 401);
       }
 
+      /* 2026-10-05：'feedback' 那一支随反馈页下线删掉；历史行落到 ELSE 5，
+         仍会出现在 ?all=1 的结果里（只是排最后）。roblox 的序号不动，避免无谓的排序语义变动。 */
       const result = await env.DB.prepare(
         `SELECT page_key, version, date, updates, updated_at
          FROM page_updates
          WHERE page_key != 'risk'
          ORDER BY CASE page_key
            WHEN 'index' THEN 1
-           WHEN 'feedback' THEN 2
            WHEN 'roblox' THEN 3
            ELSE 5
          END`
@@ -43,6 +50,11 @@ export async function onRequestGet(context) {
 
     if (!page) {
       return json({ ok: false, error: 'missing page' }, 400);
+    }
+
+    /* 已下线的页面键不再对外提供（历史行仍留在库里，见文件头注释） */
+    if (RETIRED_PAGES.includes(page)) {
+      return json({ ok: false, error: 'invalid page' }, 400);
     }
 
     const row = await env.DB.prepare(
@@ -91,8 +103,10 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'missing fields' }, 400);
     }
     /* 2026-09-29：'blog'（玩家社区）随社区功能删除；
+       2026-10-05：'feedback' 随反馈页下线，page_key 'feedback' 不再接受
+       （只拒收，库里历史的 feedback 公告行不删）；
        另外页面现在读仓库里的 data/updates.json，这个接口只作为后备。 */
-    if (!['index', 'feedback', 'roblox', 'thanks'].includes(page)) {
+    if (!['index', 'roblox', 'thanks'].includes(page)) {
       return json({ ok: false, error: 'invalid page' }, 400);
     }
     if (updates.length === 0) {

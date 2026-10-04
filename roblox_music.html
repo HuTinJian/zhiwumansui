@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roblox ID 宝库 - 织雾满穗</title>
 
-  <meta name="description" content="收录 2900+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与个人隔离区，持续更新。">
+  <meta name="description" content="收录 2900+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与无效上报，持续更新。">
   <meta name="keywords" content="Roblox,音乐ID,音效ID,SoundId,Roblox 音乐,织雾满穗">
   <meta name="theme-color" content="#fdf2f5">
   <meta property="og:title" content="Roblox ID 宝库 - 织雾满穗">
@@ -23,6 +23,20 @@
         }
         document.documentElement.setAttribute('data-theme', t);
       } catch (e) {}
+    })();
+  </script>
+
+  <!-- 2026-10-05 性能：主数据（data/roblox_music.json，约 400KB）在这里就先发出去。
+       原来要等到页面最底下的脚本执行、再等 DOMContentLoaded 才开始下，
+       白白晚了几百毫秒；现在下载与 CSS/JS 并行，页面底部 loadData() 直接复用这个 promise。
+       失败时返回 null（不产生未处理的 rejection），由 loadData 统一提示。 -->
+  <script>
+    (function () {
+      try {
+        window.__zmMainData = fetch('data/roblox_music.json').catch(function () { return null; });
+      } catch (e) {
+        window.__zmMainData = null;
+      }
     })();
   </script>
 
@@ -101,15 +115,9 @@
       font-family: var(--font);
       transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .btn-quarantine-custom {
-      background: linear-gradient(135deg, #f5b872, #e8a05a);
-      color: #fff;
-      border: none;
-      box-shadow: 0 6px 16px rgba(232, 160, 90, 0.25);
-    }
-    .btn-quarantine-custom:hover {
-      transform: translateY(-2px);
-    }
+    /* 2026-10-05：原来这里是「⛔ 我的隔离区」按钮的配色（.btn-quarantine-custom）。
+       访客隔离区已被「无效处理 / 无效批量处理」整条链路取代（上报进后台的
+       「🚫 无效音乐ID管理」），那颗按钮连同它的样式一起删掉。 */
 
     /* 这个按钮原来带一个「一直轻微放大」的循环动画。
        它虽然只动 transform（不算贵），但页面放着不动也在持续耗电，
@@ -501,18 +509,41 @@
       transform: scale(1.06) rotate(2deg);
     }
     .id-actions .btn-play:active { transform: scale(0.9); }
-    .id-actions .btn-quarantine {
+    /* 2026-10-05：「复制」后面那颗小一号的「🚫 无效处理」（原先是隔离用的 ✕）。
+       字号 / 内边距都压一档，主次仍然让「复制」当主角；
+       已上报的行整条变灰、按钮换成「↩️ 撤销」，看得见也点得回来。 */
+    .id-actions .btn-invalid {
       background: transparent;
       color: var(--text-muted);
-      font-size: 1rem;
-      padding: 4px 8px;
+      border: 1px solid var(--border);
+      font-size: 0.7rem;
+      padding: 4px 9px;
     }
-    .id-actions .btn-quarantine:hover {
+    .id-actions .btn-invalid:hover {
       color: var(--danger);
+      border-color: var(--danger);
       background: rgba(232, 116, 122, 0.12);
     }
-    .id-actions .btn-quarantine:active {
-      transform: scale(0.85) rotate(-10deg);
+    .id-actions .btn-invalid:active {
+      transform: scale(0.9);
+    }
+    .id-actions .btn-invalid.reported {
+      color: var(--danger);
+      border-color: var(--danger);
+      background: rgba(232, 116, 122, 0.1);
+    }
+    .id-actions .btn-invalid[disabled] {
+      opacity: 0.55;
+      cursor: default;
+    }
+    .id-row.reported .id-number {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: rgba(232, 116, 122, 0.7);
+    }
+    .id-row.reported .btn-copy,
+    .id-row.reported .btn-play {
+      opacity: 0.6;
     }
 
     .empty-state {
@@ -720,7 +751,7 @@
     [data-theme="dark"] .visit-source-btn.active-choice .src-count { background: var(--bg-card); }
     [data-theme="dark"] .visit-other-input { background: var(--bg-soft); }
     [data-theme="dark"] .visit-other-input input { background: var(--bg-card); }
-    [data-theme="dark"] #quarantineModal .search-inline { background: var(--bg-soft); }
+    /* 2026-10-05：#quarantineModal 在深色模式下的那条覆盖规则随弹窗一起删除 */
     [data-theme="dark"] #riskModal .sub-warning { background: rgba(239, 125, 116, 0.14); }
     [data-theme="dark"] #riskModal .redirect-notice { background: rgba(239, 125, 116, 0.12); }
     [data-theme="dark"] .update-image-modal .modal-content { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.75); }
@@ -845,96 +876,10 @@
       margin-top: 0;
     }
 
-    #quarantineModal .modal-content { max-width: 800px; }
-    #quarantineModal .search-inline {
-      width: 100%;
-      padding: 10px 16px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-pill);
-      font-size: 0.9rem;
-      background: var(--bg-soft);
-      color: var(--text);
-      outline: none;
-      margin-bottom: 12px;
-      transition: border-color 0.25s var(--ease-soft);
-    }
-    #quarantineModal .search-inline:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
-    }
-    #quarantineList {
-      max-height: 50vh;
-      overflow-y: auto;
-      margin-bottom: 12px;
-      padding-right: 4px;
-    }
-    .quarantine-item {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .quarantine-item:last-child {
-      border-bottom: none;
-    }
-    .quarantine-item .info {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-      flex: 1 1 200px;
-    }
-    .quarantine-item .name {
-      font-weight: 600;
-      color: var(--text);
-    }
-    .quarantine-item .q-id {
-      color: var(--primary-dark);
-      font-family: monospace;
-      font-size: 0.88rem;
-    }
-    .quarantine-item .time {
-      color: var(--text-muted);
-      font-size: 0.75rem;
-    }
-    .quarantine-item .q-actions button {
-      padding: 5px 14px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: var(--success-strong);
-      color: #fff;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
-    }
-    .quarantine-item .q-actions button:hover {
-      background: var(--success-dark);
-      transform: scale(1.06);
-    }
-    .quarantine-item .q-actions button:active {
-      transform: scale(0.9);
-    }
-    .quarantine-footer {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-end;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-    .quarantine-footer button {
-      padding: 8px 18px;
-      font-size: 0.85rem;
-    }
-    /* 「去反馈」是个 <a>（2026-10-04 新增），跟旁边的按钮对齐同一套尺寸 */
-    .quarantine-footer a {
-      padding: 8px 18px;
-      font-size: 0.85rem;
-    }
+    /* 2026-10-05：这里原来是一整套「⛔ 我的隔离区」弹窗的样式
+       （#quarantineModal / #quarantineList / .quarantine-item / .quarantine-footer，
+       连「💬 去反馈」那颗 <a> 的对齐规则）。隔离区与反馈都下线了，
+       弹窗 DOM 连同这些选择器一起删干净，避免留着一堆没有元素命中的死规则。 */
 
     /* ========== 左下角常驻「返回首页」（2026-10-04 新增） ==========
        导航栏取消之后，这一页唯一的路口就是它：固定在左下角，滚到哪都在。
@@ -1118,19 +1063,7 @@
       transform: translateY(-1px);
     }
 
-    #quarantineList::-webkit-scrollbar { width: 6px; }
-    #quarantineList::-webkit-scrollbar-track { background: transparent; }
-    #quarantineList::-webkit-scrollbar-thumb {
-      background: rgba(220, 107, 130, 0.25);
-      border-radius: 10px;
-    }
-    #quarantineList::-webkit-scrollbar-thumb:hover {
-      background: rgba(220, 107, 130, 0.45);
-    }
-    #quarantineList {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
-    }
+    /* 2026-10-05：#quarantineList 的滚动条美化（4 条规则）随隔离区弹窗一起删除 */
 
     /* cardRise / fadeInUp / popIn 三个通用动画在 css/style.css 里统一维护，此处不再重复定义 */
 
@@ -1178,6 +1111,8 @@
       .group-name { font-size: 1rem; }
       .id-number { font-size: 0.82rem; }
       .id-actions button { padding: 5px 10px; font-size: 0.75rem; }
+      /* 2026-10-05：手机上「无效处理」再压一档，一排四颗按钮才不至于挤爆 */
+      .id-actions .btn-invalid { padding: 4px 8px; font-size: 0.68rem; }
       #riskModal .modal-content { padding: 18px 16px 12px; }
       #riskModal .risk-body { font-size: 0.78rem; max-height: 45vh; }
     }
@@ -1199,9 +1134,10 @@
        用户要求：宝库页不要导航栏，只在左下角留一个常驻的「返回首页」——
          · 左下角那个按钮见页面最下面的 <a class="back-home-fab">；
          · 页脚里原来那排链接也一并去掉了，只留版权行；
-         · 反馈入口改到「⛔ 我的隔离区」弹窗里（去反馈按钮）；
          · 深色模式开关本来挂在导航栏里，现在改挂到页头右上角
-           （<span class="header-tools" data-theme-slot>，见下面的 page-header）。 -->
+           （<span class="header-tools" data-theme-slot>，见下面的 page-header）。
+       2026-10-05：反馈功能整页下线，这一页本来就没有反馈入口，无需再改；
+         原先挂在「我的隔离区」弹窗里的「💬 去反馈」随弹窗一起删掉。 -->
 
   <main class="container" id="main">
     <header class="page-header">
@@ -1231,15 +1167,17 @@
         <span class="tool-sep" aria-hidden="true"></span>
         <div class="tool-group">
           <span class="tool-label">管理</span>
-          <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
-          <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">📦 批量隔离</button>
+          <!-- 2026-10-05：原来这里还有一颗「⛔ 我的隔离区」（打开本地隔离区弹窗）。
+               站主要求用「无效处理」代替隔离区、批量隔离、每行的叉叉与后台反馈，
+               所以按钮和弹窗整块删掉；点错了走每条 ID 上的「↩️ 撤销」回退。 -->
+          <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">🚫 无效批量处理</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
              当天站主先要求加上（「分享链接只有主页有」），随后又明确这一页不要分享
              （「只删除分享，另外 2 个留着」「我只让你删除 Roblox ID 宝库的」），
              于是整组撤掉：这一页的工具栏只剩「浏览」和「管理」两组。
-             ⚠ 别再往这一页加分享入口了；首页 / 反馈 / 鸣谢 三页的分享入口照旧保留。 -->
+             ⚠ 别再往这一页加分享入口了；首页 / 鸣谢 两页的分享入口照旧保留（反馈页 2026-10-05 已整页删除）。 -->
       </div>
     </header>
 
@@ -1258,7 +1196,7 @@
       <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
       <div class="actions">
         <button class="btn btn-secondary" id="batchClearBtn">取消选择</button>
-        <button class="btn btn-danger" id="batchQuarantineBtn">🗑️ 隔离选中</button>
+        <button class="btn btn-danger" id="batchInvalidBtn">🚫 无效上报选中</button>
       </div>
     </div>
 
@@ -1280,7 +1218,7 @@
        按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。
        中途一度加回过「🔗 分享本站」，随后站主明确「只删除分享……我只让你删除
        Roblox ID 宝库的」，于是这一页的分享入口（工具栏那组 + 这里）全部撤掉，
-       页脚又只剩版权行。要分享去首页 / 反馈 / 鸣谢那三页，它们都还有。 -->
+       页脚又只剩版权行。要分享去首页 / 鸣谢那两页（反馈页 2026-10-05 已删除）。 -->
   <footer class="footer">
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
   </footer>
@@ -1349,23 +1287,9 @@
     </div>
   </div>
 
-  <div class="modal" id="quarantineModal">
-    <div class="modal-content">
-      <h2>⛔ 我的隔离区</h2>
-      <p style="margin-bottom:14px;font-size:0.85rem;">仅你自己可见，不影响其他用户</p>
-      <input type="text" class="search-inline" id="quarantineSearch" placeholder="🔍 搜索隔离区（歌名或 ID）...">
-      <div id="quarantineList"></div>
-      <div class="quarantine-footer">
-        <button class="btn btn-success" id="restoreAllQuarantineBtn">🔄 全部恢复</button>
-        <!-- 2026-10-04 新增（用户要求）：隔离区里直接给个反馈入口。
-             带上 ?type=card1&upload=1：反馈页会自动选中「Roblox ID 宝库」，
-             并在你本地隔离区非空时顺手钩上「上传隔离区 ID」。 -->
-        <a class="btn btn-secondary" id="quarantineFeedbackBtn"
-           href="feedback.html?type=card1&amp;upload=1">💬 去反馈</a>
-        <button class="btn btn-primary" id="closeQuarantineBtn">关闭</button>
-      </div>
-    </div>
-  </div>
+  <!-- 2026-10-05：这里原来是「⛔ 我的隔离区」弹窗（列表 + 全部恢复 + 💬 去反馈）。
+       站主明确：无效处理这一套代替隔离区、批量隔离、叉叉与后台反馈 ——
+       弹窗删掉，反馈页也整页下线（feedback.html 已删除），不再有任何反馈入口。 -->
 
   <div class="modal" id="visitSourceModal">
     <div class="modal-content">
@@ -1415,11 +1339,15 @@
   </div>
 
   <script src="js/common.js"></script>
+  <script src="js/turnstile.js"></script>
   <script>
     /* ========== 全局状态 ========== */
     let songDatabase = [];
-    let quarantineGuest = [];
     let favorites = new Set();
+    /* 2026-10-05：已被「无效处理」上报过的 ID（见 loadInvalidReported）。
+       它只决定「这一行画成已上报、按钮变 ↩️ 撤销」，**不再像旧隔离区那样把条目藏起来** ——
+       站主选的就是「就地标记、可撤销」，点错了随时点回来，不会出现找不回的死角。 */
+    let invalidReported = new Set();
     let currentCategory = 'all';
     let currentKeyword = '';
     let showMultiOnly = false;
@@ -1596,14 +1524,8 @@
       batchBar: $('batchBar'),
       selectedCount: $('selectedCount'),
       batchClearBtn: $('batchClearBtn'),
-      batchQuarantineBtn: $('batchQuarantineBtn'),
+      batchInvalidBtn: $('batchInvalidBtn'),
       batchToggleBtn: $('batchToggleBtn'),
-      quarantineModal: $('quarantineModal'),
-      quarantineSearch: $('quarantineSearch'),
-      quarantineList: $('quarantineList'),
-      restoreAllQuarantineBtn: $('restoreAllQuarantineBtn'),
-      closeQuarantineBtn: $('closeQuarantineBtn'),
-      openQuarantineBtn: $('openQuarantineBtn'),
       riskModal: $('riskModal'),
       riskBody: $('riskBody'),
       riskCancelBtn: $('riskCancelBtn'),
@@ -1628,19 +1550,24 @@
         .trim() || '未知歌名';
     }
 
-    function saveQuarantine() {
+    /* 2026-10-05：「无效处理」上报过的 ID 存本地（用新 key，**不复用**旧隔离区那份）。
+       旧 key roblox_quarantine_guest 里的数据留在访客浏览器里不动 ——
+       隔离区功能已下线，再读它只会让那些 ID 无端消失、而且没有任何恢复入口。 */
+    const INVALID_REPORTED_KEY = 'roblox_invalid_reported';
+
+    function saveInvalidReported() {
       try {
-        localStorage.setItem('roblox_quarantine_guest', JSON.stringify(quarantineGuest));
+        localStorage.setItem(INVALID_REPORTED_KEY, JSON.stringify([...invalidReported]));
       } catch (e) {}
     }
 
-    function loadQuarantine() {
+    function loadInvalidReported() {
       try {
-        const raw = localStorage.getItem('roblox_quarantine_guest');
-        quarantineGuest = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(quarantineGuest)) quarantineGuest = [];
+        const raw = localStorage.getItem(INVALID_REPORTED_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        invalidReported = new Set(Array.isArray(arr) ? arr.map(String) : []);
       } catch (e) {
-        quarantineGuest = [];
+        invalidReported = new Set();
       }
     }
 
@@ -1660,14 +1587,8 @@
       }
     }
 
-    function nowStr() {
-      const d = new Date();
-      return d.getFullYear() + '-' +
-        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-        String(d.getDate()).padStart(2, '0') + ' ' +
-        String(d.getHours()).padStart(2, '0') + ':' +
-        String(d.getMinutes()).padStart(2, '0');
-    }
+    /* 2026-10-05：nowStr()（把当前时间格式化成「YYYY-MM-DD HH:mm」）原来只给隔离区
+       记时间用；隔离区下线后没有任何调用点，一并删掉。 */
 
     async function loadServerRiskVersion() {
       try {
@@ -1688,8 +1609,11 @@
       try {
         /* 2026-10-01 站主要求「热门按 100 组算，不是 100 个 ID」：
            所以这里多拿一些 ID（上限 500），前端再按歌名合并成组、取前 100 组
-           （见 renderList 里的 HOT_GROUP_LIMIT）。 */
-        const res = await fetch('/api/hot/list?limit=500&t=' + Date.now(), { cache: 'no-store' });
+           （见 renderList 里的 HOT_GROUP_LIMIT）。
+           2026-10-05 性能：去掉 `?t=` 与 cache:'no-store' —— 服务端已经给这个接口
+           配了 `public, max-age=60`，URL 每次不同的话缓存永远不命中，等于白配。
+           热门榜晚 60 秒无所谓。 */
+        const res = await fetch('/api/hot/list?limit=500');
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.ok && Array.isArray(data.data)) {
@@ -1704,97 +1628,133 @@
       }
     }
 
+    /* ------------------------------------------------------------
+       主数据 + 辅助数据的载入（2026-10-05 性能改造）
+       ------------------------------------------------------------
+       辅助数据 = ① 已下架的静态快照 data/admin_quarantine.json
+                 ② /api/quarantine/list（后台刚下架的）
+                 ③ /api/songs/list（后台加的新歌）
+       它们**不该挡住首屏**：最多等 AUX_TIMEOUT，超了就先按已有数据画出来，
+       等它们真的回来了再补一次重绘（keepPage，不会把用户甩回第 1 页）。
+       主数据用 <head> 里就发出去的那个 fetch（window.__zmMainData），早下早画。
+       ------------------------------------------------------------ */
+    const AUX_TIMEOUT = 1500;
+    let auxLateApplied = false;
+
+    async function loadAuxLists() {
+      const [staticQRes, qRes, extraRes] = await Promise.all([
+        /* 已下架的静态快照：后台「📤 导出」出来写进 data/ 目录的那份。
+           它是固定的静态文件，走 CDN 缓存（_headers 给 /data/*.json 配了 5 分钟），
+           比每次问接口快；接口那份仍然会读，两边取并集，保证刚下架的 ID 也立刻生效。 */
+        fetch('data/admin_quarantine.json').catch(() => null),
+        /* 2026-10-05：这两个接口**故意不缓存**（服务端 no-store）——
+           管理员刚下架 / 刚加的歌必须在下一次加载就生效。
+           我一度为了省一次 D1 往返给它们配了 60 秒缓存，结果被端到端验收 E34 当场证伪：
+           「后台确认下架 → 重新加载宝库页」时浏览器命中缓存、没再拉这个接口，那条 ID 依旧在。
+           所以这里继续带 `?t=`（URL 每次唯一，任何缓存都不可能命中），慢的那 600ms
+           交给上面那句 1.5 秒超时兜底：超时先画主数据，回来了再补一次重绘。 */
+        fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
+        fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
+      ]);
+
+      /* 先收静态快照里的，再用接口结果补充 */
+      let adminQuarantine = [];
+      if (staticQRes && staticQRes.ok) {
+        try {
+          const sData = await staticQRes.json();
+          if (Array.isArray(sData)) adminQuarantine = sData;
+        } catch (e) {}
+      }
+      if (qRes && qRes.ok) {
+        try {
+          const qData = await qRes.json();
+          if (qData && qData.ok && Array.isArray(qData.data)) {
+            const seenIds = new Set(adminQuarantine.map(i => String(i.id)));
+            qData.data.forEach(item => {
+              if (item && item.id !== undefined && !seenIds.has(String(item.id))) {
+                adminQuarantine.push(item);
+              }
+            });
+          }
+        } catch (e) {}
+      }
+
+      let extraSongs = [];
+      if (extraRes && extraRes.ok) {
+        try {
+          const eData = await extraRes.json();
+          if (eData && eData.ok && Array.isArray(eData.data)) {
+            extraSongs = eData.data;
+          }
+        } catch (e) {}
+      }
+
+      return { adminQuarantine, extraSongs };
+    }
+
+    /* 用「主数据 + 辅助数据」重算 songDatabase —— 辅助数据晚到时也走这里，逻辑只有一份 */
+    function applyData(raw, aux) {
+      const mergedMap = new Map();
+      raw.forEach(i => {
+        if (!i || !i.id) return;
+        mergedMap.set(String(i.id), {
+          id: String(i.id),
+          name: i.name || '未知歌名',
+          category: i.category || '未分类',
+          lineIndex: i.lineIndex || 0
+        });
+      });
+      /* D1 里的新歌覆盖同 ID 的主数据条目，并标记为“最新收录” */
+      ((aux && aux.extraSongs) || []).forEach(i => {
+        if (!i || !i.id) return;
+        mergedMap.set(String(i.id), {
+          id: String(i.id),
+          name: i.name || '未知歌名',
+          category: i.category || '未分类',
+          lineIndex: i.lineIndex || 100000,
+          _fromD1: true
+        });
+      });
+
+      const adminIds = new Set(((aux && aux.adminQuarantine) || []).map(i => String(i.id)));
+
+      /* 2026-10-05：管理员在后台「🚫 无效音乐ID管理」里确认无效、下架的 ID，
+         在这里被整条过滤掉 —— 这就是「已下架」唯一的全站生效方式。
+         旧代码下面还有一段「把访客本地隔离区里已处理的条目同步删掉」的逻辑，
+         访客隔离区已经下线，那段随之删除（本地旧数据也不再读）。 */
+      songDatabase = [...mergedMap.values()]
+        .filter(i => !adminIds.has(i.id))
+        .map(i => ({ ...i, name: cleanName(i.name) }));
+    }
+
     async function loadData() {
       try {
-        const [mainRes, staticQRes, qRes, extraRes] = await Promise.all([
-          fetch('data/roblox_music.json'),
-          /* 管理员隔离区的静态快照：由后台「JSON 合并工具」导出到 data/ 目录。
-             它是纯静态文件，走 CDN 缓存，比每次问接口快得多 ——
-             接口那份仍然会读，两边取并集，保证新导入的 ID 也能立刻生效。 */
-          fetch('data/admin_quarantine.json').catch(() => null),
-          fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
-          fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
+        const mainPromise = window.__zmMainData ||
+          fetch('data/roblox_music.json').catch(() => null);
+
+        const aux = await Promise.race([
+          loadAuxLists(),
+          new Promise(resolve => setTimeout(() => resolve(null), AUX_TIMEOUT))
         ]);
 
-        if (!mainRes.ok) throw new Error('main HTTP ' + mainRes.status);
+        const mainRes = await mainPromise;
+        if (!mainRes || !mainRes.ok) {
+          throw new Error('main HTTP ' + (mainRes ? mainRes.status : 'failed'));
+        }
         const raw = await mainRes.json();
         if (!Array.isArray(raw)) throw new Error('main data is not an array');
 
-        /* 先收静态快照里的，再用接口结果覆盖/补充 */
-        let adminQuarantine = [];
-        if (staticQRes && staticQRes.ok) {
-          try {
-            const sData = await staticQRes.json();
-            if (Array.isArray(sData)) adminQuarantine = sData;
-          } catch (e) {}
+        applyData(raw, aux || { adminQuarantine: [], extraSongs: [] });
+
+        if (!aux) {
+          /* 辅助数据超时了：后台补拉一次，回来了再悄悄重绘（只重绘，不打扰当前操作） */
+          loadAuxLists().then(late => {
+            if (auxLateApplied || !late) return;
+            auxLateApplied = true;
+            applyData(raw, late);
+            renderAll({ keepPage: true });
+          }).catch(() => {});
         }
-        if (qRes && qRes.ok) {
-          try {
-            const qData = await qRes.json();
-            if (qData && qData.ok && Array.isArray(qData.data)) {
-              const seenIds = new Set(adminQuarantine.map(i => String(i.id)));
-              qData.data.forEach(item => {
-                if (item && item.id !== undefined && !seenIds.has(String(item.id))) {
-                  adminQuarantine.push(item);
-                }
-              });
-            }
-          } catch (e) {}
-        }
-
-        let extraSongs = [];
-        if (extraRes && extraRes.ok) {
-          try {
-            const eData = await extraRes.json();
-            if (eData && eData.ok && Array.isArray(eData.data)) {
-              extraSongs = eData.data;
-            }
-          } catch (e) {}
-        }
-
-        const mergedMap = new Map();
-        raw.forEach(i => {
-          if (!i || !i.id) return;
-          mergedMap.set(String(i.id), {
-            id: String(i.id),
-            name: i.name || '未知歌名',
-            category: i.category || '未分类',
-            lineIndex: i.lineIndex || 0
-          });
-        });
-        /* D1 里的新歌覆盖同 ID 的主数据条目，并标记为“最新收录” */
-        extraSongs.forEach(i => {
-          if (!i || !i.id) return;
-          mergedMap.set(String(i.id), {
-            id: String(i.id),
-            name: i.name || '未知歌名',
-            category: i.category || '未分类',
-            lineIndex: i.lineIndex || 100000,
-            _fromD1: true
-          });
-        });
-
-        const adminIds = new Set(adminQuarantine.map(i => String(i.id)));
-        /* ---------- 游客隔离区与管理员隔离区对齐 ----------
-           某条 ID 一旦进了管理员隔离区，就属于「全站已处理」，
-           别人的本地隔离区里如果还留着它，这里就地删掉 ——
-           否则同一条 ID 会在每个人的隔离区里各留一份，越攒越多。
-           只在真的删掉了东西时才写 localStorage 和弹提示。 */
-        if (adminIds.size > 0 && quarantineGuest.length > 0) {
-          const kept = quarantineGuest.filter(i => !adminIds.has(String(i.id)));
-          const removed = quarantineGuest.length - kept.length;
-          if (removed > 0) {
-            quarantineGuest = kept;
-            saveQuarantine();
-            showToast('🧹 你隔离区里的 ' + removed + ' 个 ID 已被全站处理，已自动移除');
-          }
-        }
-
-        const guestIds = new Set(quarantineGuest.map(i => String(i.id)));
-
-        songDatabase = [...mergedMap.values()]
-          .filter(i => !adminIds.has(i.id) && !guestIds.has(i.id))
-          .map(i => ({ ...i, name: cleanName(i.name) }));
 
         return true;
       } catch (err) {
@@ -2197,15 +2157,18 @@
       group.ids.forEach(id => {
         const sid = escapeHtml(id);
         const isFav = favorites.has(id);
+        /* 2026-10-05：这一行是否已经上报过无效 —— 决定整行灰化与按钮文案 */
+        const reported = invalidReported.has(id);
+        const catStrEsc = escapeHtml(group.categories ? [...group.categories].join(' / ') : '');
         rowsHtml += `
-            <div class="id-row">
+            <div class="id-row${reported ? ' reported' : ''}">
               <input type="checkbox" class="id-checkbox" data-id="${sid}" ${selectedIds.has(id) ? 'checked' : ''} aria-label="选择 ID ${sid}">
               <span class="id-number">${sid}</span>
               <div class="id-actions">
                 <button type="button" class="btn-fav ${isFav ? 'active' : ''}" data-id="${sid}" title="收藏" aria-label="收藏 ${sid}" aria-pressed="${isFav}">${isFav ? '⭐' : '☆'}</button>
                 <button type="button" class="btn-play" data-id="${sid}" aria-label="试听 ${sid}">🔗 试听</button>
                 <button type="button" class="btn-copy" data-id="${sid}" aria-label="复制 ID ${sid}">📋 复制</button>
-                <button type="button" class="btn-quarantine" data-name="${safeName}" data-id="${sid}" title="移入隔离区" aria-label="移入隔离区">✕</button>
+                <button type="button" class="btn-invalid${reported ? ' reported' : ''}" data-id="${sid}" data-name="${safeName}" data-category="${catStrEsc}" title="${reported ? '撤销这次无效上报' : '上报无效（送到后台的无效音乐ID管理）'}" aria-label="${reported ? '撤销 ID ' + sid + ' 的无效上报' : '上报 ID ' + sid + ' 无效'}" aria-pressed="${reported}">${reported ? '↩️ 撤销' : '🚫 无效处理'}</button>
               </div>
             </div>
           `;
@@ -2289,8 +2252,9 @@
 
         if (btn.classList.contains('btn-fav')) { toggleFavorite(btn.dataset.id, btn); return; }
         if (btn.classList.contains('btn-play')) { previewId(btn.dataset.id); return; }
-        if (btn.classList.contains('btn-quarantine')) { quarantineSingle(btn.dataset.name, btn.dataset.id); return; }
         if (btn.classList.contains('btn-copy')) { copyOneId(btn); return; }
+        /* 2026-10-05：新按钮 —— 没报过就上报，报过了就撤销（原来这里是隔离用的 ✕） */
+        if (btn.classList.contains('btn-invalid')) { toggleInvalidReport(btn); return; }
         if (btn.classList.contains('btn-copy-group')) { copyGroupIds(btn); }
       });
     }
@@ -2546,44 +2510,167 @@
       pendingRedirectId = null;
     };
 
-    async function quarantineSingle(name, id) {
-      const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
-      if (!ok) return;
-      const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
-      if (idx === -1) return;
-      const item = songDatabase[idx];
-      songDatabase.splice(idx, 1);
-      quarantineGuest.push({ ...item, quarantinedAt: nowStr() });
-      saveQuarantine();
-      showToast('⛔ 已移入隔离区');
-      renderAll({ keepPage: true });
+    /* ============================================================
+       「无效处理 / 无效批量处理」（2026-10-05 取代隔离区那一整套）
+       ------------------------------------------------------------
+       链路：访客点「🚫 无效处理」→ POST /api/invalid/report（带匿名浏览器身份）
+             → 后台「🚫 无效音乐ID管理」按 ID 聚合看到「上报几次」
+             → 管理员点「确认无效并下架」→ 写 quarantine_admin
+             → 前台下次加载时整条过滤掉（见 loadData 里的 adminIds）。
+       本地只做两件事：把这一行画成「已上报」、把这个 ID 记进 localStorage。
+       **不隐藏条目** —— 站主明确要求「就地标记、可撤销」，
+       误点之后点按钮变出来的「↩️ 撤销」就能撤回（同时会通知服务端删掉自己那一份）。
+       ============================================================ */
+
+    /* 服务端单次最多收 200 条（见 functions/api/invalid/report.js），超了要分批 */
+    const INVALID_CHUNK = 200;
+    const INVALID_REPORT_URL = '/api/invalid/report';
+    const INVALID_WITHDRAW_URL = '/api/invalid/withdraw';
+
+    /* 统一 POST：站点配了 Turnstile 就自动带上一次性通行证（js/turnstile.js），
+       没配就是普通 fetch —— 两条路的行为对访客完全一样。 */
+    function zmPostJson(url, payload, action) {
+      const body = payload || {};
+      if (typeof ZMTurnstile !== 'undefined' && ZMTurnstile.postJson) {
+        return ZMTurnstile.postJson(url, body, action);
+      }
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
     }
 
-    async function batchQuarantine() {
-      if (selectedIds.size === 0) {
-        showToast('请先选择要隔离的 ID');
+    /* 这个浏览器的匿名身份（common.js 的 getClientId 提供）。
+       取不到就给空串：服务端照收，只是没法按人去重、也没法自己撤销。 */
+    function reporterId() {
+      try {
+        if (typeof getClientId === 'function') return getClientId();
+      } catch (e) {}
+      return '';
+    }
+
+    /* 只改一行 DOM，不重绘整页（比 renderAll 便宜得多，连着点也不卡） */
+    function paintInvalidRow(id) {
+      const reported = invalidReported.has(id);
+      let row = null;
+      dom.songList.querySelectorAll('.btn-invalid').forEach(btn => {
+        if (btn.dataset.id !== id) return;
+        btn.classList.toggle('reported', reported);
+        btn.setAttribute('aria-pressed', reported ? 'true' : 'false');
+        btn.textContent = reported ? '↩️ 撤销' : '🚫 无效处理';
+        btn.title = reported ? '撤销这次无效上报' : '上报无效（送到后台的无效音乐ID管理）';
+        row = btn.closest('.id-row');
+      });
+      if (row) row.classList.toggle('reported', reported);
+    }
+
+    /* 发上报。返回 true = 服务端确实收下了，本地才允许标记。 */
+    async function sendInvalidReport(items) {
+      try {
+        for (let i = 0; i < items.length; i += INVALID_CHUNK) {
+          const res = await zmPostJson(INVALID_REPORT_URL, {
+            items: items.slice(i, i + INVALID_CHUNK),
+            reporter: reporterId()
+          }, 'invalid-report');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json().catch(() => null);
+          if (!data || !data.ok) throw new Error((data && data.error) || 'bad response');
+        }
+        return true;
+      } catch (err) {
+        /* 断网 / 纯静态托管（没有 Functions）时走这里：如实报错，绝不假装成功 */
+        showToast('⚠️ 上报失败，请稍后再试');
+        return false;
+      }
+    }
+
+    /* 撤销自己的上报（服务端只允许删自己那条 pending 记录） */
+    async function withdrawInvalid(ids) {
+      try {
+        for (let i = 0; i < ids.length; i += INVALID_CHUNK) {
+          const res = await zmPostJson(INVALID_WITHDRAW_URL, {
+            items: ids.slice(i, i + INVALID_CHUNK).map(id => ({ id: String(id) })),
+            reporter: reporterId()
+          }, 'invalid-withdraw');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json().catch(() => null);
+          if (!data || !data.ok) throw new Error((data && data.error) || 'bad response');
+        }
+      } catch (err) {
+        /* 失败就保持「已上报」的样子 —— 宁可看着像没撤销，也不要和服务端不一致 */
+        showToast('⚠️ 撤销失败，请稍后再试');
+        return false;
+      }
+      ids.forEach(id => { invalidReported.delete(String(id)); paintInvalidRow(String(id)); });
+      saveInvalidReported();
+      return true;
+    }
+
+    /* 单条：没报过 → 自动上报；报过了 → 撤销 */
+    async function toggleInvalidReport(btn) {
+      const id = String(btn.dataset.id || '');
+      if (!id) return;
+
+      if (invalidReported.has(id)) {
+        const ok = await withdrawInvalid([id]);
+        if (ok) showToast('↩️ 已撤销 ID ' + id + ' 的无效上报');
         return;
       }
-      const ok = await showConfirm('批量隔离', `确定将选中的 ${selectedIds.size} 个 ID 移入你的隔离区吗？`);
+
+      const ok = await sendInvalidReport([{
+        id: id,
+        name: btn.dataset.name || '',
+        category: btn.dataset.category || ''
+      }]);
       if (!ok) return;
-      const timeStr = nowStr();
-      const toRemove = [];
-      const remaining = [];
+
+      invalidReported.add(id);
+      saveInvalidReported();
+      paintInvalidRow(id);
+      showToast('🚫 已上报 ID ' + id + ' 无效，点「↩️ 撤销」可以撤回');
+    }
+
+    /* 批量：把选中的 ID 一次性报上去（已经报过的自动跳过） */
+    async function batchReportInvalid() {
+      if (selectedIds.size === 0) {
+        showToast('请先选择要处理的 ID');
+        return;
+      }
+
+      const targets = [];
+      let already = 0;
       songDatabase.forEach(item => {
-        if (selectedIds.has(item.id)) {
-          toRemove.push({ ...item, quarantinedAt: timeStr });
-        } else {
-          remaining.push(item);
-        }
+        if (!selectedIds.has(item.id)) return;
+        if (invalidReported.has(item.id)) { already++; return; }
+        targets.push({ id: item.id, name: item.name, category: item.category || '' });
       });
-      quarantineGuest.push(...toRemove);
-      songDatabase = remaining;
-      saveQuarantine();
+
+      if (targets.length === 0) {
+        showToast('选中的 ' + already + ' 个 ID 都已经上报过了，点单条上的「↩️ 撤销」可以撤回');
+        return;
+      }
+
+      const ok = await showConfirm(
+        '无效批量处理',
+        '确定把选中的 ' + targets.length + ' 个 ID 上报为无效吗？\n\n' +
+        '上报后会送到后台的「无效音乐ID管理」，管理员确认后这些音乐会从宝库下架。'
+      );
+      if (!ok) return;
+
+      dom.batchInvalidBtn.disabled = true;
+      const done = await sendInvalidReport(targets);
+      dom.batchInvalidBtn.disabled = false;
+      if (!done) return;
+
+      targets.forEach(t => { invalidReported.add(t.id); paintInvalidRow(t.id); });
+      saveInvalidReported();
       selectedIds.clear();
       updateSelectedCount();
+      syncBatchCheckboxes();
       toggleBatchMode(false);
-      showToast(`⛔ 已隔离 ${toRemove.length} 个 ID`);
-      renderAll({ keepPage: true });
+      showToast('🚫 已上报 ' + targets.length + ' 个 ID 无效' +
+        (already > 0 ? '（另有 ' + already + ' 个之前已上报，自动跳过）' : ''));
     }
 
     function toggleBatchMode(force) {
@@ -2593,13 +2680,13 @@
       dom.batchBar.classList.toggle('show', batchMode);
 
       if (batchMode) {
-        dom.batchToggleBtn.textContent = '📦 退出批量';
+        dom.batchToggleBtn.textContent = '✖ 退出批量处理';
         dom.batchToggleBtn.classList.remove('btn-primary');
         dom.batchToggleBtn.classList.add('btn-secondary');
         dom.songList.classList.add('batch-mode');
         syncBatchCheckboxes();
       } else {
-        dom.batchToggleBtn.textContent = '📦 批量隔离';
+        dom.batchToggleBtn.textContent = '🚫 无效批量处理';
         dom.batchToggleBtn.classList.remove('btn-secondary');
         dom.batchToggleBtn.classList.add('btn-primary');
         dom.songList.classList.remove('batch-mode');
@@ -2608,102 +2695,10 @@
       }
     }
 
-    function renderQuarantineList() {
-      const keyword = dom.quarantineSearch.value.trim().toLowerCase();
-      let list = quarantineGuest;
-
-      if (keyword) {
-        /* 防御式读取：隔离区数据来自 localStorage，历史版本可能缺字段 */
-        list = list.filter(i => {
-          const name = i && i.name != null ? String(i.name).toLowerCase() : '';
-          const id = i && i.id != null ? String(i.id) : '';
-          return name.includes(keyword) || id.includes(keyword);
-        });
-      }
-
-      if (list.length === 0) {
-        dom.quarantineList.innerHTML = keyword
-          ? '<div class="empty-state"><span class="big" aria-hidden="true">🔍</span>隔离区里没有匹配的条目</div>'
-          : '<div class="empty-state"><span class="big" aria-hidden="true">⛔</span>隔离区是空的<span class="hint">在歌曲列表点右侧的 ✕ 就能把不需要的 ID 收进来</span></div>';
-        return;
-      }
-
-      const sorted = [...list].sort((a, b) => {
-        const ta = a.quarantinedAt ? new Date(a.quarantinedAt).getTime() : 0;
-        const tb = b.quarantinedAt ? new Date(b.quarantinedAt).getTime() : 0;
-        return (tb || 0) - (ta || 0);
-      });
-
-      let html = '';
-      sorted.forEach(item => {
-        html += `
-          <div class="quarantine-item">
-            <div class="info">
-              <span class="name">${escapeHtml(item.name || '未知歌名')}</span>
-              <span class="q-id">${escapeHtml(item.id)}</span>
-              <span class="time">⛔ ${escapeHtml(item.quarantinedAt || '未知')}</span>
-            </div>
-            <div class="q-actions">
-              <button type="button" data-id="${escapeHtml(item.id)}" aria-label="恢复 ID ${escapeHtml(item.id)}">🔓 恢复</button>
-            </div>
-          </div>
-        `;
-      });
-      dom.quarantineList.innerHTML = html;
-
-      dom.quarantineList.querySelectorAll('.q-actions button').forEach(btn => {
-        btn.onclick = () => restoreFromQuarantine(btn.dataset.id);
-      });
-    }
-
-    async function restoreFromQuarantine(id) {
-      const idx = quarantineGuest.findIndex(i => i.id === id);
-      if (idx === -1) return;
-      const item = quarantineGuest[idx];
-      const ok = await showConfirm('恢复 ID', `确定将 ID ${id}（${item.name}）从隔离区恢复吗？`);
-      if (!ok) return;
-      quarantineGuest.splice(idx, 1);
-      saveQuarantine();
-      if (!songDatabase.some(i => i.id === item.id)) {
-        songDatabase.push(item);
-      }
-      showToast('✅ 已恢复');
-      renderAll({ keepPage: true });
-      renderQuarantineList();
-    }
-
-    async function restoreAllFromQuarantine() {
-      if (quarantineGuest.length === 0) {
-        showToast('隔离区是空的');
-        return;
-      }
-      const count = quarantineGuest.length;
-      const ok = await showConfirm(
-        '全部恢复',
-        `确定将隔离区中的全部 ${count} 个 ID 恢复到主列表吗？\n\n恢复后，这些 ID 会重新出现在列表中。`
-      );
-      if (!ok) return;
-      const existing = new Set(songDatabase.map(i => i.id));
-      let added = 0;
-      quarantineGuest.forEach(item => {
-        if (!existing.has(item.id)) {
-          songDatabase.push({
-            id: item.id,
-            name: item.name,
-            category: item.category || '未分类',
-            lineIndex: item.lineIndex || 0
-          });
-          existing.add(item.id);
-          added++;
-        }
-      });
-      const restoredCount = quarantineGuest.length;
-      quarantineGuest = [];
-      saveQuarantine();
-      showToast(`🔄 已恢复 ${added} 个 ID（跳过 ${restoredCount - added} 个已存在的）`);
-      renderAll({ keepPage: true });
-      renderQuarantineList();
-    }
+    /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑
+       （renderQuarantineList / restoreFromQuarantine / restoreAllFromQuarantine）。
+       隔离区被「无效处理」取代、弹窗 DOM 也删了，这三段一起删除；
+       误报的回退改走每条 ID 上那颗「↩️ 撤销」（见 toggleInvalidReport）。 */
 
     /* 只保留一个“特殊视图”（收藏 / 最新 / 热门 / 多 ID），避免多个筛选互相打架。
        options.keepCategory：只切特殊视图，不动当前分类的高亮与选中（「多 ID」用它）。 */
@@ -2765,17 +2760,18 @@
       if (dom.loadingSkeleton) dom.loadingSkeleton.hidden = false;
       dom.songList.setAttribute('aria-busy', 'true');
 
-      loadQuarantine();
+      loadInvalidReported();
       loadFavorites();
       loadCountedIds();
 
-      await loadServerRiskVersion();
+      /* 2026-10-05 性能：风险版本号与更新公告都改成「不挡首屏」——
+         它们只是次要信息，自己回来就行。原来这里 await 了风险接口，
+         等于把主数据的下载又往后推了一个来回（主数据才是最该先开始的）。
+         热门榜也不再预加载：点「🔥 热门推荐」时那里本来就会先拉一次。 */
+      loadServerRiskVersion();
       checkPageUpdate('roblox');
 
-      await Promise.all([
-        loadData(),
-        loadHotList()
-      ]);
+      await loadData();
 
       if (dom.loadingSkeleton) dom.loadingSkeleton.hidden = true;
       dom.songList.setAttribute('aria-busy', 'false');
@@ -2890,16 +2886,7 @@
         updateSelectedCount();
         syncBatchCheckboxes();
       };
-      dom.batchQuarantineBtn.onclick = batchQuarantine;
-
-      dom.openQuarantineBtn.onclick = () => {
-        dom.quarantineSearch.value = '';
-        renderQuarantineList();
-        openModal('quarantineModal');
-      };
-      dom.closeQuarantineBtn.onclick = () => closeModal('quarantineModal');
-      dom.quarantineSearch.addEventListener('input', debounce(renderQuarantineList, 200));
-      dom.restoreAllQuarantineBtn.onclick = restoreAllFromQuarantine;
+      dom.batchInvalidBtn.onclick = batchReportInvalid;
     }
   </script>
 
@@ -2969,7 +2956,9 @@
 
     async function loadSourceCounts() {
       try {
-        const res = await fetch('/api/visit/stats?t=' + Date.now());
+        /* 2026-10-05 性能：这个接口服务端配了 `public, max-age=60`，
+           去掉 `?t=` 让它真的能命中缓存（渠道统计晚 60 秒完全没关系）。 */
+        const res = await fetch('/api/visit/stats');
         const data = await res.json();
         if (!data.ok || !Array.isArray(data.data)) return;
 
@@ -3001,14 +2990,10 @@
       closeModal(MODAL_ID);
 
       try {
-        await fetch('/api/visit/report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: getUserId(),
-            source: source
-          })
-        });
+        await zmPostJson('/api/visit/report', {
+          userId: getUserId(),
+          source: source
+        }, 'visit');
       } catch (e) {}
 
       showToast('🎉 感谢反馈！你的答案已记录');

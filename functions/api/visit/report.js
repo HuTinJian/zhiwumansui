@@ -2,7 +2,15 @@
    织雾满穗 · 访问渠道上报（公开，带 IP 限速）
    ============================================================ */
 
-import { json, clientIp, createRateLimiter, requireSameOrigin } from '../_utils.js';
+import {
+  json,
+  checkTurnstile,
+  clientIp,
+  createRateLimiter,
+  readJsonBody,
+  requireSameOrigin,
+  turnstileRejection
+} from '../_utils.js';
 
 /* 单 IP 10 分钟最多 20 次上报（同一用户只会选一次渠道） */
 const limiter = createRateLimiter(20, 10 * 60 * 1000);
@@ -23,7 +31,13 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const body = await request.json();
+    /* readJsonBody 不会抛：非法 JSON 一律当空对象，交给下面的校验兜 */
+    const body = await readJsonBody(request);
+
+    /* 人机验证：配了 TURNSTILE_SECRET 才生效（防止脚本刷渠道统计） */
+    const ts = await checkTurnstile(request, env, body);
+    if (!ts.ok) return turnstileRejection(ts);
+
     const userId = String(body.userId || '').trim();
     let source = String(body.source || '').trim().slice(0, 30);
 

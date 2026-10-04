@@ -18,6 +18,89 @@
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
 
+  <!-- ============================================================
+       2026-10-05 · 鸣谢页局部样式：只给「网站创新家」这一个类别用
+       ------------------------------------------------------------
+       为什么写在页面里而不是 css/style.css：那张表是全站共享的（属 Lead 范围），
+       这一套只服务 thanks.html 的这一个类别，放页面内改动面最小、也好回退。
+       要的效果（站主要求）：这个类别每位「创新家」是一张独立卡片，站主
+       **自己手写**的描述用「高亮底 + 左侧色条」的引用块显示、原样保留换行；
+       跟别的类别那种「名字 · 描述」内联灰字（.thanks-person .p-message）
+       一眼就能区分开。
+       颜色只用 css/style.css 里明暗两套主题都定义过的变量，深色模式不用另写。 -->
+  <style>
+    /* 整块横跨 .thanks-groups 的三列栅格（grid-column: 1 / -1）：
+       描述是站主手写的长文，挤在 210px 一列里没法看 */
+    .thanks-group-innovator {
+      grid-column: 1 / -1;
+      text-align: left;
+    }
+    /* 类别标题：不再用通用那套居中灰标题 —— 字用品牌色、底线加粗成粉色，
+       前面挂一枚 💡 圆徽标 */
+    .thanks-group.thanks-group-innovator .cat-title-innovator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.98rem;
+      color: var(--primary-ink);
+      border-bottom: 2px solid var(--primary-light);
+    }
+    .innovator-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      font-size: 0.85rem;
+      line-height: 1;
+      background: var(--bg-tint);
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+    }
+    /* 一位创新家一张卡片（通用 .thanks-person 是居中内联的一行，这里整块换成卡片）。
+       选择器带上 .thanks-person 是为了稳稳压过 css/style.css 里那条通用规则 */
+    .thanks-person.innovator-card {
+      display: block;
+      justify-content: flex-start;
+      padding: 12px 14px;
+      margin: 10px 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    .innovator-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 8px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .innovator-card .p-name { font-size: 0.92rem; }
+    /* 描述引用块：高亮底 + 左侧色条（这是和普通类别最大的区别）。
+       white-space: pre-line 让站主在后台手写的换行原样显示 ——
+       esc() 只转义 & < > " '，换行不受影响；
+       overflow-wrap 防超长链接之类的长串把卡片撑破 */
+    .innovator-quote {
+      margin: 0;
+      padding: 9px 12px;
+      background: var(--bg-tint);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+      color: var(--text);
+      font-size: 0.86rem;
+      line-height: 1.75;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+    /* 窄屏（375px 那一档）收一点内边距和字号，长文更省地方 */
+    @media (max-width: 480px) {
+      .thanks-person.innovator-card { padding: 10px 11px; }
+      .innovator-quote { padding: 8px 10px; font-size: 0.84rem; }
+    }
+  </style>
+
   <!-- 主题引导：在样式渲染前确定明暗，避免闪白 -->
   <script>
     (function () {
@@ -41,9 +124,9 @@
       <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
       <span class="brand-text">织雾满穗</span>
     </a>
+    <!-- 2026-10-05：反馈功能整体下线（反馈页文件已删除），导航里那个反馈入口一并删掉 -->
     <ul class="nav-links">
       <li><a href="index.html">🏠 首页</a></li>
-      <li><a href="feedback.html">💬 反馈</a></li>
       <li><a href="thanks.html" class="active" aria-current="page">❤️ 鸣谢</a></li>
     </ul>
   </nav>
@@ -122,6 +205,7 @@
   </footer>
 
   <script src="js/common.js"></script>
+  <script src="js/turnstile.js"></script>
   <script src="js/auth.js"></script>
   <script>
     /* ============================================================
@@ -331,6 +415,18 @@
          ③ 🎮 Roblox ID 宝库名单：照 /api/thanks 的类别分组渲染
             （渲染与转义做法沿用原宝库页弹窗那一版，所有插值都过 esc）
          ============================================================ */
+      /* 2026-10-05（站主要求）：鸣谢新增类别「网站创新家」，它的描述是**站主自己手写**的，
+         而且整个类别在页面上要跟别的类别长得明显不一样 —— 所以单独走一套渲染：
+         类别标题带 💡 徽标、一位创新家一张独立卡片、描述用带左侧色条的引用块
+         （pre-line 保留换行）。样式在页面顶部的 <style> 块里（.thanks-group-innovator 那一套）。
+         数据口径：后台「➕ 添加鸣谢 / ✏️ 编辑鸣谢」的类别下拉里那一项就叫「网站创新家」；
+         这里用 indexOf 宽松匹配 —— 万一后台存成「💡 网站创新家」也认得出来。 */
+      var INNOVATOR_CATEGORY = '网站创新家';
+
+      function isInnovator(cat) {
+        return String((cat && cat.category) || '').indexOf(INNOVATOR_CATEGORY) !== -1;
+      }
+
       function renderRoblox(groups) {
         var box = $('thanksGroups');
         if (!box) return;
@@ -349,6 +445,29 @@
              2026-10-01：底档删除用的「🚫 已删除赞助者」隐藏标记也跳过。 */
           if (cat.category === SPONSOR_CATEGORY) return;
           if (cat.category === SPONSOR_HIDDEN_CATEGORY) return;
+
+          /* ---- 「网站创新家」：独立卡片的一套写法（见上面那段注释） ---- */
+          if (isInnovator(cat)) {
+            html += '<div class="thanks-group thanks-group-innovator">';
+            html += '<div class="cat-title cat-title-innovator">' +
+              '<span class="innovator-badge" aria-hidden="true">💡</span>' +
+              esc(cat.category) + '</div>';
+            html += '<div class="thanks-people">';
+            cat.people.forEach(function (p) {
+              html += '<div class="thanks-person innovator-card">';
+              html += '<div class="innovator-card-head">';
+              html += '<span class="p-name">' + esc(p.name) + '</span>';
+              if (p.platform) html += '<span class="p-platform">· ' + esc(p.platform) + '</span>';
+              html += '</div>';
+              /* 描述是站主手写的原话：只转义、不做任何加工；没写就整块不画 */
+              if (p.message) html += '<blockquote class="innovator-quote">' + esc(p.message) + '</blockquote>';
+              html += '</div>';
+            });
+            html += '</div>';
+            html += '</div>';
+            return;   /* 这一类别处理完了，别再落到下面那套通用写法 */
+          }
+
           html += '<div class="thanks-group">';
           html += '<div class="cat-title">' + esc(cat.category) + '</div>';
           /* 每个类别自己是一列（三个类别并排，由 css 的 .thanks-groups 栅格决定），

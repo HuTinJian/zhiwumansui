@@ -8,12 +8,14 @@ import {
   json,
   assertEnv,
   authProbeLimiter,
+  checkTurnstile,
   clientIp,
   createRateLimiter,
   makeSessionCookie,
   readJsonBody,
   requireSameOrigin,
-  timingSafeEqual
+  timingSafeEqual,
+  turnstileRejection
 } from '../_utils.js';
 
 /* ---------- 简易内存限速（单 isolate 内生效） ---------- */
@@ -58,6 +60,12 @@ export async function onRequestPost(context) {
 
   try {
     const body = await readJsonBody(request);
+
+    /* 人机验证：只有在配了 TURNSTILE_SECRET 时才生效（见 _utils.js 的说明）。
+       放在读密码之前 —— 脚本连试密码的机会都不给。 */
+    const ts = await checkTurnstile(request, env, body);
+    if (!ts.ok) return turnstileRejection(ts);
+
     const password = body.password;
 
     if (!password || typeof password !== 'string') {

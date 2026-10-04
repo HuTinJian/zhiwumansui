@@ -1,8 +1,8 @@
 # 织雾满穗（ZhiMist）
 
 一个纯静态的 Roblox 音乐 ID 宝库站点 + Cloudflare Pages Functions 后端（D1 数据库）。
-静态页面由浏览器直接打开，所有动态能力（歌曲增删、隔离区、反馈、鸣谢、热门统计、访问渠道统计、后台登录）
-都由 `functions/api/` 下的函数提供。
+静态页面由浏览器直接打开，所有动态能力（歌曲增删、无效音乐ID上报与下架、鸣谢、热门统计、
+访问渠道统计、后台登录）都由 `functions/api/` 下的函数提供。
 
 > 技术栈：原生 HTML / CSS / JS + Cloudflare Pages Functions（Workers 运行时）+ Cloudflare D1（SQLite）。
 > 无构建步骤、无 npm 依赖；`functions/` 里的代码只使用 Web 标准 API（`fetch`、`crypto.subtle`、`Response`）。
@@ -29,37 +29,37 @@
 ```
 .
 ├── index.html                 主页（卡片入口 + 站点介绍）
-├── roblox_music.html          卡片1 · Roblox ID 宝库（搜索 / 分页 / 随机 / 复制 / 收藏 / 隔离区）
-├── feedback.html              反馈提交页（去掉了邮箱，改成后台处理 + 回执弹窗）
-├── thanks.html                ❤️ 鸣谢名单（页内两个切换：👑 赞助者 / 🎮 Roblox ID 宝库）
-├── admin.html                 后台管理页（需登录，标签栏 4 个标签：反馈 / 卡片 / 鸣谢 / 数据统计）
+├── roblox_music.html          卡片1 · Roblox ID 宝库（搜索 / 分页 / 随机 / 复制 / 收藏 / 无效处理上报）
+├── thanks.html                ❤️ 鸣谢名单（页内两个切换：👑 赞助者 / 🎮 Roblox ID 宝库；含「网站创新家」专属卡片）
+├── admin.html                 后台管理页（需登录，标签栏 3 个标签：卡片 / 鸣谢 / 数据统计）
 ├── 404.html                   找不到页面时显示的页面（Cloudflare Pages 会自动使用它）
 ├── css/                       样式
 │   ├── style.css              全站共用样式（颜色、按钮、弹窗、主题、精简模式）
 │   └── update-modal.css       版本更新弹窗专用（只在要弹公告时才加载）
 ├── js/
 │   ├── auth.js                登录弹窗、登录态检查、后台入口（连点标题 3 次）
-│   ├── admin.js               后台各模块逻辑（反馈 / 鸣谢（含赞助者） / 隔离区 / 歌曲）
-│   ├── common.js              全站共用：弹窗、提示、主题、浏览器身份、反馈回执、更新公告
+│   ├── admin.js               后台各模块逻辑（无效音乐ID管理 / 鸣谢（含赞助者） / 歌曲）
+│   ├── common.js              全站共用：弹窗、提示、主题、浏览器身份、更新公告
+│   ├── turnstile.js           Cloudflare Turnstile 一次性通行证（没填 Site Key 就完全静默）
 │   └── ...                    其它页面脚本
 ├── data/
 │   ├── roblox_music.json      站点内置的歌曲数据（静态、只读）
 │   ├── sponsors.json          👑 赞助者底档（静态、只读；后台加的那些存在 D1 里）
 │   ├── thanks.json            🎮 Roblox ID 宝库（鸣谢名单）的本地档案（静态、只读；结构同 GET /api/thanks）
 │   ├── updates.json           站点更新公告（由 AI 直接写这个文件，页面读它）
-│   └── admin_quarantine.json  管理员隔离区的静态快照（由后台「⛔ 开发者隔离区 → 📤 导出」得到）
+│   └── admin_quarantine.json  已下架（原开发者隔离区）的静态快照（由后台「🚫 无效音乐ID管理 → 📤 导出」得到）
 ├── tools/
 │   ├── rollback.bat           版本回退小工具（本地双击运行，和网站本身无关）
 │   └── rollback.ps1           上面那个小工具的实现
 ├── images/                    图片资源
 ├── functions/
 │   └── api/                   Cloudflare Pages Functions（后端 API）
-│       ├── _utils.js          共享工具：响应封装、Cookie、会话签名、限速、同源校验
+│       ├── _middleware.js     /api/* 专用：突发限速 + 请求体上限 + 安全响应头（2026-10-05 新增）
+│       ├── _utils.js          共享工具：响应封装、Cookie、会话签名、限速、同源校验、Turnstile 校验
 │       ├── auth/              login.js（登录）/ check.js（登录态）/ logout.js（退出）
 │       ├── songs/             list.js / add.js / delete.js / clear.js / export.js
-│       ├── quarantine/        list.js / import.js / delete.js
-│       ├── feedback.js        公开提交反馈（无需邮箱，带浏览器身份）
-│       ├── feedback/          list.js / delete.js / status.js（受理·拒绝）/ mine.js（查自己的）/ import-quarantine.js
+│       ├── quarantine/        list.js / import.js / delete.js（已下架名单，界面上叫「已下架」）
+│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销自己的上报）/ list.js（后台看）/ handle.js（下架·忽略·恢复）
 │       ├── hot/               list.js（公开榜单）/ report.js（上报）
 │       ├── visit/             stats.js（渠道统计）/ report.js（上报）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
@@ -69,6 +69,7 @@
 ├── migrations.sql             D1 增量迁移（**老库补字段**跑这个，见第五节）
 ├── d1-drop-blog.sql           老库清理用：删掉早期遗留的五张表（全新部署不需要）
 ├── _headers                   Cloudflare Pages 静态资源响应头（安全头 + 缓存策略）
+├── robots.txt                 「请勿抓取」声明（挡规矩的 AI 采集爬虫，2026-10-05 新增）
 ├── .gitignore                 忽略 .dev.vars（本地密钥）等
 └── README.md                  本文件
 ```
@@ -113,7 +114,7 @@ npx wrangler d1 execute <数据库名> --local --file=./schema.sql
 
 不想起本地服务时，也可以直接双击 `index.html` 打开：此时没有任何 API，
 页面会自动降级为「只读本地数据」模式（见下文 GitHub Pages 一节），
-能看数据、能搜索复制，但反馈 / 统计 / 后台都不可用。
+能看数据、能搜索复制，但无效上报 / 统计 / 后台都不可用。
 
 ---
 
@@ -160,15 +161,20 @@ npx wrangler d1 execute zhimist-db --remote --file=./schema.sql
 Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的全部内容 → Execute
 ```
 
-`schema.sql` 会创建：`feedback`、`quarantine_admin`、`songs_extra`、`thanks`、
-`page_updates`、`hot_songs`、`visit_sources` 以及若干索引，语句都是 `CREATE TABLE IF NOT EXISTS`，重复执行安全。
+`schema.sql` 会创建：`invalid_reports`、`quarantine_admin`、`songs_extra`、`thanks`、
+`page_updates`、`hot_songs`、`visit_sources`、`feedback`（已下线，仅留档）以及若干索引，
+语句都是 `CREATE TABLE IF NOT EXISTS`，重复执行安全。
+
+> 2026-10-05：`invalid_reports` 是这轮新增的「无效音乐 ID 上报」表；`quarantine_admin`
+> 继续当「已下架名单」用（界面文案叫「已下架」，表名没改）。`feedback` 表**不再写入**，
+> 只是老数据留档，不删。
 
 ### 2.5 老库要补跑一次 migrations.sql ⚠️
 
-**如果你的数据库是之前建的、`feedback` 表已经在用了**，光重跑 `schema.sql` 是不够的 ——
+**如果你的数据库是之前建的**，光重跑 `schema.sql` 是不够的 ——
 `CREATE TABLE IF NOT EXISTS` 见到表已存在就直接跳过，**不会给已有的表补新字段**。
 
-反馈回执功能需要三个新字段，所以老库要再跑一次 `migrations.sql`。
+所以老库要再跑一次 `migrations.sql`（里面每一段都可以重复执行）。
 
 > **⚠️ 这里最容易踩的坑**：Cloudflare 网页上的 D1 Console 是一个 **SQL 查询框**，
 > 只认 SQL 语句。**千万不要把 `npx wrangler ...` 那种命令行粘进去** ——
@@ -182,9 +188,12 @@ Cloudflare 面板 → Workers & Pages → D1 → 选中你的库 → Console
 
 然后把 `migrations.sql` 里的内容粘进去执行：
 
-1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...` —— 建议**一条一条**执行；
-   某条报 `duplicate column name: xxx` 是正常的（说明那个字段之前加过了），跳过它继续下一条。
-2. 最后那条 `CREATE INDEX`（`idx_feedback_client`）—— 可以**单独执行**。
+1. **第 1 组**：3 条 `ALTER TABLE feedback ADD COLUMN ...`（历史遗留，跑过就跳过）——
+   某条报 `duplicate column name: xxx` 是正常的，跳过它继续下一条；
+   最后那条 `CREATE INDEX`（`idx_feedback_client`）可以单独执行。
+2. **第 2 组**（2026-10-05 新增，本轮必须跑）：`invalid_reports` 建表 + 两个索引
+   （`idx_invalid_unique` / `idx_invalid_status`），整段可以重复执行。
+   不跑这一段的话，前台点「🚫 无效处理」会 500（接口找不到表）。
 
 > 老库里那五张表按 **`d1-drop-blog.sql`** 里的语句 DROP 掉即可。
 
@@ -329,7 +338,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 - `/api/...` 全部返回 404；
 - 站点会自动降级成**「只读本地数据」模式**：直接读内置的 `data/roblox_music.json`，
   搜索、分类筛选、复制 ID、随机挑一首、收藏、深色模式都还能用；
-- 用不了的只有：提交反馈、隔离区上传、热门榜、来源统计、鸣谢动态加载、后台全部管理功能。
+- 用不了的只有：无效上报、热门榜、来源统计、鸣谢动态加载、后台全部管理功能。
 
 想让它在那儿也正常显示，只要在仓库根目录放一个**空文件**叫 `.nojekyll` 就行
 （GitHub Pages 默认会用一个叫 Jekyll 的工具处理文件，空文件就是告诉它「别管」）。
@@ -345,10 +354,11 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
   服务端校验「签名正确 + 未过期」；Cookie 为 `HttpOnly`（JS 读不到，防 XSS 窃取）、
   `Secure`（只在 HTTPS 传输）、`SameSite=Strict`（防跨站携带）、`Path=/`，有效期 7 天。
   退出登录会下发同属性的过期 Cookie。
-- **限速**：登录、登录态检查、公开反馈提交、热门上报、访问渠道上报都按
-  `CF-Connecting-IP` 做了内存限速（登录 10 分钟 5 次；反馈 10 分钟 5 条；
-  渠道上报 10 分钟 20 次；热门上报 10 分钟 60 次）。
-  这是「单实例内存限速」，只用于挡住脚本暴力尝试，不是分布式全局限流。
+- **限速**：登录、登录态检查、**无效上报 / 撤销**、热门上报、访问渠道上报都按
+  `CF-Connecting-IP`（无效上报按「浏览器身份」优先）做了内存限速（登录 10 分钟 5 次；
+  无效上报 10 分钟 60 条；渠道上报 10 分钟 20 次；热门上报 10 分钟 60 次）。
+  另有 `functions/api/_middleware.js` 的**全 API 突发限速**（单 IP 10 分钟 600 次）
+  与 256 KB 请求体上限。这些都是「单实例内存限速」，只用于挡住脚本暴力尝试，不是分布式全局限流。
 - **同源校验（CSRF）**：所有写接口（POST）都会校验 `Origin`：缺失或与请求主机一致才放行，
   跨站表单 / 跨站 fetch 会被 403 拒绝。
 - **响应头**：`functions/` 返回的 JSON 统一带 `Cache-Control: no-store` 与
@@ -361,11 +371,61 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
   本地放 `.dev.vars`（已在 `.gitignore` 中忽略）；**永远不要**提交到 Git、
   也不要贴到前端代码里。本项目没有 `wrangler.toml`，所以也不存在「写进配置文件」这条路。
 - **数据边界**：`data/roblox_music.json` 是公开静态文件，任何人都能看到里面的 ID；
-  后台的「隔离区」只影响本站展示与合并结果，不等于从游戏里删除任何东西。
+  后台「🚫 无效音乐ID管理」里的**下架**只影响本站展示与合并结果，不等于从游戏里删除任何东西。
 - **D1 数据**：没有导出/备份接口给访客；建议定期在 Cloudflare 控制台用 D1 的
   Export 功能备份数据库，或执行 `npx wrangler d1 export zhimist-db --remote --output backup.sql`。
   （2026-09-29 起这四个工具已经不在网站上了，改为桌面本地版：见附一第 11 节 ⑤。
   剩下的 `tools/rollback.*` 是本地回退小工具，跟线上无关。）
+
+### 免费防护（2026-10-05 新增）
+
+> 起因：站主问「怎么给网站开防护」。先讲清一个前提 —— Cloudflare 面板上那套
+> **WAF 防火墙规则 / Bot Fight Mode / 限流规则 / 安全级别 / 我受到攻击模式**，
+> 全都挂在**自己名下的域名（zone）**上；本站跑在 `zhiwumansui.pages.dev`，
+> 那是 Cloudflare 自己的域名，站主账号里没有它，所以这些开关**现在开不了**
+> （不是没找到地方）。不买域名能做的，是下面这些「代码层」加固：
+> 全部零成本，且**默认不影响任何访客**。
+
+**这次加了什么**
+
+| 加了什么 | 文件 | 作用 |
+| --- | --- | --- |
+| 全 API 突发限速 + 请求体上限 + 安全响应头 | `functions/api/_middleware.js`（新） | 单 IP 10 分钟 600 次；body ≤ 256 KB；统一补 nosniff / X-Frame-Options |
+| Turnstile 人机验证（三档模式） | `functions/api/_utils.js` + 登录 / 无效上报 / 撤销 / 渠道上报 | 脚本连通行证都拿不到，就刷不动这几个接口 |
+| 前端一次性通行证 | `js/turnstile.js`（新） | 没填 Site Key 时完全静默：不插脚本、请求里也不带任何新字段 |
+| HSTS / 防点击劫持 / 权限收紧 | `_headers` | 强制 HTTPS、禁止被任何网站 iframe 嵌套、关掉摄像头/麦克风/定位/支付 |
+| 挡 AI 训练爬虫 | `robots.txt`（新） | GPTBot / CCBot / ClaudeBot / Bytespider 等一律 Disallow（君子协定） |
+
+**没加**：热门上报 `/api/hot/report` 是「复制 / 试听」时自动发的，塞不进人机验证，
+所以它只有原来的内存限速；要拦它得靠域名之后的 WAF / 限流规则。
+
+**怎么启用 Turnstile（三步，缺任何一步都等于「不启用」）**
+
+1. Cloudflare 面板 → **Turnstile** → Add widget：Hostnames 填 `zhiwumansui.pages.dev`
+   （本地调试再加 `localhost`），Widget Mode 选 **Non-interactive** 或 **Invisible**，
+   拿到 Site Key（公开）和 Secret Key（保密）。
+2. 把 **Site Key** 填进 `js/turnstile.js` 顶部的 `SITE_KEY`（公开值，可以进仓库）。
+3. Pages 项目 → **Settings → Variables and Secrets** 加两个变量：
+   `TURNSTILE_SECRET` = Secret Key（选加密，**绝不进仓库**）、`TURNSTILE_MODE = soft`。
+   观察几天（函数日志里搜 `[turnstile]`）确认没有正常访客被误伤，再改成 `strict`。
+
+**怎么回退**：把 `TURNSTILE_MODE` 删掉或改回 `soft`（或删掉 `TURNSTILE_SECRET`），
+下一次请求立刻恢复原样，**不用重新部署代码**；`js/turnstile.js` 的 `SITE_KEY` 留空则前端也完全静默。
+
+**大陆网络注意**：Turnstile 脚本来自 `challenges.cloudflare.com`，部分地区加载慢或失败
+（Cloudflare 状态页出现过「China visitors cannot complete Cloudflare challenges」）。
+加载失败时前端会静默降级：`soft` 模式一切照常，`strict` 模式会被服务端拒绝 ——
+所以务必**先 soft 观察**再切 strict。
+
+**应急：站点被打时唯一能立刻用的开关**（不需要域名）
+Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable access policy**，
+然后到 Zero Trust → Access → Applications，把那条策略的**通配符 `*` 删掉** →
+全站变成必须邮箱验证码登录。副作用是所有访客都被挡在门外，只适合应急；
+恢复时把那个 Access 应用删掉即可。
+
+**还差一步（要花钱）**：自有域名接入 Cloudflare 后，免费版还能开
+安全级别 / Bot Fight Mode / Free Managed Ruleset（免费托管规则集）/ 5 条自定义 WAF 规则 /
+1 条限流规则（10 秒窗口、按 IP）/ Under Attack 模式 / AI 抓取策略 / Access 路径级保护。
 
 ---
 
@@ -379,29 +439,31 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **让预览版弹窗重新弹一次**（比如改了文案想让大家再看一遍） | `js/common.js` | 把 `PREVIEW_NOTICE_VERSION = '1'` 改成 `'2'`。数字一变，所有访客下次打开都会再看到一次 |
 | **不想让某个页面弹预览版弹窗** | 对应页面的第一行 | 在 `<html>` 标签里加 `data-notice="off"`（后台页已经这么设了） |
 | **首页的卡片** | `index.html` | 搜 `<div class="content-grid"`，卡片就写在里面，复制一整段 `<a class="card">…</a>` 就是新增一张 |
-| **导航栏的链接** | 每个页面里的 `<nav class="navbar">` | 首页 / 反馈 / 鸣谢 三个入口都在里面，加一个 `<li><a href="...">…</a></li>` 就是加一个入口。**⚠️ 2026-10-04 起页脚里不再有任何导航链接**（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢 全删了，站主要求「所有页脚下面的如首页等内容都删掉」）—— 页脚只剩版权行（2026-10-04 晚起连分享入口也下线了），要跳页面只能走顶部导航栏。**例外：`roblox_music.html`（宝库页）整个导航栏也删掉了**，那一页只有左下角常驻的「🏠 返回首页」（`.back-home-fab`）；它的深色模式开关改挂在页头的 `[data-theme-slot]` 上 |
+| **导航栏的链接** | 每个页面里的 `<nav class="navbar">` | 首页 / 鸣谢 两个入口都在里面，加一个 `<li><a href="...">…</a></li>` 就是加一个入口（**反馈页 2026-10-05 已整页删除，别再往回加**）。**⚠️ 2026-10-04 起页脚里不再有任何导航链接**（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢 全删了，站主要求「所有页脚下面的如首页等内容都删掉」）—— 页脚只剩版权行（2026-10-04 晚起连分享入口也下线了），要跳页面只能走顶部导航栏。**例外：`roblox_music.html`（宝库页）整个导航栏也删掉了**，那一页只有左下角常驻的「🏠 返回首页」（`.back-home-fab`）；它的深色模式开关改挂在页头的 `[data-theme-slot]` 上 |
 | **主色 / 配色** | `css/style.css` 最上面的 `:root` | `--primary` 是主色，`--gold` 是金色点缀；深色模式在同文件的 `[data-theme="dark"]` |
 | **手机上关掉的特效** | `css/style.css` | 搜 `html.lite`；`js/common.js` 里的 `isLiteMode()` 决定什么时候进入精简模式 |
 | **宝库里的歌** | 后台「卡片管理」 | 增删都会写进 D1；也可以直接改 `data/roblox_music.json`（改完要重新部署） |
 | **每页显示多少组** | `roblox_music.html` | 搜 `const PAGE_SIZE`，默认 100 组一页；改完分页器会自己重算页数 |
 | **举报几条自动隐藏** | ~~已取消~~ | 举报不再自动隐藏内容，改由站长人工判断；后台按举报数排序便于排查 |
-| **反馈处理结果的提示文案** | `js/common.js` | 搜 `showDecisionModal`，受理/拒绝两段话都在里面 |
+| **宝库页那条 ID 上的「🚫 无效处理」** | `roblox_music.html` | 每条 ID 的按钮顺序是 `☆ 收藏 / 🔗 试听 / 📋 复制 / 🚫 无效处理`（最后一颗刻意小一号，样式在页面 `<style>` 的 `.id-actions .btn-invalid`）。点一下 → `POST /api/invalid/report`（带上 `getClientId()` 的匿名身份）→ 那一行变灰、按钮变「↩️ 撤销」，本地记在 `localStorage.roblox_invalid_reported`。**上报不会隐藏条目**（站主定的：就地标记、可撤销）；点「↩️ 撤销」→ `POST /api/invalid/withdraw`。工具栏「🚫 无效批量处理」走同一个接口的批量分支（一次 ≤200 条，前端自动分批）。 |
+| **无效上报进了后台哪儿 / 怎么下架** | 后台 →「🎮 卡片管理」→「🚫 无效音乐ID管理」 | 三段：**待处理上报**（按 ID 聚合的「上报 N 次」）/ **已忽略** / **已下架**。待处理行点「✅ 确认无效并下架」→ `POST /api/invalid/handle {action:'remove'}`：写进 `quarantine_admin` → 前台下次加载就整条过滤掉（这就是「已下架」的全站生效方式）；「🙈 忽略」= `action:'ignore'`；两处「恢复」共用 `action:'restore'`；「🧹 清空已忽略」= `action:'clear-ignored'`。「📤 导出」导出的是**已下架**那份，格式与 `data/admin_quarantine.json` 一致。**⚠️ 后台代码不读接口返回的 `changed`**（它只是受影响行数，重复执行 `remove` 会是 0）。 |
 | **更新公告** | `data/updates.json` | 内容直接写在这个文件里：每个页面一个 `version`（改了就弹一次）+ `updates`（弹窗内容）。改完版本号，访客下次打开对应页面就会看到弹窗。**⚠️ 2026-09-30 用户新增硬规矩：弹窗只有用户明确说要搞的时候才能加，不许当成任务收尾的固定动作顺手写（「小调整」这种也一样，先问）；标题与文案必须问用户要、不许自己代写；背景颜色不要问用户，按下面「主题色 = 更新程度」的对照、根据他给的文字自己判断。** 主题色 = 更新程度（老规矩，2026-09-30 从已删除的 `tools/update-notice.html` 里找回）：**粉=日常更新 / 紫=重大更新 / 蓝=体验优化 / 金=活动更新 / 绿=修复更新**。详见附一第 11 节 |
-| **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来（汇总卡 + 📢 访问渠道来源）；点「🔄 刷新」重新拉一次。**（2026-10-01）歌曲管理 / 开发者隔离区 / 鸣谢名单三个面板上面也各有一块自己的统计卡**，切到那个面板就是最新数字 |
+| **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来（汇总卡 + 📢 访问渠道来源）；点「🔄 刷新」重新拉一次。**（2026-10-01）歌曲管理 / 无效音乐ID管理 / 鸣谢名单三个面板上面也各有一块自己的统计卡**（**2026-10-05**：原来那个「开发者隔离区」面板已并入「🚫 无效音乐ID管理」），切到那个面板就是最新数字 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
 | **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改。**2026-10-04：数字先改成 `¥151.36`、当晚又核到 `¥153.54`，核对日期 `2026-10-04`** |
 | **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 2026-10-04 按用户要求，在「花了多少钱」右边加了第二笔账（`.hero-sponsor-cost-got`，占位属性 `data-sponsor-total`）。它**每次打开首页现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准（口径和鸣谢页完全一致）。接口挂掉时保留 `index.html` 里写死的兜底数字 `¥25`，不会显示半份数据算出来的偏小值。**「截至 xxxx-xx-xx」那一行由两笔账共用**（`.hero-sponsor-stats-date`，占位属性仍是 `data-site-cost-date`），不再只挂在花费上 |
 | **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗），**右边那一小块就是「本站花了多少钱」**（`.hero-sponsor-cost`）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里两个切换：**👑 赞助者 / 🎮 Roblox ID 宝库**（2026-10-04 起入口只在顶部导航栏 —— 页脚链接已按站主要求删掉）；宝库页原来那个鸣谢弹窗现在直接跳到这个页面，不再单独弹 |
-| **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`💬 反馈贡献者`）；`data/thanks.json` 是同结构的**本地档案**（存档、对账用，**页面不读它**）；后台那栏能直接改 / 删（存 D1） |
+| **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`网站创新家`）；`data/thanks.json` 是同结构的**本地档案**（存档、对账用，**页面不读它**）；后台那栏能直接改 / 删（存 D1）。**2026-10-05 新增类别「网站创新家」**：类别下拉里固定排第一，页面用**独立卡片 + 引用块**单独渲染（描述与别类别的「· 描述」内联灰字明显不同，见下面那行） |
+| **「网站创新家」的描述为什么不能自动代写** | 后台「➕ 添加鸣谢 / ✏️ 编辑鸣谢」弹窗 | 站主明确这一条**由他手写**：选到类别「网站创新家」时勾选框「✍️ 描述由我手写（不自动代写）」自动勾上，`js/admin.js` 的 `isManualThanksNote()` 一票否决自动代写；手写内容（含换行与首尾空格）**原样入库**，不做任何加工。页面渲染规则在 `thanks.html` 的 `renderRoblox()`（`INNOVATOR_CATEGORY = '网站创新家'`，用 `indexOf` 宽松匹配），样式在同文件 `<style>` 的 `.thanks-group-innovator / .innovator-card / .innovator-quote` 一套里 |
 | **👑 赞助者里的人和金额** | 后台 →「❤️ 鸣谢名单」→「👑 赞助者」（存 D1）+ 底档 `data/sponsors.json` | 页面上两处合并显示、**同名的以后台那条为准**；类别固定 `'👑 赞助者'`（**这个字符串是数据口径，别改**），**金额写在 `platform` 字段**（例 `¥10`）、感谢语写在 `message`。后台那栏每条都能「✏️ 编辑 / 🗑️ 删除」，**删除就是真删**；底档文件里那几位不受后台管，要改要删让 AI 改文件后推送。**首页那块「收到赞助」也是按同一份数据现算的**（见上面那行） |
 | **首页最上面那条滚动公告** | `index.html`（位置 + 文案）+ `js/common.js`（弹窗本体 `showSiteNotice`） | 2026-10-04 起它就在**导航栏正下方**，是一条通栏走马灯：轨道里放两份一模一样的文案，CSS 动画左移 50% 做无缝循环（悬停暂停）。改文案要**两份一起改**（第二份带 `aria-hidden="true"`），否则接缝会露馅 |
 | **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-invite` 属性的元素，点一下就会弹出分享弹窗。**入口现在只剩一处：首页 hero 的「🔗 分享本站」**（`.zb-invite`）。⚠️ 2026-10-04 站主最后明确「任何页面的页脚都不要有分享链接」，所以页脚那三个入口全部下线了，**别再加回页脚**；宝库页本来就不要分享。
 | **分享按钮的颜色** | `css/style.css` 的 `.zb-invite` | 2026-10-04 站主要求「贴主题 + 护眼」，所以走站点本来就有的**金色系**（和首页滚动公告、赞赏码块同一套变量）：浅色模式淡金底 `#fbf3e8` + 深金棕字 `#8a5a1c`（对比度 ≈5.4:1），深色模式暖褐底 `#2a2229` + 浅金字 `#eec48d`（≈9.5:1）。现在用它的地方：**只有首页 hero 那颗分享按钮**（`.zb-invite`）。它刻意比主按钮 `.btn-primary` 弱一档，不跟「🚀 开始逛逛」抢焦点；换色只改这一处。**页脚那套金色文字样式（`.footer .footer-links .zb-invite-link`）当前没有元素在用**，留着是因为站主随时可能又要页脚入口，写个 `<button class="zb-invite-link" data-invite>` 就能直接用 |
-| **反馈表单哪些必须填** | `feedback.html` + `functions/api/feedback.js` | **2026-10-04 起：称呼和描述默认都是选填**，什么都不写也能提交；**只有类型选「卡片1 · Roblox ID 宝库」时称呼必填**（描述仍然可以不写）。前端标记 `.field-flag`、后端那道校验（`type === '卡片1' && !name` → 400）**两边都要改**，别只改一边 |
+| **~~反馈表单哪些必须填~~（已下线）** | ~~`feedback.html` + `functions/api/feedback.js`~~ | **2026-10-05：反馈功能整页下线** —— `feedback.html` 已删除，`functions/api/feedback.js` 与 `functions/api/feedback/` 整个目录已删除，后台「💬 反馈管理」面板、`js/common.js` 的反馈回执弹窗也一并删除。D1 里的 `feedback` 表**保留不删**（老数据留档，仅供考古）。它原来的用途（提意见、上报无效 ID）现在由「🚫 无效处理 / 无效批量处理」承担；要联系站主走首页公告里的 QQ 群 |
 | **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→「➕ 添加鸣谢」 | 2026-10-04 起类别可以**自定义**：下拉最后一项「✏️ 自定义类别…」会露出输入框，自己起名字（≤30 字）。D1 里已经存在的类别（含自建的）会自动补进下拉，下次直接选。底档 / 后台存进 D1 的字符串就是类别名，`thanks.html` 按它分块显示 |
-| **宝库页隔离区的反馈入口** | `roblox_music.html`（`#quarantineFeedbackBtn`）+ `feedback.html` 的深链 | 「⛔ 我的隔离区」弹窗里那颗「💬 去反馈」跳到 `feedback.html?type=card1&upload=1`：反馈页会自动选中「Roblox ID 宝库」，并且本地隔离区非空时顺手钩上「上传隔离区 ID」 |
+| **~~宝库页隔离区的反馈入口~~（已下线）** | ~~`roblox_music.html`（`#quarantineFeedbackBtn`）~~ | **2026-10-05：「⛔ 我的隔离区」弹窗整个删除**（连带那颗「💬 去反馈」），访客隔离区、批量隔离、每行的 ✕ 三条老路全部由「🚫 无效处理 / 无效批量处理」取代；本地旧键 `roblox_quarantine_guest` 不再被读取（数据留在访客浏览器里，不主动删） |
 
 > 小提示：改完如果发现页面没变，先按 `Ctrl + F5` 强制刷新一次，
 > 浏览器有时候会把旧的 CSS / JS 缓存住。
@@ -447,9 +509,37 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 - **首页的「站点更新」延迟加载**：它本来在首屏下面，现在滚到附近才发那三次请求，
   首屏少三次网络请求。
 - **静态资源缓存**：`_headers` 里给 `/css/*`、`/js/*`、`/images/*` 配了
-  `max-age=300, stale-while-revalidate=86400` —— 回头客 5 分钟内打开是零请求，
-  5 分钟后也会「先用旧版立刻显示，同时后台悄悄取新版」。
-  HTML 本身不缓存，保证你改完立刻能看到。
+  `max-age=60/300 + stale-while-revalidate=86400` —— 回头客 60 秒内是零请求；
+  60 秒之后**用手里那份旧的立刻渲染，同时后台校验有没有新版**。
+  ⚠️ 代价说清：SWR 生效的那一次访客看到的仍是旧文件，**再打开一次**才是新版 ——
+  所以「改完看不到效果」的窗口是「60 秒 + 一次导航」，不是精确的 60 秒。
+- **HTML 也进了 60 秒缓存（2026-10-05）**：性能审计实测 Cloudflare Pages 的 HTML 响应
+  **既没有 ETag 也没有 Last-Modified**，所以「浏览器问一句、没变回 304」这条路走不通 ——
+  原来「HTML 不设缓存」等于**每次点开页面都整份重下**（宝库页 32KB + 250~460ms 的 TTFB），
+  这是重复访问里最大的一笔固定开销。现在 `/` 与 `/*.html` 走
+  `max-age=60, stale-while-revalidate=86400`。改 HTML 后最多 60 秒 + 一次导航生效。
+- **两个「统计类」公开只读接口进了 60 秒缓存（2026-10-05）**：`/api/hot/list` 与
+  `/api/visit/stats` 的响应加了 `Cache-Control: public, max-age=60, stale-while-revalidate=600`。
+  ⚠️ 配套关键：**前端必须去掉 `?t=Date.now()`**（URL 一变缓存永远不命中）——宝库页那两处已经去掉了；
+  后台（`js/admin.js`）仍然带 `?t=`，所以后台看到的永远是最新数据。
+  ⚠️ **`/api/quarantine/list`（已下架名单）与 `/api/songs/list`（后台加的歌）故意保持 `no-store`**：
+  这两条是「管理员刚操作完，访客/你自己刷新就该看到」的数据。我一度也给它们加了 60 秒缓存，
+  结果被独立验收的端到端用例 E34 当场证伪（后台确认下架后，下一次宝库页加载命中缓存、
+  没重新拉接口，那条 ID 还在）—— 这两条接口的目标就是「立刻生效」，不能缓存；
+  它们那 600ms 的等待由宝库页的 1.5 秒超时兜底（超时先画主数据，回来了再补一次重绘）。
+  `/api/thanks` 也故意不加缓存（它同时被后台用凭据调用）。
+- **2026-10-05 又压了两处下载量**：
+  · 首页 hero 那颗赞赏码只有 76px，原先却直接拉 `images/sponsor-qrcode.png`（214KB）——
+    现在改用专门的小图 `images/sponsor-qrcode-small.png`（160×160，约 4KB），
+    大图只留给点开后的弹窗（`loading="lazy"`，弹窗是 `display:none`，不点就不下载）；
+    大图本身也顺手瘦身：1171²/214KB → 800²/约 39KB（64 色，显示最大 320px，余量够扫）。
+  · 宝库页的主数据（`data/roblox_music.json`，约 400KB）改成**在 `<head>` 里就发出请求**
+    （`window.__zmMainData`），下载与 CSS/JS 并行，页面底部的 `loadData()` 直接复用这个
+    promise —— 原来要等页面底部脚本执行、再等 `DOMContentLoaded` 才开始下载。
+  · 宝库页的三个辅助接口（已下架快照 / `/api/quarantine/list` / `/api/songs/list`）
+    加了 1.5 秒上限：**超时先按主数据把列表画出来**，等它们回来再悄悄重绘一次
+    （`keepPage`，不会把你甩回第 1 页）；风险版本号、更新公告也不再挡在首屏前面，
+    热门榜改成点「🔥 热门推荐」时才拉。
 
 ### 三、弹窗优化
 

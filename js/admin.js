@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 后台管理
-   反馈管理、卡片管理（歌曲 / 隔离区）、
+   卡片管理（歌曲 / 无效音乐ID管理）、
    鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
    ------------------------------------------------------------
    2026-10-01 用户要求：
@@ -9,10 +9,28 @@
         歌曲管理这边换成「D1 歌曲数量」）；
      · 标题后面那些灰色数字徽章全部删掉（数字只看统计卡）；
      · 「📥 导入」改名「➕ 添加歌曲 / ➕ 添加隔离歌曲」，跟鸣谢名单的叫法对齐。
+   2026-10-05 站主要求（契约 .verify/SPEC-invalid-20261005.md）：
+     · 「💬 反馈管理」整块下线 —— 标签、面板、弹窗、统计卡、所有反馈 JS 一起删；
+     · 原「⛔ 开发者隔离区」并入新的「🚫 无效音乐ID管理」（待处理上报 / 已忽略 /
+       已下架 三段 + 统计卡 + 分页 + 批量操作 + 导出 + 清空已忽略）；
+     · 鸣谢类别新增「网站创新家」，该类别的描述由站主手写、绝不自动代写。
    ============================================================ */
 
-/* 缓存反馈列表，用于展开查看隔离区时定位 */
-let feedbackCache = [];
+/* 「网站创新家」这个类别的名字跟数据口径绑着（D1 里存的就是这五个字），别改。
+   2026-10-05 站主明确：这一栏的描述他自己手写，所以代码里写死「绝不自动代写」。 */
+const MANUAL_NOTE_CATEGORY = '网站创新家';
+
+/* 弹窗里那个「✍️ 描述由我手写」勾选框是不是「系统替站主勾的」
+   （类别选到网站创新家时自动勾上；切走类别要把这一下撤掉，站主自己点的勾永远不动） */
+let manualNoteAuto = false;
+
+/* 现在到底要不要「不自动代写」：勾选框勾着，或者类别就是网站创新家。
+   两个地方（自动代写、提交保存）都走这一个判断，口径只有一处。 */
+function isManualThanksNote() {
+  const el = document.getElementById('addThanksManualNote');
+  if (el && el.checked) return true;
+  return currentThanksCategory() === MANUAL_NOTE_CATEGORY;
+}
 
 /* 给统计卡安全赋值：元素不在页面上（比如以后又删了某张卡）就安静跳过，
    不会像 countEl.textContent 那样直接把整个函数崩掉 */
@@ -157,22 +175,18 @@ function scrollListIntoView(el) {
     });
   });
 
-  loadFeedback();
   loadRobloxStats();
   loadSongs();
   loadThanks();
+  /* 2026-10-05：卡片管理是默认打开的面板，所以无效音乐ID管理一进来就拉一次；
+     （原来这里第一行拉的是反馈列表，反馈面板整块下线后换成 loadInvalid()） */
+  loadInvalid();
   // 注：2026-09-29 起后台没有「更新管理」了（公告改由 AI 写 data/updates.json），
   // 所以这里也不需要为任何更新面板做初始化。
 
-  /* 导入隔离区弹窗 */
-  document.getElementById('openImportQuarantineBtn').onclick = () => {
-    document.getElementById('importQuarantineText').value = '';
-    document.getElementById('importQuarantineStatus').textContent = '';
-    document.getElementById('importQuarantineStatus').className = 'import-status';
-    openModal('importQuarantineModal');
-  };
-  document.getElementById('cancelImportQuarantine').onclick = () => closeModal('importQuarantineModal');
-  document.getElementById('confirmImportQuarantine').onclick = handleImportQuarantine;
+  /* 🚫 无效音乐ID管理：工具条 / 三段切换 / 批量操作（2026-10-05 新增）
+     —— 原来这里是「➕ 添加隔离歌曲」弹窗的三条绑定，那个弹窗随旧隔离区面板删了。 */
+  bindInvalidPanel();
 
   /* 歌曲管理按钮（2026-09-29 用户要求把「➕ 添加歌曲」和「📤 导出」两个按钮拿掉，
      只服务于它们的弹窗和处理函数也一并删了；「📥 导入」是在 admin.html 的内联脚本里
@@ -186,8 +200,6 @@ function scrollListIntoView(el) {
   if (exportThanksBtn) exportThanksBtn.onclick = handleExportThanks;
   const exportSponsorsBtn = document.getElementById('exportSponsorsBtn');
   if (exportSponsorsBtn) exportSponsorsBtn.onclick = handleExportSponsors;
-  const exportQuarantineBtn = document.getElementById('exportQuarantineBtn');
-  if (exportQuarantineBtn) exportQuarantineBtn.onclick = handleExportQuarantine;
 
   /* 👑 赞助者：「➕ 添加赞助者」弹窗（行的「✏️ 编辑」复用同一个弹窗）、🔄 刷新 */
   document.getElementById('openAddSponsorBtn').onclick = openAddSponsorModal;
@@ -239,6 +251,10 @@ function scrollListIntoView(el) {
     document.getElementById('addThanksSelectedCat').textContent = isCustom ? '自定义类别' : opt.textContent;
     addThanksTrigger.classList.add('selected');
     setAddThanksOpen(false);
+    /* 2026-10-05：类别定了就同步「✍️ 描述由我手写」——
+       类别 = 网站创新家 时必然勾上（那一栏是站主手写的），
+       从它切到别的类别时把「刚才是系统帮勾的」那一下撤掉（管理员自己勾的不动）。 */
+    syncManualNoteWithCategory();
     if (isCustom && customEl) customEl.focus();
     else addThanksTrigger.focus();
     refreshThanksNote();   /* 类别定了，名字也填了的话，顺手把描述补上 */
@@ -250,6 +266,41 @@ function scrollListIntoView(el) {
     addThanksCustomCat.addEventListener('input', () => {
       const v = addThanksCustomCat.value.trim();
       document.getElementById('addThanksSelectedCat').textContent = v || '自定义类别';
+      syncManualNoteWithCategory();   /* 手动把类别名打成「网站创新家」时也算数 */
+      refreshThanksNote();
+    });
+  }
+
+  /* ============================================================
+     ✍️ 「描述由我手写（不自动代写）」（2026-10-05 站主要求）
+     ------------------------------------------------------------
+     勾上之后，描述框里写什么就原样存什么，一个字都不代写。
+     · 类别 = 网站创新家 → 默认勾上；refreshThanksNote / handleAddThanks 都不代写
+       （站主明确说这一类他自己写）。这一下是「系统帮勾的」，
+       切到别的类别时会自动撤掉；管理员自己点的勾永远不动。
+     · 判断统一走上面的 isManualThanksNote()，别在这里另写一套。
+     ============================================================ */
+  function manualNoteEl() {
+    return document.getElementById('addThanksManualNote');
+  }
+
+  function syncManualNoteWithCategory() {
+    const el = manualNoteEl();
+    if (!el) return;
+    if (currentThanksCategory() === MANUAL_NOTE_CATEGORY) {
+      if (!el.checked) { el.checked = true; manualNoteAuto = true; }
+      return;
+    }
+    if (el.checked && manualNoteAuto) {
+      el.checked = false;
+      manualNoteAuto = false;
+    }
+  }
+
+  const manualNoteBox = manualNoteEl();
+  if (manualNoteBox) {
+    manualNoteBox.addEventListener('change', () => {
+      manualNoteAuto = false;   /* 管理员自己点的，之后不再自动改它 */
       refreshThanksNote();
     });
   }
@@ -355,9 +406,12 @@ function scrollListIntoView(el) {
   }
 
   /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句）。
-     类别统一走 currentThanksCategory()：自定义类别取输入框里的字。 */
+     类别统一走 currentThanksCategory()：自定义类别取输入框里的字。
+     2026-10-05：勾了「✍️ 描述由我手写」就一句话都不代写（网站创新家必然如此）。 */
   function refreshThanksNote() {
+    if (isManualThanksNote()) return;
     const cat = currentThanksCategory();
+    if (!cat) return;
     const name = document.getElementById('addThanksName').value.trim();
     if (!name || !cat) return;
     const platform = document.getElementById('addThanksPlatform').value.trim();
@@ -379,309 +433,6 @@ function scrollListIntoView(el) {
   const sponsorNameEl = document.getElementById('addSponsorName');
   if (sponsorNameEl) sponsorNameEl.addEventListener('change', refreshSponsorNote);
 })();
-
-/* ============================================================
-   反馈管理
-   ============================================================ */
-async function loadFeedback() {
-  const container = document.getElementById('feedbackList');
-  /* 2026-10-01：标题后面那个数字徽章（feedbackCount）已按用户要求删除，
-     这里不再去写它；反馈条数本来在列表里一眼就能数。 */
-  container.innerHTML = '<div class="loading">加载中...</div>';
-
-  try {
-    const res = await fetch('/api/feedback/list', { credentials: 'include' });
-    if (!res.ok) {
-      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      return;
-    }
-    const data = await res.json();
-    if (data && data.ok === false) {
-      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(data.error || '未知错误') + '</div>';
-      return;
-    }
-
-    /* 后端返回 { ok:true, data:[...], total }；同时兼容早期的裸数组格式 */
-    const list = Array.isArray(data)
-      ? data
-      : (data && Array.isArray(data.data) ? data.data : null);
-
-    if (list === null) {
-      container.innerHTML = '<div class="empty-state">暂无反馈</div>';
-      return;
-    }
-
-    feedbackCache = list;
-
-    if (list.length === 0) {
-      container.innerHTML = '<div class="empty-state">暂无反馈</div>';
-      return;
-    }
-
-    container.innerHTML = '';
-    list.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'list-item';
-
-      const hasQ = item.upload_quarantine === 1 && Array.isArray(item.quarantine_ids) && item.quarantine_ids.length > 0;
-      const qCount = hasQ ? item.quarantine_ids.length : 0;
-      const itemId = Number(item.id) || 0;
-
-      /* 处理状态徽标 */
-      const statusTag = item.status === 'approved'
-        ? '<span class="type-tag green" style="margin-left:6px;">✅ 已受理</span>'
-        : (item.status === 'rejected'
-          ? '<span class="type-tag red" style="margin-left:6px;">🚫 已拒绝</span>'
-          : '<span class="type-tag" style="margin-left:6px;">⏳ 待处理</span>');
-
-      /* 有没有可回传的浏览器身份：老数据没有，就说明回执送不到 */
-      const idHint = item.client_id
-        ? ' · 🔑 ' + escapeHtml(String(item.client_id).slice(0, 8)) + '…'
-        : ' · ⚠️ 旧数据无身份（回执送不到）';
-
-      el.innerHTML = `
-        <div class="row1">
-          <span class="name">${escapeHtml(item.name || '（未填称呼）')}</span>
-          <span>
-            <span class="type-tag">${escapeHtml(item.type)}</span>
-            ${statusTag}
-            ${hasQ ? '<span class="type-tag blue" style="margin-left:6px;">📦 ' + qCount + ' 个隔离区 ID</span>' : ''}
-          </span>
-        </div>
-        <div class="meta">
-          🕒 ${escapeHtml(item.created_at)}${idHint}
-          ${item.decided_at ? ' · 处理于 ' + escapeHtml(item.decided_at) : ''}
-          ${item.want_thanks === 1 ? ' · ❤️ 愿意加入鸣谢' : ''}
-        </div>
-        <div class="message">${escapeHtml(item.message)}</div>
-        <div class="fb-decide">
-          <input type="text" class="fb-reply" data-id="${itemId}" maxlength="200"
-                 placeholder="给访客的一句话说明（选填，会显示在他下次打开对应页面时的回执弹窗里）">
-        </div>
-        <div class="actions">
-          ${hasQ ? '<button class="btn-expand" data-id="' + itemId + '">📦 展开隔离区</button>' : ''}
-          ${item.want_thanks === 1 && item.status !== 'approved' ? '<button class="btn-approve" data-id="' + itemId + '">❤️ 加入鸣谢</button>' : ''}
-          <button class="btn-accept" data-id="${itemId}"${item.status === 'approved' ? ' disabled' : ''}>✅ 受理</button>
-          <button class="btn-reject" data-id="${itemId}"${item.status === 'rejected' ? ' disabled' : ''}>🚫 拒绝</button>
-          <button class="btn-reset" data-id="${itemId}"${item.status === 'pending' ? ' disabled' : ''}>↩️ 退回待处理</button>
-          <button class="btn-delete" data-id="${itemId}">🗑️ 删除</button>
-        </div>
-        ${hasQ ? '<div class="fb-quarantine" id="fbQ-' + itemId + '"></div>' : ''}
-      `;
-      container.appendChild(el);
-    });
-
-    /* 已填过的说明用 JS 回填，避免把用户输入拼进 HTML 属性里 */
-    container.querySelectorAll('.fb-reply').forEach(inp => {
-      const item = list.find(i => String(i.id) === inp.dataset.id);
-      if (item && item.reply) inp.value = item.reply;
-    });
-
-    container.querySelectorAll('.btn-approve').forEach(btn => {
-      btn.addEventListener('click', () => approveToThanks(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteFeedback(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll('.btn-expand').forEach(btn => {
-      btn.addEventListener('click', () => toggleFeedbackQuarantine(Number(btn.dataset.id), btn));
-    });
-    container.querySelectorAll('.btn-accept').forEach(btn => {
-      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'approved'));
-    });
-    container.querySelectorAll('.btn-reject').forEach(btn => {
-      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'rejected'));
-    });
-    container.querySelectorAll('.btn-reset').forEach(btn => {
-      btn.addEventListener('click', () => decideFeedback(Number(btn.dataset.id), 'pending'));
-    });
-  } catch (err) {
-    container.innerHTML = '<div class="empty-state">加载失败</div>';
-  }
-}
-
-/* 受理 / 拒绝 / 退回一条反馈。
-   写在输入框里的说明会一起存下来，访客下次打开他当初选择的那个页面时，
-   会看到一个回执弹窗，里面就带着这句话。 */
-async function decideFeedback(id, status) {
-  const item = feedbackCache.find(i => Number(i.id) === id);
-  const input = document.querySelector('.fb-reply[data-id="' + id + '"]');
-  const reply = input ? input.value.trim() : '';
-
-  const label = status === 'approved' ? '受理' : (status === 'rejected' ? '拒绝' : '退回待处理');
-
-  /* 老数据没有浏览器身份，回执送不到 —— 先跟管理员确认一下 */
-  if (status !== 'pending' && (!item || !item.client_id)) {
-    const go = await showConfirm(
-      '这条反馈没有浏览器身份',
-      '它是「回执功能」上线之前提交的老数据，处理结果没法自动通知到对方。仍然要标记为「' + label + '」吗？'
-    );
-    if (!go) return;
-  }
-
-  try {
-    const res = await fetch('/api/feedback/status', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: id, status: status, reply: reply })
-    });
-    const data = await res.json();
-
-    if (data && data.ok) {
-      if (status === 'approved') showToast('✅ 已受理，访客下次打开对应页面会看到提示');
-      else if (status === 'rejected') showToast('🚫 已拒绝，访客下次打开对应页面会看到提示');
-      else showToast('↩️ 已退回待处理');
-      loadFeedback();
-    } else {
-      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* 展开/收起某条反馈的隔离区 */
-function toggleFeedbackQuarantine(feedbackId, btn) {
-  const panel = document.getElementById('fbQ-' + feedbackId);
-  if (!panel) return;
-
-  if (panel.classList.contains('show')) {
-    panel.classList.remove('show');
-    btn.textContent = '📦 展开隔离区';
-    return;
-  }
-
-  if (!panel.dataset.rendered) {
-    const item = feedbackCache.find(i => i.id === feedbackId);
-    if (!item || !Array.isArray(item.quarantine_ids)) return;
-
-    const listHtml = item.quarantine_ids.map((q, i) => `
-      <label class="fb-q-item">
-        <input type="checkbox" data-index="${i}" data-id="${escapeHtml(q.id)}">
-        <span class="q-name">${escapeHtml(q.name || '未知歌名')}</span>
-        <span class="q-id">${escapeHtml(q.id)}</span>
-        <span class="q-cat">${escapeHtml(q.category || '未分类')}</span>
-      </label>
-    `).join('');
-
-    panel.innerHTML = `
-      <div class="q-head">
-        <span class="q-info">共 <strong>${item.quarantine_ids.length}</strong> 个 ID，勾选后点击导入</span>
-        <div class="q-actions">
-          <button class="btn-sel-all">全选</button>
-          <button class="btn-sel-none">取消</button>
-          <button class="btn-import-sel" data-id="${feedbackId}">✅ 导入选中</button>
-        </div>
-      </div>
-      <div class="q-list">${listHtml}</div>
-    `;
-
-    panel.querySelector('.btn-sel-all').onclick = () => {
-      panel.querySelectorAll('.fb-q-item input').forEach(cb => cb.checked = true);
-    };
-    panel.querySelector('.btn-sel-none').onclick = () => {
-      panel.querySelectorAll('.fb-q-item input').forEach(cb => cb.checked = false);
-    };
-    panel.querySelector('.btn-import-sel').onclick = () => {
-      const ids = Array.from(panel.querySelectorAll('.fb-q-item input:checked'))
-        .map(cb => cb.dataset.id);
-      importSelectedQuarantine(feedbackId, ids);
-    };
-
-    panel.dataset.rendered = '1';
-  }
-
-  panel.classList.add('show');
-  btn.textContent = '📦 收起隔离区';
-}
-
-/* 从反馈导入选中的隔离区 ID */
-async function importSelectedQuarantine(feedbackId, ids) {
-  if (ids.length === 0) {
-    showToast('请至少勾选一个 ID');
-    return;
-  }
-
-  const confirmed = await showConfirm(
-    '导入隔离区',
-    `确定将选中的 ${ids.length} 个 ID 导入到开发者隔离区吗？\n\n导入后宝库页将不再显示这些 ID。`
-  );
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch('/api/feedback/import-quarantine', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feedbackId, ids })
-    });
-    const data = await res.json();
-
-    if (data.ok) {
-      showToast(`✅ 已导入 ${data.added} 个，跳过 ${data.skipped} 个`);
-      loadRobloxStats();
-      loadFeedback();
-    } else {
-      showToast('导入失败：' + (data.error || '未知错误'));
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* ============================================================
-   ❤️ 加入鸣谢：自动写描述
-   ------------------------------------------------------------
-   以前描述是写死的一句「反馈了「卡片1」相关问题」。
-   现在先把这条反馈读一遍，再拼一句像人写的话：
-     ① 他在哪个页面提的（类型 → 页面名）
-     ② 他实际做了什么（交了隔离区 ID / 正文里有音乐 ID / 关键词归类）
-   纯前端规则判断，不联网、不动接口；长度上限跟服务端对齐（200 字）。
-   ============================================================ */
-function buildSmartThanksMessage(item) {
-  const type = String(item.type || '').trim();
-  const msg = String(item.message || '').replace(/\s+/g, ' ').trim();
-  /* 隔离区：他勾了「上传隔离区 ID」且真带了数据才算 */
-  const quarantineCount = (item.upload_quarantine === 1 && Array.isArray(item.quarantine_ids))
-    ? item.quarantine_ids.length : 0;
-  /* 正文里 10 位以上的纯数字，算他补了几首音乐 ID */
-  const idCount = (msg.match(/\d{10,}/g) || []).length;
-
-  const whereMap = {
-    '卡片1': '在「🎵 Roblox ID 宝库」',
-    '主页': '在首页',
-    '反馈': '在反馈页'
-  };
-  const where = whereMap[type] || '';
-
-  /* 先放「硬证据」（隔离区 ID / 音乐 ID），再用正文关键词补一条，最多两条，
-     免得描述又臭又长 —— 它是给访客看的公开文案。 */
-  const deeds = [];
-  if (quarantineCount > 0) deeds.push('提交了 ' + quarantineCount + ' 个待复核的隔离区 ID');
-  if (idCount > 0) deeds.push('补充了 ' + idCount + ' 个音乐 ID');
-
-  const keywordRules = [
-    [/失效|听不了|播不了|放不了|打不开|没了|下架|搜不到/, '帮着排出了失效的歌'],
-    [/新歌|补充|投稿|添加|加上|收录|推荐/, '推荐了新歌'],
-    [/分类|标签|归类|分组/, '提了分类整理的建议'],
-    [/搜索|筛选|排序|查找/, '提了搜索、筛选的建议'],
-    [/卡顿|很卡|加载慢|闪退|崩溃|白屏|报错|出错/, '反馈了页面体验问题'],
-    [/手机|移动端|安卓|苹果|iOS|触屏/, '反馈了手机端体验'],
-    [/建议|想法|希望|能不能|可不可以|最好/, '提了改进想法'],
-    [/喜欢|好用|太棒|感谢|支持|加油|爱了|赞/, '留下了肯定和鼓励']
-  ];
-  keywordRules.forEach(rule => {
-    if (deeds.length >= 2) return;
-    if (rule[0].test(msg) && deeds.indexOf(rule[1]) === -1) deeds.push(rule[1]);
-  });
-
-  /* 正文啥也没认出来时兜底，别留空 */
-  if (deeds.length === 0) deeds.push('提了反馈');
-
-  /* 拼起来注意别重复：前面已经有「在首页 / 给站点」，所以每条事迹都用能直接接上去的说法 */
-  return ((where || '给站点') + deeds.join('、')).slice(0, 200);
-}
 
 /* ============================================================
    ✍️ 描述留空时自动代写（「➕ 添加鸣谢」和「➕ 添加赞助者」共用）
@@ -706,6 +457,10 @@ function buildSmartThanksNote(category, name, platform) {
   const cat = String(category || '');
   const plat = String(platform || '').trim();
   const at = plat ? '在' + plat : '';
+
+  /* 2026-10-05 站主要求：类别 = 网站创新家 时描述由站主手写，一个字都不许代写。
+     这里再兜一道 —— 万一以后哪里漏了判断，也会返回空串（调用方拿到空串就不填）。 */
+  if (cat === MANUAL_NOTE_CATEGORY) return '';
 
   let options;
   if (cat.indexOf('ID公益') !== -1 || cat.indexOf('UP主') !== -1 || cat.indexOf('作者') !== -1) {
@@ -749,96 +504,14 @@ function buildSmartSponsorNote(name) {
   return options[pickBy(name, options.length)];
 }
 
-/* 将反馈用户加入鸣谢 */
-async function approveToThanks(feedbackId) {
-  const item = feedbackCache.find(i => i.id === feedbackId);
-  if (!item) { showToast('未找到反馈'); return; }
-
-  /* 描述照这条反馈现算，并在确认框里先给管理员看一眼（想改事后去鸣谢名单改） */
-  const smartMessage = buildSmartThanksMessage(item);
-  /* 2026-10-04 起反馈的称呼可以不写，空名字进鸣谢名单会变成一行空白 ——
-     这里统一兜成「匿名用户」 */
-  const thanksName = String(item.name || '').trim() || '匿名用户';
-
-  const confirmed = await showConfirm(
-    '加入鸣谢',
-    '把「' + thanksName + '」加入鸣谢名单？\n\n' +
-    '描述会自动写成：\n「' + smartMessage + '」\n\n' +
-    '加入后可以在「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」里改类别和描述。'
-  );
-  if (!confirmed) return;
-
-  try {
-    const addRes = await fetch('/api/thanks', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'add',
-        category: '💬 反馈贡献者',
-        name: thanksName,
-        platform: '',
-        message: smartMessage,
-        feedbackId: item.id
-      })
-    });
-    const addData = await addRes.json();
-
-    if (addData.ok) {
-      showToast('✅ 已加入鸣谢名单');
-      const st = await fetch('/api/feedback/status', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, status: 'approved' })
-      });
-      if (!st.ok) showToast('⚠️ 状态更新失败');
-      loadThanks();
-      loadFeedback();
-    } else {
-      showToast('加入失败');
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* 删除反馈 */
-async function deleteFeedback(id) {
-  if (!id || isNaN(Number(id))) {
-    showToast('⚠️ 反馈 ID 无效，无法删除');
-    return;
-  }
-
-  const confirmed = await showConfirm('删除反馈', '确定要删除这条反馈吗？此操作不可撤销。');
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch('/api/feedback/delete', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: Number(id) })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast(`🗑️ 已删除（共 ${data.deleted || 1} 条）`);
-      loadFeedback();
-    } else {
-      showToast('删除失败：' + (data.message || data.error || '未知'));
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
 /* ============================================================
-   Roblox 数据（歌曲管理的统计 + 开发者隔离区列表与统计）
+   Roblox 数据（歌曲管理那三张统计卡）
    ------------------------------------------------------------
    2026-10-01 用户要求：
-     · 歌曲管理的统计卡 = 总 ID 数 / 歌曲组数 / **D1 歌曲数量**（新加）；
-     · 「开发者隔离区」那张卡从歌曲管理搬进隔离区自己的统计里，
-       号码改成「隔离区 ID 数」，并配一张「涉及分类」。
+     · 歌曲管理的统计卡 = 总 ID 数 / 歌曲组数 / **D1 歌曲数量**（新加）。
+   2026-10-05：原来这里还顺带渲染「开发者隔离区」列表和统计，
+     那段随旧面板一起删了 —— 待处理 / 已忽略 / 已下架 现在全归
+     下面的「🚫 无效音乐ID管理」管。
    ============================================================ */
 async function loadRobloxStats() {
   try {
@@ -871,65 +544,170 @@ async function loadRobloxStats() {
     setStatText('statGroup', extraOk ? seenNames.size : '-');
     /* D1 歌曲数量 = /api/songs/list 回来的条数（就是「🎶 D1 歌曲管理」下面列出来的那些） */
     setStatText('statD1Songs', extraOk ? extraData.length : '-');
-
-    const res2 = await fetch('/api/quarantine/list?t=' + Date.now());
-    const container = document.getElementById('quarantineList');
-    if (!res2.ok) {
-      container.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res2.status + '）· 登录可能已过期，请重新登录</div>';
-      setStatText('statQuarantine', '-');
-      setStatText('statQuarantineCats', '-');
-      return;
-    }
-    const qData = await res2.json();
-    if (qData && qData.ok === false) {
-      container.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(qData.error || '未知错误') + '</div>';
-      setStatText('statQuarantine', '-');
-      setStatText('statQuarantineCats', '-');
-      return;
-    }
-
-    let quarantine = [];
-    if (qData.ok && Array.isArray(qData.data)) {
-      quarantine = qData.data;
-    }
-
-    setStatText('statQuarantine', quarantine.length);
-
-    /* 涉及分类：隔离区里的歌一共牵扯到多少种分类（前端现算，不额外发请求） */
-    const qCats = new Set();
-    quarantine.forEach(it => {
-      qCats.add(String((it && it.category) || '').trim() || '未分类');
-    });
-    setStatText('statQuarantineCats', qCats.size);
-
-    quarantineCache = quarantine;
-    renderQuarantinePage();
   } catch (err) {
-    document.getElementById('quarantineList').innerHTML = '<div class="empty-state">加载失败</div>';
-    const pager = document.getElementById('quarantinePager');
-    if (pager) pager.hidden = true;
+    /* 连主数据都拉不到：三张卡老老实实显示 '-'，不假装是 0 */
+    setStatText('statTotal', '-');
+    setStatText('statGroup', '-');
+    setStatText('statD1Songs', '-');
   }
 }
 
-/* 隔离区列表：每页 100 条（2026-10-01 站主要求，跟宝库页一样） */
-let quarantineCache = [];
-let quarantinePage = 1;
+/* ============================================================
+   🚫 无效音乐ID管理（2026-10-05 新增，替代原「⛔ 开发者隔离区」）
+   ------------------------------------------------------------
+   数据口径（契约 .verify/SPEC-invalid-20261005.md 第 3 节，别自己改）：
+     · 待处理 / 已忽略 → GET /api/invalid/list（按 music_id 聚合，响应里带 summary）
+     · 已下架          → GET /api/quarantine/list
+                         （quarantine_admin 这张旧表沿用不改名，界面文案统一叫「已下架」）
+     · 操作            → POST /api/invalid/handle { ids, action }
+         remove        确认无效 → 从全站下架
+         ignore        判定这条上报不算
+         restore       撤销下架重新上架 / 把已忽略的恢复为待处理（两处共用同一个 action）
+         clear-ignored 清空全部已忽略
+     · handle 返回的 changed 只是「受影响行数」（重复执行 remove 也还是 1），
+       所以这里一律以列表接口给回来的 status 为准，不拿 changed 当「处理过」的凭据。
+   导出：跟 data/admin_quarantine.json 完全一致 —— [{id, name, category}] 数组，
+   拿到直接覆盖那个文件即可。
+   ============================================================ */
 
-function renderQuarantinePage() {
-  const container = document.getElementById('quarantineList');
-  const pager = document.getElementById('quarantinePager');
-  const total = quarantineCache.length;
+/* 三段各自的缓存与页码：切段 / 翻页只重画，不重新发请求（点「🔄 刷新」才重拉） */
+let invalidPendingCache = [];
+let invalidIgnoredCache = [];
+let invalidRemovedCache = [];
+let invalidPendingPage = 1;
+let invalidIgnoredPage = 1;
+let invalidRemovedPage = 1;
 
-  quarantinePage = clampPage(quarantinePage, total);
+/* 已下架那一栏的加载错误（拉到一半失败时，列表里要说人话，不能假装是空的） */
+let invalidRemovedError = '';
+
+/* 当前在哪一段：pending / ignored / removed，跟着三段按钮上的 data-seg 走 */
+let invalidSeg = 'pending';
+
+/* 统计卡上的数字：拿不到就显示 '-'（「不知道」和「0 条」是两回事） */
+function invalidStatNum(v) {
+  if (v === undefined || v === null || v === '' || isNaN(Number(v))) return '-';
+  return Number(v).toLocaleString('en-US');
+}
+
+/* 拉数据：待处理 + 已忽略一个请求就够（status=all），已下架单独一个接口 */
+async function loadInvalid() {
+  const boxPending = document.getElementById('invalidPendingList');
+  if (!boxPending) return;   /* 面板不在页面上（比如以后又挪走了）就安静退出 */
+
+  const boxIgnored = document.getElementById('invalidIgnoredList');
+  const boxRemoved = document.getElementById('invalidRemovedList');
+  boxPending.innerHTML = '<div class="loading">加载中...</div>';
+  if (boxIgnored) boxIgnored.innerHTML = '<div class="loading">加载中...</div>';
+  if (boxRemoved) boxRemoved.innerHTML = '<div class="loading">加载中...</div>';
+
+  let summary = null;
+  let listOk = false;
+
+  try {
+    /* limit 取服务端上限 2000：分页在前端做，争取一次把要用的都拿回来 */
+    const res = await fetch('/api/invalid/list?status=all&limit=2000&t=' + Date.now(), { credentials: 'include' });
+    if (!res.ok) {
+      const msg = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
+      boxPending.innerHTML = msg;
+      if (boxIgnored) boxIgnored.innerHTML = msg;
+      setStatText('statInvalidPending', '-');
+      setStatText('statInvalidReports', '-');
+      setStatText('statInvalidIgnored', '-');
+    } else {
+      const data = await res.json();
+      if (!data || data.ok !== true || !Array.isArray(data.data)) {
+        const msg = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '返回格式不对') + '</div>';
+        boxPending.innerHTML = msg;
+        if (boxIgnored) boxIgnored.innerHTML = msg;
+      } else {
+        const rows = data.data.map(it => ({
+          id: String((it && it.musicId) || ''),
+          name: String((it && it.name) || '') || '未知歌名',
+          category: String((it && it.category) || '') || '未分类',
+          count: Number(it && it.count) || 0,
+          status: (it && it.status) === 'ignored' ? 'ignored' : 'pending',
+          firstAt: (it && it.firstAt) || '',
+          lastAt: (it && it.lastAt) || ''
+        })).filter(it => it.id);
+
+        invalidPendingCache = rows.filter(it => it.status !== 'ignored');
+        invalidIgnoredCache = rows.filter(it => it.status === 'ignored');
+        summary = (data && data.summary) || null;
+        listOk = true;
+      }
+    }
+  } catch (err) {
+    const msg = '<div class="empty-state">加载失败，请检查网络</div>';
+    boxPending.innerHTML = msg;
+    if (boxIgnored) boxIgnored.innerHTML = msg;
+  }
+
+  /* 已下架：单独一个接口，失败不影响上面两段 */
+  invalidRemovedError = '';
+  try {
+    const res = await fetch('/api/quarantine/list?t=' + Date.now(), { credentials: 'include' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || data.ok === false || !Array.isArray(data.data)) {
+      throw new Error((data && data.error) || '返回格式不对');
+    }
+    invalidRemovedCache = data.data.map(it => ({
+      id: String((it && it.id) || ''),
+      name: (it && it.name) || '未知歌名',
+      category: (it && it.category) || '未分类',
+      source: (it && it.source) || '',
+      at: (it && it.quarantinedAt) || ''
+    })).filter(it => it.id);
+  } catch (err) {
+    invalidRemovedCache = [];
+    invalidRemovedError = '加载失败，请检查网络';
+  }
+
+  /* 统计卡：四张都取自列表接口的 summary；
+     已下架那张在 summary 拿不到时用列表长度兜底（口径一样，都是 quarantine_admin 的行数） */
+  if (summary) {
+    setStatText('statInvalidPending', invalidStatNum(summary.pendingIds));
+    setStatText('statInvalidReports', invalidStatNum(summary.pendingReports));
+    setStatText('statInvalidIgnored', invalidStatNum(summary.ignoredIds));
+    setStatText('statInvalidRemoved', invalidStatNum(summary.removedIds));
+  } else {
+    setStatText('statInvalidRemoved', invalidStatNum(invalidRemovedCache.length));
+    if (!listOk) {
+      setStatText('statInvalidPending', '-');
+      setStatText('statInvalidReports', '-');
+      setStatText('statInvalidIgnored', '-');
+    }
+  }
+
+  renderInvalidSegment();
+}
+
+/* 按当前段把列表画出来（三段各自分页） */
+function renderInvalidSegment() {
+  if (invalidSeg === 'ignored') renderInvalidIgnored();
+  else if (invalidSeg === 'removed') renderInvalidRemoved();
+  else renderInvalidPending();
+}
+
+/* ① 待处理上报：勾选若干条 → 批量下架 / 批量忽略 */
+function renderInvalidPending() {
+  const container = document.getElementById('invalidPendingList');
+  const pager = document.getElementById('invalidPendingPager');
+  if (!container) return;
+
+  const total = invalidPendingCache.length;
+  invalidPendingPage = clampPage(invalidPendingPage, total);
 
   if (total === 0) {
-    container.innerHTML = '<div class="empty-state">隔离区是空的</div>';
+    container.innerHTML = '<div class="empty-state">还没有待处理的上报。<br>宝库页访客点「🚫 无效处理」就会出现在这里。</div>';
     if (pager) pager.hidden = true;
+    updateInvalidPickInfo();
     return;
   }
 
-  const start = (quarantinePage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = quarantineCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const start = (invalidPendingPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = invalidPendingCache.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   pageItems.forEach(item => {
@@ -937,156 +715,487 @@ function renderQuarantinePage() {
     el.className = 'list-item';
     el.innerHTML = `
       <div class="row1">
-        <span class="name">${escapeHtml(item.name || '未知歌名')}</span>
-        <span class="type-tag">${escapeHtml(item.category || '未分类')}</span>
+        <span class="invalid-head-left">
+          <label class="invalid-pick" title="勾选后可批量下架 / 批量忽略">
+            <input type="checkbox" class="invalid-pick-cb" data-id="${escapeHtml(item.id)}">
+          </label>
+          <span class="name">${escapeHtml(item.name)}</span>
+        </span>
+        <span>
+          <span class="type-tag">${escapeHtml(item.category)}</span>
+          <span class="type-tag red">🚫 上报 ${item.count} 次</span>
+        </span>
       </div>
       <div class="meta">
-        🆔 ${escapeHtml(item.id)}
-        ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
-        ${item.quarantinedAt ? ' · 🕒 ' + escapeHtml(item.quarantinedAt) : ''}
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        ${item.lastAt ? ' · 🕒 最近上报 ' + escapeHtml(item.lastAt) : ''}
+        ${item.firstAt ? ' · 首次 ' + escapeHtml(item.firstAt) : ''}
       </div>
       <div class="actions">
-        <button class="btn-delete" data-id="${escapeHtml(item.id)}">🗑️ 移除</button>
+        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
+        <button class="btn-invalid-ignore" data-id="${escapeHtml(item.id)}">🙈 忽略</button>
       </div>
     `;
     container.appendChild(el);
   });
 
-  container.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', () => deleteQuarantineItem(btn.dataset.id));
+  container.querySelectorAll('.invalid-pick-cb').forEach(cb => {
+    cb.addEventListener('change', updateInvalidPickInfo);
+  });
+  container.querySelectorAll('.btn-invalid-remove').forEach(btn => {
+    btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
+  });
+  container.querySelectorAll('.btn-invalid-ignore').forEach(btn => {
+    btn.addEventListener('click', () => handleInvalidAction([btn.dataset.id], 'ignore'));
   });
 
-  renderAdminPager(pager, total, quarantinePage, '条', (p) => {
-    quarantinePage = p;
-    renderQuarantinePage();
+  renderAdminPager(pager, total, invalidPendingPage, '个 ID', (p) => {
+    invalidPendingPage = p;
+    renderInvalidPending();
+    scrollListIntoView(container);
+  });
+
+  updateInvalidPickInfo();
+}
+
+/* ② 已忽略：单行「♻️ 恢复为待处理」（跟已下架的「🔓 恢复上架」是同一个 restore） */
+function renderInvalidIgnored() {
+  const container = document.getElementById('invalidIgnoredList');
+  const pager = document.getElementById('invalidIgnoredPager');
+  if (!container) return;
+
+  const total = invalidIgnoredCache.length;
+  invalidIgnoredPage = clampPage(invalidIgnoredPage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">没有已忽略的上报。</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (invalidIgnoredPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = invalidIgnoredCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span class="type-tag">🙈 已忽略</span>
+      </div>
+      <div class="meta">
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
+        · 🚫 上报 ${item.count} 次
+        ${item.lastAt ? ' · 🕒 最近上报 ' + escapeHtml(item.lastAt) : ''}
+      </div>
+      <div class="actions">
+        <button class="btn-invalid-restore" data-id="${escapeHtml(item.id)}">♻️ 恢复为待处理</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-invalid-restore').forEach(btn => {
+    btn.addEventListener('click', () => handleInvalidAction([btn.dataset.id], 'restore'));
+  });
+
+  renderAdminPager(pager, total, invalidIgnoredPage, '个 ID', (p) => {
+    invalidIgnoredPage = p;
+    renderInvalidIgnored();
     scrollListIntoView(container);
   });
 }
 
-/* 从隔离区移除单个 ID */
-async function deleteQuarantineItem(musicId) {
+/* ③ 已下架：来自 /api/quarantine/list，单行「🔓 恢复上架」 */
+function renderInvalidRemoved() {
+  const container = document.getElementById('invalidRemovedList');
+  const pager = document.getElementById('invalidRemovedPager');
+  if (!container) return;
+
+  const total = invalidRemovedCache.length;
+  invalidRemovedPage = clampPage(invalidRemovedPage, total);
+
+  if (total === 0) {
+    container.innerHTML = invalidRemovedError
+      ? '<div class="empty-state">' + escapeHtml(invalidRemovedError) + '</div>'
+      : '<div class="empty-state">还没有已下架的 ID。</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (invalidRemovedPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = invalidRemovedCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span class="type-tag green">✅ 已下架</span>
+      </div>
+      <div class="meta">
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
+        ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
+        ${item.at ? ' · 🕒 ' + escapeHtml(item.at) : ''}
+      </div>
+      <div class="actions">
+        <button class="btn-invalid-restore" data-id="${escapeHtml(item.id)}">🔓 恢复上架</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-invalid-restore').forEach(btn => {
+    btn.addEventListener('click', () => handleInvalidAction([btn.dataset.id], 'restore'));
+  });
+
+  renderAdminPager(pager, total, invalidRemovedPage, '个 ID', (p) => {
+    invalidRemovedPage = p;
+    renderInvalidRemoved();
+    scrollListIntoView(container);
+  });
+}
+
+/* 当前页勾了哪些 ID（批量操作只看这一页 —— 翻页会重画，勾选不跨页保留） */
+function pickedInvalidIds() {
+  const box = document.getElementById('invalidPendingList');
+  if (!box) return [];
+  return Array.from(box.querySelectorAll('.invalid-pick-cb:checked'))
+    .map(cb => cb.dataset.id)
+    .filter(Boolean);
+}
+
+/* 工具条左边那句「已选 N 条」 */
+function updateInvalidPickInfo() {
+  const el = document.getElementById('invalidPendingInfo');
+  if (!el) return;
+  el.innerHTML = '已选 <strong>' + pickedInvalidIds().length + '</strong> 条';
+}
+
+/* 下架（单个 / 批量）：下架 = 全站隐藏，先问一句 */
+async function confirmInvalidRemove(ids) {
+  const list = (ids || []).filter(Boolean);
+  if (list.length === 0) { showToast('请先勾选要下架的 ID'); return; }
+
+  const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   const confirmed = await showConfirm(
-    '移除隔离',
-    `确定将 ID ${musicId} 从开发者隔离区移除吗？\n\n移除后宝库页会重新显示该 ID。`
+    '确认无效并下架',
+    '确定把这 ' + list.length + ' 个 ID 从全站下架吗？\n\n' +
+    preview + '\n\n' +
+    '下架后宝库页不再显示它们；想反悔可以在「✅ 已下架」那一栏点「🔓 恢复上架」。'
+  );
+  if (!confirmed) return;
+  handleInvalidAction(list, 'remove');
+}
+
+/* 批量忽略：忽略只是「这条上报不算」，记录留着，能恢复 */
+async function confirmInvalidIgnore(ids) {
+  const list = (ids || []).filter(Boolean);
+  if (list.length === 0) { showToast('请先勾选要忽略的上报'); return; }
+
+  const confirmed = await showConfirm(
+    '批量忽略上报',
+    '确定忽略这 ' + list.length + ' 个上报吗？\n\n' +
+    '忽略后它们不再算「待处理」，记录还留着，之后可以在「🙈 已忽略」里点「♻️ 恢复为待处理」。'
+  );
+  if (!confirmed) return;
+  handleInvalidAction(list, 'ignore');
+}
+
+/* 清空已忽略：连记录一起删（契约里明确要二次确认） */
+async function clearIgnoredInvalid() {
+  const n = invalidIgnoredCache.length;
+  if (n === 0) { showToast('已经没有已忽略的记录了'); return; }
+
+  const confirmed = await showConfirm(
+    '清空已忽略',
+    '确定清空全部已忽略的记录吗？（当前列表里 ' + n + ' 个 ID）\n\n' +
+    '清空后这些上报连记录一起删掉，不能再恢复为待处理；待处理和已下架的都不受影响。'
+  );
+  if (!confirmed) return;
+  handleInvalidAction([], 'clear-ignored');
+}
+
+/* ============================================================
+   ➕ 手动下架 ID（2026-10-05 补回「站主自己下架」的能力）
+   ------------------------------------------------------------
+   为什么要有这条：旧的「⛔ 开发者隔离区」删掉之后，站主自己发现某个 ID 不能用
+   （但没有任何访客上报）就没了下架入口 —— 这条把它补回来。
+   走 POST /api/quarantine/import（source 写「手动下架」）：只写「已下架」名单，
+   不进 invalid_reports，所以「待处理上报 / 累计上报」的数字不受影响。
+   解析刻意写得很笨：只认 ID + 可选歌名，不碰 admin.html 那套智能分类。
+   ============================================================ */
+
+/* 一行 → { id, name }。认三种写法：
+     ① 整行就是一个 ID：1876950732
+     ② 「ID 空格 歌名」或「歌名 空格 ID」：挑第一个「带数字的 ID 片段」
+     ③ 粘在一起的：123456789《晴天》—— 抠出第一段 6 位以上的连续数字当 ID
+   认不出 ID 就返回 { id:'', name:'' }，由调用方报「第 N 行没认出」。 */
+function parseManualRemoveLine(line) {
+  const raw = String(line == null ? '' : line).trim();
+  if (!raw) return { id: '', name: '' };
+
+  const isIdToken = (t) => /^[A-Za-z0-9_-]{1,30}$/.test(t) && /\d/.test(t);
+
+  if (isIdToken(raw)) return { id: raw, name: '' };
+
+  const tokens = raw.split(/\s+/);
+  for (let i = 0; i < tokens.length; i++) {
+    if (!isIdToken(tokens[i])) continue;
+    const rest = tokens.filter((_, k) => k !== i).join(' ');
+    return { id: tokens[i], name: cleanManualName(rest) };
+  }
+
+  const hit = raw.match(/\d{6,}/);
+  if (hit) return { id: hit[0].slice(0, 30), name: cleanManualName(raw.replace(hit[0], ' ')) };
+
+  return { id: '', name: '' };
+}
+
+/* 歌名只削掉两头的括号 / 引号 / 标点、收一收空格；绝不判断分类（那是宝库页 / 添加歌曲那边的事） */
+function cleanManualName(s) {
+  return String(s == null ? '' : s)
+    .replace(/[《》〈〉「」『』【】\[\]{}（）()"“”'‘’]/g, ' ')
+    .replace(/^[\p{P}\p{S}\s]+/u, '')
+    .replace(/[\p{P}\p{S}\s]+$/u, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, 100);
+}
+
+/* 打开弹窗：每次清空，别把上次贴的内容留着误提交 */
+function openManualRemoveModal() {
+  const ta = document.getElementById('manualRemoveText');
+  const status = document.getElementById('manualRemoveStatus');
+  if (ta) ta.value = '';
+  if (status) { status.textContent = ''; status.className = 'import-status'; }
+  const okBtn = document.getElementById('confirmManualRemove');
+  if (okBtn) { okBtn.disabled = false; okBtn.textContent = '✅ 确认下架'; }
+  openModal('manualRemoveModal');
+  if (ta) setTimeout(() => ta.focus(), 80);
+}
+
+function setManualRemoveStatus(text, type) {
+  const el = document.getElementById('manualRemoveStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'import-status' + (type ? ' ' + type : '');
+}
+
+/* 提交：解析 → 二次确认 → POST /api/quarantine/import → 刷新「已下架」段和统计卡 */
+async function handleManualRemove() {
+  const ta = document.getElementById('manualRemoveText');
+  if (!ta) return;
+
+  const items = [];
+  const seen = new Set();
+  const badLines = [];
+
+  ta.value.split(/\r?\n/).forEach((line, idx) => {
+    if (!line.trim()) return;
+    const parsed = parseManualRemoveLine(line);
+    if (!parsed.id) { badLines.push(idx + 1); return; }
+    if (seen.has(parsed.id)) return;   /* 同一个 ID 贴两遍只算一次 */
+    seen.add(parsed.id);
+    items.push({ id: parsed.id, name: parsed.name, category: '' });
+  });
+
+  if (items.length === 0) {
+    setManualRemoveStatus('⚠️ 没认出任何 ID：每行写一个音乐 ID（也可以「ID 空格 歌名」）', 'err');
+    return;
+  }
+  /* 服务端单次上限 500（functions/api/quarantine/import.js），先在前面拦住 */
+  if (items.length > 500) {
+    setManualRemoveStatus('⚠️ 一次最多 500 个 ID，当前 ' + items.length + ' 个，请分批下架', 'err');
+    return;
+  }
+
+  const badTip = badLines.length
+    ? '\n\n（第 ' + badLines.slice(0, 10).join('、') + (badLines.length > 10 ? ' …' : '') + ' 行没认出 ID，会被跳过）'
+    : '';
+
+  const confirmed = await showConfirm(
+    '手动下架',
+    '确定把这 ' + items.length + ' 个 ID 从全站下架吗？\n\n' +
+    '下架后宝库页不再显示；想反悔可以在「✅ 已下架」里点「🔓 恢复上架」。' + badTip
   );
   if (!confirmed) return;
 
-  try {
-    const res = await fetch('/api/quarantine/delete', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: musicId })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast('✅ 已移除');
-      loadRobloxStats();
-    } else {
-      showToast('移除失败');
-    }
-  } catch (err) {
-    showToast('网络异常');
-  }
-}
-
-/* 添加隔离歌曲：JSON 数组，或「歌名 + ID」多行文本
-   （2026-10-01 用户要求加的后一种：跟「➕ 添加歌曲」共用同一套智能解析） */
-async function handleImportQuarantine() {
-  const text = document.getElementById('importQuarantineText').value.trim();
-  const status = document.getElementById('importQuarantineStatus');
-  status.className = 'import-status';
-  status.textContent = '';
-
-  if (!text) {
-    status.classList.add('err');
-    status.textContent = '⚠️ 请粘贴内容（JSON 数组，或者「歌名 + ID」的多行文本）';
-    return;
-  }
-
-  let items;
-  if (text.charAt(0) === '[' || text.charAt(0) === '{') {
-    try {
-      items = JSON.parse(text);
-    } catch (e) {
-      status.classList.add('err');
-      status.textContent = '⚠️ JSON 格式错误：' + e.message;
-      return;
-    }
-  } else if (typeof window.zmParseSongText === 'function') {
-    /* 不是 JSON：当成「歌名 + ID」的多行文本，
-       用 admin.html 里那套智能解析（自己认 ID、清杂物、判分类） */
-    items = window.zmParseSongText(text);
-    if (!items.length) {
-      status.classList.add('err');
-      status.textContent = '⚠️ 没认出任何 ID（ID 要 9 位及以上的纯数字）；要贴 JSON 的话请以 [ 开头';
-      return;
-    }
-  } else {
-    status.classList.add('err');
-    status.textContent = '⚠️ 这里要贴 JSON 数组，或者「歌名 + ID」的多行文本';
-    return;
-  }
-
-  if (!Array.isArray(items) || items.length === 0) {
-    status.classList.add('err');
-    status.textContent = '⚠️ 请提供一个非空数组';
-    return;
-  }
-
-  const valid = [];
-  let dropped = 0;
-  for (const it of items) {
-    if (!it || !it.id) { dropped++; continue; }
-    valid.push({
-      id: String(it.id).trim(),
-      name: String(it.name || '').trim().slice(0, 100),
-      category: String(it.category || '').trim().slice(0, 30)
-    });
-  }
-
-  if (valid.length === 0) {
-    status.classList.add('err');
-    status.textContent = '⚠️ 没有有效的记录（每条必须包含 id）'
-      + (dropped > 0 ? `，已跳过 ${dropped} 条缺少 id 的记录` : '');
-    return;
-  }
-
-  /* 服务端单次上限 500 条，先在前端拦下，避免只看到原始报错 */
-  if (valid.length > 500) {
-    status.classList.add('err');
-    status.textContent = `⚠️ 一次最多 500 条，请分批导入（当前 ${valid.length} 条）`;
-    return;
-  }
-
-  status.textContent = `正在导入 ${valid.length} 条...`
-    + (dropped > 0 ? `（已跳过 ${dropped} 条缺少 id 的记录）` : '');
+  const okBtn = document.getElementById('confirmManualRemove');
+  if (okBtn) { okBtn.disabled = true; okBtn.textContent = '下架中...'; }
 
   try {
     const res = await fetch('/api/quarantine/import', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: valid, source: '手动导入' })
+      body: JSON.stringify({ items: items, source: '手动下架' })
     });
-    const data = await res.json();
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
 
-    if (data.ok) {
-      status.classList.add('ok');
-      status.textContent = `✅ 导入完成：新增 ${data.added} 条，跳过 ${data.skipped} 条（已存在）`
-        + (dropped > 0 ? `，另有 ${dropped} 条缺少 id 未导入` : '');
-      loadRobloxStats();
-      setTimeout(() => closeModal('importQuarantineModal'), 2000);
-    } else {
-      status.classList.add('err');
-      status.textContent = '❌ 导入失败：' + (data.error || '未知错误');
+    if (!data || data.ok !== true) {
+      setManualRemoveStatus('❌ 下架失败：' + ((data && data.error) || ('HTTP ' + res.status)), 'err');
+      return;
     }
+
+    const added = Number(data.added) || 0;
+    const skipped = Number(data.skipped) || 0;
+    const extra = [];
+    if (skipped > 0) extra.push('跳过 ' + skipped + ' 个（已经在已下架名单里）');
+    if (badLines.length > 0) extra.push('另有 ' + badLines.length + ' 行没认出 ID');
+    showToast('✅ 已手动下架 ' + added + ' 个 ID' + (extra.length ? '，' + extra.join('，') : ''));
+
+    closeModal('manualRemoveModal');
+    /* 下架名单变了 → 重拉一次，列表和「已下架」统计卡一起对上；
+       顺带把段切到「已下架」，保证刚加进去的 ID 立刻看得见。
+       （待处理 / 累计上报 不受影响：这条路径根本不写 invalid_reports） */
+    invalidSeg = 'removed';
+    await loadInvalid();
   } catch (err) {
-    status.classList.add('err');
-    status.textContent = '❌ 网络异常';
+    setManualRemoveStatus('❌ 网络异常，下架没生效', 'err');
+  } finally {
+    if (okBtn) { okBtn.disabled = false; okBtn.textContent = '✅ 确认下架'; }
   }
 }
 
+/* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID（clear-ignored 不用传）。
+   成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。 */
+async function handleInvalidAction(ids, action) {
+  const body = { action: action };
+  if (action !== 'clear-ignored') body.ids = (ids || []).filter(Boolean);
+
+  try {
+    const res = await fetch('/api/invalid/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+
+    if (!data || data.ok !== true) {
+      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+      return false;
+    }
+
+    let tip;
+    if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
+    else if (action === 'ignore') tip = '🙈 已忽略 ' + body.ids.length + ' 个上报';
+    else if (action === 'restore') tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
+    else tip = '🧹 已清空全部已忽略';
+    showToast(tip);
+
+    /* 下架会顺手删掉 D1 里同 ID 的歌（契约 3.4 第 2 步），所以歌曲列表和统计跟着刷新；
+       其余动作只影响本面板，重拉一次把统计卡和列表对上就行 */
+    if (action === 'remove') {
+      loadSongs();
+      loadRobloxStats();
+    }
+    await loadInvalid();
+    return true;
+  } catch (err) {
+    showToast('网络异常，操作没生效');
+    return false;
+  }
+}
+
+/* 导出「已下架」列表：格式跟 data/admin_quarantine.json 完全一致（[{id, name, category}]），
+   拿到直接覆盖那个文件即可。D1 里还多存了 source / quarantinedAt，
+   但静态快照那份文件没有这两个字段，所以导出时按静态文件的格式来。 */
+async function handleExportRemoved() {
+  let list = invalidRemovedCache;
+
+  try {
+    const res = await fetch('/api/quarantine/list?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json();
+    if (data && data.ok !== false && Array.isArray(data.data)) {
+      list = data.data;
+    } else if (!list.length) {
+      showToast('导出失败：已下架列表拿不到');
+      return;
+    }
+  } catch (err) {
+    /* 拉不到就用手上这份缓存（列表正在显示的那份），别让站主白点一下 */
+    if (!list.length) { showToast('网络异常，导出失败'); return; }
+  }
+
+  const out = list.map(it => ({
+    id: it.id,
+    name: (it && it.name) || '未知歌名',
+    category: (it && it.category) || '未分类'
+  })).filter(it => it.id);
+
+  if (!out.length) { showToast('已下架列表是空的，没什么可导出的'); return; }
+  downloadJson('admin_quarantine-' + exportStamp() + '.json', out);
+  showToast('📤 已导出 ' + out.length + ' 条已下架记录（格式同 data/admin_quarantine.json）');
+}
+
+/* 面板上的按钮 / 三段切换一次性挂好（初始化时调一次） */
+function bindInvalidPanel() {
+  const segTabs = document.getElementById('invalidSegTabs');
+  if (!segTabs) return;   /* 面板不在页面上就什么都不绑 */
+
+  /* 三段切换：显隐交给 admin.html 里那套通用的 data-subpanel 逻辑，
+     这里只记下「现在在哪一段」，再把这一段重画一遍（数据早在缓存里了） */
+  segTabs.querySelectorAll(':scope > .subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      invalidSeg = btn.dataset.seg || 'pending';
+      renderInvalidSegment();
+    });
+  });
+
+  const pickAll = document.getElementById('invalidPickAll');
+  if (pickAll) pickAll.onclick = () => {
+    const box = document.getElementById('invalidPendingList');
+    if (box) box.querySelectorAll('.invalid-pick-cb').forEach(cb => { cb.checked = true; });
+    updateInvalidPickInfo();
+  };
+
+  const pickNone = document.getElementById('invalidPickNone');
+  if (pickNone) pickNone.onclick = () => {
+    const box = document.getElementById('invalidPendingList');
+    if (box) box.querySelectorAll('.invalid-pick-cb').forEach(cb => { cb.checked = false; });
+    updateInvalidPickInfo();
+  };
+
+  const batchRemove = document.getElementById('invalidBatchRemove');
+  if (batchRemove) batchRemove.onclick = () => confirmInvalidRemove(pickedInvalidIds());
+
+  const batchIgnore = document.getElementById('invalidBatchIgnore');
+  if (batchIgnore) batchIgnore.onclick = () => confirmInvalidIgnore(pickedInvalidIds());
+
+  const clearBtn = document.getElementById('clearIgnoredBtn');
+  if (clearBtn) clearBtn.onclick = clearIgnoredInvalid;
+
+  /* ➕ 手动下架 ID（2026-10-05）：已下架段那颗按钮 + 极简弹窗 */
+  const manualBtn = document.getElementById('manualRemoveBtn');
+  if (manualBtn) manualBtn.onclick = openManualRemoveModal;
+  const cancelManual = document.getElementById('cancelManualRemove');
+  if (cancelManual) cancelManual.onclick = () => closeModal('manualRemoveModal');
+  const confirmManual = document.getElementById('confirmManualRemove');
+  if (confirmManual) confirmManual.onclick = handleManualRemove;
+
+  const refreshBtn = document.getElementById('refreshInvalidBtn');
+  if (refreshBtn) refreshBtn.onclick = async () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = '⏳ 刷新中...';
+    await loadInvalid();
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = '🔄 刷新';
+    showToast('✅ 已刷新');
+  };
+
+  const exportBtn = document.getElementById('exportInvalidBtn');
+  if (exportBtn) exportBtn.onclick = handleExportRemoved;
+}
 /* ============================================================
    歌曲管理（D1）
    ------------------------------------------------------------
@@ -1351,32 +1460,9 @@ async function handleExportSponsors() {
   }
 }
 
-/* 开发者隔离区：导出成 data/admin_quarantine.json 的格式 [{id, name, category}]。
-   D1 里还多存了 source / quarantinedAt，但静态快照那份文件没有这两个字段，
-   所以导出时按静态文件的格式来 —— 拿到就能直接覆盖 data/admin_quarantine.json。 */
-async function handleExportQuarantine() {
-  try {
-    const res = await fetch('/api/quarantine/list?t=' + Date.now(), { credentials: 'include' });
-    const data = await res.json();
-    if (!data || data.ok === false || !Array.isArray(data.data)) {
-      showToast('导出失败：隔离区列表拿不到');
-      return;
-    }
-    const list = data.data.map((it) => ({
-      id: it.id,
-      name: it.name || '未知歌名',
-      category: it.category || '未分类'
-    }));
-    if (!list.length) { showToast('隔离区是空的，没什么可导出的'); return; }
-    downloadJson(`admin_quarantine-${exportStamp()}.json`, list);
-    showToast(`📤 已导出 ${list.length} 条隔离记录（格式同 data/admin_quarantine.json）`);
-  } catch (err) {
-    showToast('网络异常，导出失败');
-  }
-}
-
 /* 2026-09-29：上面三个导出对应的按钮由文件开头的绑定区统一挂钩；
-   后端 /api/songs/export 一直是好的，之前只是按钮被拿掉过。 */
+   后端 /api/songs/export 一直是好的，之前只是按钮被拿掉过（现在是四颗：歌曲 / 鸣谢 /
+   赞助者 / 已下架。「已下架」那颗归「🚫 无效音乐ID管理」，见上面 handleExportRemoved）。 */
 
 /* ============================================================
    ❤️ 鸣谢名单（后台「🎮 Roblox ID 宝库」子面板；赞助者见下面单独一节）
@@ -1592,6 +1678,14 @@ function startEditThanks(entry) {
   document.getElementById('addThanksPlatform').value = person.platform || '';
   document.getElementById('addThanksMessage').value = person.message || '';
 
+  /* 2026-10-05：编辑时「网站创新家」照样把「描述由我手写」勾上
+     （编辑本来就不会代写，勾上只是让站主一眼看清这一类是手写栏） */
+  const manualBox = document.getElementById('addThanksManualNote');
+  if (manualBox) {
+    manualBox.checked = category === MANUAL_NOTE_CATEGORY;
+    manualNoteAuto = false;
+  }
+
   const titleEl = document.querySelector('#addThanksModal h2');
   if (titleEl) titleEl.textContent = '✏️ 编辑鸣谢';
   const okBtn = document.getElementById('confirmAddThanks');
@@ -1625,6 +1719,10 @@ function resetThanksForm() {
     customInput.hidden = true;
     customInput.value = '';
   }
+  /* 「✍️ 描述由我手写」也回到未勾选（下一次选到网站创新家会自动再勾上） */
+  const manualBox = document.getElementById('addThanksManualNote');
+  if (manualBox) manualBox.checked = false;
+  manualNoteAuto = false;
   const titleEl = document.querySelector('#addThanksModal h2');
   if (titleEl) titleEl.textContent = '➕ 添加鸣谢';
   const okBtn = document.getElementById('confirmAddThanks');
@@ -1638,7 +1736,14 @@ async function handleAddThanks() {
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
   const messageEl = document.getElementById('addThanksMessage');
-  let message = messageEl.value.trim();
+
+  /* 2026-10-05：勾了「✍️ 描述由我手写」（或类别就是网站创新家）时，
+     站主写的东西原样送走 —— 不 trim 内容本身、更不代写；
+     只有「整框都是空白」才当成没写（免得往鸣谢页塞一行空白）。 */
+  const manualNote = isManualThanksNote();
+  let message = manualNote
+    ? (messageEl.value.trim() ? messageEl.value : '')
+    : messageEl.value.trim();
 
   if (!category) {
     showToast('请选择类别（选「✏️ 自定义类别…」的话要把名字填上）');
@@ -1651,16 +1756,21 @@ async function handleAddThanks() {
   }
   if (category.length > 30) { showToast('类别最多 30 个字'); return; }
   if (!name) { showToast('请填写名字'); return; }
+  /* 描述上限跟服务端 functions/api/thanks.js 对齐（200 字） */
+  if (message.length > 200) { showToast('描述最多 200 个字'); return; }
 
   const editingId = editingThanksId;
 
   /* 描述留空 → 自己写一句（2026-09-29 用户要求；填进去再发，返回列表就能看到）。
-     编辑时留空就留空，那是管理员自己的选择。 */
+     编辑时留空就留空，那是管理员自己的选择；
+     手写模式（含网站创新家）一个字都不代写 —— 这是 2026-10-05 站主的硬要求。 */
   let autoWrote = false;
-  if (!message && !editingId) {
+  if (!message && !editingId && !manualNote) {
     message = buildSmartThanksNote(category, name, platform);
-    messageEl.value = message;
-    autoWrote = true;
+    if (message) {
+      messageEl.value = message;
+      autoWrote = true;
+    }
   }
 
   try {

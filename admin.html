@@ -95,8 +95,8 @@
          补一个 auto 左边距，让按钮照样靠右，跟别的面板排在同一列上 */
       margin-left: auto;
     }
-    /* 每个面板标题下面那行灰色说明文字：四个面板统一走这个类，
-       保证「歌曲管理 / 开发者隔离区 / 鸣谢名单」的说明格式一模一样。
+    /* 每个面板标题下面那行灰色说明文字：几个面板统一走这个类，
+       保证「歌曲管理 / 无效音乐ID管理 / 鸣谢名单」的说明格式一模一样。
        （选择器不加 .panel-card 前缀 —— 添加弹窗里的说明文字也用这个类） */
     .panel-desc {
       color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;
@@ -158,92 +158,82 @@
     .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-2px); }
     .list-item .actions button:active { transform: scale(0.92); }
 
-    /* ---------- 反馈处理结果 ---------- */
+    /* ---------- 上报状态标签（2026-10-05：这套原来叫「反馈处理结果」，
+         反馈面板整块下线后留给「🚫 无效音乐ID管理」用 —— 红=上报次数、绿=已下架） ---------- */
     .list-item .type-tag.green { background: var(--success-strong); color: #fff; }
     .list-item .type-tag.red { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-accept { background: var(--success-strong); color: #fff; }
-    .list-item .actions .btn-accept:hover:not([disabled]) { background: #35604f; transform: translateY(-2px); }
-    .list-item .actions .btn-reject { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-reject:hover:not([disabled]) { background: #a93226; transform: translateY(-2px); }
-    .list-item .actions .btn-reset {
-      background: var(--bg-soft); color: var(--text-light); border: 1px solid var(--border);
-    }
-    .list-item .actions .btn-reset:hover:not([disabled]) { background: var(--bg-tint); color: var(--primary); }
     .list-item .actions button[disabled] { opacity: 0.38; cursor: not-allowed; transform: none; }
 
-    /* 给访客的一句话说明（会显示在他的回执弹窗里） */
-    .list-item .fb-decide { margin-bottom: 10px; }
-    .list-item .fb-reply {
-      width: 100%; padding: 9px 15px; font-size: 0.85rem; font-family: var(--font);
-      border: 1px solid var(--border); border-radius: var(--radius-pill);
-      background: var(--bg); color: var(--text); outline: none;
-      transition: border-color var(--dur) var(--ease-soft);
-    }
-    .list-item .fb-reply:focus { border-color: var(--primary); }
-
-    .fb-quarantine {
-      display: none; margin-top: 12px; padding: 12px 14px;
-      background: var(--bg-card); border: 1px solid var(--border);
+    /* ========== 🚫 无效音乐ID管理（2026-10-05 新增） ==========
+       替代原来的「⛔ 开发者隔离区」：待处理上报 / 已忽略 / 已下架 三段。
+       统计卡沿用 .stat-card、分页沿用 .pager，这里只写这套面板自己的东西。 */
+    .invalid-bar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 12px; margin-bottom: 12px;
+      background: var(--bg-soft); border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      animation: fadeInUp 0.3s var(--ease-soft) both;
     }
-    .fb-quarantine.show { display: block; }
-    .fb-quarantine .q-head {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 10px; flex-wrap: wrap; margin-bottom: 10px;
-      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    /* 左边那句「已选 N 条」占满剩余宽度，把操作按钮推到右边 */
+    .invalid-bar .invalid-bar-info {
+      font-size: 0.82rem; color: var(--text-light); margin-right: auto;
     }
-    .fb-quarantine .q-head .q-info { font-size: 0.85rem; color: var(--text-light); }
-    .fb-quarantine .q-head .q-info strong { color: var(--primary); font-weight: 700; }
-    .fb-quarantine .q-head .q-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .fb-quarantine .q-head .q-actions button {
-      padding: 5px 12px; font-size: 0.78rem; border: none;
+    .invalid-bar .invalid-bar-info strong { color: var(--primary); font-weight: 700; }
+    .invalid-bar button {
+      padding: 6px 14px; font-size: 0.82rem; border: none;
       border-radius: var(--radius-pill); cursor: pointer; font-weight: 600;
+      font-family: var(--font);
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .fb-quarantine .q-head .q-actions .btn-sel-all { background: var(--primary-light); color: #fff; }
-    .fb-quarantine .q-head .q-actions .btn-sel-all:hover { background: var(--primary); }
-    .fb-quarantine .q-head .q-actions .btn-sel-none { background: var(--border); color: var(--text); }
-    .fb-quarantine .q-head .q-actions .btn-sel-none:hover { background: #e6c9cf; }
-    .fb-quarantine .q-head .q-actions .btn-import-sel { background: var(--success-strong); color: #fff; }
-    .fb-quarantine .q-head .q-actions .btn-import-sel:hover {
-      background: var(--success-dark); transform: translateY(-1px);
-    }
-    .fb-quarantine .q-list { max-height: 320px; overflow-y: auto; padding-right: 4px; }
+    .invalid-bar button:active { transform: scale(0.94); }
+    .invalid-bar .btn-pick-all { background: var(--primary-light); color: #fff; }
+    .invalid-bar .btn-pick-all:hover { background: var(--primary); }
+    .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
+    .invalid-bar .btn-pick-none:hover { background: #e6c9cf; }
+    .invalid-bar .btn-batch-remove { background: var(--danger); color: #fff; }
+    .invalid-bar .btn-batch-remove:hover { background: #a93226; }
+    .invalid-bar .btn-batch-ignore { background: var(--gold); color: #fff; }
+    .invalid-bar .btn-batch-ignore:hover { background: #b8894f; }
+    .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
+    .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
+    /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
+    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
+    .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
 
-    .fb-q-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 10px; border-radius: 8px;
-      transition: background 0.2s var(--ease-soft);
-      font-size: 0.88rem; cursor: pointer;
-    }
-    .fb-q-item:hover { background: rgba(220, 107, 130, 0.05); }
-    .fb-q-item input[type="checkbox"] {
+    /* 待处理行的勾选框（观感跟原来那枚圆形勾选框一致，反馈面板下线后搬过来） */
+    .invalid-pick { display: inline-flex; align-items: center; flex-shrink: 0; cursor: pointer; }
+    .invalid-pick input[type="checkbox"] {
       width: 20px; height: 20px; appearance: none; -webkit-appearance: none;
-      border: 2px solid var(--primary-light); border-radius: 50%;
-      background: var(--bg-card); cursor: pointer; flex-shrink: 0; position: relative;
+      border: 2px solid var(--primary-light); border-radius: 50%; margin: 0;
+      background: var(--bg-card); cursor: pointer; position: relative;
       transition: all 0.25s var(--ease-bounce);
     }
-    .fb-q-item input[type="checkbox"]:hover {
+    .invalid-pick input[type="checkbox"]:hover {
       transform: scale(1.1); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
     }
-    .fb-q-item input[type="checkbox"]:checked {
+    .invalid-pick input[type="checkbox"]:checked {
       background: var(--primary); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
     }
-    .fb-q-item input[type="checkbox"]:checked::after {
+    .invalid-pick input[type="checkbox"]:checked::after {
       content: ''; position: absolute; left: 50%; top: 50%;
       width: 5px; height: 10px; border-right: 2px solid #fff;
       border-bottom: 2px solid #fff;
       transform: translate(-50%, -60%) rotate(45deg);
     }
-    .fb-q-item .q-name { font-weight: 600; color: var(--text); flex: 1 1 auto; min-width: 100px; word-break: break-word; }
-    .fb-q-item .q-id { font-family: monospace; color: var(--primary-dark); font-size: 0.82rem; flex-shrink: 0; }
-    .fb-q-item .q-cat {
-      font-size: 0.72rem; background: var(--bg-tint); color: var(--primary-ink);
-      padding: 2px 10px; border-radius: 20px; font-weight: 600; flex-shrink: 0;
+    /* 行里的 ID 用等宽字体，一行行比对时不容易看串 */
+    .invalid-id { font-family: 'Courier New', monospace; color: var(--primary-dark); }
+    /* 待处理行左上角那一组：勾选框 + 歌名。包成一块，免得 .row1 的 space-between
+       把歌名甩到行的正中间去（跟右边的分类 / 上报次数标签离得老远） */
+    .invalid-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .list-item .actions .btn-invalid-remove { background: var(--danger); color: #fff; }
+    .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-ignore {
+      background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
+    .list-item .actions .btn-invalid-ignore:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: #fff; }
+    .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-2px); }
 
     .stat-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
@@ -383,25 +373,32 @@
       color: var(--text-muted); margin-top: 6px; font-size: 0.88rem;
     }
 
-    #importQuarantineModal .modal-content { max-width: 680px; }
-    #importQuarantineModal textarea {
-      width: 100%; min-height: 260px; padding: 14px 18px;
+    /* 2026-10-05：「➕ 添加隔离歌曲」弹窗整块删掉（那套手动添加已并入
+       「🚫 无效音乐ID管理」，下架入口统一走「✅ 确认无效并下架」），
+       所以这里原来那套「添加隔离歌曲」弹窗的样式一并删除。 */
+
+    /* ➕ 手动下架 ID 的极简弹窗（2026-10-05 站主需求：自己发现无效、但没人上报时用）：
+       只有一个「每行一个 ID」的输入框 + 一行状态，够用就行，不做老那套大弹窗。 */
+    #manualRemoveModal .modal-content { max-width: 560px; }
+    #manualRemoveModal .panel-desc { margin-bottom: 10px; }
+    #manualRemoveModal textarea {
+      width: 100%; min-height: 180px; padding: 12px 16px; margin-bottom: 10px;
       border: 2px solid var(--border); border-radius: var(--radius-sm);
-      font-size: 0.85rem; font-family: 'Courier New', monospace;
+      font-size: 0.9rem; font-family: 'Courier New', monospace;
       background: var(--bg-soft); color: var(--text); outline: none;
-      margin-bottom: 12px; resize: vertical; line-height: 1.6;
-      transition: border-color 0.25s var(--ease-soft);
+      resize: vertical; line-height: 1.7;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
     }
-    #importQuarantineModal textarea:focus {
+    #manualRemoveModal textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
     }
-    #importQuarantineModal .import-status {
-      font-size: 0.85rem; margin-bottom: 10px;
-      min-height: 20px; color: var(--text-light);
+    #manualRemoveModal .import-status {
+      font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
+      color: var(--text-light); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
     }
-    #importQuarantineModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
-    #importQuarantineModal .import-status.err { color: var(--danger); font-weight: 600; }
+    #manualRemoveModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
+    #manualRemoveModal .import-status.err { color: var(--danger); font-weight: 600; }
 
     /* 两个「单个录入」弹窗（鸣谢 / 赞助者）保持同一个宽度
        （原来还有第三个「添加歌曲」弹窗，2026-09-29 用户要求去掉那个按钮，弹窗一并删除） */
@@ -468,18 +465,27 @@
     #addThanksCustomCat { margin-top: 10px; }
     #addThanksCustomCat[hidden] { display: none; }
 
-    .fb-quarantine .q-list::-webkit-scrollbar { width: 6px; }
-    .fb-quarantine .q-list::-webkit-scrollbar-track { background: transparent; }
-    .fb-quarantine .q-list::-webkit-scrollbar-thumb {
-      background: rgba(220, 107, 130, 0.25); border-radius: 10px;
+    /* 「✍️ 描述由我手写（不自动代写）」勾选框（2026-10-05 新增）：
+       「网站创新家」那一栏的描述由站主手写，勾上之后自动代写一个字都不许碰 */
+    .manual-note-line {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      font-size: 0.88rem; color: var(--text-light); font-weight: 600;
+      padding: 10px 14px; border: 1px dashed var(--border);
+      border-radius: var(--radius-sm); background: var(--bg-soft);
+      transition: border-color 0.25s var(--ease-soft);
     }
-    .fb-quarantine .q-list {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
+    .manual-note-line:hover { border-color: var(--primary-light); }
+    .manual-note-line input[type="checkbox"] {
+      width: 18px; height: 18px; margin: 0; flex-shrink: 0;
+      accent-color: var(--primary); cursor: pointer;
+    }
+    .manual-note-hint {
+      font-size: 0.78rem; color: var(--text-muted);
+      margin: 6px 0 0 2px; line-height: 1.6;
     }
 
     /* ========== 分页（跟宝库页那套一模一样，100 组/页） ==========
-       2026-10-01 站主要求：歌曲管理 / 开发者隔离区 / 鸣谢名单那两栏都按
+       2026-10-01 站主要求：歌曲管理 / 无效音乐ID管理 / 鸣谢名单那两栏都按
        「100 组/页」来。样式直接从 roblox_music.html 抄过来，两边长得一致：
        40px 圆角按钮、当前页高亮、窄屏自动收起「首页/末页」。 */
     .pager {
@@ -528,24 +534,24 @@
       .panel-card { padding: 18px; }
       .panel-card h2 { font-size: 1.05rem; }
       .list-item { padding: 14px; }
-      .fb-q-item { flex-wrap: wrap; gap: 6px; }
+      /* 2026-10-05：无效音乐ID管理在窄屏上让「已选 N 条」独占一行，
+         按钮再往下排，不然一排挤成两行看着乱 */
+      .invalid-bar .invalid-bar-info { flex: 1 0 100%; margin-right: 0; }
+      .invalid-bar .btn-clear-ignored { margin-left: 0; }
 
       /* 后台弹窗的手机适配（2026-10-01 晚补的：站主问「做了适配吗」）——
          说明文字收紧、输入框矮一点、识别预览按屏幕高度算、按钮撑满更好点 */
-      #batchImportModal .modal-content,
-      #importQuarantineModal .modal-content { padding: 18px 16px; }
+      #batchImportModal .modal-content { padding: 18px 16px; }
       #batchImportModal .import-hint { font-size: 0.78rem; line-height: 1.6; padding: 8px 10px; }
       #batchImportModal .import-hint code { font-size: 0.76rem; }
-      #batchImportModal textarea,
-      #importQuarantineModal textarea { min-height: 150px; padding: 12px 14px; }
+      #batchImportModal textarea { min-height: 150px; padding: 12px 14px; }
       #batchImportModal .import-preview { font-size: 0.9rem; max-height: 40vh; padding: 10px 12px; }
-      #importQuarantineModal .panel-desc { font-size: 0.8rem; margin-bottom: 10px; }
       #batchImportModal .modal-actions,
-      #importQuarantineModal .modal-actions,
+      #manualRemoveModal .modal-actions,
       #addThanksModal .modal-actions,
       #addSponsorModal .modal-actions { flex-direction: column; gap: 8px; }
       #batchImportModal .modal-actions button,
-      #importQuarantineModal .modal-actions button,
+      #manualRemoveModal .modal-actions button,
       #addThanksModal .modal-actions button,
       #addSponsorModal .modal-actions button { width: 100%; }
     }
@@ -560,7 +566,7 @@
 </head>
 <body>
 
-  <!-- 2026-09-26：这里原来有一条站点导航栏（🏠 首页 / 💬 反馈）。
+  <!-- 2026-09-26：这里原来有一条站点导航栏。
        后台自己就有「⚙️ 后台管理」标题栏（含「返回主页」「退出登录」），
        用户要求把这条导航栏删掉，已移除。 -->
 
@@ -577,30 +583,17 @@
     </div>
 
     <div class="tabs" id="mainTabs">
-      <button class="tab active" data-panel="panel-feedback">💬 反馈管理</button>
+      <!-- 2026-10-05 站主要求：「💬 反馈管理」整块下线（反馈页、接口、后台面板一起删），
+           这里不再有那颗标签；「🎮 卡片管理」顶上来当默认面板。 -->
+      <button class="tab active" data-panel="panel-cards">🎮 卡片管理</button>
       <!-- 2026-09-29 用户要求：去掉「📝 更新管理」（原来是个 iframe 工具页）。
            公告改成仓库里的静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
-      <button class="tab" data-panel="panel-cards">🎮 卡片管理</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📈 数据统计</button>
     </div>
 
-    <!-- 反馈管理 -->
-    <div class="panel active" id="panel-feedback">
-      <div class="panel-card">
-        <h2>
-          所有反馈
-          <!-- 2026-10-01 用户要求：标题后面那个灰色数字（截图里圈出来的「0」）删掉，
-               连同 js/admin.js 里写它的那几行一起清掉。 -->
-        </h2>
-        <div id="feedbackList">
-          <div class="loading">加载中...</div>
-        </div>
-      </div>
-    </div>
-
     <!-- 卡片管理 -->
-    <div class="panel" id="panel-cards">
+    <div class="panel active" id="panel-cards">
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 Roblox ID 宝库</button>
@@ -610,7 +603,9 @@
       <div class="subpanel active" id="card1-panel">
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
           <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
-          <button class="subtab" data-subpanel="card1-quarantine">⛔ 开发者隔离区</button>
+          <!-- 2026-10-05 站主要求：原来的「⛔ 开发者隔离区」并入「🚫 无效音乐ID管理」，
+               子面板名 / id 一起改（旧名字整个作废，代码和样式里都不再出现）。 -->
+          <button class="subtab" data-subpanel="card1-invalid">🚫 无效音乐ID管理</button>
         </div>
 
         <div class="subpanel active" id="card1-songs">
@@ -626,7 +621,8 @@
                 <div class="label">歌曲组数</div>
               </div>
               <!-- 2026-10-01 用户要求：这里补一张「D1 歌曲数量」（D1 里真正存了多少条）；
-                   原来那张「开发者隔离区」搬到开发者隔离区自己的面板去了。 -->
+                   原来那张「开发者隔离区」搬到隔离区自己的面板去了。
+                   2026-10-05：隔离区那块已改成「🚫 无效音乐ID管理」，统计卡换成四张新的。 -->
               <div class="stat-card">
                 <div class="num" id="statD1Songs">-</div>
                 <div class="label">D1 歌曲数量</div>
@@ -640,9 +636,11 @@
               <span class="head-actions">
                 <!-- 2026-10-01 用户要求：这两颗按钮的叫法跟「❤️ 鸣谢名单」里的
                      「➕ 添加鸣谢」对齐 ——「📥 导入」改成「➕ 添加歌曲」，
-                     开发者隔离区那颗同理改成「➕ 添加隔离歌曲」。
+                     隔离区那颗同理改成「➕ 添加隔离歌曲」。
                      按钮背后的弹窗和接口都没变（还是贴一段文字批量加，比一条条填快）；
-                     标题后面那个灰色数字也按用户要求删掉了，数字在下面的统计卡里。 -->
+                     标题后面那个灰色数字也按用户要求删掉了，数字在下面的统计卡里。
+                     2026-10-05：下面那颗「➕ 添加隔离歌曲」随旧隔离区面板一起删了，
+                     现在下架统一走「🚫 无效音乐ID管理 → ✅ 确认无效并下架」。 -->
                 <button class="btn btn-gold" id="openBatchImportBtn">➕ 添加歌曲</button>
                 <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
@@ -659,38 +657,96 @@
           </div>
         </div>
 
-        <div class="subpanel" id="card1-quarantine">
+        <div class="subpanel" id="card1-invalid">
           <div class="panel-card">
             <h2>📈 数据统计</h2>
-            <!-- 2026-10-01 用户要求：隔离区也该有自己的统计（原来只有歌曲管理有），
-                 而且「开发者隔离区」那张卡本来就该在这儿、不在歌曲管理那栏。 -->
+            <!-- 2026-10-05 站主要求：原来「开发者隔离区」那两张卡（隔离区 ID 数 / 涉及分类）
+                 换成「无效音乐ID管理」的四张 —— 待处理 ID / 累计上报 / 已忽略 / 已下架。
+                 数字全部来自 /api/invalid/list 的 summary（已下架 = quarantine_admin 的条数）。 -->
             <div class="stat-grid">
               <div class="stat-card">
-                <div class="num" id="statQuarantine">-</div>
-                <div class="label">隔离区 ID 数</div>
+                <div class="num" id="statInvalidPending">-</div>
+                <div class="label">待处理 ID</div>
               </div>
               <div class="stat-card">
-                <div class="num" id="statQuarantineCats">-</div>
-                <div class="label">涉及分类</div>
+                <div class="num" id="statInvalidReports">-</div>
+                <div class="label">累计上报</div>
+              </div>
+              <div class="stat-card">
+                <div class="num" id="statInvalidIgnored">-</div>
+                <div class="label">已忽略</div>
+              </div>
+              <div class="stat-card">
+                <div class="num" id="statInvalidRemoved">-</div>
+                <div class="label">已下架</div>
               </div>
             </div>
           </div>
 
           <div class="panel-card">
             <h2>
-              ⛔ 开发者隔离区
+              🚫 无效音乐ID管理
               <span class="head-actions">
-                <button class="btn btn-gold" id="openImportQuarantineBtn">➕ 添加隔离歌曲</button>
-                <button class="btn btn-secondary" id="exportQuarantineBtn">📤 导出</button>
+                <button class="btn btn-secondary" id="refreshInvalidBtn">🔄 刷新</button>
+                <button class="btn btn-secondary" id="exportInvalidBtn">📤 导出</button>
               </span>
             </h2>
             <p class="panel-desc">
-              这里添加的 ID 不会出现在宝库页（相当于先下架、留着复核），移除后马上恢复显示；攒够之后用桌面上的合并工具整理进 data/admin_quarantine.json。
+              宝库页访客点「🚫 无效处理」就会报到这儿：先落在「🚫 待处理上报」，你确认无效就下架（全站不再显示），
+              觉得不算就忽略。「✅ 已下架」那一栏读的是管理员下架表；「📤 导出」导出的是这一栏，
+              形式是 [{id, name, category}] 数组 —— 跟 data/admin_quarantine.json 一模一样，拿到直接覆盖那个文件就行。<br>
+              自己发现某个 ID 不能用、但没人上报时，用「✅ 已下架」那一栏的「➕ 手动下架 ID」直接下架；
+              手动下架的 ID <strong>不会出现在「🚫 待处理上报」里</strong>，也不占「累计上报」的数字。
             </p>
-            <div id="quarantineList">
-              <div class="loading">加载中...</div>
+
+            <!-- 三段切换（2026-10-05 新增）：data-subpanel 交给 admin.html 里那套通用切换逻辑，
+                 这里再用 data-seg 记一下「当前是哪一段」，渲染时按它取对应的缓存。 -->
+            <div class="subtabs subtabs-lv3" data-tabs-group="invalid" id="invalidSegTabs">
+              <button class="subtab active" data-subpanel="invalid-pending" data-seg="pending">🚫 待处理上报</button>
+              <button class="subtab" data-subpanel="invalid-ignored" data-seg="ignored">🙈 已忽略</button>
+              <button class="subtab" data-subpanel="invalid-removed" data-seg="removed">✅ 已下架</button>
             </div>
-            <nav class="pager" id="quarantinePager" aria-label="隔离区分页" hidden></nav>
+
+            <!-- ① 待处理上报：勾选若干条 → 批量下架 / 批量忽略 -->
+            <div class="subpanel active" id="invalid-pending">
+              <div class="invalid-bar">
+                <span class="invalid-bar-info" id="invalidPendingInfo">已选 <strong>0</strong> 条</span>
+                <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
+                <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
+                <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
+                <button class="btn-batch-ignore" id="invalidBatchIgnore">🙈 批量忽略</button>
+              </div>
+              <div id="invalidPendingList">
+                <div class="loading">加载中...</div>
+              </div>
+              <nav class="pager" id="invalidPendingPager" aria-label="待处理上报分页" hidden></nav>
+            </div>
+
+            <!-- ② 已忽略：单行 ♻️ 恢复为待处理；整段可以清空 -->
+            <div class="subpanel" id="invalid-ignored">
+              <div class="invalid-bar">
+                <span class="invalid-bar-info">这些上报被判定为「不算」，记录留着；点「♻️ 恢复为待处理」随时能反悔。</span>
+                <button class="btn-clear-ignored" id="clearIgnoredBtn">🧹 清空已忽略</button>
+              </div>
+              <div id="invalidIgnoredList">
+                <div class="loading">加载中...</div>
+              </div>
+              <nav class="pager" id="invalidIgnoredPager" aria-label="已忽略分页" hidden></nav>
+            </div>
+
+            <!-- ③ 已下架：来自 /api/quarantine/list（旧表沿用不改名，界面文案统一叫「已下架」） -->
+            <div class="subpanel" id="invalid-removed">
+              <div class="invalid-bar">
+                <span class="invalid-bar-info">这些 ID 已确认无效、从全站隐藏；点「🔓 恢复上架」就重新显示。</span>
+                <!-- 2026-10-05 站主要求补回「站主自己下架」的能力：没人上报、但你知道这 ID 不能用时，
+                     走这颗「手动下架」（直接写已下架名单，不进「待处理上报」）。 -->
+                <button class="btn-manual-remove" id="manualRemoveBtn">➕ 手动下架 ID</button>
+              </div>
+              <div id="invalidRemovedList">
+                <div class="loading">加载中...</div>
+              </div>
+              <nav class="pager" id="invalidRemovedPager" aria-label="已下架分页" hidden></nav>
+            </div>
           </div>
         </div>
       </div>
@@ -875,32 +931,25 @@
     </div>
   </div>
 
-  <!-- 添加隔离歌曲弹窗（按钮 2026-09-29 由「导入隔离区」改成「📥 导入」，
-       2026-10-01 又按用户要求改成「➕ 添加隔离歌曲」。
-       2026-10-01 起这里两种贴法都收：JSON 数组，或者「歌名 + ID」的多行文本
-       —— 后者跟「➕ 添加歌曲」共用同一套智能解析，省得还要手写 JSON） -->
-  <div class="modal" id="importQuarantineModal">
+  <!-- ➕ 手动下架 ID 弹窗（2026-10-05 站主需求：自己发现某个 ID 不能用、但没人上报时，
+       在这里直接下架。极简：一个「每行一个 ID」的输入框 + 确认按钮；
+       提交走 /api/quarantine/import，source 写「手动下架」——
+       只进已下架名单，不进 invalid_reports，所以「待处理上报 / 累计上报」不受影响。 -->
+  <div class="modal" id="manualRemoveModal">
     <div class="modal-content">
-      <h2>➕ 添加隔离歌曲</h2>
+      <h2>➕ 手动下架 ID</h2>
       <p class="panel-desc">
-        两种贴法都行：<br>
-        · JSON 数组：<code>[{"id":"xxx","name":"歌名","category":"分类"}]</code><br>
-        · 或者直接贴「歌名 + ID」的多行文本（跟「➕ 添加歌曲」一样自己认 ID、自己判断分类）
+        每行写一个音乐 ID；也认「ID 空格 歌名」这种写法（歌名选填，拆不出来就留空）。
+        一次最多 500 个。下架后宝库页不再显示，可在「✅ 已下架」里点「🔓 恢复上架」反悔。
       </p>
-      <textarea id="importQuarantineText" placeholder='两种都行，例如：
-1) JSON：
-[
-  {"id": "123456789", "name": "歌名", "category": "中文流行"}
-]
-
-2) 或者直接贴：
-歌名 123456789
-《另一首歌》123456788
-分类：搞笑音效 第三首 123456787'></textarea>
-      <div class="import-status" id="importQuarantineStatus"></div>
+      <textarea id="manualRemoveText" placeholder="每行一个，例如：
+1876950732
+1876950732 晴天
+稻香 1441450732"></textarea>
+      <div class="import-status" id="manualRemoveStatus"></div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelImportQuarantine">取消</button>
-        <button class="btn btn-gold" id="confirmImportQuarantine">✅ 确认添加</button>
+        <button class="btn btn-secondary" id="cancelManualRemove">取消</button>
+        <button class="btn btn-danger" id="confirmManualRemove">✅ 确认下架</button>
       </div>
     </div>
   </div>
@@ -917,6 +966,10 @@
             <span class="arrow">▾</span>
           </button>
           <div class="select-dropdown" id="addThanksSelectDropdown">
+            <!-- 2026-10-05 站主要求：新增固定类别「网站创新家」，放在最前面（显眼位置）。
+                 这一类的描述由站主手写，界面上会默认勾上「✍️ 描述由我手写」，
+                 js/admin.js 也写死了「这一类绝不自动代写」。 -->
+            <div class="select-option" data-value="网站创新家">网站创新家</div>
             <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
             <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>
@@ -941,6 +994,18 @@
       <div class="form-group">
         <label for="addThanksMessage">描述（选填）</label>
         <textarea id="addThanksMessage" placeholder="例如：反馈了歌曲缺失问题" maxlength="200" style="min-height:80px;"></textarea>
+      </div>
+      <!-- 2026-10-05 站主要求：新增「✍️ 描述由我手写（不自动代写）」。
+           勾上之后 js/admin.js 一个字都不代写，描述框里写什么就原样存什么；
+           类别选「网站创新家」时会自动勾上（那一栏是站主自己写的）。 -->
+      <div class="form-group">
+        <label class="manual-note-line" for="addThanksManualNote">
+          <input type="checkbox" id="addThanksManualNote">
+          <span>✍️ 描述由我手写（不自动代写）</span>
+        </label>
+        <p class="manual-note-hint">
+          不勾的话，描述留空会按类别自动代写一句；勾上就完全按你写的存（一个字都不加工）。
+        </p>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelAddThanks">取消</button>
@@ -974,6 +1039,7 @@
   </div>
 
   <script src="js/common.js"></script>
+  <script src="js/turnstile.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/admin.js"></script>
 
@@ -1730,8 +1796,9 @@
       previewTimer = setTimeout(renderPreview, 250);
     });
 
-    /* 2026-10-01：把解析器和分类器挂到 window 上，
-       「➕ 添加隔离歌曲」那边（js/admin.js）也复用同一套智能解析。 */
+    /* 2026-10-01：把解析器和分类器挂到 window 上（原来「➕ 添加隔离歌曲」也复用
+       同一套智能解析；2026-10-05 那个弹窗删了，这两个入口留着不碍事 ——
+       以后有别的批量录入直接拿去用，比复制一份规则稳）。 */
     window.zmParseSongText = parseRawText;
     window.zmGuessCategory = guessCategory;
 
