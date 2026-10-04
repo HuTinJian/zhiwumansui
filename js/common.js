@@ -201,51 +201,51 @@ function shareTextWithLink() {
 }
 
 function buildShareModal() {
-  let modal = document.getElementById('shareModal');
+  let modal = document.getElementById('inviteModal');
   if (modal) return modal;
 
   modal = document.createElement('div');
-  modal.id = 'shareModal';
+  modal.id = 'inviteModal';
   modal.className = 'modal';
   modal.setAttribute('role', 'dialog');
   modal.setAttribute('aria-modal', 'true');
-  modal.setAttribute('aria-labelledby', 'shareModalTitle');
+  modal.setAttribute('aria-labelledby', 'inviteTitle');
   modal.innerHTML = `
-    <div class="modal-content share-modal-content">
-      <h2 id="shareModalTitle">🔗 把织雾满穗分享出去</h2>
-      <p class="share-lead">这个小站是业余时间一个人做的。如果它帮到过你，把它发给一个可能用得上的人，就是最好的支持 ❤️</p>
-      <div class="share-field-label" id="shareTextLabel">分享文案（复制后粘到 QQ / 微信 / 抖音 / B 站都行）</div>
-      <textarea class="share-text" id="shareText" rows="4" readonly aria-labelledby="shareTextLabel"></textarea>
-      <div class="share-actions">
-        <button type="button" class="btn btn-primary" id="shareCopyAll">📋 复制文案 + 链接</button>
-        <button type="button" class="btn btn-secondary" id="shareCopyText">📄 只复制文案</button>
-        <button type="button" class="btn btn-secondary" id="shareCopyLink">🔗 只复制链接</button>
-        <button type="button" class="btn btn-secondary" id="shareNative" hidden>📤 系统分享</button>
+    <div class="modal-content zb-invite-modal">
+      <h2 id="inviteTitle">🔗 把织雾满穗分享出去</h2>
+      <p class="zb-invite-lead">这个小站是业余时间一个人做的。如果它帮到过你，把它发给一个可能用得上的人，就是最好的支持 ❤️</p>
+      <div class="zb-invite-label" id="inviteTextLabel">分享文案（复制后粘到 QQ / 微信 / 抖音 / B 站都行）</div>
+      <textarea class="zb-invite-text" id="inviteText" rows="4" readonly aria-labelledby="inviteTextLabel"></textarea>
+      <div class="zb-invite-actions">
+        <button type="button" class="btn btn-primary" id="inviteCopyAll">📋 复制文案 + 链接</button>
+        <button type="button" class="btn btn-secondary" id="inviteCopyText">📄 只复制文案</button>
+        <button type="button" class="btn btn-secondary" id="inviteCopyLink">🔗 只复制链接</button>
+        <button type="button" class="btn btn-secondary" id="inviteNative" hidden>📤 系统分享</button>
       </div>
-      <p class="share-tips">💡 只想要一段话就点「📄 只复制文案」；想带上网址就点「📋 复制文案 + 链接」；
+      <p class="zb-invite-tips">💡 只想要一段话就点「📄 只复制文案」；想带上网址就点「📋 复制文案 + 链接」；
         手机上点「📤 系统分享」可以直接发给微信 / QQ 好友。</p>
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="shareClose">关闭</button>
+        <button type="button" class="btn btn-secondary" id="inviteClose">关闭</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 
-  const textEl = document.getElementById('shareText');
+  const textEl = document.getElementById('inviteText');
   textEl.value = shareTextWithLink();
 
-  const nativeBtn = document.getElementById('shareNative');
+  const nativeBtn = document.getElementById('inviteNative');
   if (nativeBtn && navigator.share) nativeBtn.hidden = false;
 
-  document.getElementById('shareCopyAll').addEventListener('click', async () => {
+  document.getElementById('inviteCopyAll').addEventListener('click', async () => {
     const ok = await copyText(textEl.value);
     showToast(ok ? '📋 已复制「文案 + 链接」，粘贴到群里就能分享' : '复制失败，请手动选中上面的文字复制');
   });
-  document.getElementById('shareCopyText').addEventListener('click', async () => {
+  document.getElementById('inviteCopyText').addEventListener('click', async () => {
     const ok = await copyText(SHARE_TEXT);
     showToast(ok ? '📄 已复制文案（不含链接）' : '复制失败，请手动选中上面的文字复制');
   });
-  document.getElementById('shareCopyLink').addEventListener('click', async () => {
+  document.getElementById('inviteCopyLink').addEventListener('click', async () => {
     const ok = await copyText(SHARE_SITE);
     showToast(ok ? '🔗 链接已复制' : '复制失败，请手动复制上面的文字');
   });
@@ -256,19 +256,22 @@ function buildShareModal() {
       } catch (e) { /* 用户点了取消，不用提示 */ }
     });
   }
-  document.getElementById('shareClose').addEventListener('click', () => closeModal('shareModal'));
+  document.getElementById('inviteClose').addEventListener('click', () => closeModal('inviteModal'));
 
   return modal;
 }
 
 function openShareModal() {
   buildShareModal();
-  openModal('shareModal');
+  openModal('inviteModal');
 }
 
 function initShareTriggers() {
   document.addEventListener('click', e => {
-    const trigger = e.target.closest && e.target.closest('[data-share]');
+    /* 新写法是 [data-invite]；[data-share] 留着兼容可能还缓存在访客浏览器里的旧页面。
+       （改名的原因见 css/style.css 里 .zb-invite 那段注释：电脑上的广告拦截插件
+        会按 class / 属性里有没有 share 来隐藏元素。） */
+    const trigger = e.target.closest && e.target.closest('[data-invite], [data-share]');
     if (!trigger) return;
     e.preventDefault();
     openShareModal();

@@ -568,12 +568,14 @@
       </p><div class="hero-actions">
         <a class="btn btn-primary" href="#explore">🚀 开始逛逛</a>
         <!-- 2026-10-04 站主要求：hero 里的「💬 提个意见」按钮删掉了
-             （反馈入口还有两个：顶部导航栏的「💬 反馈」和页脚的「意见反馈」）。
-             分享按钮同期改成专用的 .btn-share（暖金色，见 css/style.css）：
+             （反馈入口还有顶部导航栏的「💬 反馈」）。
+             分享按钮用专用的 .zb-invite（暖金色，见 css/style.css）：
              颜色贴合站点的粉+金主题，也比主按钮柔和一些、不抢「开始逛逛」的焦点。
-             弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供，
-             凡是带 data-share 的元素都能唤起来。 -->
-        <button type="button" class="btn btn-share" data-share>🔗 分享本站</button>
+             ⚠ 类名/属性刻意不叫 share —— 电脑上的广告拦截插件常按「class 里有没有 share」
+                隐藏元素，站主反馈过「手机端有、电脑端没有」；现在改成 zb-invite / data-invite，
+                JS 仍然兼容老的 [data-share]。
+             弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供。 -->
+        <button type="button" class="btn zb-invite" data-invite>🔗 分享本站</button>
       </div>
 
       <!-- 赞赏码小条：位置就是这里（「开始逛逛」那排按钮下面）。
@@ -731,7 +733,7 @@
   <footer class="footer">
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <div class="footer-links">
-      <button type="button" class="share-link" data-share>🔗 分享本站</button>
+      <button type="button" class="zb-invite-link" data-invite>🔗 分享本站</button>
     </div>
   </footer>
 

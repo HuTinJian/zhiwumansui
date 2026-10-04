@@ -397,8 +397,8 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`💬 反馈贡献者`）；`data/thanks.json` 是同结构的**本地档案**（存档、对账用，**页面不读它**）；后台那栏能直接改 / 删（存 D1） |
 | **👑 赞助者里的人和金额** | 后台 →「❤️ 鸣谢名单」→「👑 赞助者」（存 D1）+ 底档 `data/sponsors.json` | 页面上两处合并显示、**同名的以后台那条为准**；类别固定 `'👑 赞助者'`（**这个字符串是数据口径，别改**），**金额写在 `platform` 字段**（例 `¥10`）、感谢语写在 `message`。后台那栏每条都能「✏️ 编辑 / 🗑️ 删除」，**删除就是真删**；底档文件里那几位不受后台管，要改要删让 AI 改文件后推送。**首页那块「收到赞助」也是按同一份数据现算的**（见上面那行） |
 | **首页最上面那条滚动公告** | `index.html`（位置 + 文案）+ `js/common.js`（弹窗本体 `showSiteNotice`） | 2026-10-04 起它就在**导航栏正下方**，是一条通栏走马灯：轨道里放两份一模一样的文案，CSS 动画左移 50% 做无缝循环（悬停暂停）。改文案要**两份一起改**（第二份带 `aria-hidden="true"`），否则接缝会露馅 |
-| **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-share` 属性的元素，点一下就会弹出分享弹窗。**入口现在有三处**：首页 hero 的「🔗 分享本站」（`.btn-share`），以及 **index / feedback / thanks 三个页面页脚里的「🔗 分享本站」**（`.footer .footer-links .share-link`，金色文字按钮）。**⚠️ `roblox_music.html`（宝库页）刻意没有分享入口** —— 站主 2026-10-04 明确「只删除分享……我只让你删除 Roblox ID 宝库的」，工具栏那组和页脚那个都撤掉了，别再往那一页加。弹窗里四个按钮：**复制文案 + 链接 / 只复制文案 / 只复制链接 / 系统分享**（手机原生菜单，浏览器支持时才显示）；推荐文案是 `SHARE_TEXT`（纯文案），带链接那份由 `shareTextWithLink()` 拼（文案换行 + `分享给你看看 → 网址`），站点地址写在 `SHARE_SITE`。想加入口就在任意页面加 `data-share` 属性即可，不用写 JS |
-| **分享按钮的颜色** | `css/style.css` 的 `.btn-share` / `.footer .footer-links .share-link` | 2026-10-04 站主要求「贴主题 + 护眼」，所以走站点本来就有的**金色系**（和首页滚动公告、赞赏码块同一套变量）：浅色模式淡金底 `#fbf3e8` + 深金棕字 `#8a5a1c`（对比度 ≈5.4:1），深色模式暖褐底 `#2a2229` + 浅金字 `#eec48d`（≈9.5:1）。现在用它的地方：首页 hero 那颗分享按钮（`.btn-share`）+ 三个页脚的分享入口（同色系文字样式）。它刻意比主按钮 `.btn-primary` 弱一档，不跟「🚀 开始逛逛」抢焦点；换色只改这一处，三页入口会一起变 |
+| **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-invite` 属性的元素，点一下就会弹出分享弹窗。**入口现在有三处**：首页 hero 的「🔗 分享本站」（`.zb-invite`），以及 **index / feedback / thanks 三个页面页脚里的「🔗 分享本站」**（`.footer .footer-links .zb-invite-link`，金色文字按钮）。**⚠️ `roblox_music.html`（宝库页）刻意没有分享入口** —— 站主 2026-10-04 明确「只删除分享……我只让你删除 Roblox ID 宝库的」，工具栏那组和页脚那个都撤掉了，别再往那一页加。弹窗里四个按钮：**复制文案 + 链接 / 只复制文案 / 只复制链接 / 系统分享**（手机原生菜单，浏览器支持时才显示）；推荐文案是 `SHARE_TEXT`（纯文案），带链接那份由 `shareTextWithLink()` 拼（文案换行 + `分享给你看看 → 网址`），站点地址写在 `SHARE_SITE`。想加入口就在任意页面加 `data-invite` 属性即可，不用写 JS |
+| **分享按钮的颜色** | `css/style.css` 的 `.zb-invite` / `.footer .footer-links .zb-invite-link` | 2026-10-04 站主要求「贴主题 + 护眼」，所以走站点本来就有的**金色系**（和首页滚动公告、赞赏码块同一套变量）：浅色模式淡金底 `#fbf3e8` + 深金棕字 `#8a5a1c`（对比度 ≈5.4:1），深色模式暖褐底 `#2a2229` + 浅金字 `#eec48d`（≈9.5:1）。现在用它的地方：首页 hero 那颗分享按钮（`.zb-invite`）+ 三个页脚的分享入口（同色系文字样式）。它刻意比主按钮 `.btn-primary` 弱一档，不跟「🚀 开始逛逛」抢焦点；换色只改这一处，三页入口会一起变 |
 | **反馈表单哪些必须填** | `feedback.html` + `functions/api/feedback.js` | **2026-10-04 起：称呼和描述默认都是选填**，什么都不写也能提交；**只有类型选「卡片1 · Roblox ID 宝库」时称呼必填**（描述仍然可以不写）。前端标记 `.field-flag`、后端那道校验（`type === '卡片1' && !name` → 400）**两边都要改**，别只改一边 |
 | **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→「➕ 添加鸣谢」 | 2026-10-04 起类别可以**自定义**：下拉最后一项「✏️ 自定义类别…」会露出输入框，自己起名字（≤30 字）。D1 里已经存在的类别（含自建的）会自动补进下拉，下次直接选。底档 / 后台存进 D1 的字符串就是类别名，`thanks.html` 按它分块显示 |
 | **宝库页隔离区的反馈入口** | `roblox_music.html`（`#quarantineFeedbackBtn`）+ `feedback.html` 的深链 | 「⛔ 我的隔离区」弹窗里那颗「💬 去反馈」跳到 `feedback.html?type=card1&upload=1`：反馈页会自动选中「Roblox ID 宝库」，并且本地隔离区非空时顺手钩上「上传隔离区 ID」 |
@@ -831,13 +831,13 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 3. 花费数字 **`¥141.51` → `¥151.36` →（当晚又核一次）`¥153.54`**
    （`js/common.js` 的 `SITE_COST.amount` + `index.html` 的兜底 + `checkedAt` 改成 `2026-10-04`）。
 4. **分享本站**：`js/common.js` 里新增 `buildShareModal()` / `openShareModal()` /
-   `initShareTriggers()`（事件委托 `[data-share]`），样式在 `css/style.css` 的
+   `initShareTriggers()`（事件委托 `[data-invite]`），样式在 `css/style.css` 的
    「分享本站弹窗」段。零依赖、不联网：复制走 `copyText()`，手机上还能调 `navigator.share`。
    弹窗里四个按钮：**复制文案 + 链接 / 只复制文案 / 只复制链接 / 系统分享**——
    「只复制文案」是当晚按用户要求补的，复制的是 `SHARE_TEXT`（纯推荐语、不带网址）。
    **同一晚站主又提了几条**：① 「分享入口只有主页有」→ 于是 `index / feedback / thanks /
-   roblox_music` 的**页脚都加了「🔗 分享本站」**（`.footer .share-link`）；
-   ② 分享按钮颜色要「贴主题 + 护眼」→ 新加 `.btn-share`（暖金：浅色淡金底 + 深金棕字
+   roblox_music` 的**页脚都加了「🔗 分享本站」**（`.footer .zb-invite-link`）；
+   ② 分享按钮颜色要「贴主题 + 护眼」→ 新加 `.zb-invite`（暖金：浅色淡金底 + 深金棕字
    ≈5.4:1，深色暖褐底 + 浅金字 ≈9.5:1），首页 hero 那颗换成了它；
    ③ **接着站主又改主意：宝库页不要分享**（「只删除分享，另外 2 个留着」＋
    「我只让你删除 Roblox ID 宝库的」）→ `roblox_music.html` 工具栏第三组「分享」整组删掉、
@@ -848,6 +848,14 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
    三个页脚的导航链接（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢）**全部删掉**，全站页脚统一只剩
    版权行；`roblox_music` 的页脚本就更没有链接，于是四页页脚口径完全一致
    （**分享入口保留** —— 站主明确说过分享按钮不要删；页脚那三个分享入口也因此在）。
+   ⑤ 站主反馈「手机端有分享按钮、**电脑端没有**」，同一份 HTML/CSS/JS 在手机与无头浏览器
+   （1366 / 1920 两种宽度）实测都能看到、也能点开，所以判断是**电脑上的广告拦截插件**
+   把 class 里带 `share` 的元素整块隐藏了（中文拦截列表里这类规则很常见）。
+   于是把分享相关的 **class / id / 属性全部改名为不含 share 的中性名字**：
+   `btn-share → zb-invite`、`share-link → zb-invite-link`、
+   `shareModal → inviteModal`、`shareText/shareCopy*/shareClose → invite*`、
+   `data-share → data-invite`；**JS 仍然兼容老的 `[data-share]`**，老缓存页面照样能点开弹窗。
+   行为、颜色、文案一点没变，只是不再撞拦截规则。
 5. **反馈的称呼 / 描述改成选填**，但**选「Roblox ID 宝库」（卡片1）时称呼必填**：
    `feedback.html`（标记 `.field-flag` + 提交前校验）和 `functions/api/feedback.js`
    （服务端再兜一道）都改了。称呼为空的反馈在后台显示成「（未填称呼）」，

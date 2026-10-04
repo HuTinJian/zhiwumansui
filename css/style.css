@@ -566,6 +566,11 @@ body.modal-open .particles i { animation-play-state: paused; }
 .btn-gold:hover { transform: translateY(-2px); }
 
 /* ---------- 「分享」按钮（2026-10-04 站主要求：颜色贴主题、还得护眼） ----------
+   ⚠ 类名 2026-10-04 晚从 .btn-share 改成 .zb-invite：站主反馈「手机端有、电脑端没有」，
+     最可能是电脑上的广告拦截插件（AdGuard / 360 / QQ 浏览器内置过滤等）
+     把 class 里带 share 的元素整块 display:none 掉了 —— 这类规则在中文拦截列表里很常见。
+     于是分享相关的 class / id 全部换成不含 share 的中性名字（zb-invite*、invite*），
+     行为一点没变，只是不再撞拦截规则。JS 里仍然兼容老的 [data-share] 写法。
    站点主题是「粉 + 金」：主按钮是深粉渐变（.btn-primary），
    而金色这一套已经稳定用在首页那条滚动公告和赞赏码块上
    （--gold-bg / --gold-light / --gold-ink）。分享按钮就走金色这一套 ——
@@ -573,21 +578,21 @@ body.modal-open .particles i { animation-play-state: paused; }
      · 浅色模式：淡金底 #fbf3e8 + 深金棕字 #8a5a1c（对比度 ≈5.2:1，看得清又不晃眼）
      · 深色模式：暖褐底 #2a2229 + 浅金字 #eec48d（同一套变量自动换，没有写死颜色）
    ⚠ 水波纹要单独覆盖：默认那个是白色，压在淡金底上根本看不见。 */
-.btn-share {
+.zb-invite {
   background: var(--gold-bg);
   color: var(--gold-ink);
   border: 2px solid var(--gold-light);
   font-weight: 700;
 }
-.btn-share:hover {
+.zb-invite:hover {
   border-color: var(--gold);
   color: var(--gold-ink);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(212, 160, 106, 0.24);
 }
-.btn-share:active { transform: translateY(0) scale(0.96); }
-.btn-share:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.btn-share .ripple { background: rgba(212, 160, 106, 0.35); }
+.zb-invite:active { transform: translateY(0) scale(0.96); }
+.zb-invite:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.zb-invite .ripple { background: rgba(212, 160, 106, 0.35); }
 
 /* 点击水波纹（由 common.js 注入 span.ripple） */
 .ripple {
@@ -798,9 +803,10 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 页脚里的「🔗 分享本站」（2026-10-04 新增）：
    跟旁边那些链接同一行的排版，但用金色标出来 ——
-   一眼能看出它是「分享」而不是又一个导航链接，颜色和 .btn-share 是同一套。
-   （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。） */
-.footer .footer-links .share-link {
+   一眼能看出它是「分享」而不是又一个导航链接，颜色和 .zb-invite 是同一套。
+   （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。）
+   ⚠ class 名从 .share-link 改成 .zb-invite-link，同 .zb-invite 那段注释的原因。 */
+.footer .footer-links .zb-invite-link {
   background: none;
   border: none;
   padding: 0;
@@ -813,11 +819,11 @@ body.modal-open .particles i { animation-play-state: paused; }
   gap: 4px;
   transition: color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
 }
-.footer .footer-links .share-link:hover {
+.footer .footer-links .zb-invite-link:hover {
   transform: translateY(-1px);
   text-decoration: underline;
 }
-.footer .footer-links .share-link:focus-visible {
+.footer .footer-links .zb-invite-link:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
   border-radius: 4px;
@@ -939,23 +945,25 @@ body.modal-open .particles i { animation-play-state: paused; }
 .theme-toggle:active { transform: scale(0.9); }
 
 /* ---------- 「分享本站」弹窗（2026-10-04 新增） ----------
-   弹窗本体（#shareModal）由 js/common.js 动态拼出来，这里只管长相；
+   弹窗本体（#inviteModal）由 js/common.js 动态拼出来，这里只管长相；
+   ⚠ class 名一律用 zb-invite*（不含 share）—— 原因见上面 .zb-invite 那段注释：
+     电脑上的广告拦截插件常按 class 里有没有 share 来隐藏元素。
    配色全部走主题变量，深色模式自动跟着变。
-   ⚠ 选择器写成 .modal-content .share-xxx：.modal-content p 那条规则更具体，
+   ⚠ 选择器写成 .modal-content .zb-invite-xxx：.modal-content p 那条规则更具体，
      不这么写的话行距、下边距会被它盖掉。 */
-.modal-content.share-modal-content { max-width: 520px; }
-.modal-content .share-lead {
+.modal-content.zb-invite-modal { max-width: 520px; }
+.modal-content .zb-invite-lead {
   margin: 0 0 14px;
   font-size: 0.9rem;
   line-height: 1.75;
 }
-.share-field-label {
+.zb-invite-label {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-muted);
   margin-bottom: 6px;
 }
-.share-text {
+.zb-invite-text {
   width: 100%;
   min-height: 96px;
   padding: 12px 14px;
@@ -969,23 +977,23 @@ body.modal-open .particles i { animation-play-state: paused; }
   resize: vertical;
   word-break: break-all;
 }
-.share-text:focus { outline: 2px solid var(--primary-light); outline-offset: 1px; }
-.share-actions {
+.zb-invite-text:focus { outline: 2px solid var(--primary-light); outline-offset: 1px; }
+.zb-invite-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
 }
-.share-actions .btn { flex: 1 1 auto; }
-.modal-content .share-tips {
+.zb-invite-actions .btn { flex: 1 1 auto; }
+.modal-content .zb-invite-tips {
   margin: 12px 0 0;
   font-size: 0.78rem;
   line-height: 1.6;
   color: var(--text-muted);
 }
-.share-modal-content .modal-actions { margin-top: 16px; }
+.zb-invite-modal .modal-actions { margin-top: 16px; }
 @media (max-width: 480px) {
-  .share-actions .btn { flex: 1 1 100%; }
+  .zb-invite-actions .btn { flex: 1 1 100%; }
 }
 
 /* ---------- 阅读进度条 ----------
