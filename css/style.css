@@ -887,6 +887,56 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .theme-toggle:active { transform: scale(0.9); }
 
+/* ---------- 「分享本站」弹窗（2026-10-04 新增） ----------
+   弹窗本体（#shareModal）由 js/common.js 动态拼出来，这里只管长相；
+   配色全部走主题变量，深色模式自动跟着变。
+   ⚠ 选择器写成 .modal-content .share-xxx：.modal-content p 那条规则更具体，
+     不这么写的话行距、下边距会被它盖掉。 */
+.modal-content.share-modal-content { max-width: 520px; }
+.modal-content .share-lead {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+.share-field-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.share-text {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  resize: vertical;
+  word-break: break-all;
+}
+.share-text:focus { outline: 2px solid var(--primary-light); outline-offset: 1px; }
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.share-actions .btn { flex: 1 1 auto; }
+.modal-content .share-tips {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.share-modal-content .modal-actions { margin-top: 16px; }
+@media (max-width: 480px) {
+  .share-actions .btn { flex: 1 1 100%; }
+}
+
 /* ---------- 阅读进度条 ----------
    用 transform: scaleX 而不是改 width：
    改 width 会触发「重新排版」，而 scaleX 只动图形，交给显卡就行。

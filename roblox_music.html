@@ -74,6 +74,14 @@
     .page-header .stats .fav-stat strong {
       color: var(--gold-ink);
     }
+    /* 深色模式开关的落点（2026-10-04：导航栏取消后，从导航栏搬进页头右上角）。
+       common.js 的 injectThemeToggle 会找 [data-theme-slot] 把开关插进来。 */
+    .header-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
     .page-header .btns {
       display: flex;
       gap: 8px;
@@ -922,6 +930,43 @@
       padding: 8px 18px;
       font-size: 0.85rem;
     }
+    /* 「去反馈」是个 <a>（2026-10-04 新增），跟旁边的按钮对齐同一套尺寸 */
+    .quarantine-footer a {
+      padding: 8px 18px;
+      font-size: 0.85rem;
+    }
+
+    /* ========== 左下角常驻「返回首页」（2026-10-04 新增） ==========
+       导航栏取消之后，这一页唯一的路口就是它：固定在左下角，滚到哪都在。
+       z-index 压在弹窗（999）之下 —— 弹窗打开时它被盖住，不会跑到遮罩上面。 */
+    .back-home-fab {
+      position: fixed;
+      left: max(16px, env(safe-area-inset-left));
+      bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 950;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      color: var(--primary-ink);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+    }
+    .back-home-fab:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-hover);
+    }
+    .back-home-fab:active { transform: translateY(0) scale(0.96); }
+    @media (max-width: 480px) {
+      .back-home-fab { padding: 9px 14px; font-size: 0.82rem; }
+    }
 
     #visitSourceModal .modal-content {
       max-width: 480px;
@@ -1149,18 +1194,14 @@
 
   <a class="skip-link" href="#main">跳到主要内容</a>
 
-  <!-- ==================== 顶部导航栏 ==================== -->
-  <nav class="navbar has-brand" aria-label="站点导航">
-    <a class="nav-brand" href="index.html">
-      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
-      <span class="brand-text">织雾满穗</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="index.html">🏠 首页</a></li>
-      <li><a href="feedback.html">💬 反馈</a></li>
-      <li><a href="thanks.html">❤️ 鸣谢</a></li>
-    </ul>
-  </nav>
+  <!-- ==================== 顶部导航栏（2026-10-04 已按用户要求取消） ====================
+       原来这里是和首页一样的 <nav class="navbar">（首页 / 反馈 / 鸣谢 三个入口）。
+       用户要求：宝库页不要导航栏，只在左下角留一个常驻的「返回首页」——
+         · 左下角那个按钮见页面最下面的 <a class="back-home-fab">；
+         · 页脚里原来那排链接也一并去掉了，只留版权行；
+         · 反馈入口改到「⛔ 我的隔离区」弹窗里（去反馈按钮）；
+         · 深色模式开关本来挂在导航栏里，现在改挂到页头右上角
+           （<span class="header-tools" data-theme-slot>，见下面的 page-header）。 -->
 
   <main class="container" id="main">
     <header class="page-header">
@@ -1175,6 +1216,9 @@
         <!-- 2026-09-26：这里原来有一颗「❤️ 鸣谢名单」按钮（先弹窗、后改成跳 thanks.html）。
              按用户要求删掉了：卡片一（宝库页）不再出现鸣谢入口，
              要去看鸣谢走顶部导航或页脚的「❤️ 鸣谢」。 -->
+        <!-- 2026-10-04：导航栏取消后，深色模式开关改挂到这里（common.js 的
+             injectThemeToggle 会找 [data-theme-slot] 插进去）。 -->
+        <span class="header-tools" data-theme-slot></span>
       </div>
       <div class="btns toolbar">
         <div class="tool-group">
@@ -1190,6 +1234,13 @@
           <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
           <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">📦 批量隔离</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
+        </div>
+        <!-- 2026-10-04 新增：分享入口（导航栏取消后，这一页也需要一个让人把站传出去的地方）。
+             弹窗本体在 js/common.js，凡是带 data-share 的元素都能唤起来。 -->
+        <span class="tool-sep" aria-hidden="true"></span>
+        <div class="tool-group">
+          <span class="tool-label">分享</span>
+          <button class="btn btn-secondary" id="shareSiteBtn" data-share>🔗 分享给朋友</button>
         </div>
       </div>
     </header>
@@ -1227,14 +1278,15 @@
     <nav class="pager pager-bottom" id="pagerBottom" aria-label="分页导航" hidden></nav>
   </main>
 
+  <!-- 页脚：2026-10-04 导航栏取消后，这里原来那排链接（首页 / 反馈 / 鸣谢）
+       按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。 -->
   <footer class="footer">
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
-    <div class="footer-links">
-      <a href="index.html">首页</a>
-      <a href="feedback.html">意见反馈</a>
-      <a href="thanks.html">❤️ 鸣谢</a>
-    </div>
   </footer>
+
+  <!-- 左下角常驻「返回首页」（2026-10-04 用户要求）：
+       导航栏取消之后，这一页唯一的路口就是它。 -->
+  <a class="back-home-fab" href="index.html" aria-label="返回首页">🏠 返回首页</a>
 
   <div class="modal" id="riskModal">
     <div class="modal-content">
@@ -1304,6 +1356,11 @@
       <div id="quarantineList"></div>
       <div class="quarantine-footer">
         <button class="btn btn-success" id="restoreAllQuarantineBtn">🔄 全部恢复</button>
+        <!-- 2026-10-04 新增（用户要求）：隔离区里直接给个反馈入口。
+             带上 ?type=card1&upload=1：反馈页会自动选中「Roblox ID 宝库」，
+             并在你本地隔离区非空时顺手钩上「上传隔离区 ID」。 -->
+        <a class="btn btn-secondary" id="quarantineFeedbackBtn"
+           href="feedback.html?type=card1&amp;upload=1">💬 去反馈</a>
         <button class="btn btn-primary" id="closeQuarantineBtn">关闭</button>
       </div>
     </div>

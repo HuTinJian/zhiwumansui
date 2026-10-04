@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>意见反馈 - 织雾满穗</title>
 
-  <meta name="description" content="向织雾满穗提交意见反馈：报告失效 ID、补充新歌、申请加入鸣谢名单。无需注册，留下称呼即可提交。">
+  <meta name="description" content="向织雾满穗提交意见反馈：报告失效 ID、补充新歌、申请加入鸣谢名单。无需注册，称呼和内容都可以不写（反馈 Roblox ID 宝库 时需要留个称呼）。">
   <meta name="theme-color" content="#fdf2f5">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -72,6 +72,18 @@
     }
 
     .form-group { margin-bottom: 16px; }
+
+    /* 选填 / 必填标记（2026-10-04 用户要求：称呼与描述默认选填，
+       只有「Roblox ID 宝库」那一类反馈的称呼必须写） */
+    .field-flag { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .field-flag.required { color: var(--danger); }
+    .field-hint {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.76rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
 
     /* ========== 自定义下拉（可键盘操作） ========== */
     .select-wrapper {
@@ -446,16 +458,18 @@
             </label>
           </div>
 
-          <!-- 称呼 -->
+          <!-- 称呼（2026-10-04 用户要求：默认可以不写；
+               只有选了「Roblox ID 宝库」那一类时必写，由下面脚本动态改标记与提示） -->
           <div class="form-group">
-            <label for="feedbackName">你的称呼 <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="feedbackName" placeholder="请输入你的名字或昵称" required maxlength="40" autocomplete="nickname">
+            <label for="feedbackName">你的称呼 <span class="field-flag" id="nameFlag">（选填）</span></label>
+            <input type="text" id="feedbackName" placeholder="想留就留，不想留也可以" maxlength="40" autocomplete="nickname">
+            <span class="field-hint" id="nameHint">不写也能提交；只有反馈「Roblox ID 宝库」的问题时需要留个称呼，方便我们回复你。</span>
           </div>
 
-          <!-- 内容 -->
+          <!-- 内容（2026-10-04 用户要求：默认可以不写） -->
           <div class="form-group">
-            <label for="feedbackMessage">反馈内容 <span style="color:var(--danger)">*</span></label>
-            <textarea id="feedbackMessage" placeholder="请详细描述你的建议、问题或想法..." required maxlength="1000"></textarea>
+            <label for="feedbackMessage">反馈内容 <span class="field-flag">（选填）</span></label>
+            <textarea id="feedbackMessage" placeholder="想到了什么就写什么；什么都不写、只想让我们看一眼也可以直接提交..." maxlength="1000"></textarea>
             <span class="char-count" id="charCount">0 / 1000</span>
           </div>
 
@@ -533,9 +547,27 @@
       var extraInfo = $('extraInfo');
       var messageInput = $('feedbackMessage');
       var charCount = $('charCount');
+      var nameInput = $('feedbackName');
+      var nameFlag = $('nameFlag');
+      var nameHint = $('nameHint');
 
       var options = Array.prototype.slice.call(selectDropdown.querySelectorAll('.select-option'));
       var currentType = '';
+
+      /* 称呼的「选填 / 必填」跟着反馈类型走（2026-10-04 用户要求）：
+         只有「卡片1 · Roblox ID 宝库」必须留称呼，其余类型写不写都行。 */
+      function updateNameFlag() {
+        var needName = currentType === '卡片1';
+        if (nameFlag) {
+          nameFlag.textContent = needName ? '（必填）' : '（选填）';
+          nameFlag.classList.toggle('required', needName);
+        }
+        if (nameHint) {
+          nameHint.textContent = needName
+            ? '反馈「Roblox ID 宝库」的问题时需要留个称呼，方便我们回复你。'
+            : '不写也能提交；只有反馈「Roblox ID 宝库」的问题时需要留个称呼，方便我们回复你。';
+        }
+      }
 
       /* ============================================================
          自定义下拉：完整键盘支持 + ARIA 状态
@@ -582,6 +614,9 @@
           wantThanks.checked = false;
           uploadQuarantine.checked = false;
         }
+
+        /* 称呼的选填 / 必填标记跟着类型一起变 */
+        updateNameFlag();
       }
 
       selectTrigger.addEventListener('click', function (e) {
@@ -636,6 +671,32 @@
         e.preventDefault();
         closeDropdown(true);
       });
+
+      /* ============================================================
+         深链：?type=card1&upload=1
+         ------------------------------------------------------------
+         2026-10-04 新增：宝库页「我的隔离区」里那个「去反馈」按钮
+         会带这两个参数跳过来 —— 自动选中「Roblox ID 宝库」，
+         并且本地隔离区里真的有东西时，顺手钩上「上传隔离区 ID」。
+         ============================================================ */
+      (function applyDeepLink() {
+        var params = null;
+        try { params = new URLSearchParams(location.search); } catch (e) { params = null; }
+        if (!params) return;
+
+        var type = String(params.get('type') || '').toLowerCase();
+        if (type === 'card1' || type === '卡片1' || type === 'roblox') {
+          var target = options.filter(function (o) { return o.dataset.value === '卡片1'; })[0];
+          if (target) {
+            chooseOption(target);
+            /* chooseOption 会把焦点送回下拉按钮；页面刚打开时别抢焦点、别把页面滚下去 */
+            if (document.activeElement === selectTrigger) selectTrigger.blur();
+          }
+        }
+        if (params.get('upload') === '1' && currentType === '卡片1' && getGuestQuarantine().length > 0) {
+          uploadQuarantine.checked = true;
+        }
+      })();
 
       /* ============================================================
          字数统计
@@ -717,12 +778,17 @@
         e.preventDefault();
         if (submitting) return;
 
-        var name = $('feedbackName').value.trim();
+        var name = nameInput.value.trim();
         var message = messageInput.value.trim();
 
         if (!currentType) { showToast('请先选择反馈类型'); selectTrigger.focus(); return; }
-        if (!name) { showToast('请填写你的称呼'); $('feedbackName').focus(); return; }
-        if (!message) { showToast('请填写反馈内容'); messageInput.focus(); return; }
+        /* 2026-10-04 用户要求：称呼和描述默认都可以不写；
+           只有反馈「Roblox ID 宝库」（卡片1）时称呼必须写，描述仍然可以不写。 */
+        if (currentType === '卡片1' && !name) {
+          showToast('反馈「Roblox ID 宝库」的问题时，请留一个称呼');
+          nameInput.focus();
+          return;
+        }
 
         var quarantineIds = [];
         var willUpload = currentType === '卡片1' && uploadQuarantine.checked;

@@ -133,27 +133,33 @@
       .hero-ver-badge { margin-left: 7px; padding: 2px 9px; font-size: 0.72rem; }
     }
 
-    /* ========== 📢 公告条（2026-09-27 新增） ==========
-       讲清「宝库歌单来源变更」；点它 = 重新打开那个必读公告弹窗。 */
+    /* ========== 📢 公告条（2026-09-27 新增；2026-10-04 改版） ==========
+       位置：紧跟 <nav> 之后（用户要求「弄到导航栏下面」），不再放在 main 里 ——
+             所以现在是一条通栏，左右不再有 container 的缩进。
+       显示：文字横向循环滚动（走马灯）。轨道里放两份一模一样的文案，
+             动画把轨道左移 50%：滚完一份的瞬间正好接上另一份，看不出接缝。
+       交互：鼠标悬停 / 键盘聚焦时暂停滚动，方便看清；点整条 = 重新打开那个必读公告弹窗。 */
     .site-announce {
       display: flex;
       align-items: center;
       gap: 12px;
       width: 100%;
-      margin: 0 0 26px;
-      padding: 14px 18px;
+      margin: 0;
+      padding: 10px 18px;
       text-align: left;
       font: inherit;
       color: var(--text);
       background: var(--gold-bg);
-      border: 1px solid var(--gold-light);
+      border: none;
+      border-bottom: 1px solid var(--gold-light);
       border-left: 4px solid var(--gold);
-      border-radius: var(--radius-sm);
+      border-radius: 0;
       cursor: pointer;
-      transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+      overflow: hidden;
+      transition: filter var(--dur) var(--ease-soft);
     }
-    .site-announce:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-    .site-announce:active { transform: translateY(0); }
+    .site-announce:hover { filter: brightness(0.985); }
+    .site-announce:active { filter: brightness(0.96); }
     .site-announce-badge {
       flex-shrink: 0;
       font-size: 0.76rem;
@@ -166,11 +172,36 @@
     }
     /* 深色主题下 .site-announce-badge 的白字压在浅金上对比度不够，换深色字 */
     [data-theme="dark"] .site-announce-badge { color: #241c22; }
-    .site-announce-text { flex: 1; font-size: 0.9rem; line-height: 1.6; color: var(--text-light); }
-    .site-announce-more { flex-shrink: 0; font-size: 0.84rem; font-weight: 700; color: var(--primary-ink); }
+    .site-announce-viewport { flex: 1; min-width: 0; overflow: hidden; }
+    .site-announce-track {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      will-change: transform;
+      animation: announceMarquee 30s linear infinite;
+    }
+    /* 两份文案各自带一段右内边距：这样「轨道宽度的一半」正好等于「一份文案 + 那段空白」 */
+    .site-announce-track > span {
+      padding-right: 70px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-light);
+    }
+    .site-announce-more { font-weight: 700; color: var(--primary-ink); }
+    .site-announce:hover .site-announce-track,
+    .site-announce:focus-visible .site-announce-track { animation-play-state: paused; }
+    @keyframes announceMarquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    /* 减少动画：不滚了，只留第一份，多出来的裁掉 */
+    @media (prefers-reduced-motion: reduce) {
+      .site-announce-track { animation: none !important; transform: none !important; }
+      .site-announce-track > span:nth-child(2) { display: none; }
+    }
     @media (max-width: 600px) {
-      .site-announce { flex-wrap: wrap; gap: 8px; }
-      .site-announce-text { flex: 1 1 100%; }
+      .site-announce { padding: 8px 12px; gap: 8px; }
+      .site-announce-track > span { padding-right: 48px; font-size: 0.82rem; }
     }
 
     .hero .subtitle {
@@ -245,8 +276,12 @@
 
     /* 金额那一小块：单独一块，贴在赞赏码右边（用户 2026-09-30 要求），
        和左边那列文案用一条浅色竖虚线隔开。
-       数字 / 日期都由 js/common.js 的 fillSiteCost 启动时回填
-       （占位属性 data-site-cost、data-site-cost-date），HTML 里那份是没脚本时的兜底。 */
+       2026-10-04 用户要求：在这块后面再加一块「收到的赞助」（.hero-sponsor-cost-got），
+       两块并排、同样用虚线隔开。
+       数字 / 日期都由 js/common.js 启动时回填：
+         · 花费   → fillSiteCost()，占位属性 data-site-cost / data-site-cost-date
+         · 赞助   → fillSponsorTotal()，占位属性 data-sponsor-total（按 D1 + 底档现算）
+       HTML 里写的那份只是没脚本时的兜底，改数字时记得一起改。 */
     .hero-sponsor-cost {
       display: flex;
       flex-direction: column;
@@ -265,6 +300,8 @@
       letter-spacing: -0.3px;
     }
     .hero-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
+    /* 「收到赞助」那一块换个颜色：一眼分得清「花出去的」和「收到的」 */
+    .hero-sponsor-cost-got b { color: var(--success); }
 
     /* ========== 区块标题 ========== */
     .section-head {
@@ -481,6 +518,23 @@
     </ul>
   </nav>
 
+  <!-- ==================== 📢 公告条（2026-09-27 新增；2026-10-04 移位改版） ====================
+       说明宝库歌单来源的变更。点它 = 重新打开「必读公告」弹窗
+       （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
+       之所以要单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。
+       ⚠ 位置：2026-10-04 按用户要求从 main 里搬到【导航栏正下方】，
+          并改成横向滚动（走马灯）；外面这份文案写两遍，
+          第二份是滚动用的复制品（aria-hidden，读屏软件不会读两次）。 -->
+  <button type="button" class="site-announce" id="siteAnnounce">
+    <span class="site-announce-badge">📢 公告</span>
+    <span class="site-announce-viewport">
+      <span class="site-announce-track">
+        <span>Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见，可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
+        <span aria-hidden="true">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见，可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
+      </span>
+    </span>
+  </button>
+
   <!-- ==================== 主内容 ==================== -->
   <main class="container" id="main">
 
@@ -497,6 +551,9 @@
       </p><div class="hero-actions">
         <a class="btn btn-primary" href="#explore">🚀 开始逛逛</a>
         <a class="btn btn-secondary" href="feedback.html">💬 提个意见</a>
+        <!-- 2026-10-04 新增：分享入口。弹窗（文案 + 复制 + 系统分享）由 js/common.js
+             的 openShareModal 提供，凡是带 data-share 的元素都能唤起来。 -->
+        <button type="button" class="btn btn-secondary" data-share>🔗 分享本站</button>
       </div>
 
       <!-- 赞赏码小条：位置就是这里（「开始逛逛」那排按钮下面）。
@@ -504,7 +561,10 @@
            金额【单独一小块，放在赞赏码右边】（用户 2026-09-30 要求）：
            数字和核对日期由 js/common.js 的 SITE_COST 回填，占位属性见
            data-site-cost / data-site-cost-date；HTML 里写的那份只是没脚本时的兜底，
-           换数字时记得一起改。 -->
+           换数字时记得一起改。
+           2026-10-04（用户要求）：后面再加一块「收到的赞助」（data-sponsor-total），
+           数字不写死 —— 由 js/common.js 的 fillSponsorTotal() 按
+           D1（/api/thanks 的 👑 赞助者）+ 底档 data/sponsors.json 现算。 -->
       <button type="button" class="hero-sponsor" id="heroSponsor" aria-label="查看赞赏码大图">
         <img class="hero-sponsor-qr" src="images/sponsor-qrcode.png"
              alt="HuTinJian 的赞赏码" width="76" height="76" loading="lazy">
@@ -514,21 +574,19 @@
           <span class="hero-sponsor-h">点我看大图 · 扫一扫就是最大的支持</span>
         </span>
         <span class="hero-sponsor-cost">
-          <b data-site-cost>¥141.51</b>
-          <span class="hero-sponsor-cost-d">截至 <span data-site-cost-date>2026-10-03</span></span>
+          <b data-site-cost>¥151.36</b>
+          <span class="hero-sponsor-cost-d">共花费 · 截至 <span data-site-cost-date>2026-10-04</span></span>
+        </span>
+        <span class="hero-sponsor-cost hero-sponsor-cost-got">
+          <b data-sponsor-total>¥25</b>
+          <span class="hero-sponsor-cost-d">收到赞助</span>
         </span>
       </button>
     </section>
 
-    <!-- ==================== 📢 公告条（2026-09-27 新增） ====================
-         说明宝库歌单来源的变更。点它 = 重新打开「必读公告」弹窗
-         （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
-         之所以要单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。 -->
-    <button type="button" class="site-announce" id="siteAnnounce">
-      <span class="site-announce-badge">📢 公告</span>
-      <span class="site-announce-text">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见，可以进 QQ 群。</span>
-      <span class="site-announce-more">查看说明 →</span>
-    </button>
+    <!-- ==================== 📢 公告条（已上移） ====================
+         2026-10-04：这一条搬到导航栏正下方了（见文件上面 <nav> 后面那段），
+         并改成横向滚动。这里不再放公告 —— 别再加回来，否则首页会出现两条。 -->
 
     <!-- ==================== 赞助者荣誉榜（已搬走） ====================
          2026-09-26：这一整段（原来那张金色荣誉卡的标记与样式）搬去了独立的 thanks.html，

@@ -439,7 +439,10 @@
       transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 20;
     }
-    .select-dropdown.open { max-height: 300px; opacity: 1; pointer-events: auto; }
+    /* overflow-y: auto 是 2026-10-04 加的：类别支持自定义之后，
+       下拉里的项会越攒越多（预设 3 项 + 自建类别 + 自定义），
+       超过 300px 的部分必须能滚，否则最后那项「✏️ 自定义类别…」点不到。 */
+    .select-dropdown.open { max-height: 300px; opacity: 1; pointer-events: auto; overflow-y: auto; }
     .select-option {
       padding: 12px 16px; font-size: 0.95rem; color: var(--text);
       cursor: pointer;
@@ -453,6 +456,17 @@
     .select-option.active::after {
       content: '✓'; float: right; color: var(--primary); font-weight: 700;
     }
+
+    /* ---------- 自定义鸣谢类别（2026-10-04 新增） ----------
+       下拉最后那项「✏️ 自定义类别…」；选中后它下面露出一个输入框。
+       用 #id 选择器是为了压过 style.css 里 .form-group input 的通用样式。 */
+    .select-option-custom {
+      border-top: 1px dashed var(--border);
+      color: var(--primary-ink);
+      font-weight: 600;
+    }
+    #addThanksCustomCat { margin-top: 10px; }
+    #addThanksCustomCat[hidden] { display: none; }
 
     .fb-quarantine .q-list::-webkit-scrollbar { width: 6px; }
     .fb-quarantine .q-list::-webkit-scrollbar-track { background: transparent; }
@@ -906,7 +920,14 @@
             <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
             <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>
+            <!-- 2026-10-04 用户要求：类别不再固定这三个，可以自定义。
+                 点下面这项会露出一个输入框，想叫什么名字就叫什么名字；
+                 js/admin.js 还会把 D1 里已经存在的其它类别自动补进这个列表，
+                 所以自建过的类别下次直接选就行，不用重打。 -->
+            <div class="select-option select-option-custom" data-value="__custom__">✏️ 自定义类别…</div>
           </div>
+          <input type="text" class="custom-cat-input" id="addThanksCustomCat" maxlength="30"
+                 placeholder="输入新类别名，例如：🎧 音效整理者" autocomplete="off" hidden>
         </div>
       </div>
       <div class="form-group">

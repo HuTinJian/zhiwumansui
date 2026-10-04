@@ -226,12 +226,73 @@ function scrollListIntoView(el) {
     });
     opt.classList.add('active');
     opt.setAttribute('aria-selected', 'true');
-    document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
+
+    /* 2026-10-04：类别支持自定义 —— 选中「✏️ 自定义类别…」时
+       露出下面的输入框，让管理员自己起名字。 */
+    const isCustom = opt.dataset.value === '__custom__';
+    const customEl = document.getElementById('addThanksCustomCat');
+    if (customEl) {
+      customEl.hidden = !isCustom;
+      if (isCustom) customEl.value = '';
+    }
+
+    document.getElementById('addThanksSelectedCat').textContent = isCustom ? '自定义类别' : opt.textContent;
     addThanksTrigger.classList.add('selected');
     setAddThanksOpen(false);
-    addThanksTrigger.focus();
+    if (isCustom && customEl) customEl.focus();
+    else addThanksTrigger.focus();
     refreshThanksNote();   /* 类别定了，名字也填了的话，顺手把描述补上 */
   }
+
+  /* 自定义类别输入框：边打边同步到下拉按钮上显示的文字，并刷新自动描述 */
+  const addThanksCustomCat = document.getElementById('addThanksCustomCat');
+  if (addThanksCustomCat) {
+    addThanksCustomCat.addEventListener('input', () => {
+      const v = addThanksCustomCat.value.trim();
+      document.getElementById('addThanksSelectedCat').textContent = v || '自定义类别';
+      refreshThanksNote();
+    });
+  }
+
+  /* 把 D1 里已经存在的鸣谢类别补进下拉（2026-10-04）：
+     自建过的类别下次直接选，不用重打；预设三项和「自定义」永远保留。
+     这个函数放在 IIFE 里，是因为它要用上面的 selectAddThanksOption 来绑事件；
+     外面 loadThanks() 拿到数据后通过 window.syncThanksCategoryOptions 调用。 */
+  window.syncThanksCategoryOptions = function (groups) {
+    if (!addThanksDropdown) return;
+
+    const known = Object.create(null);
+    addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
+      if (o.dataset.value === '__custom__') return;
+      known[String(o.dataset.value || o.textContent || '').trim()] = true;
+    });
+
+    const customOpt = addThanksDropdown.querySelector('.select-option[data-value="__custom__"]');
+
+    (Array.isArray(groups) ? groups : []).forEach(cat => {
+      const name = String(cat && cat.category || '').trim();
+      /* 赞助者、以及早就废掉的「已删除赞助者」隐藏标记：都不算鸣谢名单的类别 */
+      if (!name || name === SPONSOR_CATEGORY || name === SPONSOR_HIDDEN_CATEGORY) return;
+      if (known[name]) return;
+      known[name] = true;
+
+      const opt = document.createElement('div');
+      opt.className = 'select-option';
+      opt.dataset.value = name;
+      opt.textContent = name;
+      opt.tabIndex = 0;
+      opt.setAttribute('role', 'option');
+      opt.setAttribute('aria-selected', 'false');
+      opt.addEventListener('click', () => selectAddThanksOption(opt));
+      opt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          selectAddThanksOption(opt);
+        }
+      });
+      addThanksDropdown.insertBefore(opt, customOpt || null);
+    });
+  };
 
   document.getElementById('openAddThanksBtn').onclick = () => {
     /* 先清干净（顺便退出「编辑鸣谢」模式），再开弹窗 */
@@ -293,11 +354,12 @@ function scrollListIntoView(el) {
     lastAutoNote = note;
   }
 
-  /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句） */
+  /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句）。
+     类别统一走 currentThanksCategory()：自定义类别取输入框里的字。 */
   function refreshThanksNote() {
-    const cat = (document.getElementById('addThanksSelectedCat').textContent || '').trim();
+    const cat = currentThanksCategory();
     const name = document.getElementById('addThanksName').value.trim();
-    if (!name || !cat || cat === '请选择类别') return;
+    if (!name || !cat) return;
     const platform = document.getElementById('addThanksPlatform').value.trim();
     autoFillNote('addThanksMessage', () => buildSmartThanksNote(cat, name, platform));
   }
@@ -379,7 +441,7 @@ async function loadFeedback() {
 
       el.innerHTML = `
         <div class="row1">
-          <span class="name">${escapeHtml(item.name)}</span>
+          <span class="name">${escapeHtml(item.name || '（未填称呼）')}</span>
           <span>
             <span class="type-tag">${escapeHtml(item.type)}</span>
             ${statusTag}
@@ -694,10 +756,13 @@ async function approveToThanks(feedbackId) {
 
   /* 描述照这条反馈现算，并在确认框里先给管理员看一眼（想改事后去鸣谢名单改） */
   const smartMessage = buildSmartThanksMessage(item);
+  /* 2026-10-04 起反馈的称呼可以不写，空名字进鸣谢名单会变成一行空白 ——
+     这里统一兜成「匿名用户」 */
+  const thanksName = String(item.name || '').trim() || '匿名用户';
 
   const confirmed = await showConfirm(
     '加入鸣谢',
-    '把「' + item.name + '」加入鸣谢名单？\n\n' +
+    '把「' + thanksName + '」加入鸣谢名单？\n\n' +
     '描述会自动写成：\n「' + smartMessage + '」\n\n' +
     '加入后可以在「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」里改类别和描述。'
   );
@@ -711,7 +776,7 @@ async function approveToThanks(feedbackId) {
       body: JSON.stringify({
         action: 'add',
         category: '💬 反馈贡献者',
-        name: item.name,
+        name: thanksName,
         platform: '',
         message: smartMessage,
         feedbackId: item.id
@@ -1377,6 +1442,10 @@ async function loadThanks() {
        注意这两个字符串都是数据口径，别改。 */
     const groups = data.filter(cat => cat && cat.category !== SPONSOR_CATEGORY && cat.category !== SPONSOR_HIDDEN_CATEGORY);
 
+    /* 2026-10-04：把已有的类别（含管理员自建的）补进「添加鸣谢」的类别下拉，
+       下次再添加同类鸣谢时直接选就行。 */
+    if (typeof window.syncThanksCategoryOptions === 'function') window.syncThanksCategoryOptions(groups);
+
     /* 统计卡：只算真的有人在那儿的类别，跟列表口径一致 */
     renderThanksStats(groups.filter(cat => (cat.people || []).length > 0));
 
@@ -1456,6 +1525,21 @@ function renderThanksPage() {
   });
 }
 
+/* 当前「添加 / 编辑鸣谢」弹窗里选中的类别（2026-10-04 支持自定义分类后新增）
+   · 选中「✏️ 自定义类别…」→ 取下面输入框里的字；
+   · 否则取下拉按钮上显示的那一行。
+   空串表示还没选。 */
+function currentThanksCategory() {
+  const opt = document.querySelector('#addThanksSelectDropdown .select-option.active');
+  if (opt && opt.dataset.value === '__custom__') {
+    const input = document.getElementById('addThanksCustomCat');
+    return input ? input.value.trim() : '';
+  }
+  const selected = document.getElementById('addThanksSelectedCat');
+  const text = (selected ? selected.textContent : '').trim();
+  return (!text || text === '请选择类别') ? '' : text;
+}
+
 /* 正在编辑的鸣谢条目 id；0 = 新增（2026-10-01 站主要求「鸣谢也要能改」） */
 let editingThanksId = 0;
 
@@ -1467,16 +1551,34 @@ function startEditThanks(entry) {
   editingThanksId = Number(person.id);
   const category = String(entry.category || '').trim();
 
-  /* 自定义下拉：把对应选项点亮，并把标题文字换掉 */
+  /* 自定义下拉：把对应选项点亮，并把标题文字换掉。
+     2026-10-04 起类别可以自定义：如果这条记录的类别不在预设 / 已有列表里，
+     就切到「✏️ 自定义类别…」并把类别名填进旁边的输入框。 */
   const trigger = document.getElementById('addThanksSelectTrigger');
   const dropdown = document.getElementById('addThanksSelectDropdown');
   const selected = document.getElementById('addThanksSelectedCat');
+  const customInput = document.getElementById('addThanksCustomCat');
+  let hitOption = null;
   if (dropdown) {
     dropdown.querySelectorAll('.select-option').forEach(o => {
-      const hit = String(o.dataset.value || o.textContent || '').trim() === category;
+      const val = String(o.dataset.value || '').trim();
+      const hit = val !== '__custom__' &&
+        (val === category || String(o.textContent || '').trim() === category);
+      if (hit) hitOption = o;
       o.classList.toggle('active', hit);
       o.setAttribute('aria-selected', hit ? 'true' : 'false');
     });
+    if (!hitOption) {
+      const customOpt = dropdown.querySelector('.select-option[data-value="__custom__"]');
+      if (customOpt) {
+        customOpt.classList.add('active');
+        customOpt.setAttribute('aria-selected', 'true');
+      }
+    }
+  }
+  if (customInput) {
+    customInput.hidden = !!hitOption;
+    customInput.value = hitOption ? '' : category;
   }
   if (selected) selected.textContent = category;
   if (trigger) {
@@ -1517,6 +1619,12 @@ function resetThanksForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  /* 自定义类别输入框也一并收起来、清空 */
+  const customInput = document.getElementById('addThanksCustomCat');
+  if (customInput) {
+    customInput.hidden = true;
+    customInput.value = '';
+  }
   const titleEl = document.querySelector('#addThanksModal h2');
   if (titleEl) titleEl.textContent = '➕ 添加鸣谢';
   const okBtn = document.getElementById('confirmAddThanks');
@@ -1525,14 +1633,23 @@ function resetThanksForm() {
 
 /* 添加 / 保存鸣谢 */
 async function handleAddThanks() {
-  const selectedCatEl = document.getElementById('addThanksSelectedCat');
-  const category = (selectedCatEl.textContent || '').trim();
+  /* 2026-10-04：类别可能是自定义的，统一从 currentThanksCategory() 取 */
+  const category = currentThanksCategory();
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
   const messageEl = document.getElementById('addThanksMessage');
   let message = messageEl.value.trim();
 
-  if (!category || category === '请选择类别') { showToast('请选择类别'); return; }
+  if (!category) {
+    showToast('请选择类别（选「✏️ 自定义类别…」的话要把名字填上）');
+    const opt = document.querySelector('#addThanksSelectDropdown .select-option.active');
+    if (opt && opt.dataset.value === '__custom__') {
+      const input = document.getElementById('addThanksCustomCat');
+      if (input) input.focus();
+    }
+    return;
+  }
+  if (category.length > 30) { showToast('类别最多 30 个字'); return; }
   if (!name) { showToast('请填写名字'); return; }
 
   const editingId = editingThanksId;

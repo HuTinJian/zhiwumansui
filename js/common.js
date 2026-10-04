@@ -74,13 +74,17 @@
 
    口径：DeepSeek API 的累计消费（元）。数字来自 DSH 的账单文件，
    是人工核对后填进来的，不会自己涨。
-   占位元素里写的那份（index.html 里的 ¥141.51 / 2026-10-03）是【没脚本时的兜底】，
+   占位元素里写的那份（index.html 里的 ¥151.36 / 2026-10-04）是【没脚本时的兜底】，
    换数字时也要顺手一起改。
+
+   2026-10-04 用户要求：数字从 ¥141.51 改成 ¥151.36，核对日期跟着改成 2026-10-04。
+   同一轮还在这块后面加了「收到的赞助」（fillSponsorTotal，见 0.6 节），
+   那个数字才是现算的 —— 这个 SITE_COST 仍然要人工核对后手改。
    ============================================================ */
 const SITE_COST = {
-  amount: '¥141.51',         /* 累计花费（元）—— 只改这一个地方（2026-10-03 更新） */
+  amount: '¥151.36',         /* 累计花费（元）—— 只改这一个地方（2026-10-04 更新） */
   since: '2026-09-12',      /* 从哪天开始算的 */
-  checkedAt: '2026-10-03'   /* 上面这个数字是哪天核对的 */
+  checkedAt: '2026-10-04'   /* 上面这个数字是哪天核对的 */
 };
 
 /* 把金额 / 核对日期填进页面里所有占位处
@@ -92,6 +96,168 @@ function fillSiteCost(scope) {
   });
   root.querySelectorAll('[data-site-cost-date]').forEach(el => {
     el.textContent = SITE_COST.checkedAt;
+  });
+}
+
+/* ============================================================
+   0.6 「一共收到多少赞助」（2026-10-04 新增）
+   ------------------------------------------------------------
+   用户要求：在首页「我花了多少钱」后面再加一块「收到的赞助」，
+   数字按【D1 + 仓库底档 data/sponsors.json】一起算。
+   口径跟 thanks.html 的赞助者名单完全一致：
+     · D1：/api/thanks 里 category === '👑 赞助者' 的行，金额存在 platform 字段
+       （后台定的口径，例如 '¥10.00'；底档那边才叫 amount）；
+     · 底档：data/sponsors.json 的 amount 字段；
+     · 按名字去重、同名的以 D1 为准；后台删除赞助者时留下的隐藏标记是另一个类别，
+       天然不会被算进来。
+   金额只认数字部分，认不出来按 0 计（比如某条金额写「一杯奶茶」就不计）。
+   D1 读不到（本地预览 / 接口挂了）就【保留 HTML 里写死的兜底数字】——
+   宁可不更新，也不因为只读到半份数据而显示一个偏小的错数。
+   ============================================================ */
+const SPONSOR_CATEGORY = '👑 赞助者';
+
+/* 从 '¥10.00' / '10元' / '￥5' 这类文本里抠出金额；抠不出来算 0 */
+function parseMoney(text) {
+  const m = String(text === undefined || text === null ? '' : text).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : 0;
+}
+
+/* 整数不带小数点（¥25），有小数就保留两位（¥25.50） */
+function formatMoney(num) {
+  const v = Math.round(Number(num) * 100) / 100;
+  return '¥' + (Number.isInteger(v) ? String(v) : v.toFixed(2));
+}
+
+function sumSponsors(d1People, fileList) {
+  const seen = Object.create(null);
+  let total = 0;
+
+  function add(person, amountText) {
+    const name = String(person && person.name || '').trim();
+    if (!name || seen[name]) return;   /* 没名字的丢掉；同名的先来的赢（D1 先入列） */
+    seen[name] = true;
+    total += parseMoney(amountText);
+  }
+
+  (Array.isArray(d1People) ? d1People : []).forEach(p => add(p, p && (p.platform || p.amount)));
+  (Array.isArray(fileList) ? fileList : []).forEach(p => add(p, p && (p.amount || p.platform)));
+  return total;
+}
+
+async function fillSponsorTotal() {
+  const els = document.querySelectorAll('[data-sponsor-total]');
+  if (els.length === 0) return;
+
+  let groups;
+  try {
+    const res = await fetch('/api/thanks?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    groups = await res.json();
+  } catch (e) {
+    return;   /* 拿不到 D1 就保持 HTML 里的兜底数字 */
+  }
+  if (!Array.isArray(groups)) return;
+
+  let people = [];
+  groups.forEach(cat => {
+    if (!cat || cat.category !== SPONSOR_CATEGORY) return;
+    if (Array.isArray(cat.people)) people = people.concat(cat.people);
+  });
+
+  let fileList = [];
+  try {
+    const fres = await fetch('data/sponsors.json?t=' + Date.now(), { cache: 'no-store' });
+    const fdata = await fres.json();
+    if (Array.isArray(fdata)) fileList = fdata;
+    else if (fdata && Array.isArray(fdata.sponsors)) fileList = fdata.sponsors;
+  } catch (e) { /* 底档读不到不影响：D1 那份已经够算 */ }
+
+  const text = formatMoney(sumSponsors(people, fileList));
+  els.forEach(el => { el.textContent = text; });
+}
+
+/* ============================================================
+   0.7 分享本站（2026-10-04 新增 · 用户要求「让用户把网站宣传出去」）
+   ------------------------------------------------------------
+   设计（尽量简单、零成本、不依赖任何第三方 SDK）：
+     ① 入口：页面上任何带 data-share 属性的元素都能唤起弹窗（事件委托，只绑一次）；
+     ② 弹窗里给三件事：现成的推荐文案、系统分享（手机原生菜单）、只复制链接；
+     ③ 复制走本文件自己的 copyText()（带超时回退），成功/失败都给一句 toast；
+     ④ 文案里自带站点地址，别人粘贴出去，链接就跟着走。
+   不联网、不埋点、不弹第三方窗口；用户取消系统分享不算错误。
+   ============================================================ */
+const SHARE_SITE = 'https://zhiwumansui.pages.dev';
+const SHARE_TITLE = '织雾满穗';
+const SHARE_TEXT =
+  '我发现一个小站「织雾满穗」：Roblox 音乐/音效 ID 宝库，能搜索、能筛选、一键复制，手机也能用，' +
+  '还有几个打开就能用的小工具。分享给你看看 → ';
+
+function buildShareModal() {
+  let modal = document.getElementById('shareModal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'shareModal';
+  modal.className = 'modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'shareModalTitle');
+  modal.innerHTML = `
+    <div class="modal-content share-modal-content">
+      <h2 id="shareModalTitle">🔗 把织雾满穗分享出去</h2>
+      <p class="share-lead">这个小站是业余时间一个人做的。如果它帮到过你，把它发给一个可能用得上的人，就是最好的支持 ❤️</p>
+      <div class="share-field-label" id="shareTextLabel">分享文案（复制后粘到 QQ / 微信 / 抖音 / B 站都行）</div>
+      <textarea class="share-text" id="shareText" rows="4" readonly aria-labelledby="shareTextLabel"></textarea>
+      <div class="share-actions">
+        <button type="button" class="btn btn-primary" id="shareCopyAll">📋 复制文案 + 链接</button>
+        <button type="button" class="btn btn-secondary" id="shareNative" hidden>📤 系统分享</button>
+        <button type="button" class="btn btn-secondary" id="shareCopyLink">🔗 只复制链接</button>
+      </div>
+      <p class="share-tips">💡 手机上点「系统分享」可以直接发给微信 / QQ 好友；电脑上复制文案后粘贴到群里就行。</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="shareClose">关闭</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const textEl = document.getElementById('shareText');
+  textEl.value = SHARE_TEXT + SHARE_SITE;
+
+  const nativeBtn = document.getElementById('shareNative');
+  if (nativeBtn && navigator.share) nativeBtn.hidden = false;
+
+  document.getElementById('shareCopyAll').addEventListener('click', async () => {
+    const ok = await copyText(textEl.value);
+    showToast(ok ? '📋 已复制，粘贴到群里就能分享' : '复制失败，请手动选中上面的文字复制');
+  });
+  document.getElementById('shareCopyLink').addEventListener('click', async () => {
+    const ok = await copyText(SHARE_SITE);
+    showToast(ok ? '🔗 链接已复制' : '复制失败，请手动复制上面的文字');
+  });
+  if (nativeBtn) {
+    nativeBtn.addEventListener('click', async () => {
+      try {
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_SITE });
+      } catch (e) { /* 用户点了取消，不用提示 */ }
+    });
+  }
+  document.getElementById('shareClose').addEventListener('click', () => closeModal('shareModal'));
+
+  return modal;
+}
+
+function openShareModal() {
+  buildShareModal();
+  openModal('shareModal');
+}
+
+function initShareTriggers() {
+  document.addEventListener('click', e => {
+    const trigger = e.target.closest && e.target.closest('[data-share]');
+    if (!trigger) return;
+    e.preventDefault();
+    openShareModal();
   });
 }
 
@@ -925,6 +1091,8 @@ function fillSiteCost(scope) {
   /* 统一初始化 */function initUI() {
   applyLiteMode();
   fillSiteCost();
+  fillSponsorTotal();     /* 「收到的赞助」：按 D1 + 底档现算（0.6 节） */
+  initShareTriggers();    /* 全站 [data-share] 分享入口（0.7 节） */
     bindModalA11y();
     injectAtmosphere();
     injectThemeToggle();
@@ -1446,7 +1614,7 @@ function fillSiteCost(scope) {
           <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">
             📌 你当时提交的内容${item.createdAt ? '（' + escapeHtml(item.createdAt) + '）' : ''}
           </div>
-          <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.excerpt || '')}</div>
+          <div style="font-size:0.88rem;color:var(--text);white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.excerpt || '（你当时没有写内容）')}</div>
         </div>
         ${item.reply ? `
           <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bg-soft);border:1px dashed var(--border-strong);">
@@ -1530,6 +1698,7 @@ function fillSiteCost(scope) {
     showNotice,       // 顶部提示条
     showConfirm,      // 确认弹窗（返回 Promise）
     openSiteNotice,   // 重新打开「全站必读公告」弹窗（首页那条公告用）
+    openShareModal,   // 打开「分享本站」弹窗（页脚 / 宝库工具栏等自己加按钮时用）
     openModal,        // 打开弹窗
     closeModal,       // 关闭弹窗
     copyText,         // 复制到剪贴板

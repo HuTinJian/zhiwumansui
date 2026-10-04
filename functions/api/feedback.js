@@ -41,10 +41,16 @@ export async function onRequestPost(context) {
     if (!VALID_TYPES.includes(type)) {
       return json({ ok: false, error: 'invalid type' }, 400);
     }
-    if (!name || name.length > 40) {
+    /* 2026-10-04 用户要求：称呼和描述默认【都可以不写】，
+       只有「卡片1 · Roblox ID 宝库」这一类反馈必须留称呼（描述仍然可以不写）。
+       前端 feedback.html 也有同一套规则，这里再兜一次 —— 前端能绕过，后端不能。 */
+    if (name.length > 40) {
       return json({ ok: false, error: 'invalid name' }, 400);
     }
-    if (!message || message.length > 1000) {
+    if (type === '卡片1' && !name) {
+      return json({ ok: false, error: 'name required' }, 400);
+    }
+    if (message.length > 1000) {
       return json({ ok: false, error: 'invalid message' }, 400);
     }
 
