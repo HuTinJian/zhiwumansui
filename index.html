@@ -567,10 +567,13 @@
         这里会陆续放上各种资料库和在线小工具，不追求数量，只求打开就能用。
       </p><div class="hero-actions">
         <a class="btn btn-primary" href="#explore">🚀 开始逛逛</a>
-        <a class="btn btn-secondary" href="feedback.html">💬 提个意见</a>
-        <!-- 2026-10-04 新增：分享入口。弹窗（文案 + 复制 + 系统分享）由 js/common.js
-             的 openShareModal 提供，凡是带 data-share 的元素都能唤起来。 -->
-        <button type="button" class="btn btn-secondary" data-share>🔗 分享本站</button>
+        <!-- 2026-10-04 站主要求：hero 里的「💬 提个意见」按钮删掉了
+             （反馈入口还有两个：顶部导航栏的「💬 反馈」和页脚的「意见反馈」）。
+             分享按钮同期改成专用的 .btn-share（暖金色，见 css/style.css）：
+             颜色贴合站点的粉+金主题，也比主按钮柔和一些、不抢「开始逛逛」的焦点。
+             弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供，
+             凡是带 data-share 的元素都能唤起来。 -->
+        <button type="button" class="btn btn-share" data-share>🔗 分享本站</button>
       </div>
 
       <!-- 赞赏码小条：位置就是这里（「开始逛逛」那排按钮下面）。
@@ -728,6 +731,8 @@
       <a href="feedback.html">意见反馈</a>
       <a href="roblox_music.html">Roblox ID 宝库</a>
       <a href="thanks.html">❤️ 鸣谢</a>
+      <!-- 2026-10-04 站主要求：分享入口不能只有 hero 那一个，页脚也放一个 -->
+      <button type="button" class="share-link" data-share>🔗 分享本站</button>
     </div>
   </footer>
 

@@ -1240,7 +1240,7 @@
         <span class="tool-sep" aria-hidden="true"></span>
         <div class="tool-group">
           <span class="tool-label">分享</span>
-          <button class="btn btn-secondary" id="shareSiteBtn" data-share>🔗 分享给朋友</button>
+          <button class="btn btn-share" id="shareSiteBtn" data-share>🔗 分享给朋友</button>
         </div>
       </div>
     </header>
@@ -1279,9 +1279,15 @@
   </main>
 
   <!-- 页脚：2026-10-04 导航栏取消后，这里原来那排链接（首页 / 反馈 / 鸣谢）
-       按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。 -->
+       按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。
+       同一轮稍晚一点（站主指出「分享链接只有主页有」）又加回了分享入口：
+       它只是分享，不是导航，所以不违反「只留一个返回首页」那条；
+       这一页工具栏里本来就有一个，页脚再放一个是为了跟其它页保持同一个位置。 -->
   <footer class="footer">
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <div class="footer-links">
+      <button type="button" class="share-link" data-share>🔗 分享本站</button>
+    </div>
   </footer>
 
   <!-- 左下角常驻「返回首页」（2026-10-04 用户要求）：

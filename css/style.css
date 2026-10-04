@@ -565,6 +565,30 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .btn-gold:hover { transform: translateY(-2px); }
 
+/* ---------- 「分享」按钮（2026-10-04 站主要求：颜色贴主题、还得护眼） ----------
+   站点主题是「粉 + 金」：主按钮是深粉渐变（.btn-primary），
+   而金色这一套已经稳定用在首页那条滚动公告和赞赏码块上
+   （--gold-bg / --gold-light / --gold-ink）。分享按钮就走金色这一套 ——
+   暖、低饱和、不刺眼，而且比主按钮弱一档，不跟「🚀 开始逛逛」抢焦点：
+     · 浅色模式：淡金底 #fbf3e8 + 深金棕字 #8a5a1c（对比度 ≈5.2:1，看得清又不晃眼）
+     · 深色模式：暖褐底 #2a2229 + 浅金字 #eec48d（同一套变量自动换，没有写死颜色）
+   ⚠ 水波纹要单独覆盖：默认那个是白色，压在淡金底上根本看不见。 */
+.btn-share {
+  background: var(--gold-bg);
+  color: var(--gold-ink);
+  border: 2px solid var(--gold-light);
+  font-weight: 700;
+}
+.btn-share:hover {
+  border-color: var(--gold);
+  color: var(--gold-ink);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 160, 106, 0.24);
+}
+.btn-share:active { transform: translateY(0) scale(0.96); }
+.btn-share:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn-share .ripple { background: rgba(212, 160, 106, 0.35); }
+
 /* 点击水波纹（由 common.js 注入 span.ripple） */
 .ripple {
   position: absolute;
@@ -771,6 +795,33 @@ body.modal-open .particles i { animation-play-state: paused; }
   transition: color var(--dur) var(--ease-soft);
 }
 .footer .footer-links a:hover { color: var(--primary-ink); }
+
+/* 页脚里的「🔗 分享本站」（2026-10-04 新增）：
+   跟旁边那些链接同一行的排版，但用金色标出来 ——
+   一眼能看出它是「分享」而不是又一个导航链接，颜色和 .btn-share 是同一套。
+   （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。） */
+.footer .footer-links .share-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--gold-ink);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
+}
+.footer .footer-links .share-link:hover {
+  transform: translateY(-1px);
+  text-decoration: underline;
+}
+.footer .footer-links .share-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* ============================================================
    11. 更新弹窗（文字版）
