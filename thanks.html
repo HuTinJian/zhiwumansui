@@ -289,6 +289,13 @@
           });
       }
 
+      /* 金额一律显示两位小数（2026-10-05 站主要求）：
+         走 common.js 的同一个函数，认不出是纯金额就原样显示（比如备注写「一杯奶茶」）。 */
+      function money(text) {
+        if (typeof normalizeMoneyText === 'function') return normalizeMoneyText(text);
+        return String(text === undefined || text === null ? '' : text);
+      }
+
       function fetchJson(url) {
         return fetch(url, { cache: 'no-store' }).then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -421,7 +428,7 @@
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
           html += '<span class="p-name">' + esc(p.name) + '</span>';
-          if (p.amount) html += '<span class="p-amount">· ' + esc(p.amount) + '</span>';
+          if (p.amount) html += '<span class="p-amount">· ' + esc(money(p.amount)) + '</span>';
           if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
           html += '</div>';
         });

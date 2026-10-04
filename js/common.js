@@ -130,6 +130,25 @@ function formatMoney(num) {
   return '¥' + v.toFixed(2);
 }
 
+/* 把随手写的一串金额归一成「¥xx.xx」两位小数（2026-10-05 站主要求）。
+   认得的写法：'10' / '10.5' / '¥10' / '￥10' / '10元' / '10块' / '1,000' / 全角数字。
+   **认不出是纯金额就原样返回**（比如备注写「一杯奶茶」，绝不硬改成 ¥0.00 把原话吃掉）。
+   页面显示、后台保存、导出都用它，保证口径只有一处。 */
+function normalizeMoneyText(text) {
+  const raw = String(text === undefined || text === null ? '' : text).trim();
+  if (!raw) return '';
+  /* 全角数字/小数点先转半角，顺手把全角逗号、句号也归一 */
+  const half = raw
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/．/g, '.')
+    .replace(/，/g, ',');
+  const m = half.match(/^[¥￥$]?\s*(\d{1,3}(?:,\d{3})*|\d+)(?:\.(\d+))?\s*(?:元|块钱|块|人民币|RMB|rmb)?$/);
+  if (!m) return raw;
+  const num = parseFloat(m[1].replace(/,/g, '') + (m[2] ? '.' + m[2] : ''));
+  if (!isFinite(num)) return raw;
+  return formatMoney(num);
+}
+
 function sumSponsors(d1People, fileList) {
   const seen = Object.create(null);
   let total = 0;
@@ -1591,6 +1610,8 @@ function initShareTriggers() {
     escapeHtml,       // 转义，防 XSS
     formatVersion,    // 把版本号排成好看的样子
     checkPageUpdate,  // 检查该页面是否有新版本公告
-    getClientId       // 本浏览器的随机身份（宝库页「无效处理」上报的去重 / 撤销靠它）
+    getClientId,      // 本浏览器的随机身份（宝库页「无效处理」上报的去重 / 撤销靠它）
+    formatMoney,      // 数字 → '¥xx.xx'（一律两位小数）
+    normalizeMoneyText // 随手写的金额 → '¥xx.xx'（认不出是金额就原样返回）
   });
 })();

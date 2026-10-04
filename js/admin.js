@@ -1651,7 +1651,8 @@ async function handleExportSponsors() {
 
     const list = d1People.map((p) => ({
       name: p.name || '',
-      amount: String(p.amount === undefined || p.amount === null || p.amount === '' ? (p.platform || '') : p.amount),
+      /* 2026-10-05：导出的金额也统一两位小数（站主要求「关于金额的都弄成小数点后两位」） */
+      amount: adminMoney(String(p.amount === undefined || p.amount === null || p.amount === '' ? (p.platform || '') : p.amount)),
       message: p.message || ''
     }));
     if (!list.length) { showToast('暂无赞助者可导出'); return; }
@@ -2097,6 +2098,18 @@ const SPONSOR_CATEGORY = '👑 赞助者';
    不许它混进鸣谢名单里显示。新代码不再往里写东西。 */
 const SPONSOR_HIDDEN_CATEGORY = '🚫 已删除赞助者';
 
+/* 金额一律两位小数（2026-10-05 站主要求「把关于金额的相关内容弄到小数点后两位」）：
+   列表显示 / 保存入库 / 导出三处都走 common.js 的 normalizeMoneyText ——
+   认得出是金额就归一成「¥10.00」（'10'、'¥10'、'10元'、'10.5'、'1,000' 都认）；
+   认不出（比如备注写成「一杯奶茶」）就**原样保留**，绝不硬改成 ¥0.00 把原话吃掉。
+   common.js 没加载时退回原值，不影响后台其它功能。 */
+function adminMoney(text) {
+  const raw = String(text === undefined || text === null ? '' : text);
+  if (!raw.trim()) return raw;
+  if (typeof normalizeMoneyText === 'function') return normalizeMoneyText(raw);
+  return raw;
+}
+
 /* D1 那部分的缓存：编辑时按 id 取回原值 */
 let sponsorCache = [];
 
@@ -2220,7 +2233,7 @@ function renderSponsorPage() {
     el.innerHTML = `
       <div class="row1">
         <span class="name">${escapeHtml(person.name)}</span>
-        ${person.platform ? '<span class="type-tag gold">' + escapeHtml(person.platform) + '</span>' : ''}
+        ${person.platform ? '<span class="type-tag gold">' + escapeHtml(adminMoney(person.platform)) + '</span>' : ''}
       </div>
       ${person.message ? '<div class="message">' + escapeHtml(person.message) + '</div>' : ''}
       <div class="actions">
@@ -2261,7 +2274,8 @@ function startEditSponsor(id) {
 
   editingSponsorId = Number(id);
   document.getElementById('addSponsorName').value = person.name || '';
-  document.getElementById('addSponsorAmount').value = person.platform || '';
+  /* 金额统一显示成两位小数（2026-10-05），改不改都行 */
+  document.getElementById('addSponsorAmount').value = adminMoney(person.platform || '');
   document.getElementById('addSponsorMessage').value = person.message || '';
 
   const titleEl = document.getElementById('addSponsorModalTitle');
@@ -2300,7 +2314,10 @@ async function handleAddSponsor() {
   const amountEl = document.getElementById('addSponsorAmount');
   const messageEl = document.getElementById('addSponsorMessage');
   const name = nameEl.value.trim();
-  const amount = amountEl.value.trim();
+  /* 2026-10-05：金额统一归一成两位小数再存（'10' → '¥10.00'），
+     并把归一后的值回填到输入框里，让管理员一眼看到最终会存成什么。 */
+  const amount = adminMoney(amountEl.value);
+  if (amount && amount !== amountEl.value.trim()) amountEl.value = amount;
   let message = messageEl.value.trim();
 
   /* 长度上限跟服务端 functions/api/thanks.js 对齐（name 40 / platform 30 / message 200） */
