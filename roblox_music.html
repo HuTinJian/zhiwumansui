@@ -1235,13 +1235,11 @@
           <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">📦 批量隔离</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         </div>
-        <!-- 2026-10-04 新增：分享入口（导航栏取消后，这一页也需要一个让人把站传出去的地方）。
-             弹窗本体在 js/common.js，凡是带 data-share 的元素都能唤起来。 -->
-        <span class="tool-sep" aria-hidden="true"></span>
-        <div class="tool-group">
-          <span class="tool-label">分享</span>
-          <button class="btn btn-share" id="shareSiteBtn" data-share>🔗 分享给朋友</button>
-        </div>
+        <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
+             当天站主先要求加上（「分享链接只有主页有」），随后又明确这一页不要分享
+             （「只删除分享，另外 2 个留着」「我只让你删除 Roblox ID 宝库的」），
+             于是整组撤掉：这一页的工具栏只剩「浏览」和「管理」两组。
+             ⚠ 别再往这一页加分享入口了；首页 / 反馈 / 鸣谢 三页的分享入口照旧保留。 -->
       </div>
     </header>
 
@@ -1280,14 +1278,11 @@
 
   <!-- 页脚：2026-10-04 导航栏取消后，这里原来那排链接（首页 / 反馈 / 鸣谢）
        按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。
-       同一轮稍晚一点（站主指出「分享链接只有主页有」）又加回了分享入口：
-       它只是分享，不是导航，所以不违反「只留一个返回首页」那条；
-       这一页工具栏里本来就有一个，页脚再放一个是为了跟其它页保持同一个位置。 -->
+       中途一度加回过「🔗 分享本站」，随后站主明确「只删除分享……我只让你删除
+       Roblox ID 宝库的」，于是这一页的分享入口（工具栏那组 + 这里）全部撤掉，
+       页脚又只剩版权行。要分享去首页 / 反馈 / 鸣谢那三页，它们都还有。 -->
   <footer class="footer">
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
-    <div class="footer-links">
-      <button type="button" class="share-link" data-share>🔗 分享本站</button>
-    </div>
   </footer>
 
   <!-- 左下角常驻「返回首页」（2026-10-04 用户要求）：
