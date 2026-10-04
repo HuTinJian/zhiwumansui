@@ -123,10 +123,11 @@ function parseMoney(text) {
   return m ? parseFloat(m[0]) : 0;
 }
 
-/* 整数不带小数点（¥25），有小数就保留两位（¥25.50） */
+/* 2026-10-05 站主要求「都弄成小数」：一律两位小数（¥25.00 / ¥25.50）——
+   以前是「整数不带小数点」，现在不再省那两个 0。 */
 function formatMoney(num) {
   const v = Math.round(Number(num) * 100) / 100;
-  return '¥' + (Number.isInteger(v) ? String(v) : v.toFixed(2));
+  return '¥' + v.toFixed(2);
 }
 
 function sumSponsors(d1People, fileList) {

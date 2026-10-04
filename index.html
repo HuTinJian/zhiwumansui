@@ -592,7 +592,8 @@
            换数字时记得一起改。
            2026-10-04（用户要求）：后面再加一块「收到的赞助」（data-sponsor-total），
            数字不写死 —— 由 js/common.js 的 fillSponsorTotal() 按
-           D1（/api/thanks 的 👑 赞助者）+ 底档 data/sponsors.json 现算。 -->
+           D1（/api/thanks 的 👑 赞助者）+ 底档 data/sponsors.json 现算；
+           HTML 里那个 ¥25.00 是接口拿不到时的兜底（2026-10-05 起金额一律两位小数）。 -->
       <button type="button" class="hero-sponsor" id="heroSponsor" aria-label="查看赞赏码大图">
         <!-- 2026-10-05 性能：hero 这颗只显示 76px，改用专门的小图
              images/sponsor-qrcode-small.png（160×160，约 4KB）——
@@ -617,7 +618,7 @@
               <span class="hero-sponsor-cost-d">共花费</span>
             </span>
             <span class="hero-sponsor-cost hero-sponsor-cost-got">
-              <b data-sponsor-total>¥25</b>
+              <b data-sponsor-total>¥25.00</b>
               <span class="hero-sponsor-cost-d">收到赞助</span>
             </span>
           </span>

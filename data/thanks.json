@@ -8,7 +8,7 @@
         "message": "在抖音公开分享了一批 Roblox 音乐 ID，帮宝库补了不少歌"
       },
       {
-        "name": "树立口",
+        "name": "术力口",
         "platform": "",
         "message": "无偿公开了自己收集的音乐 ID"
       },
@@ -16,6 +16,11 @@
         "name": "黎明的阴影",
         "platform": "哔哩哔哩",
         "message": "在哔哩哔哩把整理好的音乐 ID 分享了出来，让大家少走弯路"
+      },
+      {
+        "name": "吴老师",
+        "platform": "",
+        "message": "公开分享了一批 Roblox 音乐 ID，帮宝库补了不少歌"
       }
     ]
   },
@@ -36,6 +41,11 @@
         "name": "wwwwwqseq",
         "platform": "",
         "message": "给站点提了反馈，帮我们改进了体验"
+      },
+      {
+        "name": "admin",
+        "platform": "",
+        "message": "在「🎵 Roblox ID 宝库」发现了 1 个音乐 ID 无效"
       }
     ]
   },
