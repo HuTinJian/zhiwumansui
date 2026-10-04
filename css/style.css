@@ -1288,6 +1288,13 @@ body.modal-open .particles i { animation-play-state: paused; }
   font-size: 0.86rem;
   color: var(--text);
 }
+/* 2026-10-05 站主要求：「鸣谢名单的 Roblox 感谢那一块，每个人的间距大一点」。
+   .thanks-person 是赞助者和多列网格共用的，所以这里只给**多列网格**（🎮 Roblox ID 宝库 /
+   🙏 玩家感谢 都用 .thanks-groups）加行距，赞助者那一栏（.thanks-single）保持原样，
+   免得顺手把没让他改的地方也动了。 */
+.thanks-groups .thanks-person {
+  padding: 8px 0;
+}
 .thanks-person .p-name { font-weight: 600; color: var(--primary-ink); }
 .thanks-person .p-platform { color: var(--text-muted); font-size: 0.78rem; }
 /* 2026-10-01 站主要求：赞助者的**金额**用金色。
