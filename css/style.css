@@ -801,11 +801,11 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .footer .footer-links a:hover { color: var(--primary-ink); }
 
-/* 页脚里的「🔗 分享本站」（2026-10-04 新增）：
-   跟旁边那些链接同一行的排版，但用金色标出来 ——
-   一眼能看出它是「分享」而不是又一个导航链接，颜色和 .zb-invite 是同一套。
-   （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。）
-   ⚠ class 名从 .share-link 改成 .zb-invite-link，同 .zb-invite 那段注释的原因。 */
+/* 页脚里的「🔗 分享本站」（2026-10-04 新增，同日又按站主要求下线）：
+   ⚠ 现在四个页面的页脚都不放分享入口了（站主：「任何页面的页脚都不要有分享链接」），
+     所以下面这条规则【当前没有元素在用】—— 留着是为了万一以后要加回页脚入口，
+     直接写 <button class="zb-invite-link" data-invite> 就能用上同一套金色文字样式。
+   （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。） */
 .footer .footer-links .zb-invite-link {
   background: none;
   border: none;
