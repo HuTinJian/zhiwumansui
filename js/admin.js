@@ -35,6 +35,37 @@ function isInnovatorCategory(cat) {
   return String(cat === undefined || cat === null ? '' : cat).indexOf(MANUAL_NOTE_KEYWORD) !== -1;
 }
 
+/* ============================================================
+   🙏 玩家感谢（2026-10-05 站主要求新增）
+   ------------------------------------------------------------
+   站主原话：「鸣谢名单加一个『玩家感谢』，里面把 Roblox 里面的网站创新家弄到这里来，
+   后台依旧跟 Roblox 一样可以自定义」。
+   · 鸣谢页多了第三个切换「🙏 玩家感谢」；「💡 网站创新家」从 Roblox 那栏搬过来；
+   · 后台多了个子面板「🙏 玩家感谢」，跟 Roblox 那一栏一样能增 / 改 / 删、能自定义类别。
+   归属规则（**必须跟 thanks.html 里的 isPlayerThanks 一模一样，改一处要改两处**）：
+     一个类别属于「玩家感谢」当且仅当 ——
+       ① 名字里带 🙏（后台在这一栏新增/自定义时自动补前缀，见 PLAYER_THANKS_PREFIX）
+       ② 名字里含「玩家感谢」
+       ③ 名字里含「网站创新家」（就是搬过来的那一类，D1 里的名字没变，不用改库）
+     其余类别（除 👑 赞助者 / 🚫 已删除赞助者）都归「🎮 Roblox ID 宝库」。
+   所以「自定义」照样能用：随便起名字，保存时自动带上 🙏 前缀就会落到玩家感谢栏。
+   ============================================================ */
+const PLAYER_THANKS_MARK = '🙏';
+const PLAYER_THANKS_KEYWORD = '玩家感谢';
+const PLAYER_THANKS_PREFIX = '🙏 ';
+
+function isPlayerThanksCategory(cat) {
+  const name = String(cat === undefined || cat === null ? '' : cat);
+  if (!name) return false;
+  if (name.indexOf(PLAYER_THANKS_MARK) !== -1) return true;
+  if (name.indexOf(PLAYER_THANKS_KEYWORD) !== -1) return true;
+  return isInnovatorCategory(name);
+}
+
+/* 当前「添加 / 编辑鸣谢」弹窗是从哪一栏打开的：roblox / players。
+   决定两件事：① 下拉里只列出归属这一栏的类别；② 保存时要不要给自定义类别补 🙏 前缀。 */
+let addThanksScope = 'roblox';
+
 /* 现在到底要不要「不自动代写」：勾选框勾着，或者类别就是网站创新家。
    两个地方（自动代写、提交保存）都走这一个判断，口径只有一处。 */
 function isManualThanksNote() {
@@ -227,7 +258,9 @@ function scrollListIntoView(el) {
   const exportSongsBtn = document.getElementById('exportSongsBtn');
   if (exportSongsBtn) exportSongsBtn.onclick = handleExportSongs;
   const exportThanksBtn = document.getElementById('exportThanksBtn');
-  if (exportThanksBtn) exportThanksBtn.onclick = handleExportThanks;
+  if (exportThanksBtn) exportThanksBtn.onclick = () => handleExportThanks('roblox');
+  const exportPlayerThanksBtn = document.getElementById('exportPlayerThanksBtn');
+  if (exportPlayerThanksBtn) exportPlayerThanksBtn.onclick = () => handleExportThanks('players');
   const exportSponsorsBtn = document.getElementById('exportSponsorsBtn');
   if (exportSponsorsBtn) exportSponsorsBtn.onclick = handleExportSponsors;
 
@@ -360,6 +393,9 @@ function scrollListIntoView(el) {
       const opt = document.createElement('div');
       opt.className = 'select-option';
       opt.dataset.value = name;
+      /* 2026-10-05：D1 里已有的类别按归属规则自动分栏 ——
+         新面板打开时只列出属于自己那一栏的类别（applyThanksDropdownForPanel 会过滤）。 */
+      opt.dataset.scope = isPlayerThanksCategory(name) ? 'players' : 'roblox';
       opt.textContent = name;
       opt.tabIndex = 0;
       opt.setAttribute('role', 'option');
@@ -375,10 +411,46 @@ function scrollListIntoView(el) {
     });
   };
 
+  /* 按当前是哪一栏过滤下拉选项（2026-10-05）：
+     scope 为 players 的只在「🙏 玩家感谢」里出现，roblox 的只在「🎮 Roblox ID 宝库」里出现；
+     「✏️ 自定义类别…」两边都有。顺带把上一次的选择清干净，免得串栏。 */
+  function applyThanksDropdownForPanel() {
+    if (!addThanksDropdown) return;
+    addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
+      if (o.dataset.value === '__custom__') { o.hidden = false; return; }
+      const scope = o.dataset.scope === 'players' ? 'players' : 'roblox';
+      o.hidden = scope !== addThanksScope;
+      o.classList.remove('active');
+      o.setAttribute('aria-selected', 'false');
+    });
+    const selected = document.getElementById('addThanksSelectedCat');
+    if (selected) selected.textContent = '请选择类别';
+    const customEl = document.getElementById('addThanksCustomCat');
+    if (customEl) { customEl.hidden = true; customEl.value = ''; }
+    const trigger = document.getElementById('addThanksSelectTrigger');
+    if (trigger) trigger.classList.remove('selected');
+    setAddThanksOpen(false);
+  }
+
+  /* 编辑鸣谢时（startEditThanks 在外层）也要按那一栏过滤下拉，所以挂到 window 上 */
+  window.applyThanksDropdownForPanel = applyThanksDropdownForPanel;
+
+  /* 「➕ 添加鸣谢」（Roblox 那一栏） */
   document.getElementById('openAddThanksBtn').onclick = () => {
     /* 先清干净（顺便退出「编辑鸣谢」模式），再开弹窗 */
+    addThanksScope = 'roblox';
     resetThanksForm();
-    setAddThanksOpen(false);
+    applyThanksDropdownForPanel();
+    openModal('addThanksModal');
+  };
+
+  /* 「➕ 添加玩家感谢」（玩家感谢那一栏，2026-10-05 新增）——
+     跟上面那颗同一个弹窗，只是限定在「玩家感谢」这一栏的类别里选。 */
+  const openAddPlayerBtn = document.getElementById('openAddPlayerBtn');
+  if (openAddPlayerBtn) openAddPlayerBtn.onclick = () => {
+    addThanksScope = 'players';
+    resetThanksForm();
+    applyThanksDropdownForPanel();
     openModal('addThanksModal');
   };
   document.getElementById('cancelAddThanks').onclick = () => {
@@ -1535,8 +1607,11 @@ async function handleExportSongs() {
 
 /* 鸣谢名单：排除「👑 赞助者」和「🚫 已删除赞助者」那两组
    （前者有自己单独的导出，后者是底档删除用的隐藏标记，都不是鸣谢内容），
-   字段对齐 data/thanks.json */
-async function handleExportThanks() {
+   字段对齐 data/thanks.json。
+   2026-10-05：加 scope 参数 —— 'roblox' 只导 Roblox 那一栏、'players' 只导「🙏 玩家感谢」那栏
+   （两栏的导出按钮各导各的；不传就按 Roblox 那一栏，兼容老调用）。 */
+async function handleExportThanks(scope) {
+  const wantPlayer = scope === 'players';
   try {
     const res = await fetch('/api/thanks?t=' + Date.now(), { credentials: 'include' });
     const data = await res.json();
@@ -1544,6 +1619,7 @@ async function handleExportThanks() {
     if (!Array.isArray(data)) { showToast('暂无鸣谢可导出'); return; }
     const groups = data
       .filter((cat) => cat && cat.category !== SPONSOR_CATEGORY && cat.category !== SPONSOR_HIDDEN_CATEGORY)
+      .filter((cat) => isPlayerThanksCategory(cat.category) === wantPlayer)
       .map((cat) => ({
         category: cat.category,
         people: (cat.people || []).map((p) => ({
@@ -1553,9 +1629,9 @@ async function handleExportThanks() {
         }))
       }));
     const total = groups.reduce((n, g) => n + g.people.length, 0);
-    if (!total) { showToast('暂无鸣谢可导出'); return; }
-    downloadJson(`thanks-${exportStamp()}.json`, groups);
-    showToast(`📤 已导出 ${total} 条鸣谢（格式同 data/thanks.json）`);
+    if (!total) { showToast(wantPlayer ? '暂无玩家感谢可导出' : '暂无鸣谢可导出'); return; }
+    downloadJson(`thanks-${wantPlayer ? 'players-' : ''}${exportStamp()}.json`, groups);
+    showToast(`📤 已导出 ${total} 条${wantPlayer ? '玩家感谢' : '鸣谢'}（格式同 data/thanks.json）`);
   } catch (err) {
     showToast('网络异常，导出失败');
   }
@@ -1596,8 +1672,8 @@ async function handleExportSponsors() {
 /* 2026-10-01 站主要求：宝库鸣谢上面的统计改成「那 3 个类别」——
    每个类别一张卡，显示这个类别有几个人。卡片按 D1 里实际的类别动态生成，
    以后加 / 删类别会自动跟着变，不用改代码。 */
-function renderThanksStats(groups) {
-  const box = document.getElementById('thanksStatGrid');
+function renderThanksStats(groups, gridId) {
+  const box = document.getElementById(gridId || 'thanksStatGrid');
   if (!box) return;
 
   box.innerHTML = '';
@@ -1651,39 +1727,57 @@ async function loadThanks() {
        （前端鸣谢页 thanks.html 早就跳过它了，后台这栏之前漏了过滤）。
        2026-10-01 又排除掉「🚫 已删除赞助者」——那是白天那版删除用过、
        现在已经废掉的隐藏标记类别，万一 D1 里还剩着，不许混进这份名单。
-       注意这两个字符串都是数据口径，别改。 */
+       注意这两个字符串都是数据口径，别改。
+       2026-10-05：再按「归属」拆成两份 —— 属于「🙏 玩家感谢」的类别进新子面板，
+       剩下的留在这一栏（规则见 isPlayerThanksCategory，跟 thanks.html 一模一样）。 */
     const groups = data.filter(cat => cat && cat.category !== SPONSOR_CATEGORY && cat.category !== SPONSOR_HIDDEN_CATEGORY);
+    const playerGroups = groups.filter(cat => isPlayerThanksCategory(cat.category));
+    const robloxGroups = groups.filter(cat => !isPlayerThanksCategory(cat.category));
 
     /* 2026-10-04：把已有的类别（含管理员自建的）补进「添加鸣谢」的类别下拉，
-       下次再添加同类鸣谢时直接选就行。 */
+       下次再添加同类鸣谢时直接选就行。两份都要补（下拉按栏过滤显示，见 applyThanksDropdownForPanel）。 */
     if (typeof window.syncThanksCategoryOptions === 'function') window.syncThanksCategoryOptions(groups);
 
-    /* 统计卡：只算真的有人在那儿的类别，跟列表口径一致 */
-    renderThanksStats(groups.filter(cat => (cat.people || []).length > 0));
+    /* 统计卡：只算真的有人在那儿的类别，跟各自列表口径一致 */
+    renderThanksStats(robloxGroups.filter(cat => (cat.people || []).length > 0), 'thanksStatGrid');
+    renderThanksStats(playerGroups.filter(cat => (cat.people || []).length > 0), 'playerThanksStatGrid');
 
     /* 平铺成「一行一个人」，好按 100 人一页翻（类别名跟着每个人走） */
     thanksCache = [];
-    groups.forEach(cat => {
+    robloxGroups.forEach(cat => {
       (cat.people || []).forEach(person => thanksCache.push({ category: cat.category, person }));
     });
     renderThanksPage();
+
+    playerThanksCache = [];
+    playerGroups.forEach(cat => {
+      (cat.people || []).forEach(person => playerThanksCache.push({ category: cat.category, person }));
+    });
+    renderPlayerThanksPage();
   } catch (err) {
     container.innerHTML = '<div class="empty-state">加载失败</div>';
     const pager = document.getElementById('thanksPager');
     if (pager) pager.hidden = true;
+    const pager2 = document.getElementById('playersPager');
+    if (pager2) pager2.hidden = true;
   }
 }
 
 /* 鸣谢名单：每页 100 人（2026-10-01 站主要求，跟宝库页一样） */
 let thanksCache = [];
 let thanksPage = 1;
+/* 🙏 玩家感谢那一栏的缓存与页码（2026-10-05 新增；跟上面那两份完全分开） */
+let playerThanksCache = [];
+let playerThanksPage = 1;
 
-function renderThanksPage() {
-  const container = document.getElementById('thanksList');
-  const pager = document.getElementById('thanksPager');
-  const total = thanksCache.length;
+/* 两栏共用这一套画法：容器 / 分页器 / 每页 100 人 / 类别标题 / 编辑删除按钮。
+   list：该栏的数据；pageKey：'thanks' | 'players'（决定用哪套缓存与页码变量）。 */
+function renderThanksListOf(containerId, pagerId, cache, page, onPageChange) {
+  const container = document.getElementById(containerId);
+  const pager = document.getElementById(pagerId);
+  if (!container) return;
 
-  thanksPage = clampPage(thanksPage, total);
+  const total = cache.length;
 
   if (total === 0) {
     container.innerHTML = '<div class="empty-state">暂无鸣谢</div>';
@@ -1691,8 +1785,8 @@ function renderThanksPage() {
     return;
   }
 
-  const start = (thanksPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = thanksCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const start = (page - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = cache.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   let lastCat = '';
@@ -1730,10 +1824,29 @@ function renderThanksPage() {
     btn.addEventListener('click', () => deleteThanks(Number(btn.dataset.id)));
   });
 
-  renderAdminPager(pager, total, thanksPage, '人', (p) => {
+  renderAdminPager(pager, total, page, '人', (p) => {
+    onPageChange(p);
+    scrollListIntoView(container);
+  });
+}
+
+/* 🎮 Roblox ID 宝库那一栏 */
+function renderThanksPage() {
+  thanksCache = thanksCache || [];
+  thanksPage = clampPage(thanksPage, thanksCache.length);
+  renderThanksListOf('thanksList', 'thanksPager', thanksCache, thanksPage, (p) => {
     thanksPage = p;
     renderThanksPage();
-    scrollListIntoView(container);
+  });
+}
+
+/* 🙏 玩家感谢那一栏（2026-10-05 新增） */
+function renderPlayerThanksPage() {
+  playerThanksCache = playerThanksCache || [];
+  playerThanksPage = clampPage(playerThanksPage, playerThanksCache.length);
+  renderThanksListOf('playersList', 'playersPager', playerThanksCache, playerThanksPage, (p) => {
+    playerThanksPage = p;
+    renderPlayerThanksPage();
   });
 }
 
@@ -1762,6 +1875,11 @@ function startEditThanks(entry) {
 
   editingThanksId = Number(person.id);
   const category = String(entry.category || '').trim();
+
+  /* 2026-10-05：这一条属于哪一栏（决定下拉里列哪些类别、保存时要不要补 🙏 前缀）。
+     从「🙏 玩家感谢」栏点编辑 → scope = players；从 Roblox 栏点 → roblox。 */
+  addThanksScope = isPlayerThanksCategory(category) ? 'players' : 'roblox';
+  if (typeof window.applyThanksDropdownForPanel === 'function') window.applyThanksDropdownForPanel();
 
   /* 自定义下拉：把对应选项点亮，并把标题文字换掉。
      2026-10-04 起类别可以自定义：如果这条记录的类别不在预设 / 已有列表里，
@@ -1858,7 +1976,7 @@ function resetThanksForm() {
 /* 添加 / 保存鸣谢 */
 async function handleAddThanks() {
   /* 2026-10-04：类别可能是自定义的，统一从 currentThanksCategory() 取 */
-  const category = currentThanksCategory();
+  let category = currentThanksCategory();
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
   const messageEl = document.getElementById('addThanksMessage');
@@ -1880,7 +1998,14 @@ async function handleAddThanks() {
     }
     return;
   }
-  if (category.length > 30) { showToast('类别最多 30 个字'); return; }
+  /* 2026-10-05：从「🙏 玩家感谢」那一栏新增/编辑时，自己起的类别名会自动补上「🙏 」前缀 ——
+     带这个前缀（或名字里含「玩家感谢」/「网站创新家」）的类别才会出现在鸣谢页的
+     「玩家感谢」栏里（归属规则见 isPlayerThanksCategory）。已经符合规则的就不再重复加。 */
+  if (addThanksScope === 'players' && !isPlayerThanksCategory(category)) {
+    category = PLAYER_THANKS_PREFIX + category;
+  }
+  /* 长度上限跟服务端一致（30 字），补前缀之后再算 */
+  if (category.length > 30) { showToast('类别最多 30 个字（玩家感谢那一栏会自动加「🙏 」前缀，也算在内）'); return; }
   if (!name) { showToast('请填写名字'); return; }
   /* 描述上限跟服务端 functions/api/thanks.js 对齐（200 字） */
   if (message.length > 200) { showToast('描述最多 200 个字'); return; }

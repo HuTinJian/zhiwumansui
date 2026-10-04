@@ -845,6 +845,9 @@
       <div class="subtabs subtabs-lv3" data-tabs-group="thanks">
         <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者</button>
         <button class="subtab" data-subpanel="thanks-panel">🎮 Roblox ID 宝库</button>
+        <!-- 2026-10-05 站主要求：新增「🙏 玩家感谢」子面板，跟 Roblox 那一栏一样可增 / 改 / 删、
+             支持自定义类别；鸣谢页上它是第三个切换，「网站创新家」从 Roblox 栏搬到了这里。 -->
+        <button class="subtab" data-subpanel="thanks-players">🙏 玩家感谢</button>
       </div>
 
       <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
@@ -912,6 +915,41 @@
             <div class="loading">加载中...</div>
           </div>
           <nav class="pager" id="thanksPager" aria-label="鸣谢分页" hidden></nav>
+        </div>
+      </div>
+
+      <!-- 子面板 · 🙏 玩家感谢（2026-10-05 站主要求新增）
+           跟「🎮 Roblox ID 宝库」那一栏完全同一套做法：可增 / 改 / 删、能自定义类别、
+           每页 100 人、能导出。归属规则见 js/admin.js 的 isPlayerThanksCategory()：
+           在这一栏新增的自定义类别会自动带上「🙏 」前缀，这样鸣谢页就知道该放进哪一栏。 -->
+      <div class="subpanel" id="thanks-players">
+        <div class="panel-card">
+          <h2>📈 数据统计</h2>
+          <div class="stat-grid" id="playerThanksStatGrid">
+            <div class="stat-card">
+              <div class="num">-</div>
+              <div class="label">加载中…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h2>
+            <span class="head-actions">
+              <button class="btn btn-secondary" id="exportPlayerThanksBtn">📤 导出</button>
+              <button class="btn btn-gold" id="openAddPlayerBtn">➕ 添加玩家感谢</button>
+            </span>
+          </h2>
+          <p class="panel-desc">
+            这一栏存 D1，鸣谢页「🙏 玩家感谢」那一栏读的就是它。「💡 网站创新家」已经归到这边了
+            （D1 里的类别名没变，页面按名字自动认栏，所以不用改数据库）。<br>
+            想加新的类别：点「➕ 添加玩家感谢」→ 类别选「✏️ 自定义类别…」自己起名字，
+            保存时会自动加上「🙏 」前缀 —— 加了这个前缀的类别才会出现在鸣谢页的「玩家感谢」栏里。
+          </p>
+          <div id="playersList">
+            <div class="loading">加载中...</div>
+          </div>
+          <nav class="pager" id="playersPager" aria-label="玩家感谢分页" hidden></nav>
         </div>
       </div>
     </div>
@@ -1048,10 +1086,13 @@
                  2026-10-05 补（站主要求）：类别名前也要有图标（跟下面几个一样），
                  所以统一叫「💡 网站创新家」—— data-value 与显示文字必须是同一个字符串，
                  D1 里存的就是它；改这里要同步 js/admin.js 的 MANUAL_NOTE_CATEGORY。 -->
-            <div class="select-option" data-value="💡 网站创新家">💡 网站创新家</div>
-            <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
-            <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
-            <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>
+            <!-- data-scope（2026-10-05）：这一项该出现在哪个子面板的下拉里 ——
+                 players = 只在「🙏 玩家感谢」里出现，roblox = 只在「🎮 Roblox ID 宝库」里出现。
+                 动态从 D1 补进来的类别不写这个属性，由 js/admin.js 按归属规则现算。 -->
+            <div class="select-option" data-value="💡 网站创新家" data-scope="players">💡 网站创新家</div>
+            <div class="select-option" data-value="🎬 ID公益UP主/作者" data-scope="roblox">🎬 ID公益UP主/作者</div>
+            <div class="select-option" data-value="📋 歌单整理者" data-scope="roblox">📋 歌单整理者</div>
+            <div class="select-option" data-value="💬 反馈贡献者" data-scope="roblox">💬 反馈贡献者</div>
             <!-- 2026-10-04 用户要求：类别不再固定这三个，可以自定义。
                  点下面这项会露出一个输入框，想叫什么名字就叫什么名字；
                  js/admin.js 还会把 D1 里已经存在的其它类别自动补进这个列表，

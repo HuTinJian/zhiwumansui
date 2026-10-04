@@ -153,6 +153,11 @@
               data-tab="sponsors" aria-selected="true" aria-controls="panelSponsors">👑 赞助者</button>
       <button type="button" class="seg-tab" id="tabRoblox" role="tab"
               data-tab="roblox" aria-selected="false" aria-controls="panelRoblox">🎮 Roblox ID 宝库</button>
+      <!-- 2026-10-05 站主要求：新增第三个切换「🙏 玩家感谢」，
+           原来挂在「🎮 Roblox ID 宝库」里的「💡 网站创新家」搬到这一栏
+           （归属规则见下面 renderPlayers 上面的注释）。 -->
+      <button type="button" class="seg-tab" id="tabPlayers" role="tab"
+              data-tab="players" aria-selected="false" aria-controls="panelPlayers">🙏 玩家感谢</button>
     </div>
 
     <!-- ==================== 面板一：👑 赞助者 ====================
@@ -195,6 +200,24 @@
         <a class="btn btn-secondary" href="roblox_music.html">🎮 去逛逛宝库 →</a>
       </p>
     </section>
+
+    <!-- ==================== 面板三：🙏 玩家感谢（2026-10-05 新增） ====================
+         站主要求：把原来挂在 Roblox 那一栏的「网站创新家」搬到这个新栏里；
+         归属规则写在脚本里（isPlayerThanks）：类别名以 🙏 开头、或含「玩家感谢」、
+         或含「网站创新家」的，都归这一栏 —— 所以后台在「🙏 玩家感谢」子面板里新增的
+         自定义类别也会自动落到这里，不用改代码。 -->
+    <section class="seg-panel" id="panelPlayers" role="tabpanel"
+             aria-labelledby="tabPlayers" tabindex="0" hidden>
+      <div class="thanks-groups" id="playerGroups" aria-busy="true">
+        <div class="thanks-empty" id="playerLoading">加载中…</div>
+      </div>
+      <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
+
+      <p class="thanks-foot">谢谢这些为网站出过主意的玩家。</p>
+      <p class="thanks-foot-actions">
+        <a class="btn btn-secondary" href="roblox_music.html">🎮 去看看宝库 →</a>
+      </p>
+    </section>
   </main>
 
   <!-- ==================== 页脚 ==================== -->
@@ -228,6 +251,30 @@
          ⚠️ 同样是数据口径，改它要跟后台 js/admin.js 一起改。 */
       var SPONSOR_HIDDEN_CATEGORY = '🚫 已删除赞助者';
 
+      /* ============================================================
+         2026-10-05 站主要求：新增「🙏 玩家感谢」这一栏，把原本挂在
+         「🎮 Roblox ID 宝库」里的「💡 网站创新家」搬过来。
+         ------------------------------------------------------------
+         归属规则（页面 + 后台 js/admin.js 必须完全一致，改一处要改两处）：
+           一个类别属于「玩家感谢」当且仅当满足任一条 ——
+             ① 名字以 🙏 开头（后台在玩家感谢那一栏新增/自定义时自动补这个前缀）
+             ② 名字里含「玩家感谢」
+             ③ 名字里含「网站创新家」（就是这次搬过来的那一类；
+                D1 里存的仍然是「💡 网站创新家」，所以**不用改数据库**）
+           其余类别（除 👑 赞助者 与那个隐藏标记）都归「🎮 Roblox ID 宝库」。
+         ============================================================ */
+      var PLAYER_THANKS_MARK = '🙏';
+      var PLAYER_THANKS_KEYWORD = '玩家感谢';
+      var INNOVATOR_KEYWORD = '网站创新家';
+
+      function isPlayerThanks(cat) {
+        var name = String((cat && cat.category) || cat || '');
+        if (!name) return false;
+        if (name.indexOf(PLAYER_THANKS_MARK) !== -1) return true;
+        if (name.indexOf(PLAYER_THANKS_KEYWORD) !== -1) return true;
+        return name.indexOf(INNOVATOR_KEYWORD) !== -1;
+      }
+
       $('year').textContent = new Date().getFullYear();
 
       /* 版本更新检查（跟其它页一样，带页面对应的 key） */
@@ -253,10 +300,14 @@
          ① 切换选择器
          ============================================================ */
       var tabs = Array.prototype.slice.call(document.querySelectorAll('.seg-tab'));
-      var panels = { sponsors: $('panelSponsors'), roblox: $('panelRoblox') };
+      var panels = { sponsors: $('panelSponsors'), roblox: $('panelRoblox'), players: $('panelPlayers') };
 
-      /* 只认这两个值，别的一律当默认的那一个 */
-      function normalize(name) { return name === 'roblox' ? 'roblox' : 'sponsors'; }
+      /* 只认这三个值，别的一律当默认的那一个（2026-10-05 起多了 players） */
+      function normalize(name) {
+        if (name === 'roblox') return 'roblox';
+        if (name === 'players') return 'players';
+        return 'sponsors';
+      }
 
       function show(name, syncUrl) {
         name = normalize(name);
@@ -293,7 +344,7 @@
         });
 
         /* 键盘：左右（上下）方向键换名单，Home / End 跳首尾。
-           两个选项都是原生 button，Tab 键本来就能聚焦，这里只是补上方向键。 */
+           三个选项都是原生 button，Tab 键本来就能聚焦，这里只是补上方向键。 */
         btn.addEventListener('keydown', function (e) {
           var next = null;
           if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(index + 1) % tabs.length];
@@ -409,52 +460,54 @@
            第三个参数（后台那份）先入列 → 同名的以后台为准，底档里剩下的才追加 */
         renderSponsors(fileList, Array.isArray(groups), sponsors);
         renderRoblox(groups);
+        renderPlayers(groups);   /* 2026-10-05：新增的「🙏 玩家感谢」那一栏 */
       });
 
       /* ============================================================
-         ③ 🎮 Roblox ID 宝库名单：照 /api/thanks 的类别分组渲染
-            （渲染与转义做法沿用原宝库页弹窗那一版，所有插值都过 esc）
+         ③ 名单渲染：「🎮 Roblox ID 宝库」与「🙏 玩家感谢」两栏
+            （2026-10-05：站主要求把「网站创新家」从 Roblox 那栏搬到新的
+              「🙏 玩家感谢」栏；两栏用同一套渲染，只是过滤条件相反 ——
+              归属规则见文件上面的 isPlayerThanks）
          ============================================================ */
-      /* 2026-10-05（站主要求）：鸣谢新增类别「网站创新家」，它的描述是**站主自己手写**的，
-         而且整个类别在页面上要跟别的类别长得明显不一样 —— 所以单独走一套渲染：
-         一位创新家一张独立卡片、描述用带左侧色条的引用块（pre-line 保留换行）。
+      /* 「网站创新家」那一类是**站主自己手写**的描述，而且在整个页面上要跟别的类别
+         长得明显不一样 —— 所以单独走一套卡片写法：一位创新家一张独立卡片、
+         描述用带左侧色条的引用块（pre-line 保留换行）。
          样式在页面顶部的 <style> 块里（.thanks-group-innovator 那一套）。
-         数据口径（2026-10-05 更新）：站主后来说「网站创新家前面也要有个图标」，
-         所以后台下拉里那一项现在就叫「💡 网站创新家」，D1 里存的是这个带图标的字符串。
-         这里用 indexOf 宽松匹配「网站创新家」四个字 —— 带不带 💡 都认得出来
-         （旧数据/手填的裸名字也照旧走这套卡片）。 */
+         数据口径：后台下拉里那一项叫「💡 网站创新家」，D1 里存的就是这个带图标的字符串；
+         这里用 indexOf 宽松匹配「网站创新家」四个字 —— 带不带 💡 都认得出来。 */
       var INNOVATOR_CATEGORY = '网站创新家';
 
       function isInnovator(cat) {
         return String((cat && cat.category) || '').indexOf(INNOVATOR_CATEGORY) !== -1;
       }
 
-      function renderRoblox(groups) {
-        var box = $('thanksGroups');
+      /* 把一组类别画进指定容器；wantPlayer=true 只画「玩家感谢」的，
+         false 只画 Roblox 宝库的。两栏共用这一个渲染器，别再各写一份。 */
+      function renderGroupList(box, groups, wantPlayer, emptyText) {
         if (!box) return;
+        box.removeAttribute('aria-busy');
 
-        if (!Array.isArray(groups) || groups.length === 0) {
-          box.innerHTML = '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
-          box.removeAttribute('aria-busy');
+        var list = (Array.isArray(groups) ? groups : []).filter(function (cat) {
+          if (!cat || !cat.people || cat.people.length === 0) return false;
+          /* 赞助者（👑 赞助者）在上面那一栏专门展示；「🚫 已删除赞助者」是底档删除用的
+             隐藏标记 —— 两个都跳过（同一个机构/人不在两个 tab 里重复出现）。 */
+          if (cat.category === SPONSOR_CATEGORY) return false;
+          if (cat.category === SPONSOR_HIDDEN_CATEGORY) return false;
+          return isPlayerThanks(cat) === !!wantPlayer;
+        });
+
+        if (list.length === 0) {
+          box.innerHTML = '<div class="thanks-empty">' + esc(emptyText || '暂无鸣谢名单 ❤️') + '</div>';
           return;
         }
 
         var html = '';
-        groups.forEach(function (cat) {
-          if (!cat || !cat.people || cat.people.length === 0) return;
-          /* 赞助者（👑 赞助者）上面那一栏已经专门展示了，这里跳过 ——
-             同一个机构/人不在两个 tab 里重复出现（它们本来就是两个名单）。
-             2026-10-01：底档删除用的「🚫 已删除赞助者」隐藏标记也跳过。 */
-          if (cat.category === SPONSOR_CATEGORY) return;
-          if (cat.category === SPONSOR_HIDDEN_CATEGORY) return;
-
+        list.forEach(function (cat) {
           /* ---- 「网站创新家」：独立卡片的一套写法（见上面那段注释） ---- */
           if (isInnovator(cat)) {
-            /* 2026-10-05 站主要求：「网站创新家前面也要有个图标」——
-               现在类别名本身就是「💡 网站创新家」（后台下拉存进 D1 的就是这个字符串），
-               所以图标由名字自带，这里不再额外画徽标，免得变成「💡 💡 网站创新家」。
-               兜底：万一拿到的是不带图标的旧数据（比如以前手填过「网站创新家」），
-               才把那枚圆形徽标补上，视觉上仍然有图标。 */
+            /* 2026-10-05 站主要求：类别名本身带图标（「💡 网站创新家」），
+               所以这里不再额外画徽标，免得变成「💡 💡 网站创新家」；
+               兜底：旧数据（名字里没有 💡）才补上那枚圆形徽标。 */
             var catHasIcon = String(cat.category || '').indexOf('💡') !== -1;
             html += '<div class="thanks-group thanks-group-innovator">';
             html += '<div class="cat-title cat-title-innovator">' +
@@ -478,7 +531,7 @@
 
           html += '<div class="thanks-group">';
           html += '<div class="cat-title">' + esc(cat.category) + '</div>';
-          /* 每个类别自己是一列（三个类别并排，由 css 的 .thanks-groups 栅格决定），
+          /* 每个类别自己是一列（几个类别并排，由 css 的 .thanks-groups 栅格决定），
              下面这些人就竖着往下排 —— 2026-09-26 用户澄清过这一点 */
           html += '<div class="thanks-people">';
           cat.people.forEach(function (p) {
@@ -492,8 +545,17 @@
           html += '</div>';
         });
 
-        box.innerHTML = html || '<div class="thanks-empty">暂无鸣谢名单 ❤️</div>';
-        box.removeAttribute('aria-busy');
+        box.innerHTML = html;
+      }
+
+      /* 🎮 Roblox ID 宝库：不含任何「玩家感谢」类别 */
+      function renderRoblox(groups) {
+        renderGroupList($('thanksGroups'), groups, false, '暂无鸣谢名单 ❤️');
+      }
+
+      /* 🙏 玩家感谢：只画「玩家感谢」类别（2026-10-05 新增） */
+      function renderPlayers(groups) {
+        renderGroupList($('playerGroups'), groups, true, '暂无玩家感谢 ❤️');
       }
     })();
   </script>

@@ -1240,11 +1240,14 @@ body.modal-open .particles i { animation-play-state: paused; }
 /* 「🎮 Roblox ID 宝库」那一栏：**类别并排成三列**（2026-09-26 用户澄清：
    是「🎬 ID公益UP主/作者 / 💬 反馈贡献者 / 📋 歌单整理者」这三个类别分三列，
    不是类别里的人分三列 —— 每个类别自己是一列，人在这列里竖着往下排）。
-   auto-fit + 1fr：窗口宽就是三列，窄了自动变两列 / 一列。 */
+   auto-fit + 1fr：窗口宽就是三列，窄了自动变两列 / 一列。
+   2026-10-05 站主要求「每个栏目的距离增大一点，间距小」→
+   列间距 18px → 44px、行间距 22px → 30px（列多了也不会挤成一坨；
+   单列的手机上列间距用不到，不会有副作用）。 */
 .thanks-groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 22px 18px;
+  gap: 30px 44px;
   align-items: start;
 }
 .thanks-group {
