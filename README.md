@@ -390,14 +390,14 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
 | **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来（汇总卡 + 📢 访问渠道来源）；点「🔄 刷新」重新拉一次。**（2026-10-01）歌曲管理 / 开发者隔离区 / 鸣谢名单三个面板上面也各有一块自己的统计卡**，切到那个面板就是最新数字 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
 | **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改。**2026-10-04：数字改成 `¥151.36`、核对日期 `2026-10-04`** |
-| **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 2026-10-04 按用户要求，在「花了多少钱」右边加了第二块（`.hero-sponsor-cost-got`，占位属性 `data-sponsor-total`）。它**每次打开首页现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准（口径和鸣谢页完全一致）。接口挂掉时保留 `index.html` 里写死的兜底数字 `¥25`，不会显示半份数据算出来的偏小值 |
+| **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 2026-10-04 按用户要求，在「花了多少钱」右边加了第二笔账（`.hero-sponsor-cost-got`，占位属性 `data-sponsor-total`）。它**每次打开首页现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准（口径和鸣谢页完全一致）。接口挂掉时保留 `index.html` 里写死的兜底数字 `¥25`，不会显示半份数据算出来的偏小值。**「截至 xxxx-xx-xx」那一行由两笔账共用**（`.hero-sponsor-stats-date`，占位属性仍是 `data-site-cost-date`），不再只挂在花费上 |
 | **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗），**右边那一小块就是「本站花了多少钱」**（`.hero-sponsor-cost`）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里两个切换：**👑 赞助者 / 🎮 Roblox ID 宝库**，导航栏和页脚都有入口；宝库页原来那个鸣谢弹窗现在直接跳到这个页面，不再单独弹 |
 | **🎮 Roblox ID 宝库（鸣谢名单）里的人和话** | 后台 →「❤️ 鸣谢名单」→「🎮 Roblox ID 宝库」（存 D1）+ 本地档案 `data/thanks.json` | 页面读的是 `GET /api/thanks`（结构 `[{category, people:[{name, platform, message}]}]`，类别如 `🎬 ID公益UP主/作者`、`💬 反馈贡献者`）；`data/thanks.json` 是同结构的**本地档案**（存档、对账用，**页面不读它**）；后台那栏能直接改 / 删（存 D1） |
 | **👑 赞助者里的人和金额** | 后台 →「❤️ 鸣谢名单」→「👑 赞助者」（存 D1）+ 底档 `data/sponsors.json` | 页面上两处合并显示、**同名的以后台那条为准**；类别固定 `'👑 赞助者'`（**这个字符串是数据口径，别改**），**金额写在 `platform` 字段**（例 `¥10`）、感谢语写在 `message`。后台那栏每条都能「✏️ 编辑 / 🗑️ 删除」，**删除就是真删**；底档文件里那几位不受后台管，要改要删让 AI 改文件后推送。**首页那块「收到赞助」也是按同一份数据现算的**（见上面那行） |
 | **首页最上面那条滚动公告** | `index.html`（位置 + 文案）+ `js/common.js`（弹窗本体 `showSiteNotice`） | 2026-10-04 起它就在**导航栏正下方**，是一条通栏走马灯：轨道里放两份一模一样的文案，CSS 动画左移 50% 做无缝循环（悬停暂停）。改文案要**两份一起改**（第二份带 `aria-hidden="true"`），否则接缝会露馅 |
-| **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-share` 属性的元素，点一下就会弹出分享弹窗（现在：首页 hero 的「🔗 分享本站」、宝库页工具栏的「🔗 分享给朋友」）。弹窗里是「复制文案 + 链接 / 系统分享（手机原生）/ 只复制链接」，站点地址写在 `SHARE_SITE`。想加入口就在任意页面加 `data-share` 属性即可，不用写 JS |
+| **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-share` 属性的元素，点一下就会弹出分享弹窗（现在：首页 hero 的「🔗 分享本站」、宝库页工具栏的「🔗 分享给朋友」）。弹窗里四个按钮：**复制文案 + 链接 / 只复制文案 / 只复制链接 / 系统分享**（手机原生菜单，浏览器支持时才显示）；推荐文案是 `SHARE_TEXT`（纯文案），带链接那份由 `shareTextWithLink()` 拼（文案换行 + `分享给你看看 → 网址`），站点地址写在 `SHARE_SITE`。想加入口就在任意页面加 `data-share` 属性即可，不用写 JS |
 | **反馈表单哪些必须填** | `feedback.html` + `functions/api/feedback.js` | **2026-10-04 起：称呼和描述默认都是选填**，什么都不写也能提交；**只有类型选「卡片1 · Roblox ID 宝库」时称呼必填**（描述仍然可以不写）。前端标记 `.field-flag`、后端那道校验（`type === '卡片1' && !name` → 400）**两边都要改**，别只改一边 |
 | **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→「➕ 添加鸣谢」 | 2026-10-04 起类别可以**自定义**：下拉最后一项「✏️ 自定义类别…」会露出输入框，自己起名字（≤30 字）。D1 里已经存在的类别（含自建的）会自动补进下拉，下次直接选。底档 / 后台存进 D1 的字符串就是类别名，`thanks.html` 按它分块显示 |
 | **宝库页隔离区的反馈入口** | `roblox_music.html`（`#quarantineFeedbackBtn`）+ `feedback.html` 的深链 | 「⛔ 我的隔离区」弹窗里那颗「💬 去反馈」跳到 `feedback.html?type=card1&upload=1`：反馈页会自动选中「Roblox ID 宝库」，并且本地隔离区非空时顺手钩上「上传隔离区 ID」 |
@@ -824,12 +824,17 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 2. 首页赞赏块右边加了**「收到赞助」**：`js/common.js` 的 `fillSponsorTotal()`
    按 **D1（`👑 赞助者` 的 `platform`）+ 底档 `data/sponsors.json`（`amount`）** 现算，
    同名以 D1 为准；接口挂了保留 HTML 兜底，绝不显示半份数据的错数。
+   **当晚又按用户要求把「截至 xxxx-xx-xx」抽出来，做成两笔账共用的一行**
+   （`.hero-sponsor-stats` = 整块 → `.hero-sponsor-nums` 两个数字 + `.hero-sponsor-stats-date` 共用日期；
+   桌面压在两个数字下面居中，手机上整块换行、两个数字并排、日期在下一行）。
 3. 花费数字 **`¥141.51` → `¥151.36`**（`js/common.js` 的 `SITE_COST.amount` +
    `index.html` 的兜底 + `checkedAt` 改成 `2026-10-04`）。
 4. **分享本站**：`js/common.js` 里新增 `buildShareModal()` / `openShareModal()` /
    `initShareTriggers()`（事件委托 `[data-share]`），样式在 `css/style.css` 的
    「分享本站弹窗」段。入口：首页 hero「🔗 分享本站」、宝库页工具栏「🔗 分享给朋友」。
    零依赖、不联网：复制走 `copyText()`，手机上还能调 `navigator.share`。
+   弹窗里四个按钮：**复制文案 + 链接 / 只复制文案 / 只复制链接 / 系统分享**——
+   「只复制文案」是当晚按用户要求补的，复制的是 `SHARE_TEXT`（纯推荐语、不带网址）。
 5. **反馈的称呼 / 描述改成选填**，但**选「Roblox ID 宝库」（卡片1）时称呼必填**：
    `feedback.html`（标记 `.field-flag` + 提交前校验）和 `functions/api/feedback.js`
    （服务端再兜一道）都改了。称呼为空的反馈在后台显示成「（未填称呼）」，

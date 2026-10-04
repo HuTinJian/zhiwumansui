@@ -181,16 +181,23 @@ async function fillSponsorTotal() {
    ------------------------------------------------------------
    设计（尽量简单、零成本、不依赖任何第三方 SDK）：
      ① 入口：页面上任何带 data-share 属性的元素都能唤起弹窗（事件委托，只绑一次）；
-     ② 弹窗里给三件事：现成的推荐文案、系统分享（手机原生菜单）、只复制链接；
+     ② 弹窗里给四件事：复制「文案 + 链接」、只复制文案、只复制链接、
+        系统分享（手机原生菜单，浏览器支持时才显示）；
      ③ 复制走本文件自己的 copyText()（带超时回退），成功/失败都给一句 toast；
      ④ 文案里自带站点地址，别人粘贴出去，链接就跟着走。
    不联网、不埋点、不弹第三方窗口；用户取消系统分享不算错误。
    ============================================================ */
 const SHARE_SITE = 'https://zhiwumansui.pages.dev';
 const SHARE_TITLE = '织雾满穗';
+/* 推荐文案（不带网址）——「只复制文案」就是它，逐字可读、不带尾巴 */
 const SHARE_TEXT =
   '我发现一个小站「织雾满穗」：Roblox 音乐/音效 ID 宝库，能搜索、能筛选、一键复制，手机也能用，' +
-  '还有几个打开就能用的小工具。分享给你看看 → ';
+  '还有几个打开就能用的小工具。';
+
+/* 「文案 + 链接」：在推荐语后面换一行接网址，粘出去既有话说又有链接 */
+function shareTextWithLink() {
+  return SHARE_TEXT + '\n分享给你看看 → ' + SHARE_SITE;
+}
 
 function buildShareModal() {
   let modal = document.getElementById('shareModal');
@@ -210,10 +217,12 @@ function buildShareModal() {
       <textarea class="share-text" id="shareText" rows="4" readonly aria-labelledby="shareTextLabel"></textarea>
       <div class="share-actions">
         <button type="button" class="btn btn-primary" id="shareCopyAll">📋 复制文案 + 链接</button>
-        <button type="button" class="btn btn-secondary" id="shareNative" hidden>📤 系统分享</button>
+        <button type="button" class="btn btn-secondary" id="shareCopyText">📄 只复制文案</button>
         <button type="button" class="btn btn-secondary" id="shareCopyLink">🔗 只复制链接</button>
+        <button type="button" class="btn btn-secondary" id="shareNative" hidden>📤 系统分享</button>
       </div>
-      <p class="share-tips">💡 手机上点「系统分享」可以直接发给微信 / QQ 好友；电脑上复制文案后粘贴到群里就行。</p>
+      <p class="share-tips">💡 只想要一段话就点「📄 只复制文案」；想带上网址就点「📋 复制文案 + 链接」；
+        手机上点「📤 系统分享」可以直接发给微信 / QQ 好友。</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="shareClose">关闭</button>
       </div>
@@ -222,14 +231,18 @@ function buildShareModal() {
   document.body.appendChild(modal);
 
   const textEl = document.getElementById('shareText');
-  textEl.value = SHARE_TEXT + SHARE_SITE;
+  textEl.value = shareTextWithLink();
 
   const nativeBtn = document.getElementById('shareNative');
   if (nativeBtn && navigator.share) nativeBtn.hidden = false;
 
   document.getElementById('shareCopyAll').addEventListener('click', async () => {
     const ok = await copyText(textEl.value);
-    showToast(ok ? '📋 已复制，粘贴到群里就能分享' : '复制失败，请手动选中上面的文字复制');
+    showToast(ok ? '📋 已复制「文案 + 链接」，粘贴到群里就能分享' : '复制失败，请手动选中上面的文字复制');
+  });
+  document.getElementById('shareCopyText').addEventListener('click', async () => {
+    const ok = await copyText(SHARE_TEXT);
+    showToast(ok ? '📄 已复制文案（不含链接）' : '复制失败，请手动选中上面的文字复制');
   });
   document.getElementById('shareCopyLink').addEventListener('click', async () => {
     const ok = await copyText(SHARE_SITE);

@@ -274,24 +274,39 @@
     .hero-sponsor-s b { color: var(--primary-ink); font-weight: 800; }
     .hero-sponsor-h { font-size: 0.74rem; color: var(--text-muted); }
 
-    /* 金额那一小块：单独一块，贴在赞赏码右边（用户 2026-09-30 要求），
+    /* 金额那一块：单独一块，贴在赞赏码右边（用户 2026-09-30 要求），
        和左边那列文案用一条浅色竖虚线隔开。
-       2026-10-04 用户要求：在这块后面再加一块「收到的赞助」（.hero-sponsor-cost-got），
-       两块并排、同样用虚线隔开。
+       2026-10-04 用户要求：在这块后面再加一笔「收到的赞助」，并且
+       「截至 xxxx-xx-xx」这个时间要【花费和赞助共用】——
+       所以现在是一整块里放两笔账 + 一行共用日期：
+         .hero-sponsor-stats       整块（左边那条竖虚线挂在它身上）
+           ├ .hero-sponsor-nums    两个数字并排（共花费 / 收到赞助）
+           └ .hero-sponsor-stats-date  共用的「截至 xxxx-xx-xx」
        数字 / 日期都由 js/common.js 启动时回填：
-         · 花费   → fillSiteCost()，占位属性 data-site-cost / data-site-cost-date
-         · 赞助   → fillSponsorTotal()，占位属性 data-sponsor-total（按 D1 + 底档现算）
+         · 花费 → fillSiteCost()，占位属性 data-site-cost / data-site-cost-date
+         · 赞助 → fillSponsorTotal()，占位属性 data-sponsor-total（按 D1 + 底档现算）
        HTML 里写的那份只是没脚本时的兜底，改数字时记得一起改。 */
+    .hero-sponsor-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      margin-left: 4px;
+      padding-left: 18px;
+      border-left: 1px dashed var(--border);
+      white-space: nowrap;
+    }
+    .hero-sponsor-nums {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
     .hero-sponsor-cost {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 1px;
-      margin-left: 4px;
-      padding-left: 18px;
-      border-left: 1px dashed var(--border);
-      white-space: nowrap;
     }
     .hero-sponsor-cost b {
       font-size: 1.16rem;
@@ -300,6 +315,8 @@
       letter-spacing: -0.3px;
     }
     .hero-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
+    /* 共用的那一行日期：两笔账一起看，所以压在两个数字下面居中 */
+    .hero-sponsor-stats-date { letter-spacing: 0.2px; }
     /* 「收到赞助」那一块换个颜色：一眼分得清「花出去的」和「收到的」 */
     .hero-sponsor-cost-got b { color: var(--success); }
 
@@ -478,17 +495,17 @@
          flex: 1 1 0 是必需的 —— 不加的话文案那列按「不换行有多宽」参与换行计算，
          会被挤到自己单独一行（二维码孤零零留在上面）。 */
       .hero-sponsor-txt { flex: 1 1 0; min-width: 0; }
-      .hero-sponsor-cost {
+      /* 整块（两笔账 + 共用日期）占满一行；两个数字并排、日期在下面居中 */
+      .hero-sponsor-stats {
         flex: 1 1 100%;
-        flex-direction: row;
-        align-items: baseline;
-        justify-content: center;
-        gap: 8px;
         margin-left: 0;
         padding: 8px 0 2px;
         border-left: none;
         border-top: 1px dashed var(--border);
+        gap: 4px;
       }
+      .hero-sponsor-nums { gap: 22px; }
+      .hero-sponsor-cost { flex-direction: row; align-items: baseline; gap: 8px; }
       .hero-sponsor-cost b { font-size: 1.05rem; }
       .section-head { margin: 42px 0 16px; }
       .content-grid { grid-template-columns: 1fr; }
@@ -573,13 +590,23 @@
           <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
           <span class="hero-sponsor-h">点我看大图 · 扫一扫就是最大的支持</span>
         </span>
-        <span class="hero-sponsor-cost">
-          <b data-site-cost>¥151.36</b>
-          <span class="hero-sponsor-cost-d">共花费 · 截至 <span data-site-cost-date>2026-10-04</span></span>
-        </span>
-        <span class="hero-sponsor-cost hero-sponsor-cost-got">
-          <b data-sponsor-total>¥25</b>
-          <span class="hero-sponsor-cost-d">收到赞助</span>
+        <!-- 两笔账 + 一行【共用】的核对日期（2026-10-04 用户要求：
+             「截至」那个时间由花费和赞助共用，不再只挂在花费那一块上）。
+             结构：.hero-sponsor-stats = 整块（负责左边那条竖虚线）
+                     ├ .hero-sponsor-nums      两个数字并排（共花费 / 收到赞助）
+                     └ .hero-sponsor-stats-date 共用的「截至 xxxx-xx-xx」 -->
+        <span class="hero-sponsor-stats">
+          <span class="hero-sponsor-nums">
+            <span class="hero-sponsor-cost">
+              <b data-site-cost>¥151.36</b>
+              <span class="hero-sponsor-cost-d">共花费</span>
+            </span>
+            <span class="hero-sponsor-cost hero-sponsor-cost-got">
+              <b data-sponsor-total>¥25</b>
+              <span class="hero-sponsor-cost-d">收到赞助</span>
+            </span>
+          </span>
+          <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-10-04</span></span>
         </span>
       </button>
     </section>
