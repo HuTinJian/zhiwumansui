@@ -16,20 +16,31 @@
      · 鸣谢类别新增「网站创新家」，该类别的描述由站主手写、绝不自动代写。
    ============================================================ */
 
-/* 「网站创新家」这个类别的名字跟数据口径绑着（D1 里存的就是这五个字），别改。
-   2026-10-05 站主明确：这一栏的描述他自己手写，所以代码里写死「绝不自动代写」。 */
-const MANUAL_NOTE_CATEGORY = '网站创新家';
+/* 「💡 网站创新家」这个类别的名字跟数据口径绑着（D1 里存的就是带图标的这七个字符），别改。
+   2026-10-05 站主明确：这一栏的描述他自己手写，所以代码里写死「绝不自动代写」。
+   2026-10-05 补：站主说「网站创新家前面也要有个图标」→ 类别名统一带上 💡
+   （跟别的类别 `🎬 ID公益UP主/作者` / `💬 反馈贡献者` 一样，前面的图标属于名字的一部分，
+   后台下拉、D1、鸣谢页显示的是同一个字符串）。判断用 indexOf 宽松匹配，
+   这样以前存成不带图标的「网站创新家」的老数据（如果以后有）也照样算数。 */
+const MANUAL_NOTE_CATEGORY = '💡 网站创新家';
+const MANUAL_NOTE_KEYWORD = '网站创新家';
 
 /* 弹窗里那个「✍️ 描述由我手写」勾选框是不是「系统替站主勾的」
    （类别选到网站创新家时自动勾上；切走类别要把这一下撤掉，站主自己点的勾永远不动） */
 let manualNoteAuto = false;
+
+/* 这个类别是不是「网站创新家」（带不带 💡 都算）。
+   三个地方要判它：勾选框自动勾上、自动代写拦一道、编辑时回填 —— 判断只留这一份。 */
+function isInnovatorCategory(cat) {
+  return String(cat === undefined || cat === null ? '' : cat).indexOf(MANUAL_NOTE_KEYWORD) !== -1;
+}
 
 /* 现在到底要不要「不自动代写」：勾选框勾着，或者类别就是网站创新家。
    两个地方（自动代写、提交保存）都走这一个判断，口径只有一处。 */
 function isManualThanksNote() {
   const el = document.getElementById('addThanksManualNote');
   if (el && el.checked) return true;
-  return currentThanksCategory() === MANUAL_NOTE_CATEGORY;
+  return String(currentThanksCategory() || '').indexOf(MANUAL_NOTE_KEYWORD) !== -1;
 }
 
 /* 给统计卡安全赋值：元素不在页面上（比如以后又删了某张卡）就安静跳过，
@@ -188,6 +199,25 @@ function scrollListIntoView(el) {
      —— 原来这里是「➕ 添加隔离歌曲」弹窗的三条绑定，那个弹窗随旧隔离区面板删了。 */
   bindInvalidPanel();
 
+  /* 🎶 歌曲管理的搜索框（2026-10-05 站主要求）：输入停 150ms 再重画，页码回到第 1 页；
+     ESC 一键清空（跟宝库页搜索框一个手感）。 */
+  const songSearchEl = document.getElementById('songSearch');
+  if (songSearchEl) {
+    const applySongSearch = debounce(() => {
+      songSearch = songSearchEl.value || '';
+      songPage = 1;
+      renderSongPage();
+    }, 150);
+    songSearchEl.addEventListener('input', applySongSearch);
+    songSearchEl.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      songSearchEl.value = '';
+      songSearch = '';
+      songPage = 1;
+      renderSongPage();
+    });
+  }
+
   /* 歌曲管理按钮（2026-09-29 用户要求把「➕ 添加歌曲」和「📤 导出」两个按钮拿掉，
      只服务于它们的弹窗和处理函数也一并删了；「📥 导入」是在 admin.html 的内联脚本里
      单独绑的，跟这里无关）。所以这一块现在只剩「🧹 清空」一条绑定。 */
@@ -287,7 +317,7 @@ function scrollListIntoView(el) {
   function syncManualNoteWithCategory() {
     const el = manualNoteEl();
     if (!el) return;
-    if (currentThanksCategory() === MANUAL_NOTE_CATEGORY) {
+    if (isInnovatorCategory(currentThanksCategory())) {
       if (!el.checked) { el.checked = true; manualNoteAuto = true; }
       return;
     }
@@ -459,8 +489,9 @@ function buildSmartThanksNote(category, name, platform) {
   const at = plat ? '在' + plat : '';
 
   /* 2026-10-05 站主要求：类别 = 网站创新家 时描述由站主手写，一个字都不许代写。
-     这里再兜一道 —— 万一以后哪里漏了判断，也会返回空串（调用方拿到空串就不填）。 */
-  if (cat === MANUAL_NOTE_CATEGORY) return '';
+     这里再兜一道 —— 万一以后哪里漏了判断，也会返回空串（调用方拿到空串就不填）。
+     用关键字宽松判断：类别名带不带 💡 都算（见 MANUAL_NOTE_KEYWORD 的注释）。 */
+  if (isInnovatorCategory(cat)) return '';
 
   let options;
   if (cat.indexOf('ID公益') !== -1 || cat.indexOf('UP主') !== -1 || cat.indexOf('作者') !== -1) {
@@ -584,6 +615,32 @@ let invalidRemovedError = '';
 /* 当前在哪一段：pending / ignored / removed，跟着三段按钮上的 data-seg 走 */
 let invalidSeg = 'pending';
 
+/* 2026-10-05 站主要求：三个分类各自搜索自己的（互不影响）。
+   空串 = 这一段不过滤；匹配 ID / 歌名 / 分类 / 来源，忽略大小写。 */
+const invalidSearch = { pending: '', ignored: '', removed: '' };
+
+/* 按该段的搜索词过滤。三段的分页都基于「过滤后的结果」，所以页码也会跟着重算。 */
+function filterInvalidList(list, seg) {
+  const kw = String(invalidSearch[seg] || '').trim().toLowerCase();
+  if (!kw) return list;
+  return list.filter(it => (
+    String(it.id || '').toLowerCase().indexOf(kw) !== -1 ||
+    String(it.name || '').toLowerCase().indexOf(kw) !== -1 ||
+    String(it.category || '').toLowerCase().indexOf(kw) !== -1 ||
+    String(it.source || '').toLowerCase().indexOf(kw) !== -1
+  ));
+}
+
+/* 搜索框右边那句「匹配 N 条 / 共 M 条」；没输入搜索词时清空（不占地方） */
+function updateInvalidSearchInfo(seg, matched, total) {
+  const id = 'invalid' + seg.charAt(0).toUpperCase() + seg.slice(1) + 'SearchInfo';
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = String(invalidSearch[seg] || '').trim()
+    ? '匹配 ' + matched.toLocaleString('en-US') + ' 条 / 共 ' + total.toLocaleString('en-US') + ' 条'
+    : '';
+}
+
 /* 统计卡上的数字：拿不到就显示 '-'（「不知道」和「0 条」是两回事） */
 function invalidStatNum(v) {
   if (v === undefined || v === null || v === '' || isNaN(Number(v))) return '-';
@@ -696,18 +753,23 @@ function renderInvalidPending() {
   const pager = document.getElementById('invalidPendingPager');
   if (!container) return;
 
-  const total = invalidPendingCache.length;
+  const all = invalidPendingCache;
+  const list = filterInvalidList(all, 'pending');
+  const total = list.length;
   invalidPendingPage = clampPage(invalidPendingPage, total);
+  updateInvalidSearchInfo('pending', total, all.length);
 
   if (total === 0) {
-    container.innerHTML = '<div class="empty-state">还没有待处理的上报。<br>宝库页访客点「🚫 无效处理」就会出现在这里。</div>';
+    container.innerHTML = String(invalidSearch.pending || '').trim()
+      ? '<div class="empty-state">这一栏里没有匹配「' + escapeHtml(invalidSearch.pending.trim()) + '」的条目。<br>换个关键词试试，或清空搜索框。</div>'
+      : '<div class="empty-state">还没有待处理的上报。<br>宝库页访客点「🚫 无效处理」就会出现在这里。</div>';
     if (pager) pager.hidden = true;
     updateInvalidPickInfo();
     return;
   }
 
   const start = (invalidPendingPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = invalidPendingCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   pageItems.forEach(item => {
@@ -764,17 +826,22 @@ function renderInvalidIgnored() {
   const pager = document.getElementById('invalidIgnoredPager');
   if (!container) return;
 
-  const total = invalidIgnoredCache.length;
+  const all = invalidIgnoredCache;
+  const list = filterInvalidList(all, 'ignored');
+  const total = list.length;
   invalidIgnoredPage = clampPage(invalidIgnoredPage, total);
+  updateInvalidSearchInfo('ignored', total, all.length);
 
   if (total === 0) {
-    container.innerHTML = '<div class="empty-state">没有已忽略的上报。</div>';
+    container.innerHTML = String(invalidSearch.ignored || '').trim()
+      ? '<div class="empty-state">这一栏里没有匹配「' + escapeHtml(invalidSearch.ignored.trim()) + '」的条目。</div>'
+      : '<div class="empty-state">没有已忽略的上报。</div>';
     if (pager) pager.hidden = true;
     return;
   }
 
   const start = (invalidIgnoredPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = invalidIgnoredCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   pageItems.forEach(item => {
@@ -815,19 +882,27 @@ function renderInvalidRemoved() {
   const pager = document.getElementById('invalidRemovedPager');
   if (!container) return;
 
-  const total = invalidRemovedCache.length;
+  const all = invalidRemovedCache;
+  const list = filterInvalidList(all, 'removed');
+  const total = list.length;
   invalidRemovedPage = clampPage(invalidRemovedPage, total);
+  updateInvalidSearchInfo('removed', total, all.length);
 
   if (total === 0) {
-    container.innerHTML = invalidRemovedError
-      ? '<div class="empty-state">' + escapeHtml(invalidRemovedError) + '</div>'
-      : '<div class="empty-state">还没有已下架的 ID。</div>';
+    /* 三种空状态分清楚：加载失败 > 搜索没匹配 > 本来就没有 */
+    if (invalidRemovedError) {
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(invalidRemovedError) + '</div>';
+    } else if (String(invalidSearch.removed || '').trim()) {
+      container.innerHTML = '<div class="empty-state">这一栏里没有匹配「' + escapeHtml(invalidSearch.removed.trim()) + '」的条目。</div>';
+    } else {
+      container.innerHTML = '<div class="empty-state">还没有已下架的 ID。</div>';
+    }
     if (pager) pager.hidden = true;
     return;
   }
 
   const start = (invalidRemovedPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = invalidRemovedCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   pageItems.forEach(item => {
@@ -1195,6 +1270,29 @@ function bindInvalidPanel() {
 
   const exportBtn = document.getElementById('exportInvalidBtn');
   if (exportBtn) exportBtn.onclick = handleExportRemoved;
+
+  /* 三段各自的搜索框（2026-10-05 站主要求）：只过滤自己那一段，输入停 150ms 再重画，
+     页码回到第 1 页（否则搜到第 3 页的旧页码会显示成空）。 */
+  ['pending', 'ignored', 'removed'].forEach(seg => {
+    const input = document.getElementById('invalid' + seg.charAt(0).toUpperCase() + seg.slice(1) + 'Search');
+    if (!input) return;
+    const apply = debounce(() => {
+      invalidSearch[seg] = input.value || '';
+      if (seg === 'pending') { invalidPendingPage = 1; renderInvalidPending(); }
+      else if (seg === 'ignored') { invalidIgnoredPage = 1; renderInvalidIgnored(); }
+      else { invalidRemovedPage = 1; renderInvalidRemoved(); }
+    }, 150);
+    input.addEventListener('input', apply);
+    /* ESC 一键清空（跟宝库页搜索框一个手感） */
+    input.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      input.value = '';
+      invalidSearch[seg] = '';
+      if (seg === 'pending') { invalidPendingPage = 1; renderInvalidPending(); }
+      else if (seg === 'ignored') { invalidIgnoredPage = 1; renderInvalidIgnored(); }
+      else { invalidRemovedPage = 1; renderInvalidRemoved(); }
+    });
+  });
 }
 /* ============================================================
    歌曲管理（D1）
@@ -1239,22 +1337,50 @@ async function loadSongs() {
   }
 }
 
+/* 2026-10-05 站主要求：歌曲管理也要能搜。
+   匹配 ID / 歌名 / 分类（忽略大小写），只影响这一页的显示，不动 D1 数据；分页基于过滤后的结果。 */
+let songSearch = '';
+
+function filterSongList(list) {
+  const kw = String(songSearch || '').trim().toLowerCase();
+  if (!kw) return list;
+  return list.filter(it => (
+    String(it.id || '').toLowerCase().indexOf(kw) !== -1 ||
+    String(it.name || '').toLowerCase().indexOf(kw) !== -1 ||
+    String(it.category || '').toLowerCase().indexOf(kw) !== -1
+  ));
+}
+
 /* 只画当前这一页（每页 100 条） */
 function renderSongPage() {
   const container = document.getElementById('songList');
   const pager = document.getElementById('songPager');
-  const total = songCache.length;
+  if (!container) return;
+
+  const all = songCache;
+  const list = filterSongList(all);
+  const total = list.length;
 
   songPage = clampPage(songPage, total);
 
+  /* 搜索框右边那句「匹配 N 条 / 共 M 条」 */
+  const infoEl = document.getElementById('songSearchInfo');
+  if (infoEl) {
+    infoEl.textContent = String(songSearch || '').trim()
+      ? '匹配 ' + total.toLocaleString('en-US') + ' 条 / 共 ' + all.length.toLocaleString('en-US') + ' 条'
+      : '';
+  }
+
   if (total === 0) {
-    container.innerHTML = '<div class="empty-state">D1 里还没有歌曲</div>';
+    container.innerHTML = String(songSearch || '').trim()
+      ? '<div class="empty-state">没有匹配「' + escapeHtml(songSearch.trim()) + '」的歌曲。<br>换个关键词试试，或清空搜索框。</div>'
+      : '<div class="empty-state">D1 里还没有歌曲</div>';
     if (pager) pager.hidden = true;
     return;
   }
 
   const start = (songPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = songCache.slice(start, start + ADMIN_PAGE_SIZE);
+  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
 
   container.innerHTML = '';
   pageItems.forEach(item => {

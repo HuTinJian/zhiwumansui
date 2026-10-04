@@ -417,10 +417,12 @@
          ============================================================ */
       /* 2026-10-05（站主要求）：鸣谢新增类别「网站创新家」，它的描述是**站主自己手写**的，
          而且整个类别在页面上要跟别的类别长得明显不一样 —— 所以单独走一套渲染：
-         类别标题带 💡 徽标、一位创新家一张独立卡片、描述用带左侧色条的引用块
-         （pre-line 保留换行）。样式在页面顶部的 <style> 块里（.thanks-group-innovator 那一套）。
-         数据口径：后台「➕ 添加鸣谢 / ✏️ 编辑鸣谢」的类别下拉里那一项就叫「网站创新家」；
-         这里用 indexOf 宽松匹配 —— 万一后台存成「💡 网站创新家」也认得出来。 */
+         一位创新家一张独立卡片、描述用带左侧色条的引用块（pre-line 保留换行）。
+         样式在页面顶部的 <style> 块里（.thanks-group-innovator 那一套）。
+         数据口径（2026-10-05 更新）：站主后来说「网站创新家前面也要有个图标」，
+         所以后台下拉里那一项现在就叫「💡 网站创新家」，D1 里存的是这个带图标的字符串。
+         这里用 indexOf 宽松匹配「网站创新家」四个字 —— 带不带 💡 都认得出来
+         （旧数据/手填的裸名字也照旧走这套卡片）。 */
       var INNOVATOR_CATEGORY = '网站创新家';
 
       function isInnovator(cat) {
@@ -448,9 +450,15 @@
 
           /* ---- 「网站创新家」：独立卡片的一套写法（见上面那段注释） ---- */
           if (isInnovator(cat)) {
+            /* 2026-10-05 站主要求：「网站创新家前面也要有个图标」——
+               现在类别名本身就是「💡 网站创新家」（后台下拉存进 D1 的就是这个字符串），
+               所以图标由名字自带，这里不再额外画徽标，免得变成「💡 💡 网站创新家」。
+               兜底：万一拿到的是不带图标的旧数据（比如以前手填过「网站创新家」），
+               才把那枚圆形徽标补上，视觉上仍然有图标。 */
+            var catHasIcon = String(cat.category || '').indexOf('💡') !== -1;
             html += '<div class="thanks-group thanks-group-innovator">';
             html += '<div class="cat-title cat-title-innovator">' +
-              '<span class="innovator-badge" aria-hidden="true">💡</span>' +
+              (catHasIcon ? '' : '<span class="innovator-badge" aria-hidden="true">💡</span>') +
               esc(cat.category) + '</div>';
             html += '<div class="thanks-people">';
             cat.people.forEach(function (p) {

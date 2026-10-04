@@ -195,6 +195,28 @@
     .invalid-bar .btn-batch-ignore:hover { background: #b8894f; }
     .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
     .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
+
+    /* 搜索框（2026-10-05 站主要求：无效音乐ID管理的三个分类各自搜索自己的；
+       随后歌曲管理也要能搜 —— 四处共用这一套样式，所以类名用中性的 .panel-search）。
+       每一段自己一行：左边一个输入框（flex 占满），右边一句「匹配 N 条 / 共 M 条」。
+       输入框外观照站内其它搜索框（药丸形、浅底、聚焦时主色描边）。 */
+    .panel-search-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin: 0 0 12px;
+    }
+    .panel-search {
+      flex: 1 1 240px; min-width: 180px;
+      padding: 9px 15px; font-size: 0.86rem; font-family: var(--font);
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      background: var(--bg-card); color: var(--text); outline: none;
+      transition: border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+    }
+    .panel-search::placeholder { color: var(--text-muted); }
+    .panel-search:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(220, 107, 130, 0.12);
+    }
+    .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
     .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
     .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
@@ -475,9 +497,38 @@
       transition: border-color 0.25s var(--ease-soft);
     }
     .manual-note-line:hover { border-color: var(--primary-light); }
+    /* 2026-10-05 站主要求：「描述由我手写」那个勾选框从**方格改成圆圈**。
+       做法跟站内本来就有的圆形勾选框一模一样（.invalid-pick / 原宝库页的 .id-checkbox 那套）：
+       先把浏览器默认的方块外观抹掉（appearance: none），再自己画一个圆 + 白色对勾。
+       浅色深浅两套主题都走变量（--bg-card / --primary-light / --primary），不用单独适配。 */
     .manual-note-line input[type="checkbox"] {
-      width: 18px; height: 18px; margin: 0; flex-shrink: 0;
-      accent-color: var(--primary); cursor: pointer;
+      width: 20px; height: 20px; margin: 0; flex-shrink: 0;
+      /* ⚠️ padding 必须显式写成 0：这个勾选框在 .form-group 里，
+         style.css 的 `.form-group input { padding: 12px 16px }` 会跟着命中它 ——
+         box-sizing 是 border-box 时，内边距比 width 还大，圆会被撑成 36×28 的方框。
+         （实测踩过这个坑：不写这一行，border-radius:50% 出来的就是个椭圆。） */
+      padding: 0;
+      appearance: none; -webkit-appearance: none;
+      border: 2px solid var(--primary-light); border-radius: 50%;
+      background: var(--bg-card); cursor: pointer; position: relative;
+      transition: all 0.25s var(--ease-bounce);
+    }
+    .manual-note-line input[type="checkbox"]:hover {
+      transform: scale(1.1); border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
+    }
+    .manual-note-line input[type="checkbox"]:checked {
+      background: var(--primary); border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
+    }
+    .manual-note-line input[type="checkbox"]:checked::after {
+      content: ''; position: absolute; left: 50%; top: 50%;
+      width: 5px; height: 10px; border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: translate(-50%, -60%) rotate(45deg);
+    }
+    .manual-note-line input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--primary); outline-offset: 2px;
     }
     .manual-note-hint {
       font-size: 0.78rem; color: var(--text-muted);
@@ -649,6 +700,14 @@
             <p class="panel-desc">
               这里添加的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后用桌面上的「织雾满穗-合并工具 → 3-音乐ID合并.html」整合进主数据。
             </p>
+            <!-- 2026-10-05 站主要求：歌曲管理也要能搜（匹配 ID / 歌名 / 分类）。
+                 跟「无效音乐ID管理」三段那三个搜索框同一套样式（.panel-search 那组），
+                 改动只影响这一页自己的显示，不会动 D1 里的数据。 -->
+            <div class="panel-search-row">
+              <input type="text" class="panel-search" id="songSearch"
+                     placeholder="🔍 搜索 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
+              <span class="panel-search-info" id="songSearchInfo"></span>
+            </div>
             <div id="songList">
               <div class="loading">加载中...</div>
             </div>
@@ -716,6 +775,13 @@
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
                 <button class="btn-batch-ignore" id="invalidBatchIgnore">🙈 批量忽略</button>
               </div>
+              <!-- 2026-10-05 站主要求：三个分类各自搜索自己的（这一栏只搜「待处理上报」）。
+                  匹配 ID / 歌名 / 分类，右边的字会显示「匹配 N 条 / 共 M 条」。 -->
+              <div class="panel-search-row">
+                <input type="text" class="panel-search" id="invalidPendingSearch"
+                       placeholder="🔍 搜索这一栏的 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
+                <span class="panel-search-info" id="invalidPendingSearchInfo"></span>
+              </div>
               <div id="invalidPendingList">
                 <div class="loading">加载中...</div>
               </div>
@@ -727,6 +793,11 @@
               <div class="invalid-bar">
                 <span class="invalid-bar-info">这些上报被判定为「不算」，记录留着；点「♻️ 恢复为待处理」随时能反悔。</span>
                 <button class="btn-clear-ignored" id="clearIgnoredBtn">🧹 清空已忽略</button>
+              </div>
+              <div class="panel-search-row">
+                <input type="text" class="panel-search" id="invalidIgnoredSearch"
+                       placeholder="🔍 搜索这一栏的 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
+                <span class="panel-search-info" id="invalidIgnoredSearchInfo"></span>
               </div>
               <div id="invalidIgnoredList">
                 <div class="loading">加载中...</div>
@@ -741,6 +812,11 @@
                 <!-- 2026-10-05 站主要求补回「站主自己下架」的能力：没人上报、但你知道这 ID 不能用时，
                      走这颗「手动下架」（直接写已下架名单，不进「待处理上报」）。 -->
                 <button class="btn-manual-remove" id="manualRemoveBtn">➕ 手动下架 ID</button>
+              </div>
+              <div class="panel-search-row">
+                <input type="text" class="panel-search" id="invalidRemovedSearch"
+                       placeholder="🔍 搜索这一栏的 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
+                <span class="panel-search-info" id="invalidRemovedSearchInfo"></span>
               </div>
               <div id="invalidRemovedList">
                 <div class="loading">加载中...</div>
@@ -968,8 +1044,11 @@
           <div class="select-dropdown" id="addThanksSelectDropdown">
             <!-- 2026-10-05 站主要求：新增固定类别「网站创新家」，放在最前面（显眼位置）。
                  这一类的描述由站主手写，界面上会默认勾上「✍️ 描述由我手写」，
-                 js/admin.js 也写死了「这一类绝不自动代写」。 -->
-            <div class="select-option" data-value="网站创新家">网站创新家</div>
+                 js/admin.js 也写死了「这一类绝不自动代写」。
+                 2026-10-05 补（站主要求）：类别名前也要有图标（跟下面几个一样），
+                 所以统一叫「💡 网站创新家」—— data-value 与显示文字必须是同一个字符串，
+                 D1 里存的就是它；改这里要同步 js/admin.js 的 MANUAL_NOTE_CATEGORY。 -->
+            <div class="select-option" data-value="💡 网站创新家">💡 网站创新家</div>
             <div class="select-option" data-value="🎬 ID公益UP主/作者">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者">📋 歌单整理者</div>
             <div class="select-option" data-value="💬 反馈贡献者">💬 反馈贡献者</div>

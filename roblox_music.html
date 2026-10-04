@@ -295,40 +295,9 @@
       box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
     }
 
-    .batch-bar {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      background: var(--bg-card);
-      border: 2px solid var(--primary-light);
-      border-radius: var(--radius-sm);
-      padding: 12px 18px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
-    }
-    .batch-bar.show {
-      display: flex;
-      animation: popIn 0.35s var(--ease-bounce) both;
-    }
-    .batch-bar .info {
-      font-size: 0.9rem;
-      color: var(--text-light);
-    }
-    .batch-bar .info strong {
-      color: var(--primary);
-      font-weight: 700;
-    }
-    .batch-bar .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .batch-bar .actions button {
-      padding: 8px 18px;
-      font-size: 0.85rem;
-    }
+    /* 2026-10-05（站主要求）：这里原来是一整块 .batch-bar（批量条）的样式。
+       「无效批量处理」这个功能整个删掉了（连按钮、勾选框、批量模式一起），
+       所以这些规则没有任何元素会命中，一并清掉。 */
 
     .song-group {
       background: var(--bg-card);
@@ -413,45 +382,10 @@
       background: rgba(253, 242, 245, 0.9);
       transform: translateX(3px);
     }
-    .id-checkbox {
-      display: none;
-      width: 20px;
-      height: 20px;
-      appearance: none;
-      -webkit-appearance: none;
-      border: 2px solid var(--primary-light);
-      border-radius: 50%;
-      /* 原来是写死的 #fff，深色主题下会变成一个扎眼的白圆点 */
-      background: var(--bg-card);
-      cursor: pointer;
-      flex-shrink: 0;
-      position: relative;
-      transition: all 0.25s var(--ease-bounce);
-    }
-    .id-checkbox:hover {
-      transform: scale(1.1);
-      border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
-    }
-    .id-checkbox:checked {
-      background: var(--primary);
-      border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
-    }
-    .id-checkbox:checked::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 5px;
-      height: 10px;
-      border-right: 2px solid var(--text-on-accent);
-      border-bottom: 2px solid var(--text-on-accent);
-      transform: translate(-50%, -60%) rotate(45deg);
-    }
-    .batch-mode .id-checkbox {
-      display: inline-block;
-    }
+    /* 2026-10-05（站主要求）：这里原来是 .id-checkbox（批量选择用的圆形勾选框）
+       与 .batch-mode .id-checkbox 两条规则。「无效批量处理」删掉后，行里不再有勾选框，
+       这几条规则没有任何元素会命中，一并清掉（原来那条「深色模式下白圆点」的注释也随它去）。 */
+
     .id-number {
       font-family: 'Courier New', monospace;
       font-size: 0.88rem;
@@ -1167,10 +1101,13 @@
         <span class="tool-sep" aria-hidden="true"></span>
         <div class="tool-group">
           <span class="tool-label">管理</span>
-          <!-- 2026-10-05：原来这里还有一颗「⛔ 我的隔离区」（打开本地隔离区弹窗）。
-               站主要求用「无效处理」代替隔离区、批量隔离、每行的叉叉与后台反馈，
-               所以按钮和弹窗整块删掉；点错了走每条 ID 上的「↩️ 撤销」回退。 -->
-          <button class="btn btn-primary" id="batchToggleBtn" aria-pressed="false">🚫 无效批量处理</button>
+          <!-- 2026-10-05 两轮改动都记在这里，免得以后有人往回加：
+               ① 这里原来有一颗「⛔ 我的隔离区」（打开本地隔离区弹窗）——
+                  站主要求用「无效处理」代替隔离区、批量隔离、每行的叉叉与后台反馈，弹窗整块删掉；
+               ② 随后站主又说「把『无效批量处理』相关功能删除了」——
+                  于是那颗「🚫 无效批量处理」按钮、批量条、行里的勾选框、批量模式一起删干净。
+               现在这一组只剩「📢 告诉我们你从哪来」；上报只有一种方式：
+               每条 ID 上的「🚫 无效处理」（点错了点它变出来的「↩️ 撤销」回退）。 -->
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
@@ -1192,13 +1129,8 @@
 
     <div class="result-info" id="resultInfo" aria-live="polite"></div>
 
-    <div class="batch-bar" id="batchBar">
-      <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
-      <div class="actions">
-        <button class="btn btn-secondary" id="batchClearBtn">取消选择</button>
-        <button class="btn btn-danger" id="batchInvalidBtn">🚫 无效上报选中</button>
-      </div>
-    </div>
+    <!-- 2026-10-05（站主要求）：这里原来是「批量条」（已选 N 个 ID / 取消选择 / 🚫 无效上报选中）。
+         「无效批量处理」整个功能删掉了 —— 现在只有每条 ID 上那颗「🚫 无效处理」可点。 -->
 
     <div id="loadingSkeleton" aria-hidden="true">
       <div class="skeleton skeleton-card"></div>
@@ -1355,8 +1287,8 @@
     let showLatestOnly = false;
     let showHotOnly = false;
     let hotMap = new Map();
-    let batchMode = false;
-    let selectedIds = new Set();
+    /* 2026-10-05（站主要求）：batchMode / selectedIds 随「无效批量处理」一起删掉了 ——
+       现在没有批量选择，上报只有每条 ID 上那颗「🚫 无效处理」。 */
     let riskCountdownCleanup = null;
     let pendingRedirectId = null;
 
@@ -1521,11 +1453,6 @@
       favFilterBtn: $('favFilterBtn'),
       songList: $('songList'),
       emptyState: $('emptyState'),
-      batchBar: $('batchBar'),
-      selectedCount: $('selectedCount'),
-      batchClearBtn: $('batchClearBtn'),
-      batchInvalidBtn: $('batchInvalidBtn'),
-      batchToggleBtn: $('batchToggleBtn'),
       riskModal: $('riskModal'),
       riskBody: $('riskBody'),
       riskCancelBtn: $('riskCancelBtn'),
@@ -2028,7 +1955,6 @@
           dom.songList.appendChild(fragment);
         }
 
-        if (batchMode) syncBatchCheckboxes();
         updatePager();
       } finally {
         isLoadingMore = false;
@@ -2162,7 +2088,6 @@
         const catStrEsc = escapeHtml(group.categories ? [...group.categories].join(' / ') : '');
         rowsHtml += `
             <div class="id-row${reported ? ' reported' : ''}">
-              <input type="checkbox" class="id-checkbox" data-id="${sid}" ${selectedIds.has(id) ? 'checked' : ''} aria-label="选择 ID ${sid}">
               <span class="id-number">${sid}</span>
               <div class="id-actions">
                 <button type="button" class="btn-fav ${isFav ? 'active' : ''}" data-id="${sid}" title="收藏" aria-label="收藏 ${sid}" aria-pressed="${isFav}">${isFav ? '⭐' : '☆'}</button>
@@ -2238,14 +2163,8 @@
 
     /* 整个列表只绑一次监听器：新增节点自动生效，不用反复绑定 */
     function bindListDelegation() {
-      dom.songList.addEventListener('change', e => {
-        const cb = e.target.closest ? e.target.closest('.id-checkbox') : null;
-        if (!cb) return;
-        if (cb.checked) selectedIds.add(cb.dataset.id);
-        else selectedIds.delete(cb.dataset.id);
-        updateSelectedCount();
-      });
-
+      /* 2026-10-05：「无效批量处理」删掉后，行里不再有勾选框（.id-checkbox），
+         原来那个 change 监听器（维护 selectedIds）随之删除，只留下面这套点击委托。 */
       dom.songList.addEventListener('click', e => {
         const btn = e.target.closest ? e.target.closest('button') : null;
         if (!btn || !dom.songList.contains(btn)) return;
@@ -2259,11 +2178,7 @@
       });
     }
 
-    function syncBatchCheckboxes() {
-      dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
-        cb.checked = selectedIds.has(cb.dataset.id);
-      });
-    }
+    /* 2026-10-05：syncBatchCheckboxes()（批量模式下同步勾选状态）随批量功能一起删除 */
 
     /* ============================================================
        随机挑一首 → 精准定位
@@ -2367,9 +2282,7 @@
       showToast('🎲 随机到：' + name);
     }
 
-    function updateSelectedCount() {
-      dom.selectedCount.textContent = selectedIds.size;
-    }
+    /* 2026-10-05：updateSelectedCount()（批量条上「已选 N 个」）随批量功能一起删除 */
 
     function toggleFavorite(id, btn) {
       if (favorites.has(id)) {
@@ -2631,69 +2544,9 @@
       showToast('🚫 已上报 ID ' + id + ' 无效，点「↩️ 撤销」可以撤回');
     }
 
-    /* 批量：把选中的 ID 一次性报上去（已经报过的自动跳过） */
-    async function batchReportInvalid() {
-      if (selectedIds.size === 0) {
-        showToast('请先选择要处理的 ID');
-        return;
-      }
-
-      const targets = [];
-      let already = 0;
-      songDatabase.forEach(item => {
-        if (!selectedIds.has(item.id)) return;
-        if (invalidReported.has(item.id)) { already++; return; }
-        targets.push({ id: item.id, name: item.name, category: item.category || '' });
-      });
-
-      if (targets.length === 0) {
-        showToast('选中的 ' + already + ' 个 ID 都已经上报过了，点单条上的「↩️ 撤销」可以撤回');
-        return;
-      }
-
-      const ok = await showConfirm(
-        '无效批量处理',
-        '确定把选中的 ' + targets.length + ' 个 ID 上报为无效吗？\n\n' +
-        '上报后会送到后台的「无效音乐ID管理」，管理员确认后这些音乐会从宝库下架。'
-      );
-      if (!ok) return;
-
-      dom.batchInvalidBtn.disabled = true;
-      const done = await sendInvalidReport(targets);
-      dom.batchInvalidBtn.disabled = false;
-      if (!done) return;
-
-      targets.forEach(t => { invalidReported.add(t.id); paintInvalidRow(t.id); });
-      saveInvalidReported();
-      selectedIds.clear();
-      updateSelectedCount();
-      syncBatchCheckboxes();
-      toggleBatchMode(false);
-      showToast('🚫 已上报 ' + targets.length + ' 个 ID 无效' +
-        (already > 0 ? '（另有 ' + already + ' 个之前已上报，自动跳过）' : ''));
-    }
-
-    function toggleBatchMode(force) {
-      batchMode = typeof force === 'boolean' ? force : !batchMode;
-
-      dom.batchToggleBtn.setAttribute('aria-pressed', batchMode ? 'true' : 'false');
-      dom.batchBar.classList.toggle('show', batchMode);
-
-      if (batchMode) {
-        dom.batchToggleBtn.textContent = '✖ 退出批量处理';
-        dom.batchToggleBtn.classList.remove('btn-primary');
-        dom.batchToggleBtn.classList.add('btn-secondary');
-        dom.songList.classList.add('batch-mode');
-        syncBatchCheckboxes();
-      } else {
-        dom.batchToggleBtn.textContent = '🚫 无效批量处理';
-        dom.batchToggleBtn.classList.remove('btn-secondary');
-        dom.batchToggleBtn.classList.add('btn-primary');
-        dom.songList.classList.remove('batch-mode');
-        selectedIds.clear();
-        updateSelectedCount();
-      }
-    }
+    /* 2026-10-05（站主要求）：这里原来是 batchReportInvalid()（批量上报选中的 ID）。
+       「无效批量处理」整个功能删除后它没有任何调用点，连同 toggleBatchMode() 一起删掉。
+       现在上报只有一条路：每条 ID 上的「🚫 无效处理」→ toggleInvalidReport()。 */
 
     /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑
        （renderQuarantineList / restoreFromQuarantine / restoreAllFromQuarantine）。
@@ -2879,14 +2732,8 @@
 
       if (dom.randomBtn) dom.randomBtn.onclick = randomPick;
 
-      dom.batchToggleBtn.onclick = () => toggleBatchMode();
-
-      dom.batchClearBtn.onclick = () => {
-        selectedIds.clear();
-        updateSelectedCount();
-        syncBatchCheckboxes();
-      };
-      dom.batchInvalidBtn.onclick = batchReportInvalid;
+      /* 2026-10-05：「无效批量处理」删掉后，这里原来那三行绑定
+         （batchToggleBtn / batchClearBtn / batchInvalidBtn）一并删除。 */
     }
   </script>
 
