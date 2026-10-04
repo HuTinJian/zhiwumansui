@@ -458,9 +458,9 @@
       transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 20;
     }
-    /* overflow-y: auto 是 2026-10-04 加的：类别支持自定义之后，
-       下拉里的项会越攒越多（预设 3 项 + 自建类别 + 自定义），
-       超过 300px 的部分必须能滚，否则最后那项「✏️ 自定义类别…」点不到。 */
+    /* overflow-y: auto 是 2026-10-04 加的：下拉里的项会越攒越多
+       （固定几项 + 从 D1 补进来的历史类别），超过 300px 的部分必须能滚。
+       （2026-10-05 站主删掉「自定义类别」之后，最后一项不再是自定义入口，但这个滚动仍需要。） */
     .select-dropdown.open { max-height: 300px; opacity: 1; pointer-events: auto; overflow-y: auto; }
     .select-option {
       padding: 12px 16px; font-size: 0.95rem; color: var(--text);
@@ -476,16 +476,9 @@
       content: '✓'; float: right; color: var(--primary); font-weight: 700;
     }
 
-    /* ---------- 自定义鸣谢类别（2026-10-04 新增） ----------
-       下拉最后那项「✏️ 自定义类别…」；选中后它下面露出一个输入框。
-       用 #id 选择器是为了压过 style.css 里 .form-group input 的通用样式。 */
-    .select-option-custom {
-      border-top: 1px dashed var(--border);
-      color: var(--primary-ink);
-      font-weight: 600;
-    }
-    #addThanksCustomCat { margin-top: 10px; }
-    #addThanksCustomCat[hidden] { display: none; }
+    /* ---------- 「✏️ 自定义类别…」那套样式（2026-10-04 加、2026-10-05 站主要求删） ----------
+       原来这里有 .select-option-custom（下拉最后那一项）与 #addThanksCustomCat
+       （选中后露出的输入框）两条规则。自定义类别功能整个下线后没有元素再用，一并删除。 */
 
     /* 「✍️ 描述由我手写（不自动代写）」勾选框（2026-10-05 新增）：
        「网站创新家」那一栏的描述由站主手写，勾上之后自动代写一个字都不许碰 */
@@ -845,8 +838,9 @@
       <div class="subtabs subtabs-lv3" data-tabs-group="thanks">
         <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者</button>
         <button class="subtab" data-subpanel="thanks-panel">🎮 Roblox ID 宝库</button>
-        <!-- 2026-10-05 站主要求：新增「🙏 玩家感谢」子面板，跟 Roblox 那一栏一样可增 / 改 / 删、
-             支持自定义类别；鸣谢页上它是第三个切换，「网站创新家」从 Roblox 栏搬到了这里。 -->
+        <!-- 2026-10-05 站主要求：新增「🙏 玩家感谢」子面板，跟 Roblox 那一栏一样可增 / 改 / 删；
+             鸣谢页上它是第三个切换，「网站创新家」从 Roblox 栏搬到了这里。
+             （当天稍后站主又要求删掉「自定义类别」，所以这两栏的类别都只能从下拉里现有的项选。） -->
         <button class="subtab" data-subpanel="thanks-players">🙏 玩家感谢</button>
       </div>
 
@@ -919,9 +913,10 @@
       </div>
 
       <!-- 子面板 · 🙏 玩家感谢（2026-10-05 站主要求新增）
-           跟「🎮 Roblox ID 宝库」那一栏完全同一套做法：可增 / 改 / 删、能自定义类别、
-           每页 100 人、能导出。归属规则见 js/admin.js 的 isPlayerThanksCategory()：
-           在这一栏新增的自定义类别会自动带上「🙏 」前缀，这样鸣谢页就知道该放进哪一栏。 -->
+           跟「🎮 Roblox ID 宝库」那一栏同一套做法：可增 / 改 / 删、每页 100 人、能导出。
+           归属规则见 js/admin.js 的 isPlayerThanksCategory()（类别名带 🙏 / 含「玩家感谢」/
+           含「网站创新家」的归这一栏）。2026-10-05 站主要求删掉了「自定义类别」，
+           所以这一栏只能选已有类别 —— 要新增类别跟 AI 说，在固定项里加一行。 -->
       <div class="subpanel" id="thanks-players">
         <div class="panel-card">
           <h2>📈 数据统计</h2>
@@ -943,8 +938,8 @@
           <p class="panel-desc">
             这一栏存 D1，鸣谢页「🙏 玩家感谢」那一栏读的就是它。「💡 网站创新家」已经归到这边了
             （D1 里的类别名没变，页面按名字自动认栏，所以不用改数据库）。<br>
-            想加新的类别：点「➕ 添加玩家感谢」→ 类别选「✏️ 自定义类别…」自己起名字，
-            保存时会自动加上「🙏 」前缀 —— 加了这个前缀的类别才会出现在鸣谢页的「玩家感谢」栏里。
+            类别只能从下拉里现有的几项选（2026-10-05 站主要求删掉了「自定义类别」）；
+            想加新类别跟 AI 说一声，加一行固定项就行。
           </p>
           <div id="playersList">
             <div class="loading">加载中...</div>
@@ -1093,14 +1088,13 @@
             <div class="select-option" data-value="🎬 ID公益UP主/作者" data-scope="roblox">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者" data-scope="roblox">📋 歌单整理者</div>
             <div class="select-option" data-value="💬 反馈贡献者" data-scope="roblox">💬 反馈贡献者</div>
-            <!-- 2026-10-04 用户要求：类别不再固定这三个，可以自定义。
-                 点下面这项会露出一个输入框，想叫什么名字就叫什么名字；
-                 js/admin.js 还会把 D1 里已经存在的其它类别自动补进这个列表，
-                 所以自建过的类别下次直接选就行，不用重打。 -->
-            <div class="select-option select-option-custom" data-value="__custom__">✏️ 自定义类别…</div>
+            <!-- 2026-10-04 那版这里还有一项「✏️ 自定义类别…」（选中后露出输入框、自己起名字）。
+                 站主 2026-10-05 要求「把后台的所有关于自定义类别的都删除了」→ 整项连输入框一起删掉。
+                 现在只能从「上面这几项固定类别 + D1 里已经存在的类别」里选：
+                 js/admin.js 的 syncThanksCategoryOptions() 会把 D1 里出现过的类别自动补进这个列表，
+                 所以以前自建过的类别照样选得到，历史数据不会丢。
+                 以后要加新类别：跟 AI 说一声，在上面的固定项里加一行即可。 -->
           </div>
-          <input type="text" class="custom-cat-input" id="addThanksCustomCat" maxlength="30"
-                 placeholder="输入新类别名，例如：🎧 音效整理者" autocomplete="off" hidden>
         </div>
       </div>
       <div class="form-group">

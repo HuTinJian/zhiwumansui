@@ -41,18 +41,20 @@ function isInnovatorCategory(cat) {
    站主原话：「鸣谢名单加一个『玩家感谢』，里面把 Roblox 里面的网站创新家弄到这里来，
    后台依旧跟 Roblox 一样可以自定义」。
    · 鸣谢页多了第三个切换「🙏 玩家感谢」；「💡 网站创新家」从 Roblox 那栏搬过来；
-   · 后台多了个子面板「🙏 玩家感谢」，跟 Roblox 那一栏一样能增 / 改 / 删、能自定义类别。
+   · 后台多了个子面板「🙏 玩家感谢」，跟 Roblox 那一栏一样能增 / 改 / 删、能导出。
+   ⚠️ 2026-10-05 站主后来又说「把后台的所有关于自定义类别的都删除了」——
+      所以后台**没有**自由起名的入口了：类别只能从下拉里现有的项里选
+      （固定几项 + D1 里出现过的类别，后者由 syncThanksCategoryOptions 自动补进列表）。
+      因此下面这套归属规则现在只用来「把已有类别分到对应那一栏」，不再有「新类别补前缀」那回事。
    归属规则（**必须跟 thanks.html 里的 isPlayerThanks 一模一样，改一处要改两处**）：
      一个类别属于「玩家感谢」当且仅当 ——
-       ① 名字里带 🙏（后台在这一栏新增/自定义时自动补前缀，见 PLAYER_THANKS_PREFIX）
+       ① 名字里带 🙏
        ② 名字里含「玩家感谢」
        ③ 名字里含「网站创新家」（就是搬过来的那一类，D1 里的名字没变，不用改库）
      其余类别（除 👑 赞助者 / 🚫 已删除赞助者）都归「🎮 Roblox ID 宝库」。
-   所以「自定义」照样能用：随便起名字，保存时自动带上 🙏 前缀就会落到玩家感谢栏。
    ============================================================ */
 const PLAYER_THANKS_MARK = '🙏';
 const PLAYER_THANKS_KEYWORD = '玩家感谢';
-const PLAYER_THANKS_PREFIX = '🙏 ';
 
 function isPlayerThanksCategory(cat) {
   const name = String(cat === undefined || cat === null ? '' : cat);
@@ -63,7 +65,8 @@ function isPlayerThanksCategory(cat) {
 }
 
 /* 当前「添加 / 编辑鸣谢」弹窗是从哪一栏打开的：roblox / players。
-   决定两件事：① 下拉里只列出归属这一栏的类别；② 保存时要不要给自定义类别补 🙏 前缀。 */
+   只决定一件事：下拉里只列出归属这一栏的类别（applyThanksDropdownForPanel 用）。
+   2026-10-05 删掉自定义类别后，这里不再负责「保存时补 🙏 前缀」。 */
 let addThanksScope = 'roblox';
 
 /* 现在到底要不要「不自动代写」：勾选框勾着，或者类别就是网站创新家。
@@ -302,36 +305,18 @@ function scrollListIntoView(el) {
     opt.classList.add('active');
     opt.setAttribute('aria-selected', 'true');
 
-    /* 2026-10-04：类别支持自定义 —— 选中「✏️ 自定义类别…」时
-       露出下面的输入框，让管理员自己起名字。 */
-    const isCustom = opt.dataset.value === '__custom__';
-    const customEl = document.getElementById('addThanksCustomCat');
-    if (customEl) {
-      customEl.hidden = !isCustom;
-      if (isCustom) customEl.value = '';
-    }
-
-    document.getElementById('addThanksSelectedCat').textContent = isCustom ? '自定义类别' : opt.textContent;
+    /* 2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」：
+       这里原来有一段「选中『✏️ 自定义类别…』就露出输入框自己起名字」的逻辑，已删除。
+       现在点哪一项就是哪一项的类别名，只能从下拉里现有的类别选。 */
+    document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
     addThanksTrigger.classList.add('selected');
     setAddThanksOpen(false);
     /* 2026-10-05：类别定了就同步「✍️ 描述由我手写」——
        类别 = 网站创新家 时必然勾上（那一栏是站主手写的），
        从它切到别的类别时把「刚才是系统帮勾的」那一下撤掉（管理员自己勾的不动）。 */
     syncManualNoteWithCategory();
-    if (isCustom && customEl) customEl.focus();
-    else addThanksTrigger.focus();
+    addThanksTrigger.focus();
     refreshThanksNote();   /* 类别定了，名字也填了的话，顺手把描述补上 */
-  }
-
-  /* 自定义类别输入框：边打边同步到下拉按钮上显示的文字，并刷新自动描述 */
-  const addThanksCustomCat = document.getElementById('addThanksCustomCat');
-  if (addThanksCustomCat) {
-    addThanksCustomCat.addEventListener('input', () => {
-      const v = addThanksCustomCat.value.trim();
-      document.getElementById('addThanksSelectedCat').textContent = v || '自定义类别';
-      syncManualNoteWithCategory();   /* 手动把类别名打成「网站创新家」时也算数 */
-      refreshThanksNote();
-    });
   }
 
   /* ============================================================
@@ -368,8 +353,9 @@ function scrollListIntoView(el) {
     });
   }
 
-  /* 把 D1 里已经存在的鸣谢类别补进下拉（2026-10-04）：
-     自建过的类别下次直接选，不用重打；预设三项和「自定义」永远保留。
+  /* 把 D1 里已经存在的鸣谢类别补进下拉（2026-10-04 加，2026-10-05 起更重要的用途）：
+     站主删掉「自定义类别」之后，管理员**只能从下拉里选**已有的类别 ——
+     所以「以前自建过的类别照样选得到、历史数据不会丢」全靠这一段。
      这个函数放在 IIFE 里，是因为它要用上面的 selectAddThanksOption 来绑事件；
      外面 loadThanks() 拿到数据后通过 window.syncThanksCategoryOptions 调用。 */
   window.syncThanksCategoryOptions = function (groups) {
@@ -377,11 +363,8 @@ function scrollListIntoView(el) {
 
     const known = Object.create(null);
     addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
-      if (o.dataset.value === '__custom__') return;
       known[String(o.dataset.value || o.textContent || '').trim()] = true;
     });
-
-    const customOpt = addThanksDropdown.querySelector('.select-option[data-value="__custom__"]');
 
     (Array.isArray(groups) ? groups : []).forEach(cat => {
       const name = String(cat && cat.category || '').trim();
@@ -407,17 +390,16 @@ function scrollListIntoView(el) {
           selectAddThanksOption(opt);
         }
       });
-      addThanksDropdown.insertBefore(opt, customOpt || null);
+      addThanksDropdown.appendChild(opt);
     });
   };
 
   /* 按当前是哪一栏过滤下拉选项（2026-10-05）：
-     scope 为 players 的只在「🙏 玩家感谢」里出现，roblox 的只在「🎮 Roblox ID 宝库」里出现；
-     「✏️ 自定义类别…」两边都有。顺带把上一次的选择清干净，免得串栏。 */
+     scope 为 players 的只在「🙏 玩家感谢」里出现，roblox 的只在「🎮 Roblox ID 宝库」里出现。
+     顺带把上一次的选择清干净，免得串栏。 */
   function applyThanksDropdownForPanel() {
     if (!addThanksDropdown) return;
     addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
-      if (o.dataset.value === '__custom__') { o.hidden = false; return; }
       const scope = o.dataset.scope === 'players' ? 'players' : 'roblox';
       o.hidden = scope !== addThanksScope;
       o.classList.remove('active');
@@ -425,8 +407,6 @@ function scrollListIntoView(el) {
     });
     const selected = document.getElementById('addThanksSelectedCat');
     if (selected) selected.textContent = '请选择类别';
-    const customEl = document.getElementById('addThanksCustomCat');
-    if (customEl) { customEl.hidden = true; customEl.value = ''; }
     const trigger = document.getElementById('addThanksSelectTrigger');
     if (trigger) trigger.classList.remove('selected');
     setAddThanksOpen(false);
@@ -508,7 +488,7 @@ function scrollListIntoView(el) {
   }
 
   /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句）。
-     类别统一走 currentThanksCategory()：自定义类别取输入框里的字。
+     类别统一走 currentThanksCategory()。
      2026-10-05：勾了「✍️ 描述由我手写」就一句话都不代写（网站创新家必然如此）。 */
   function refreshThanksNote() {
     if (isManualThanksNote()) return;
@@ -1851,16 +1831,11 @@ function renderPlayerThanksPage() {
   });
 }
 
-/* 当前「添加 / 编辑鸣谢」弹窗里选中的类别（2026-10-04 支持自定义分类后新增）
-   · 选中「✏️ 自定义类别…」→ 取下面输入框里的字；
-   · 否则取下拉按钮上显示的那一行。
-   空串表示还没选。 */
+/* 当前「添加 / 编辑鸣谢」弹窗里选中的类别 = 下拉按钮上显示的那一行。
+   空串表示还没选。
+   2026-10-05：站主要求删掉「自定义类别」，所以这里不再有「取输入框里的字」那一路 ——
+   类别只能来自下拉里已有的项（固定项 + D1 里出现过的类别）。 */
 function currentThanksCategory() {
-  const opt = document.querySelector('#addThanksSelectDropdown .select-option.active');
-  if (opt && opt.dataset.value === '__custom__') {
-    const input = document.getElementById('addThanksCustomCat');
-    return input ? input.value.trim() : '';
-  }
   const selected = document.getElementById('addThanksSelectedCat');
   const text = (selected ? selected.textContent : '').trim();
   return (!text || text === '请选择类别') ? '' : text;
@@ -1882,34 +1857,21 @@ function startEditThanks(entry) {
   addThanksScope = isPlayerThanksCategory(category) ? 'players' : 'roblox';
   if (typeof window.applyThanksDropdownForPanel === 'function') window.applyThanksDropdownForPanel();
 
-  /* 自定义下拉：把对应选项点亮，并把标题文字换掉。
-     2026-10-04 起类别可以自定义：如果这条记录的类别不在预设 / 已有列表里，
-     就切到「✏️ 自定义类别…」并把类别名填进旁边的输入框。 */
+  /* 下拉：把这条记录对应的那一项点亮，并把标题文字换成类别名。
+     2026-10-05：站主删掉「自定义类别」后，类别只会来自下拉里已有的项
+     （固定项 + D1 里出现过的类别，后者由 syncThanksCategoryOptions 自动补进列表），
+     所以正常情况一定能命中；万一没命中（极端时序），标题文字照样设成原类别名，
+     保存时 currentThanksCategory() 取的就是它，不会把这条记录的类别弄丢。 */
   const trigger = document.getElementById('addThanksSelectTrigger');
   const dropdown = document.getElementById('addThanksSelectDropdown');
   const selected = document.getElementById('addThanksSelectedCat');
-  const customInput = document.getElementById('addThanksCustomCat');
-  let hitOption = null;
   if (dropdown) {
     dropdown.querySelectorAll('.select-option').forEach(o => {
       const val = String(o.dataset.value || '').trim();
-      const hit = val !== '__custom__' &&
-        (val === category || String(o.textContent || '').trim() === category);
-      if (hit) hitOption = o;
+      const hit = val === category || String(o.textContent || '').trim() === category;
       o.classList.toggle('active', hit);
       o.setAttribute('aria-selected', hit ? 'true' : 'false');
     });
-    if (!hitOption) {
-      const customOpt = dropdown.querySelector('.select-option[data-value="__custom__"]');
-      if (customOpt) {
-        customOpt.classList.add('active');
-        customOpt.setAttribute('aria-selected', 'true');
-      }
-    }
-  }
-  if (customInput) {
-    customInput.hidden = !!hitOption;
-    customInput.value = hitOption ? '' : category;
   }
   if (selected) selected.textContent = category;
   if (trigger) {
@@ -1958,12 +1920,7 @@ function resetThanksForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  /* 自定义类别输入框也一并收起来、清空 */
-  const customInput = document.getElementById('addThanksCustomCat');
-  if (customInput) {
-    customInput.hidden = true;
-    customInput.value = '';
-  }
+  /* 2026-10-05 站主要求删掉「自定义类别」→ 原来这里还要收起/清空那个输入框，现已删除 */
   /* 「✍️ 描述由我手写」也回到未勾选（下一次选到网站创新家会自动再勾上） */
   const manualBox = document.getElementById('addThanksManualNote');
   if (manualBox) manualBox.checked = false;
@@ -1976,8 +1933,8 @@ function resetThanksForm() {
 
 /* 添加 / 保存鸣谢 */
 async function handleAddThanks() {
-  /* 2026-10-04：类别可能是自定义的，统一从 currentThanksCategory() 取 */
-  let category = currentThanksCategory();
+  /* 类别统一从下拉里取（2026-10-05 起没有自定义了，取到的必然是已有类别之一） */
+  const category = currentThanksCategory();
   const name = document.getElementById('addThanksName').value.trim();
   const platform = document.getElementById('addThanksPlatform').value.trim();
   const messageEl = document.getElementById('addThanksMessage');
@@ -1991,22 +1948,11 @@ async function handleAddThanks() {
     : messageEl.value.trim();
 
   if (!category) {
-    showToast('请选择类别（选「✏️ 自定义类别…」的话要把名字填上）');
-    const opt = document.querySelector('#addThanksSelectDropdown .select-option.active');
-    if (opt && opt.dataset.value === '__custom__') {
-      const input = document.getElementById('addThanksCustomCat');
-      if (input) input.focus();
-    }
+    showToast('请选择类别');
     return;
   }
-  /* 2026-10-05：从「🙏 玩家感谢」那一栏新增/编辑时，自己起的类别名会自动补上「🙏 」前缀 ——
-     带这个前缀（或名字里含「玩家感谢」/「网站创新家」）的类别才会出现在鸣谢页的
-     「玩家感谢」栏里（归属规则见 isPlayerThanksCategory）。已经符合规则的就不再重复加。 */
-  if (addThanksScope === 'players' && !isPlayerThanksCategory(category)) {
-    category = PLAYER_THANKS_PREFIX + category;
-  }
-  /* 长度上限跟服务端一致（30 字），补前缀之后再算 */
-  if (category.length > 30) { showToast('类别最多 30 个字（玩家感谢那一栏会自动加「🙏 」前缀，也算在内）'); return; }
+  /* 长度上限跟服务端一致（30 字） */
+  if (category.length > 30) { showToast('类别最多 30 个字'); return; }
   if (!name) { showToast('请填写名字'); return; }
   /* 描述上限跟服务端 functions/api/thanks.js 对齐（200 字） */
   if (message.length > 200) { showToast('描述最多 200 个字'); return; }
