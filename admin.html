@@ -156,6 +156,43 @@
     .list-item .actions .btn-delete-name:hover { background: #a93226; transform: translateY(-2px); }
     .list-item .actions .btn-restore-sponsor { background: var(--gold); color: #fff; }
     .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-2px); }
+
+    /* ========== ID 旁边那对小按钮：📋 复制 / 🔗 试听（2026-10-05 站主要求） ==========
+       站主：「后台所有跟 ID 有关的，都要有复制和试听功能，这样更快的审核和判断」，
+       并连补两句「也包括 D1」「包括 D1 的歌曲管理」——
+       所以 🚫 无效音乐ID管理三段（待处理 / 已忽略 / 已下架）与 🎶 D1 歌曲管理每一行
+       的 ID 后面都挂这对按钮（JS 里由 adminIdActions() 生成）。 */
+    .id-acts {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .id-act {
+      font-family: var(--font);
+      font-size: 0.74rem;
+      font-weight: 700;
+      line-height: 1.5;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-soft);
+      color: var(--text-light);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s var(--ease-soft), color 0.2s var(--ease-soft),
+                  border-color 0.2s var(--ease-soft), transform 0.15s var(--ease-soft);
+    }
+    .id-act:hover { border-color: var(--primary-light); color: var(--primary); background: var(--bg-card); }
+    .id-act:active { transform: scale(0.94); }
+    /* 「🔗 试听」是跳去 Roblox 官方页，给一点区分色，别跟「复制」混在一起 */
+    .id-act[data-admin-listen] { border-color: rgba(107, 182, 232, 0.5); color: #3f86b5; }
+    .id-act[data-admin-listen]:hover { border-color: #6bb6e8; color: #1f6e9c; background: var(--bg-card); }
+    @media (max-width: 600px) {
+      .id-acts { gap: 5px; margin-left: 6px; }
+      .id-act { padding: 2px 7px; font-size: 0.7rem; }
+    }
     .list-item .actions button:active { transform: scale(0.92); }
 
     /* ---------- 上报状态标签（2026-10-05：这套原来叫「反馈处理结果」，
@@ -691,7 +728,7 @@
               </span>
             </h2>
             <p class="panel-desc">
-              这里添加的歌曲会存到 D1，宝库页会自动加载并合并显示；攒够之后用桌面上的「织雾满穗-合并工具 → 3-音乐ID合并.html」整合进主数据。
+              加到这里就存进 D1，宝库页自动加载；攒多了用合并工具并进主数据。
             </p>
             <!-- 2026-10-05 站主要求：歌曲管理也要能搜（匹配 ID / 歌名 / 分类）。
                  跟「无效音乐ID管理」三段那三个搜索框同一套样式（.panel-search 那组），
@@ -743,12 +780,13 @@
                 <button class="btn btn-secondary" id="exportInvalidBtn">📤 导出</button>
               </span>
             </h2>
+            <!-- 2026-10-05 站主要求「描述太多了，弄成超级简洁的版本」——
+                 原来那 5 行说明砍成 2 行，只留「怎么用」的三件事：
+                 待处理→下架/忽略、导出=已下架、没人报就手动下架。
+                 细节（字段格式、手动下架不占累计上报等）挪进代码注释与 README，界面上不再铺开。 -->
             <p class="panel-desc">
-              宝库页访客点「🚫 无效处理」就会报到这儿：先落在「🚫 待处理上报」，你确认无效就下架（全站不再显示），
-              觉得不算就忽略。「✅ 已下架」那一栏读的是管理员下架表；「📤 导出」导出的是这一栏，
-              形式是 [{id, name, category}] 数组 —— 跟 data/admin_quarantine.json 一模一样，拿到直接覆盖那个文件就行。<br>
-              自己发现某个 ID 不能用、但没人上报时，用「✅ 已下架」那一栏的「➕ 手动下架 ID」直接下架；
-              手动下架的 ID <strong>不会出现在「🚫 待处理上报」里</strong>，也不占「累计上报」的数字。
+              访客上报进「待处理」：确认无效就下架，不算就忽略。<br>
+              「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
             </p>
 
             <!-- 三段切换（2026-10-05 新增）：data-subpanel 交给 admin.html 里那套通用切换逻辑，
@@ -870,7 +908,7 @@
             </span>
           </h2>
           <p class="panel-desc">
-            赞助者现在就在这一栏管：加、改、删都直接生效（存在 D1）。删除就是真删掉，没有「隐藏」那一套；data/sponsors.json 保留成一份存档，页面不再读它。
+            在这里加 / 改 / 删，直接生效；删除就是真删。
           </p>
           <div id="sponsorList">
             <div class="loading">加载中...</div>
@@ -903,7 +941,7 @@
             </span>
           </h2>
           <p class="panel-desc">
-            这里添加的存 D1，鸣谢页「🎮 Roblox ID 宝库」那一栏读的就是这份；「👑 赞助者」不在这一栏，在旁边的子标签里单独管。
+            存 D1，鸣谢页「🎮 Roblox ID 宝库」那一栏读的就是它。
           </p>
           <div id="thanksList">
             <div class="loading">加载中...</div>
@@ -936,10 +974,7 @@
             </span>
           </h2>
           <p class="panel-desc">
-            这一栏存 D1，鸣谢页「🙏 玩家感谢」那一栏读的就是它。「💡 网站创新家」已经归到这边了
-            （D1 里的类别名没变，页面按名字自动认栏，所以不用改数据库）。<br>
-            类别只能从下拉里现有的几项选（2026-10-05 站主要求删掉了「自定义类别」）；
-            想加新类别跟 AI 说一声，加一行固定项就行。
+            存 D1，鸣谢页「🙏 玩家感谢」那一栏读的就是它。类别从下拉里选（要加新的跟 AI 说）。
           </p>
           <div id="playersList">
             <div class="loading">加载中...</div>
@@ -1048,8 +1083,7 @@
     <div class="modal-content">
       <h2>➕ 手动下架 ID</h2>
       <p class="panel-desc">
-        每行写一个音乐 ID；也认「ID 空格 歌名」这种写法（歌名选填，拆不出来就留空）。
-        一次最多 500 个。下架后宝库页不再显示，可在「✅ 已下架」里点「🔓 恢复上架」反悔。
+        每行一个 ID（也认「ID 空格 歌名」），一次最多 500 个。下架后宝库页不再显示，可在「✅ 已下架」里恢复。
       </p>
       <textarea id="manualRemoveText" placeholder="每行一个，例如：
 1876950732

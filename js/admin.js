@@ -841,7 +841,7 @@ function renderInvalidPending() {
         </span>
       </div>
       <div class="meta">
-        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
         ${item.firstAt ? ' · <span title="北京时间">首次 ' + escapeHtml(adminTime(item.firstAt)) + '</span>' : ''}
       </div>
@@ -905,7 +905,7 @@ function renderInvalidIgnored() {
         <span class="type-tag">🙈 已忽略</span>
       </div>
       <div class="meta">
-        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
         · 🚫 上报 ${item.count} 次
         ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
@@ -966,7 +966,7 @@ function renderInvalidRemoved() {
         <span class="type-tag green">✅ 已下架</span>
       </div>
       <div class="meta">
-        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
         ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
         ${item.at ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.at)) + '</span>' : ''}
@@ -1444,7 +1444,7 @@ function renderSongPage() {
         <span class="type-tag">${escapeHtml(item.category)}</span>
       </div>
       <div class="meta">
-        🆔 ${escapeHtml(item.id)}
+        🆔 ${escapeHtml(item.id)}${adminIdActions(item.id)}
         · 📌 lineIndex: ${escapeHtml(String(item.lineIndex || 0))}
       </div>
       <div class="actions">
@@ -2069,6 +2069,65 @@ function adminTime(text) {
   }
   return raw;   /* common.js 没加载时退回原值（宁可显示 UTC，也不要显示空白） */
 }
+
+/* ============================================================
+   ID 上的「📋 复制 / 🔗 试听」（2026-10-05 站主要求）
+   ------------------------------------------------------------
+   站主原话：「后台所有跟 ID 有关的，都要有复制和试听功能，这样更快的审核和判断」，
+   并连着补了两句：「也包括 D1」「包括 D1 的歌曲管理」——所以覆盖这两处：
+     · 🚫 无效音乐ID管理：待处理 / 已忽略 / 已下架 三段（D1 invalid_reports + quarantine_admin）；
+     · 🎶 D1 歌曲管理：每一行那一个 ID（D1 songs）。
+   行为：复制走 common.js 的 copyText()（自带降级方案，非安全上下文也能用）；
+   试听跟前台那颗「🔗 试听」同一个去处 —— Roblox 官方资产页
+   create.roblox.com/store/asset/<id>，新标签打开、顺手断掉 opener。
+   绑定方式：**事件委托挂在 document 上**（这几个列表每次翻页/刷新都整块重绘，
+   按钮上直接绑会重复绑定、也会随 innerHTML 一起丢掉）。
+   ============================================================ */
+const ROBLOX_ASSET_BASE = 'https://create.roblox.com/store/asset/';
+
+async function adminCopyId(id) {
+  const value = String(id === undefined || id === null ? '' : id).trim();
+  if (!value) return;
+  let ok = false;
+  try {
+    if (typeof copyText === 'function') ok = await copyText(value);
+  } catch (err) {
+    ok = false;
+  }
+  showToast(ok ? ('📋 已复制 ID ' + value) : '⚠️ 复制失败，请手动选中那个 ID 复制');
+}
+
+function adminListenId(id) {
+  const value = String(id === undefined || id === null ? '' : id).trim();
+  if (!value) return;
+  const url = ROBLOX_ASSET_BASE + encodeURIComponent(value);
+  let win = null;
+  try { win = window.open(url, '_blank'); } catch (err) { win = null; }
+  if (win) {
+    try { win.opener = null; } catch (err) {}
+    return;
+  }
+  /* 被拦截时别静默失败（跟前台 openRobloxAsset 同一套兜底） */
+  showToast('⚠️ 新标签页被浏览器拦截，正在当前页打开…');
+  setTimeout(() => { window.location.href = url; }, 700);
+}
+
+/* 列表里反复用的那一对按钮（data-* 上的值会被委托的 click 处理器读走） */
+function adminIdActions(id) {
+  const v = escapeHtml(String(id === undefined || id === null ? '' : id));
+  return '<span class="id-acts">' +
+    '<button type="button" class="id-act" data-admin-copy="' + v + '" title="复制这个 ID">📋 复制</button>' +
+    '<button type="button" class="id-act" data-admin-listen="' + v + '" title="在 Roblox 官方页面打开试听（新标签）">🔗 试听</button>' +
+    '</span>';
+}
+
+/* 一个全局委托就够（脚本只执行一次；列表换页重绘也不受影响） */
+document.addEventListener('click', e => {
+  const el = e.target && e.target.closest ? e.target.closest('[data-admin-copy], [data-admin-listen]') : null;
+  if (!el) return;
+  if (el.dataset.adminCopy !== undefined) { adminCopyId(el.dataset.adminCopy); return; }
+  if (el.dataset.adminListen !== undefined) { adminListenId(el.dataset.adminListen); }
+});
 
 /* D1 那部分的缓存：编辑时按 id 取回原值 */
 let sponsorCache = [];
