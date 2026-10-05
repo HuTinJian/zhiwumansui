@@ -374,63 +374,76 @@
       background: linear-gradient(90deg, var(--border), transparent);
     }
 
-    /* ========== 📺 关注我的哔哩哔哩（2026-10-05 站主新增） ==========
-       站主：主页 https://space.bilibili.com/1270782400，「希望大家能给我点关注，
-       因为关注到 Lv2 的时候可以解锁『合集』功能」。
-       位置：hero 正下方（首页最显眼那一段），整块只有一行高，不挡主要内容。
+    /* ========== 📺 关注我的哔哩哔哩（2026-10-05 站主新增；当天又要求「弄小一点」） ==========
+       第一版是一张 800px 宽、两行说明的卡片，站主看了说「求关注的那一块弄小一点」——
+       现在收成**一条细横幅**：图标 + 标题 + 一句说明 + 小按钮，桌面上一行放得下。
+       主页地址不再明文铺在页面上（太占地方），改成挂在整块的 title 与按钮的无障碍标签上，
+       鼠标悬停能看到、读屏也能读；按钮照样直接跳过去。
        约束（站主明确）：「所有页脚下面都没有任何东西，保持现状」——
-       所以这个入口**只放在 <main> 里**，四个页面的页脚一个字都没动。 */
+       这个入口只在 <main> 里，四个页面的页脚一个字都没动。
+       2026-10-05 稍后站主又要求：「公告里面不要有跟关注有关的」→ 公告里那段已删（见 js/common.js）。 */
     .bili-follow {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin: 30px auto 6px;
-      max-width: 800px;
-      padding: 18px 22px;
+      gap: 10px;
+      margin: 20px auto 4px;
+      max-width: 720px;
+      padding: 9px 14px;
       background: var(--bg-card);
-      border: 2px solid rgba(251, 114, 153, 0.28);   /* B 站粉的淡色描边，不抢站点主色 */
-      border-radius: var(--radius-sm);
+      border: 1px solid rgba(251, 114, 153, 0.28);   /* B 站粉的淡色描边，不抢站点主色 */
+      border-radius: var(--radius-pill);
       box-shadow: var(--shadow);
+      row-gap: 6px;
+      flex-wrap: wrap;
     }
-    .bili-follow-icon { flex-shrink: 0; font-size: 1.7rem; line-height: 1; }
-    .bili-follow-main { flex: 1 1 auto; min-width: 0; }
+    .bili-follow-icon { flex-shrink: 0; font-size: 1.05rem; line-height: 1; }
+    .bili-follow-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
     .bili-follow-main h2 {
-      font-size: 1.02rem;
+      font-size: 0.84rem;
       font-weight: 800;
       color: var(--text);
-      margin-bottom: 5px;
+      white-space: nowrap;
     }
     .bili-follow-main p {
-      font-size: 0.86rem;
-      line-height: 1.75;
+      font-size: 0.78rem;
+      line-height: 1.5;
       color: var(--text-light);
     }
-    .bili-follow-main p b { color: var(--primary-ink); font-weight: 800; word-break: break-all; }
+    .bili-follow-main p b { color: var(--primary-ink); font-weight: 800; }
+    /* 窄屏那句更短的说明：默认不显示，600px 以下换成它（见下面的媒体查询） */
+    .bili-follow-short { display: none; }
     .bili-follow-btn {
       flex-shrink: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 11px 18px;
+      gap: 5px;
+      padding: 6px 13px;
       border-radius: var(--radius-pill);
       background: linear-gradient(135deg, #fb7299, #e85c85);   /* B 站品牌粉 */
       color: #fff;
       font-weight: 800;
-      font-size: 0.88rem;
+      font-size: 0.78rem;
       text-decoration: none;
-      box-shadow: 0 6px 18px rgba(251, 114, 153, 0.35);
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(251, 114, 153, 0.32);
       transition: transform 0.25s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft);
     }
     .bili-follow-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 9px 24px rgba(251, 114, 153, 0.5);
+      box-shadow: 0 7px 18px rgba(251, 114, 153, 0.5);
       color: #fff;
     }
     .bili-follow-btn:active { transform: scale(0.96); }
     @media (max-width: 600px) {
-      .bili-follow { flex-wrap: wrap; gap: 12px; margin-top: 22px; padding: 15px 16px; }
-      .bili-follow-btn { width: 100%; }
+      .bili-follow { margin-top: 14px; padding: 8px 11px; gap: 7px; row-gap: 4px; }
+      .bili-follow-icon { font-size: 1rem; }
+      .bili-follow-main { gap: 6px; }
+      .bili-follow-main h2 { font-size: 0.78rem; }
+      .bili-follow-main p { font-size: 0.72rem; }
+      .bili-follow-full { display: none; }
+      .bili-follow-short { display: inline; }
+      .bili-follow-btn { padding: 5px 11px; font-size: 0.72rem; }
     }
 
     /* ========== 卡片 ========== */
@@ -720,22 +733,21 @@
 
     <!-- ==================== 📺 关注我的哔哩哔哩（2026-10-05 站主新增） ====================
          站主原话：「我哔哩哔哩的个人主页：https://space.bilibili.com/1270782400
-                   我希望大家能给我点关注，因为关注到 Lv2 的时候可以解锁『合集』功能」。
-         放在 hero 正下方（首页最显眼的一段），一条就够，不挡主要内容。
-         站主约束：「所有页脚下面都没有任何东西，保持现状」→ 这里只在 <main> 里面，
-         四个页面的页脚一个字都没动，也没在页脚下面加任何东西。
-         文案要点：① 把主页地址明文写出来（方便复制）；② 说清「为什么值得关注」
-         （等级到 Lv2 解锁合集 → 我会把歌单整理成合集，大家找歌更方便）；
-         ③ 明说「不用投币、不用充电」，降低抵触。链接新标签打开 + rel="noopener noreferrer"。 -->
-    <section class="bili-follow reveal" aria-labelledby="biliFollowTitle">
+                   我希望大家能给我点关注，因为关注到 Lv2 的时候可以解锁『合集』功能」，
+         随后又要求「求关注的那一块弄小一点，还有公告里面不要有跟关注有关的」——
+         所以这里收成一条细横幅（一行放得下），公告里那段已整段删除。
+         站主约束：「所有页脚下面都没有任何东西，保持现状」→ 只在 <main> 里，页脚一个字没动。
+         文案要点：① 说清「为什么值得关注」（粉丝到 Lv2 解锁合集 → 我把歌单整理成合集）；
+         ② 明说「不用投币」；③ 主页地址挂在 title 与按钮的无障碍标签上（悬停可见、读屏可读）。 -->
+    <section class="bili-follow reveal" aria-labelledby="biliFollowTitle"
+             title="我的 B 站主页：space.bilibili.com/1270782400">
       <span class="bili-follow-icon" aria-hidden="true">📺</span>
       <div class="bili-follow-main">
         <h2 id="biliFollowTitle">关注我的哔哩哔哩</h2>
         <p>
-          我的主页：<b>space.bilibili.com/1270782400</b><br>
-          粉丝多一点，我的 B 站等级才能涨到 <b>Lv2</b> —— 到了 Lv2 就能解锁「合集」功能，
-          我就把宝库里的歌按风格整理成合集放上去，大家找歌、听歌都方便得多。
-          不用投币、不用充电，点个关注就够了 ❤️
+          <span class="bili-follow-full">粉丝到 <b>Lv2</b> 就能解锁「合集」，我就把歌单整理成合集 · 不用投币</span>
+          <!-- 窄屏换更短的一句（CSS 里按 600px 切换）：手机上整块才不会被挤成三行 -->
+          <span class="bili-follow-short">到 <b>Lv2</b> 解锁合集 · 不用投币</span>
         </p>
       </div>
       <a class="bili-follow-btn" href="https://space.bilibili.com/1270782400"
