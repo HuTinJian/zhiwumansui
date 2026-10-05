@@ -172,6 +172,31 @@
     }
     /* 深色主题下 .site-announce-badge 的白字压在浅金上对比度不够，换深色字 */
     [data-theme="dark"] .site-announce-badge { color: #241c22; }
+    /* 2026-10-05 站主要求「滚动公告加个时间」：
+       在「📢 公告」后面钉一个小日期章（**不跟着滚**，一直看得见），
+       让人一眼知道这条公告是什么时候的。
+       日期只有一个来源：js/common.js 的 SITE_NOTICE_DATE ——
+       脚本启动时会把它填进所有 [data-announce-date] 占位处（公告弹窗顶部那个日期也是同一个值），
+       HTML 里写的那份只是没脚本时的兜底。改日期只改那一个常量。 */
+    .site-announce-date {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--gold-ink);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--gold-light);
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    /* 深色主题：白底太跳，换成半透明深底 + 浅金字 */
+    [data-theme="dark"] .site-announce-date {
+      color: var(--gold-light);
+      background: rgba(0, 0, 0, 0.22);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
     .site-announce-viewport { flex: 1; min-width: 0; overflow: hidden; }
     .site-announce-track {
       display: inline-flex;
@@ -202,6 +227,9 @@
     @media (max-width: 600px) {
       .site-announce { padding: 8px 12px; gap: 8px; }
       .site-announce-track > span { padding-right: 48px; font-size: 0.82rem; }
+      /* 窄屏上「📢 公告 + 日期」两个章已经占了小半行，日期缩到最小但**不隐藏** ——
+         站主要的就是「一眼知道这条公告是什么时候的」 */
+      .site-announce-date { font-size: 0.66rem; padding: 2px 7px; letter-spacing: 0; }
     }
 
     .hero .subtitle {
@@ -545,10 +573,13 @@
           第二份是滚动用的复制品（aria-hidden，读屏软件不会读两次）。 -->
   <button type="button" class="site-announce" id="siteAnnounce">
     <span class="site-announce-badge">📢 公告</span>
+    <!-- 2026-10-05 站主要求「滚动公告加个时间」：这枚日期章固定不动（不参与走马灯），
+         脚本会用 js/common.js 的 SITE_NOTICE_DATE 覆盖这里写的兜底日期。 -->
+    <span class="site-announce-date" data-announce-date title="这条公告最后更新于 2026-10-05">2026-10-05</span>
     <span class="site-announce-viewport">
       <span class="site-announce-track">
-        <span>Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见，可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
-        <span aria-hidden="true">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见，可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
+        <span>Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见可以进 QQ 群，加群前先看清两个群分别是什么。<b class="site-announce-more">查看说明 →</b></span>
+        <span aria-hidden="true">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见可以进 QQ 群，加群前先看清两个群分别是什么。<b class="site-announce-more">查看说明 →</b></span>
       </span>
     </span>
   </button>

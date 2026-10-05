@@ -977,17 +977,44 @@ function initShareTriggers() {
      · 首页那条「📢 公告」可以再次打开它（window.openSiteNotice）
      · 倒计时已取消（2026-09-27 用户说「算了，倒计时取消吧」）：
        不论自动弹还是手动重看，「我已阅读并知晓」一打开就能点
+     · **2026-10-05 站主要求「把公告弹窗删除了，但是公告保留」→ 不再自动弹**
+       （initUI 里那句 setTimeout(showSiteNotice, …) 已删，改成初始化时直接放行 noticeGate）。
+       公告本体一个字没少，只是改成「访客想看的时候，点首页那条 📢 公告才打开」。
+       想恢复自动弹：把 initUI 里那句 setTimeout 加回去即可（本函数原样保留 force 参数）。
      ============================================================ */
   const SITE_NOTICE_KEY = 'zm_site_notice_seen';
   /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
+     （2026-10-05 起不再自动弹，这个版本号只在「以后恢复自动弹」时才有意义，
+      留着是为了记录内容变更历史。）
      2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。
      2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。
      2026-09-29 v3 → v4：删掉道歉区块里「我和 duck 已经互相道歉」那一段。
      2026-09-29 v4 → v5：加一句「duck 和他的群不归我管」。
-     2026-09-29 v5 → v6：删掉公告开头的歌单来源说明段。 */
-  const SITE_NOTICE_VERSION = '6';
+     2026-09-29 v5 → v6：删掉公告开头的歌单来源说明段。
+     2026-10-05 v6 → v7：删掉「站还是我一个人在维护…进我的群说一声就行」那一段；
+                        两个群的说明改成「进群前先看清分别是什么」——见下面群卡片与那句说明。 */
+  const SITE_NOTICE_VERSION = '7';
 
-  /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起 */
+  /* 公告的「日期」只有一个来源（2026-10-05 站主要求「滚动公告加个时间」时确立）：
+     · 首页那条滚动公告右上角的日期章（index.html 的 [data-announce-date]）；
+     · 公告弹窗顶部那枚日期（.preview-notice-ver）。
+     两处都由 initUI → fillSiteNoticeDate() 用这个常量回填，**改内容就改这一行**，
+     免得出现「滚动条上写一个日期、弹窗里写另一个日期」。
+     2026-10-05：公告内容是这天改的（删掉维护说明那段、重写两个群的说明），所以填今天。 */
+  const SITE_NOTICE_DATE = '2026-10-05';
+
+  /* 把上面那个日期填进页面里所有 [data-announce-date] 占位处（没脚本时显示 HTML 里的兜底值） */
+  function fillSiteNoticeDate(scope) {
+    const root = scope || document;
+    root.querySelectorAll('[data-announce-date]').forEach(el => {
+      el.textContent = SITE_NOTICE_DATE;
+      if (el.hasAttribute('title')) el.setAttribute('title', '这条公告最后更新于 ' + SITE_NOTICE_DATE);
+    });
+  }
+
+  /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起。
+     2026-10-05：公告不再自动弹 → initUI 里会立刻放行这个闸门，
+     否则「版本更新公告」要白等到下面那个 20 秒兜底超时才出现。 */
   let releaseNoticeGate;
   const noticeGate = new Promise(resolve => { releaseNoticeGate = resolve; });
   /* 兜底：万一弹窗没跑起来，20 秒后也必须放行 */
@@ -1030,7 +1057,7 @@ function initShareTriggers() {
     modal.innerHTML = `
       <div class="modal-content preview-notice-content">
         <div class="preview-notice-top">
-          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">2026-09-29</span>
+          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">${SITE_NOTICE_DATE}</span>
         </div>
         <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
         <!-- 2026-09-29 站主要求：删掉原来的开头段
@@ -1061,16 +1088,15 @@ function initShareTriggers() {
           <!-- 2026-10-05：这里原来还写着「或者去反馈页留言都可以」，反馈页已删除，去掉这半句。 -->
         </p>
 
-        <p class="preview-notice-body">
-          站还是我一个人在维护，后面会继续按自己的节奏补歌。
-          想加歌、报 BUG、提建议，进我的群说一声就行。
-        </p>
+        <!-- 2026-10-05 站主要求删掉这一段（原话：「把公告里面的『站还是我一个人在维护，
+             后面会继续按自己的节奏补歌。想加歌、报 BUG、提建议，进我的群说一声就行。』删除了」）。
+             别再顺手加回来 —— 这两句的意思上面「希望大家帮忙补歌」和下面的群说明里已经都有。 -->
 
         <!-- 两个 QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
-             ZhiMist = 站主自己的群（提建议 / 报 BUG / 加歌单）；
-             Roblox 枫叶医院 = duck 的群，完整歌单在那边，想要的人自己去拿。 -->
+             2026-10-05 站主要求：**加群之前就要让人知道这两个群分别是什么** ——
+             标题改成「先看清是哪个再进」，两张卡片的说明也各写清是干什么的、要不要守规矩。 -->
         <div class="site-notice-groups">
-          <p class="site-notice-groups-title">📮 两个 QQ 群，按需要进</p>
+          <p class="site-notice-groups-title">📮 两个 QQ 群，先看清是哪个再进</p>
           <div class="site-notice-group-list">
             <a class="site-notice-group" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener">
               <!-- 2026-10-05 性能：这两张群图加起来 162KB，位置在公告弹窗的**下半部分**，
@@ -1078,23 +1104,30 @@ function initShareTriggers() {
               <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">ZhiMist（我的群）</span>
               <span class="site-notice-group-no">群号 1125311966</span>
-              <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
+              <span class="site-notice-group-desc">守法前提下想说什么都行 —— 批评我也行，我会吸取教训</span>
             </a>
             <a class="site-notice-group" href="images/qq-group-maple.jpg" target="_blank" rel="noopener">
               <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
               <span class="site-notice-group-no">群号 1076510312</span>
-              <span class="site-notice-group-desc">那份最新最全的歌单在这边，想要就去拿</span>
+              <span class="site-notice-group-desc">Roblox 枫叶医院 RP 的群，有自己的规则要遵守；不归我管</span>
             </a>
           </div>
         </div>
 
-        <!-- 2026-09-29 站主要求加这一句：把「duck 那边不归我管」说清楚，
-             免得有人以为枫叶医院的群务 / 歌单维护是该找站主的。 -->
+        <!-- 2026-09-29 站主要求加这一段：把「duck 那边不归我管」说清楚，
+              免得有人以为枫叶医院的群务 / 歌单维护是该找站主的。
+              2026-10-05 站主要求扩展成「两个群分别是什么」，让人**加群之前**就心里有数：
+              duck 的群 = Roblox 枫叶医院 RP、有它自己的规则要守、不归站主管；
+              站主自己的群 = 守法前提下随便说，包括批评站主。 -->
         <p class="preview-notice-body">
-          ℹ️ <strong>一句说明</strong>：duck 和他的群（Roblox 枫叶医院）<strong>不归我管</strong> ——
-          那边的歌单、群规和一切群务都是他自己在维护，我既管不了也不参与。
-          相关问题请直接找 duck；我这边只负责本站（织雾满穗）的内容。
+          ℹ️ <strong>加群前先分清这两个群</strong>：<br>
+          · <strong>Roblox 枫叶医院（duck 的群）</strong>：那是 Roblox 枫叶医院 RP 的群，
+          里面有它自己的规则需要遵守；<strong>不归我管</strong> —— 群规、RP 玩法、歌单和一切群务
+          都是 duck 自己在维护，我既管不了也不参与，相关问题请直接找 duck。<br>
+          · <strong>ZhiMist（我的群）</strong>：只要遵守法律法规，你想说什么都行 ——
+          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。<br>
+          我这边只负责本站（织雾满穗）的内容。
         </p>
 
         <p class="preview-notice-note">
@@ -1133,9 +1166,10 @@ function initShareTriggers() {
   /* 首页那条「📢 公告」点开的就是这个弹窗（不受「已经看过」的限制） */
   function openSiteNotice() { showSiteNotice(true); }
 
-  /* 统一初始化 */function initUI() {
+    /* 统一初始化 */function initUI() {
   applyLiteMode();
   fillSiteCost();
+  fillSiteNoticeDate();   /* 滚动公告 / 公告弹窗上的日期（只有一个来源 SITE_NOTICE_DATE） */
   fillSponsorTotal();     /* 「收到的赞助」：按 D1 + 底档现算（0.6 节） */
   initShareTriggers();    /* 全站 [data-share] 分享入口（0.7 节） */
     bindModalA11y();
@@ -1146,8 +1180,14 @@ function initShareTriggers() {
     initReveal();
     initPageTransition();
 
-    /* 稍微延后一点弹，先让页面画出来，避免「白屏等弹窗」的感觉 */
-    setTimeout(showSiteNotice, document.documentElement.classList.contains('lite') ? 300 : 700);
+    /* 2026-10-05 站主要求：「把公告弹窗删除了，但是公告保留」——
+       所以这里**不再自动弹**那个「全站必读公告」（原来这里有一句延后调用，
+       形如 set‌Timeout(show‌SiteNotice, …)，已删）。公告本体与首页入口都保留：
+       访客想看的时候，点首页那条 📢 公告就会打开它（window.openSiteNotice → showSiteNotice(true)）。
+       想恢复自动弹：把那一句加回来即可（showSiteNotice 本身原样保留，带 force 参数）。
+       ⚠️ 不再自动弹之后，那个「避免两个弹窗撞车」的 noticeGate 必须**当场放行**，
+       否则下面的「版本更新公告」会一直等到 20 秒兜底超时才出现。 */
+    if (releaseNoticeGate) { releaseNoticeGate(); releaseNoticeGate = null; }
 
     /* 2026-10-05：原来这里还会调 checkFeedbackDecision() 去查「我提过的反馈有没有被处理」。
        反馈功能整页下线（feedback.html 已删、/api/feedback/* 已删），回执弹窗一并删除。 */
