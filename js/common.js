@@ -1181,6 +1181,20 @@ function initShareTriggers() {
           我这边只负责本站（织雾满穗）的内容。
         </p>
 
+        <!-- 📺 求关注（2026-10-05 站主新增）：主页 space.bilibili.com/1270782400，
+             粉丝多一点等级才能涨到 Lv2，到 Lv2 解锁「合集」→ 他用合集整理歌单。
+             放在公告里，是因为公告本来就是「跟访客说事」的地方，跟上面的群卡片同类；
+             ⚠️ 首页那条滚动公告条**没有**改（站主要求页脚保持现状，入口统一在首页卡片 + 这里）。 -->
+        <div class="site-notice-bili">
+          <p class="site-notice-bili-title">📺 顺便求个关注</p>
+          <p class="site-notice-bili-body">
+            我在 B 站有主页：<a href="https://space.bilibili.com/1270782400" target="_blank" rel="noopener noreferrer">space.bilibili.com/1270782400</a><br>
+            粉丝多一点，我的等级才能涨到 <strong>Lv2</strong> —— 到了 Lv2 就能解锁「合集」功能，
+            我会把宝库里的歌按风格整理成合集放上去，大家找歌更方便。
+            不用投币、不用充电，点个关注就够了 ❤️
+          </p>
+        </div>
+
         <!-- 2026-10-05 站主要求删掉这一段（原话：「把『⚠️ 本站目前仍是预览版，
              功能和内容都在陆续调整；重要内容请自行二次确认。』删除了」）。
              它用的 .preview-notice-note / .preview-notice-note-icon 两条 CSS 也一并删了
