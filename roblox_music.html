@@ -1120,24 +1120,22 @@
       }
     }
 
-    /* 桌面端：搜索与筛选栏吸顶，滚动 1500 条数据时依然随手可及。
-       吸顶元素【不用毛玻璃】—— 它每滚动一帧就要把背后那条重新模糊一遍，
-       这里换成不透明底色，几乎看不出差别，但省掉大量重复计算。 */
+    /* 搜索与筛选栏（搜索框 + 下面的分类）：
+       2026-10-05 站主反馈「往下划的时候，搜索框和下面的分类也跟着下来了 修复」——
+       原来桌面端（≥769px）这里写的是 `position: sticky; top: 64px`，
+       贴在页头下面一直跟着滚，挡视线也挡内容。**现在改成正常随页面滚走**，
+       但保留那张卡片的观感（不透明底 + 圆角 + 细边框 + 内边距），所以看起来没变、只是不再吸顶。
+       注意：`top` 留在页头那条 sticky 上（那是站主没让改的），这里只管搜索栏自己。 */
     @media (min-width: 769px) {
       .search-row {
-        position: sticky;
-        top: 64px;
-        z-index: 60;
         background: var(--bg);
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         padding: 10px 12px;
         margin-bottom: 12px;
       }
-      .search-row.stuck {
-        box-shadow: 0 6px 20px rgba(220, 107, 130, 0.16);
-        border-color: var(--primary-light);
-      }
+      /* 原来还有一条 .search-row.stuck（吸顶时加投影）——
+         吸顶取消后它没有任何引用（全仓搜 stuck 只有这里一处），一并删除。 */
     }
 
     @media (max-width: 768px) {
