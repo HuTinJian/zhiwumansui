@@ -992,8 +992,13 @@ function initShareTriggers() {
      2026-09-29 v4 → v5：加一句「duck 和他的群不归我管」。
      2026-09-29 v5 → v6：删掉公告开头的歌单来源说明段。
      2026-10-05 v6 → v7：删掉「站还是我一个人在维护…进我的群说一声就行」那一段；
-                        两个群的说明改成「进群前先看清分别是什么」——见下面群卡片与那句说明。 */
-  const SITE_NOTICE_VERSION = '7';
+                        两个群的说明改成「进群前先看清分别是什么」——见下面群卡片与那句说明。
+     2026-10-05 v7 → v8：两个群的说明顺序改成「先我的群、再 duck 的群」（跟上面两张卡片一致）；
+                        删掉结尾「⚠️ 本站目前仍是预览版…自行二次确认。」那一段；
+                        两张二维码下面的短说明恢复成原来的「提建议 / 报 BUG / 让我加歌单」那种写法
+                        （站主：「2 个群的二维码下面改成像之前一样的那个『提建议/报 bug』等内容」）——
+                        卡片只留「进群干什么」，RP / 群规 / 不归我管这些在下面那段里说。 */
+  const SITE_NOTICE_VERSION = '8';
 
   /* 公告的「日期」只有一个来源（2026-10-05 站主要求「滚动公告加个时间」时确立）：
      · 首页那条滚动公告右上角的日期章（index.html 的 [data-announce-date]）；
@@ -1104,36 +1109,36 @@ function initShareTriggers() {
               <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">ZhiMist（我的群）</span>
               <span class="site-notice-group-no">群号 1125311966</span>
-              <span class="site-notice-group-desc">守法前提下想说什么都行 —— 批评我也行，我会吸取教训</span>
+              <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
             </a>
             <a class="site-notice-group" href="images/qq-group-maple.jpg" target="_blank" rel="noopener">
               <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
               <span class="site-notice-group-no">群号 1076510312</span>
-              <span class="site-notice-group-desc">Roblox 枫叶医院 RP 的群，有自己的规则要遵守；不归我管</span>
+              <span class="site-notice-group-desc">Roblox 枫叶医院 RP 群 · 最新最全的歌单在这边，想要就去拿</span>
             </a>
           </div>
         </div>
 
         <!-- 2026-09-29 站主要求加这一段：把「duck 那边不归我管」说清楚，
               免得有人以为枫叶医院的群务 / 歌单维护是该找站主的。
-              2026-10-05 站主要求扩展成「两个群分别是什么」，让人**加群之前**就心里有数：
-              duck 的群 = Roblox 枫叶医院 RP、有它自己的规则要守、不归站主管；
-              站主自己的群 = 守法前提下随便说，包括批评站主。 -->
+              2026-10-05 站主要求扩展成「两个群分别是什么」，让人**加群之前**就心里有数。
+              2026-10-05 稍后站主又要求顺序：**先写我的群，再写 duck 的群**
+              （跟上面两张卡片的顺序一致：ZhiMist 在前、枫叶医院在后）。 -->
         <p class="preview-notice-body">
           ℹ️ <strong>加群前先分清这两个群</strong>：<br>
+          · <strong>ZhiMist（我的群）</strong>：只要遵守法律法规，你想说什么都行 ——
+          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。<br>
           · <strong>Roblox 枫叶医院（duck 的群）</strong>：那是 Roblox 枫叶医院 RP 的群，
           里面有它自己的规则需要遵守；<strong>不归我管</strong> —— 群规、RP 玩法、歌单和一切群务
           都是 duck 自己在维护，我既管不了也不参与，相关问题请直接找 duck。<br>
-          · <strong>ZhiMist（我的群）</strong>：只要遵守法律法规，你想说什么都行 ——
-          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。<br>
           我这边只负责本站（织雾满穗）的内容。
         </p>
 
-        <p class="preview-notice-note">
-          <span class="preview-notice-note-icon" aria-hidden="true">⚠️</span>
-          <span>本站目前仍是预览版，功能和内容都在陆续调整；重要内容请自行二次确认。</span>
-        </p>
+        <!-- 2026-10-05 站主要求删掉这一段（原话：「把『⚠️ 本站目前仍是预览版，
+             功能和内容都在陆续调整；重要内容请自行二次确认。』删除了」）。
+             它用的 .preview-notice-note / .preview-notice-note-icon 两条 CSS 也一并删了
+             （css/style.css 里留了说明与历史提交号）。 -->
         <div class="preview-notice-actions" id="siteNoticeActions">
           <!-- 2026-10-05：站主要求反馈功能整页下线，这里原来那颗
                「💬 去反馈」（href="feedback.html"）随之删除，

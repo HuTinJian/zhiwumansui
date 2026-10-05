@@ -1506,27 +1506,10 @@ body.modal-open .particles i { animation-play-state: paused; }
   .site-notice-group img { max-width: 150px; }
 }
 
-/* 「不能保证任何事情都没有可能发生」这段声明：给一点视觉重量，让人不会略过 */
-.preview-notice-note {
-  display: flex;
-  gap: 9px;
-  align-items: flex-start;
-  margin: 0 24px 22px;
-  padding: 12px 15px;
-  font-size: 0.84rem;
-  line-height: 1.8;
-  color: var(--text-light);
-  background: var(--gold-bg);
-  border: 1px solid var(--gold-light);
-  border-left: 4px solid var(--gold);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-}
-
-.preview-notice-note-icon {
-  flex-shrink: 0;
-  font-size: 0.95rem;
-  line-height: 1.8;
-}
+/* 2026-10-05 站主要求：删掉公告里「⚠️ 本站目前仍是预览版，功能和内容都在陆续调整；
+   重要内容请自行二次确认。」那一段 —— 它用的 .preview-notice-note / .preview-notice-note-icon
+   两条规则（以及下面窄屏里的一条）随之删除，现在全站没有元素再用这两个类。
+   历史样式见 git 提交 b84aae5；要加回来照着写一遍即可。 */
 
 .preview-notice-actions {
   display: flex;
@@ -1565,7 +1548,6 @@ body.modal-open .particles i { animation-play-state: paused; }
   .preview-notice-content .preview-notice-top { padding: 13px 16px 11px; }
   .preview-notice-content h2 { margin: 15px 16px 8px; }
   .preview-notice-body { margin: 0 16px 13px; font-size: 0.88rem; }
-  .preview-notice-note { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.8rem; }
   .preview-notice-actions { padding: 0 16px 14px; gap: 8px; }
   .preview-notice-sponsor-tip { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.8rem; }
   .preview-notice-ver { font-size: 0.72rem; }
