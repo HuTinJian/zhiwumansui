@@ -2728,12 +2728,25 @@
       return null;
     }
 
+    /* 上报时间统一按**北京时间**显示（2026-10-05 站主：「时间都要准确，在 ID 上报那一块，
+       上报时间完全不准确」）。换算逻辑收在 common.js 的 formatBeijingTime()，
+       前台后台共用一份：库里存的是 UTC（Cloudflare 的 SQLite 跑在 UTC，
+       虽然写的是 datetime('now','localtime')），旧代码直接显示，所以整整差 8 小时。 */
     function fmtReportTime(text) {
-      const t = String(text || '').trim();
-      if (!t) return '—';
-      /* 服务端存的是 'YYYY-MM-DD HH:MM:SS'（localtime），手机上太长 → 只留 月-日 时:分 */
-      const m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-      return m ? (m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5]) : t;
+      const raw = String(text === undefined || text === null ? '' : text).trim();
+      if (!raw) return '—';
+      if (typeof formatBeijingTime === 'function') {
+        const out = formatBeijingTime(raw, 'short');   /* '10-05 10:50' */
+        if (out) return out;
+      }
+      /* common.js 没加载时的兜底：自己按 +8 算一遍，别退回「直接显示 UTC」 */
+      const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      if (!m) return raw;
+      const d = new Date(m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5] + ':00Z');
+      if (isNaN(d.getTime())) return raw;
+      const bj = new Date(d.getTime() + 8 * 3600 * 1000);
+      const p = n => String(n).padStart(2, '0');
+      return p(bj.getUTCMonth() + 1) + '-' + p(bj.getUTCDate()) + ' ' + p(bj.getUTCHours()) + ':' + p(bj.getUTCMinutes());
     }
 
     async function fetchMyReports() {
@@ -2771,6 +2784,8 @@
           statusCls: meta.cls,
           canRestore: meta.canRestore,
           tip: meta.tip,
+          /* rawTime 留着给排序用（ISO，字典序即时间序）；time 是给人看的北京时间 */
+          rawTime: item.createdAt || '',
           time: fmtReportTime(item.createdAt),
           fromServer: true
         });
@@ -2793,6 +2808,19 @@
           time: '—',
           fromServer: false
         });
+      });
+
+      /* 2026-10-05 站主要求「按时间排序，从最近到最后」：
+         服务端已经按 created_at 倒序返回，这里再显式排一遍 —— 这样即使接口换了口径、
+         或者本地补进来的「仅本地记录」混在中间，表格顺序也永远是「最近的在最上面」。
+         本地记录没有时间（time 为 '—'），排到最后。 */
+      rows.sort((a, b) => {
+        const ta = a.fromServer ? String(a.rawTime || '') : '';
+        const tb = b.fromServer ? String(b.rawTime || '') : '';
+        if (ta && tb) return ta < tb ? 1 : (ta > tb ? -1 : 0);
+        if (ta) return -1;
+        if (tb) return 1;
+        return 0;
       });
 
       /* 服务端那份是「新的在前」，本地补进来的放后面即可（保持稳定顺序） */
@@ -2820,7 +2848,7 @@
       }
 
       let html = '<table class="myrep-table"><thead><tr>' +
-        '<th>歌名</th><th>ID</th><th class="myrep-time">上报时间</th><th>状态</th><th>操作</th>' +
+        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（北京时间）</th><th>状态</th><th>操作</th>' +
         '</tr></thead><tbody>';
 
       myRepRows.forEach((row, index) => {

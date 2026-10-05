@@ -842,8 +842,8 @@ function renderInvalidPending() {
       </div>
       <div class="meta">
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
-        ${item.lastAt ? ' · 🕒 最近上报 ' + escapeHtml(item.lastAt) : ''}
-        ${item.firstAt ? ' · 首次 ' + escapeHtml(item.firstAt) : ''}
+        ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
+        ${item.firstAt ? ' · <span title="北京时间">首次 ' + escapeHtml(adminTime(item.firstAt)) + '</span>' : ''}
       </div>
       <div class="actions">
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
@@ -908,7 +908,7 @@ function renderInvalidIgnored() {
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
         ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
         · 🚫 上报 ${item.count} 次
-        ${item.lastAt ? ' · 🕒 最近上报 ' + escapeHtml(item.lastAt) : ''}
+        ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
       </div>
       <div class="actions">
         <button class="btn-invalid-restore" data-id="${escapeHtml(item.id)}">♻️ 恢复为待处理</button>
@@ -969,7 +969,7 @@ function renderInvalidRemoved() {
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>
         ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
         ${item.source ? ' · 📌 ' + escapeHtml(item.source) : ''}
-        ${item.at ? ' · 🕒 ' + escapeHtml(item.at) : ''}
+        ${item.at ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.at)) + '</span>' : ''}
       </div>
       <div class="actions">
         <button class="btn-invalid-restore" data-id="${escapeHtml(item.id)}">🔓 恢复上架</button>
@@ -2054,6 +2054,20 @@ function adminMoney(text) {
   if (!raw.trim()) return raw;
   if (typeof normalizeMoneyText === 'function') return normalizeMoneyText(raw);
   return raw;
+}
+
+/* 后台里显示服务器时间的地方（无效音乐ID管理的「最近上报 / 首次」，已下架那一栏的「下架时间」）
+   一律走这个：调 common.js 的 formatBeijingTime() 按**北京时间**显示。
+   原因见 js/common.js 里那段说明 —— 库里存的是 UTC（Cloudflare 的 SQLite 跑在 UTC），
+   直接显示会整整差 8 小时（2026-10-05 站主指出「上报时间完全不准确」）。 */
+function adminTime(text) {
+  const raw = String(text === undefined || text === null ? '' : text).trim();
+  if (!raw) return '';
+  if (typeof formatBeijingTime === 'function') {
+    const out = formatBeijingTime(raw, 'short');
+    if (out) return out;
+  }
+  return raw;   /* common.js 没加载时退回原值（宁可显示 UTC，也不要显示空白） */
 }
 
 /* D1 那部分的缓存：编辑时按 id 取回原值 */

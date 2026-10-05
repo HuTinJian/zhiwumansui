@@ -5,6 +5,7 @@
    ============================================================ */
 
 import { json, checkAuth } from '../_utils.js';
+import { toUtcIso } from '../_time.js';
 
 const STATUSES = ['pending', 'ignored', 'all'];
 
@@ -35,7 +36,10 @@ export async function onRequestGet(context) {
     const rows = [];
     for (const s of wanted) {
       /* 歌名 / 分类取「最近一条上报」的值（子查询按 id 倒序），
-         而不是 MAX(name) —— 那是字典序最大，会拿到风马牛不相及的名字 */
+         而不是 MAX(name) —— 那是字典序最大，会拿到风马牛不相及的名字。
+         2026-10-05 站主要求「按时间排序，从最近到最后」：这里也改成**时间优先**
+         （最近有上报的排最前），次数退为第二关键字。限了 LIMIT，所以 SQL 里的顺序
+         决定了「哪些行会被取回来」，必须在 SQL 层就按时间排，不能只靠 JS 那一遍重排。 */
       const result = await env.DB.prepare(
         `SELECT r1.music_id AS music_id,
                 COUNT(*) AS report_count,
@@ -50,7 +54,7 @@ export async function onRequestGet(context) {
          FROM invalid_reports r1
          WHERE r1.status = ?
          GROUP BY r1.music_id
-         ORDER BY report_count DESC, last_at DESC
+         ORDER BY last_at DESC, report_count DESC, r1.music_id
          LIMIT ?`
       ).bind(s, limit).all();
 
@@ -61,14 +65,20 @@ export async function onRequestGet(context) {
           category: row.latest_category || '未分类',
           count: Number(row.report_count) || 0,
           status: s,
-          firstAt: row.first_at || '',
-          lastAt: row.last_at || ''
+          /* 带时区的 UTC ISO（…Z）：后台按北京时间显示，见 js/common.js 的 formatBeijingTime */
+          firstAt: toUtcIso(row.first_at),
+          lastAt: toUtcIso(row.last_at)
         });
       }
     }
 
-    /* status=all 时两段混在一起，按 count DESC, lastAt DESC 重排，再截到 limit */
-    rows.sort((a, b) => (b.count - a.count) || (a.lastAt < b.lastAt ? 1 : a.lastAt > b.lastAt ? -1 : 0));
+    /* 2026-10-05 站主要求「按时间排序，从最近到最后」：
+       原来第一关键字是「上报次数」多的在前，现在**改成时间优先** —— 最近有上报的排最前；
+       次数只作为同一时间（或时间相同/缺失）时的第二关键字，不再抢排头。 */
+    rows.sort((a, b) => {
+      if (a.lastAt !== b.lastAt) return a.lastAt < b.lastAt ? 1 : -1;
+      return b.count - a.count;
+    });
     const data = rows.slice(0, limit);
 
     /* 统计卡四个数字一次查询拿到（避免四次往返） */

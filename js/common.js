@@ -151,6 +151,52 @@ function normalizeMoneyText(text) {
   return formatMoney(num);
 }
 
+/* ============================================================
+   时间显示（2026-10-05 站主：「时间都要准确，在 ID 上报那一块，上报时间完全不准确」）
+   ------------------------------------------------------------
+   背景（线上量过，不是猜的）：D1 里的 created_at 是用
+   `datetime('now','localtime')` 写的，但 Cloudflare 的 SQLite 跑在 UTC 上，
+   那串「看着像本地时间」的值其实是 **UTC** —— 实测北京时间 10:50 上报一条，
+   库里写 02:50，慢整整 8 小时（凌晨 0-8 点报的连日期都会差一天）。
+   接口现在统一返回**带时区的 ISO**（…Z，见 functions/api/_time.js），
+   这里负责把它按**北京时间**显示出来，前台「📋 我上报的」和后台「无效音乐ID管理」共用这一个。
+   为什么用固定 +8、不跟浏览器时区：① 中文站就该按北京时间看；
+   ② 中国自 1991 年起没有夏令时，UTC+8 全年固定，直接加 8 小时就是准的，也不依赖时区库。
+   认得的输入：'2026-10-05 02:50:11'（当作 UTC）/ '2026-10-05T02:50:11Z' /
+   '2026-10-05T10:50:11+08:00'；空的或认不出的返回空串，绝不乱显示。
+   style：'short' → '10-05 10:50'（列表用）／'full' → 带秒／'date' → 只要日期／
+          默认 → '2026-10-05 10:50'
+   ============================================================ */
+function parseServerTime(text) {
+  const raw = String(text === undefined || text === null ? '' : text).trim();
+  if (!raw) return null;
+
+  let d = null;
+  if (/[zZ]$/.test(raw) || /[+-]\d{2}:?\d{2}$/.test(raw)) {
+    d = new Date(raw);                         /* 已经带时区，直接解析 */
+  } else {
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    /* 不带时区的一律当 UTC（库里就是 UTC 写的）——不补 Z 就会被当成本地时间，正是原来差 8 小时的原因 */
+    d = m
+      ? new Date(m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5] + ':' + (m[6] || '00') + 'Z')
+      : new Date(raw);
+  }
+  return (d && !isNaN(d.getTime())) ? d : null;
+}
+
+function formatBeijingTime(text, style) {
+  const d = parseServerTime(text);
+  if (!d) return '';
+  const bj = new Date(d.getTime() + 8 * 60 * 60 * 1000);   /* UTC+8，全年固定 */
+  const p = n => String(n).padStart(2, '0');
+  const date = bj.getUTCFullYear() + '-' + p(bj.getUTCMonth() + 1) + '-' + p(bj.getUTCDate());
+  const hm = p(bj.getUTCHours()) + ':' + p(bj.getUTCMinutes());
+  if (style === 'short') return date.slice(5) + ' ' + hm;
+  if (style === 'full') return date + ' ' + hm + ':' + p(bj.getUTCSeconds());
+  if (style === 'date') return date;
+  return date + ' ' + hm;
+}
+
 function sumSponsors(d1People, fileList) {
   const seen = Object.create(null);
   let total = 0;
@@ -1659,6 +1705,7 @@ function initShareTriggers() {
     checkPageUpdate,  // 检查该页面是否有新版本公告
     getClientId,      // 本浏览器的随机身份（宝库页「无效处理」上报的去重 / 撤销靠它）
     formatMoney,      // 数字 → '¥xx.xx'（一律两位小数）
-    normalizeMoneyText // 随手写的金额 → '¥xx.xx'（认不出是金额就原样返回）
+    normalizeMoneyText, // 随手写的金额 → '¥xx.xx'（认不出是金额就原样返回）
+    formatBeijingTime   // 库里/接口的时间 → 北京时间文本（'short' / 'full' / 'date' / 默认）
   });
 })();

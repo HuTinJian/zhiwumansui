@@ -12,6 +12,7 @@
    ============================================================ */
 
 import { json, createRateLimiter } from '../_utils.js';
+import { toUtcIso } from '../_time.js';
 
 /* 浏览器匿名身份（前端 getClientId()）：小写字母数字 8~64 位 */
 const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
@@ -36,11 +37,13 @@ export async function onRequestGet(context) {
       return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
     }
 
+    /* 按时间倒序：最近上报的排最前（2026-10-05 站主要求「按时间排序，从最近到最后」）。
+       created_at 是 UTC（见 ../_time.js 的说明），同一秒内再按 id 倒序兜底。 */
     const result = await env.DB.prepare(
       `SELECT music_id, name, category, status, created_at
          FROM invalid_reports
         WHERE reporter = ?
-        ORDER BY id DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ?`
     ).bind(reporter, MAX_ROWS).all();
 
@@ -50,7 +53,8 @@ export async function onRequestGet(context) {
       category: row.category || '',
       /* pending = 后台还没处理（访客可自行恢复）；ignored = 后台已忽略；removed = 已下架 */
       status: String(row.status || 'pending'),
-      createdAt: row.created_at || ''
+      /* 带时区的 UTC ISO（…Z）：客户端据此换算成北京时间显示，不会再差 8 小时 */
+      createdAt: toUtcIso(row.created_at)
     }));
 
     return json({ ok: true, items, count: items.length });

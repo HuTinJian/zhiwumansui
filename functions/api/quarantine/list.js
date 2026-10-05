@@ -3,6 +3,7 @@
    ============================================================ */
 
 import { json } from '../_utils.js';
+import { toUtcIso } from '../_time.js';
 
 /* 2026-10-05：**故意不加缓存头**（保持 _utils.json() 默认的 no-store）。
    我一度给它加过 `public, max-age=60`（想省掉重复访问那次 617ms 的 D1 查询），
@@ -19,7 +20,7 @@ export async function onRequestGet(context) {
     const result = await env.DB.prepare(
       `SELECT music_id, name, category, source, created_at
        FROM quarantine_admin
-       ORDER BY id DESC`
+       ORDER BY created_at DESC, id DESC`
     ).all();
 
     const list = (result.results || []).map(r => ({
@@ -27,7 +28,8 @@ export async function onRequestGet(context) {
       name: r.name || '未知歌名',
       category: r.category || '未分类',
       source: r.source || '',
-      quarantinedAt: r.created_at || ''
+      /* 带时区的 UTC ISO（…Z）：后台「已下架」那一栏按北京时间显示，不会差 8 小时 */
+      quarantinedAt: toUtcIso(r.created_at)
     }));
 
     return json({ ok: true, data: list });
