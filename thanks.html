@@ -352,8 +352,12 @@
 
         /* 2026-09-26：这里原来还有一行类别标题「👑 赞助者」——
            跟上面的切换标签重复，用户圈出来要求删掉，所以只剩人员行。
-           .thanks-group 这层壳保留：它负责限宽 640px + 居中。 */
+           .thanks-group 这层壳保留：它是每个类别/名单的「块」。
+           2026-10-05 站主要求「赞助者这里的人也要分 3 列向下排」——
+           所以补一层 .thanks-people：列数（column-count）定义在 css/style.css 里，
+           跟 Roblox / 玩家感谢两栏共用同一套规则，不用各写一份。 */
         var html = '<div class="thanks-group">';
+        html += '<div class="thanks-people">';
         items.forEach(function (p) {
           html += '<div class="thanks-person">';
           html += '<span class="p-name">' + esc(p.name) + '</span>';
@@ -361,6 +365,7 @@
           if (p.message) html += '<span class="p-message">· ' + esc(p.message) + '</span>';
           html += '</div>';
         });
+        html += '</div>';
         html += '</div>';
 
         box.innerHTML = html;

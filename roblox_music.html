@@ -138,6 +138,113 @@
       transform: scale(0.93);
     }
 
+    /* ========== 「📋 我上报的」按钮 + 上报表（2026-10-05 站主要求新增） ==========
+       访客点过「🚫 无效处理」的歌在这里集中看到，可以单条恢复 / 全部恢复。
+       本质上是「只属于自己的那份隔离区」：数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
+    .btn-mine {
+      background: linear-gradient(135deg, #f0a5b8, #dc6b82);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(220, 107, 130, 0.35);
+      font-weight: 700;
+    }
+    .btn-mine:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(220, 107, 130, 0.55);
+    }
+    .btn-mine:active { transform: scale(0.93); }
+
+    .myrep-note {
+      margin: 0 0 10px;
+      font-size: 0.82rem;
+      line-height: 1.75;
+      color: var(--text-muted);
+    }
+    .myrep-note .myrep-count { font-weight: 700; color: var(--primary); }
+    /* 表格外层自己滚（弹窗本体不滚），手机上也不会把弹窗撑破 */
+    .myrep-wrap {
+      margin: 0 0 14px;
+      max-height: 50vh;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+    }
+    .myrep-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .myrep-table th,
+    .myrep-table td {
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    .myrep-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bg-soft);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .myrep-table tr:last-child td { border-bottom: none; }
+    .myrep-table .myrep-name { font-weight: 600; color: var(--primary-ink); }
+    .myrep-table .myrep-id {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      word-break: break-all;
+    }
+    .myrep-table .myrep-time { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
+    .myrep-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .myrep-status.pending { background: rgba(220, 107, 130, 0.14); color: var(--primary-ink); }
+    .myrep-status.ignored { background: var(--bg-tint); color: var(--text-muted); }
+    .myrep-status.removed { background: rgba(120, 120, 120, 0.16); color: var(--text-muted); }
+    .myrep-status.local { background: rgba(107, 182, 232, 0.16); color: var(--text-light); }
+    .myrep-btn {
+      border: 1px solid var(--primary-light);
+      background: var(--bg-card);
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s var(--ease-soft);
+    }
+    .myrep-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .myrep-btn:active { transform: scale(0.94); }
+    .myrep-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+    .myrep-btn[disabled]:hover { background: var(--bg-card); color: var(--primary); border-color: var(--primary-light); }
+    .myrep-empty {
+      padding: 20px 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      line-height: 1.8;
+    }
+    @media (max-width: 600px) {
+      .myrep-table { font-size: 0.78rem; }
+      .myrep-table th, .myrep-table td { padding: 7px 8px; }
+      .myrep-table .myrep-time { display: none; }
+      .myrep-wrap { max-height: 44vh; }
+    }
+
     .search-row {
       display: flex;
       gap: 10px;
@@ -1108,6 +1215,9 @@
                   于是那颗「🚫 无效批量处理」按钮、批量条、行里的勾选框、批量模式一起删干净。
                现在这一组只剩「📢 告诉我们你从哪来」；上报只有一种方式：
                每条 ID 上的「🚫 无效处理」（点错了点它变出来的「↩️ 撤销」回退）。 -->
+          <!-- 2026-10-05 站主要求：加一颗「📋 我上报的」——打开上报表，
+               能看到自己点过「无效处理」的歌，单条 / 全部恢复。 -->
+          <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些 ID，可以在这里恢复">📋 我上报的</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
@@ -1222,6 +1332,27 @@
   <!-- 2026-10-05：这里原来是「⛔ 我的隔离区」弹窗（列表 + 全部恢复 + 💬 去反馈）。
        站主明确：无效处理这一套代替隔离区、批量隔离、叉叉与后台反馈 ——
        弹窗删掉，反馈页也整页下线（feedback.html 已删除），不再有任何反馈入口。 -->
+
+  <!-- 2026-10-05 站主要求：加一张「上报表」—— 访客能看到自己点过「🚫 无效处理」的歌，
+       单条恢复 / 全部恢复（本质上就是只属于自己的那份隔离区）。
+       数据来自 GET /api/invalid/mine（按浏览器匿名身份过滤，只读），
+       恢复走已有的 POST /api/invalid/withdraw（服务端只允许删自己那条 pending 记录）。 -->
+  <div class="modal" id="myReportsModal">
+    <div class="modal-content">
+      <h2>📋 我上报的无效 ID</h2>
+      <p class="myrep-note">
+        这些是<b>你这台浏览器</b>点过「🚫 无效处理」的歌，共 <span class="myrep-count" id="myRepCount">0</span> 条。
+        后台还没处理的可以点「↩️ 恢复」撤回；已经下架或忽略的由管理员那边定，你自己改不了。
+      </p>
+      <div class="myrep-wrap" id="myRepWrap" aria-live="polite">
+        <div class="myrep-empty">加载中…</div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="myRepRestoreAll" disabled>↩️ 全部恢复</button>
+        <button type="button" class="btn btn-primary" id="myRepClose">关闭</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" id="visitSourceModal">
     <div class="modal-content">
@@ -2316,7 +2447,9 @@
 
       if (win) {
         try { win.opener = null; } catch (e) {}
-        showNotice('🚀 已在新标签页打开 Roblox 官方页面（访问可能需要加速器）');
+        /* 2026-10-05 站主要求：删掉这里原来那句
+           「🚀 已在新标签页打开 Roblox 官方页面（访问可能需要加速器）」——
+           新标签页本来就打开了，不用再弹一句。被拦截时的兜底提示（下面那句）保留。 */
         return;
       }
 
@@ -2548,6 +2681,250 @@
        「无效批量处理」整个功能删除后它没有任何调用点，连同 toggleBatchMode() 一起删掉。
        现在上报只有一条路：每条 ID 上的「🚫 无效处理」→ toggleInvalidReport()。 */
 
+    /* ============================================================
+       「📋 我上报的」上报表（2026-10-05 站主要求新增）
+       ------------------------------------------------------------
+       站主原话：「增加一个上报表（游客），点击无效按钮之后上报的歌曲，在这里面可以看到
+       所有他上报的歌曲，然后可以选择恢复，再加个全部恢复按钮（其实本质上还是游客隔离区）」。
+       数据两条来源，合并显示：
+         ① 服务端 GET /api/invalid/mine?reporter=xxx —— 权威：带状态（待处理 / 已忽略 / 已下架）
+            和上报时间；后台已经处理过的也能看到处理结果。
+         ② 本地 localStorage（roblox_invalid_reported）—— 兜底：接口挂了 / 纯静态托管时
+            至少能看到「我这台浏览器报过哪些」，另外还能捞出「本地有、服务端没有」的残留
+            （比如表建好之前报的、或在别的设备上撤过的）。
+       恢复 = 调已有的 withdraw（服务端只删自己那条 pending），成功后本地标记一并清掉、
+       宝库页那一行立刻变回「🚫 无效处理」。
+       ============================================================ */
+    const INVALID_MINE_URL = '/api/invalid/mine';
+
+    /* 这一页渲染用的转义：正文走 common.js 的 escapeHtml，
+       属性值（title / data-*）再补一道引号转义 —— 属性是最容易漏的地方。 */
+    function repEsc(text) {
+      if (typeof escapeHtml === 'function') return escapeHtml(text);
+      return String(text === undefined || text === null ? '' : text)
+        .replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function escAttr(text) {
+      return repEsc(text).replace(/\n/g, ' ');
+    }
+    const esc = repEsc;
+
+    const MY_REP_STATUS = {
+      pending: { text: '⏳ 后台待处理', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
+      ignored: { text: '🙈 后台已忽略', cls: 'ignored', canRestore: false, tip: '后台看过了、认为这首歌没问题，歌还在库里，不用管' },
+      removed: { text: '🗑️ 已下架', cls: 'removed', canRestore: false, tip: '已经被管理员下架，这条不用你处理' },
+      local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
+    };
+
+    let myRepRows = [];        /* 当前表格里的行（渲染 + 全部恢复都用它） */
+    let myRepLoading = false;
+
+    /* 从已加载的主数据里按 ID 找歌名 / 分类（本地残留那几条没有服务端数据时用） */
+    function findSongById(id) {
+      if (!Array.isArray(songDatabase)) return null;
+      for (let i = 0; i < songDatabase.length; i++) {
+        if (String(songDatabase[i].id) === String(id)) return songDatabase[i];
+      }
+      return null;
+    }
+
+    function fmtReportTime(text) {
+      const t = String(text || '').trim();
+      if (!t) return '—';
+      /* 服务端存的是 'YYYY-MM-DD HH:MM:SS'（localtime），手机上太长 → 只留 月-日 时:分 */
+      const m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      return m ? (m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5]) : t;
+    }
+
+    async function fetchMyReports() {
+      const reporter = reporterId();
+      /* 身份拿不到就没法按人查（服务端会 400）——直接走本地兜底，别弹错 */
+      if (!reporter) return null;
+      try {
+        const res = await fetch(INVALID_MINE_URL + '?reporter=' + encodeURIComponent(reporter) + '&t=' + Date.now(), {
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json().catch(() => null);
+        if (!data || !data.ok || !Array.isArray(data.items)) throw new Error('bad response');
+        return data.items;
+      } catch (err) {
+        return null;   /* null = 服务端这份没拿到，调用方会退回「只显示本地记录」并注明 */
+      }
+    }
+
+    /* 合并服务端 + 本地，产出表格行 */
+    function mergeMyRepRows(serverItems, localOnlyHint) {
+      const rows = [];
+      const seen = Object.create(null);
+
+      (Array.isArray(serverItems) ? serverItems : []).forEach(item => {
+        const id = String(item && item.id || '');
+        if (!id || seen[id]) return;
+        seen[id] = true;
+        const meta = MY_REP_STATUS[item.status] || MY_REP_STATUS.pending;
+        rows.push({
+          id: id,
+          name: item.name || '（未记歌名）',
+          status: item.status || 'pending',
+          statusText: meta.text,
+          statusCls: meta.cls,
+          canRestore: meta.canRestore,
+          tip: meta.tip,
+          time: fmtReportTime(item.createdAt),
+          fromServer: true
+        });
+      });
+
+      /* 本地有、服务端没有的：显示成「仅本地记录」，只清本地标记 */
+      invalidReported.forEach(id => {
+        const sid = String(id);
+        if (seen[sid]) return;
+        seen[sid] = true;
+        const song = findSongById(sid);
+        rows.push({
+          id: sid,
+          name: song ? song.name : (localOnlyHint || '（后台没有这条记录）'),
+          status: 'local',
+          statusText: MY_REP_STATUS.local.text,
+          statusCls: MY_REP_STATUS.local.cls,
+          canRestore: true,
+          tip: MY_REP_STATUS.local.tip,
+          time: '—',
+          fromServer: false
+        });
+      });
+
+      /* 服务端那份是「新的在前」，本地补进来的放后面即可（保持稳定顺序） */
+      return rows;
+    }
+
+    function paintMyRepTable(offline) {
+      const wrap = document.getElementById('myRepWrap');
+      const countEl = document.getElementById('myRepCount');
+      const allBtn = document.getElementById('myRepRestoreAll');
+      if (!wrap) return;
+
+      if (countEl) countEl.textContent = String(myRepRows.length);
+
+      const restorable = myRepRows.filter(r => r.canRestore && r.status === 'pending').length;
+      if (allBtn) {
+        allBtn.disabled = restorable === 0;
+        allBtn.textContent = restorable > 0 ? ('↩️ 全部恢复（' + restorable + '）') : '↩️ 全部恢复';
+      }
+
+      if (myRepRows.length === 0) {
+        wrap.innerHTML = '<div class="myrep-empty">你还没有上报过任何无效 ID。<br>' +
+          '在宝库里点某首歌旁边的「🚫 无效处理」就会出现在这里。</div>';
+        return;
+      }
+
+      let html = '<table class="myrep-table"><thead><tr>' +
+        '<th>歌名</th><th>ID</th><th class="myrep-time">上报时间</th><th>状态</th><th>操作</th>' +
+        '</tr></thead><tbody>';
+
+      myRepRows.forEach((row, index) => {
+        html += '<tr>';
+        html += '<td class="myrep-name">' + esc(row.name) + '</td>';
+        html += '<td class="myrep-id">' + esc(row.id) + '</td>';
+        html += '<td class="myrep-time">' + esc(row.time) + '</td>';
+        html += '<td><span class="myrep-status ' + row.statusCls + '" title="' + escAttr(row.tip) + '">' +
+          esc(row.statusText) + '</span></td>';
+        html += '<td>';
+        if (row.canRestore) {
+          html += '<button type="button" class="myrep-btn" data-restore="' + escAttr(row.id) + '" data-index="' + index + '">' +
+            (row.status === 'local' ? '🧹 清除' : '↩️ 恢复') + '</button>';
+        } else {
+          html += '<button type="button" class="myrep-btn" disabled title="' + escAttr(row.tip) + '">—</button>';
+        }
+        html += '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      if (offline) {
+        html += '<div class="myrep-empty">⚠️ 后台暂时连不上，这里只显示<b>本机记录</b>；' +
+          '稍后再打开就能看到每条的实时状态。</div>';
+      }
+      wrap.innerHTML = html;
+    }
+
+    /* 打开弹窗：先画「加载中」，再拉数据合并重画 */
+    async function openMyReports() {
+      const wrap = document.getElementById('myRepWrap');
+      if (wrap) wrap.innerHTML = '<div class="myrep-empty">加载中…</div>';
+      const allBtn = document.getElementById('myRepRestoreAll');
+      if (allBtn) allBtn.disabled = true;
+      openModal('myReportsModal');
+
+      if (myRepLoading) return;
+      myRepLoading = true;
+      const serverItems = await fetchMyReports();
+      myRepLoading = false;
+
+      myRepRows = mergeMyRepRows(serverItems, '（后台没有这条记录）');
+      paintMyRepTable(serverItems === null);
+
+      /* 服务端这条链是权威的：它说没有的，本地残留就别再假装「已上报」了 ——
+         但要留个痕迹（已在表里用「仅本地记录」标出），不静默丢。 */
+      if (serverItems) {
+        /* 什么都不做：本地标记照旧保留，只是表里标成「仅本地记录」，
+           等访客自己点「🧹 清除」再擦 —— 这样不会出现「我明明报过却查不到」。 */
+      }
+    }
+
+    /* 单条恢复：pending / 本地残留都能走这里（服务端幂等，withdrew=0 也算成功） */
+    async function restoreMyReport(id, index) {
+      const sid = String(id);
+      const row = myRepRows[index] || myRepRows.find(r => r.id === sid);
+      const ok = await withdrawInvalid([sid]);
+      if (!ok) return;
+
+      myRepRows = myRepRows.filter(r => r.id !== sid);
+      paintMyRepTable(false);
+      showToast(row && row.status === 'local'
+        ? ('🧹 已清除本地标记：' + sid)
+        : ('↩️ 已恢复 ID ' + sid + '（这条无效上报撤掉了）'));
+    }
+
+    /* 全部恢复：只恢复「后台待处理」的那些（已下架 / 已忽略的本来就不该由访客改），
+       本地残留一并清掉 */
+    async function restoreAllMyReports() {
+      const targets = myRepRows.filter(r => r.canRestore && r.status === 'pending').map(r => r.id);
+      if (targets.length === 0) { showToast('没有可以恢复的记录'); return; }
+
+      const btn = document.getElementById('myRepRestoreAll');
+      if (btn) btn.disabled = true;
+
+      const ok = await withdrawInvalid(targets);
+      if (!ok) { paintMyRepTable(false); return; }
+
+      const done = Object.create(null);
+      targets.forEach(id => { done[id] = true; });
+      myRepRows = myRepRows.filter(r => !done[r.id]);
+      paintMyRepTable(false);
+      showToast('↩️ 已全部恢复，共 ' + targets.length + ' 条');
+    }
+
+    /* 事件绑定（bindControls 里调用一次） */
+    function bindMyReports() {
+      const openBtn = document.getElementById('openMyReportsBtn');
+      const closeBtn = document.getElementById('myRepClose');
+      const allBtn = document.getElementById('myRepRestoreAll');
+      const wrap = document.getElementById('myRepWrap');
+
+      if (openBtn) openBtn.addEventListener('click', openMyReports);
+      if (closeBtn) closeBtn.addEventListener('click', () => closeModal('myReportsModal'));
+      if (allBtn) allBtn.addEventListener('click', restoreAllMyReports);
+      if (wrap) {
+        wrap.addEventListener('click', e => {
+          const btn = e.target.closest ? e.target.closest('button[data-restore]') : null;
+          if (!btn || !wrap.contains(btn)) return;
+          restoreMyReport(btn.dataset.restore, Number(btn.dataset.index));
+        });
+      }
+    }
+
     /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑
        （renderQuarantineList / restoreFromQuarantine / restoreAllFromQuarantine）。
        隔离区被「无效处理」取代、弹窗 DOM 也删了，这三段一起删除；
@@ -2635,6 +3012,7 @@
 
     function bindControls() {
       bindListDelegation();
+      bindMyReports();   /* 2026-10-05：「📋 我上报的」上报表 */
 
       /* 分页按钮是每次重绘动态生成的，所以用事件委托绑在容器上 */
       [dom.pagerTop, dom.pagerBottom].forEach(box => {

@@ -1237,18 +1237,22 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单 —— 同样不用卡片盒子，
    改成居中一列（限宽 640px），组与组之间靠间距 + 细分隔线分开 */
-/* 「🎮 Roblox ID 宝库」那一栏：**类别并排成三列**（2026-09-26 用户澄清：
-   是「🎬 ID公益UP主/作者 / 💬 反馈贡献者 / 📋 歌单整理者」这三个类别分三列，
-   不是类别里的人分三列 —— 每个类别自己是一列，人在这列里竖着往下排）。
-   auto-fit + 1fr：窗口宽就是三列，窄了自动变两列 / 一列。
-   2026-10-05 站主要求「每个栏目的距离增大一点，间距小」→
-   列间距 18px → 44px、行间距 22px → 30px（列多了也不会挤成一坨；
-   单列的手机上列间距用不到，不会有副作用）。 */
+/* 2026-09-26 那版是「类别并排成三列」（每个类别自己一列，人在列里往下排）。
+   2026-10-05 上午先把列间距从 18px 加到 44px；
+   **同一天下午站主再次改主意**：
+   「鸣谢名单的所有内容包括但不限于 Roblox ID 宝库、赞助者等，里面的人都要分为 3 列向下排，
+     如果是像 🎬 ID公益UP主/作者 这样的，就按这个类型为一列向下排，每一列之间的间距要大」。
+   → 现在的做法：
+     · 每个类别（或赞助者那一整块）**自己占满一整行**，类别之间上下堆叠（行距 38px）；
+     · 块内的人用 CSS 多列 column-count: 3 —— 多列的填充顺序本来就是
+       「先填满第一列、再往第二列」，正是站主要的「向下排」；
+     · 列间距给到 56px（比行距大得多），三列一眼分得开。
+   窄屏降级见文件末尾的媒体查询：900px → 2 列，600px → 1 列。 */
 .thanks-groups {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 30px 44px;
-  align-items: start;
+  display: block;
+}
+.thanks-groups .thanks-group + .thanks-group {
+  margin-top: 38px;
 }
 .thanks-group {
   width: 100%;
@@ -1259,17 +1263,24 @@ body.modal-open .particles i { animation-play-state: paused; }
   box-shadow: none;
   text-align: center;
 }
-/* 赞助者那一档没有类别、只有一个块 —— 用这个居中的单列容器，
-   别套上面那套三列栅格（不然它会缩到左边第一列去）。 */
+/* 赞助者那一档没有类别、只有一个块 —— 用这个单列容器装它（块本身照样占满一整行） */
 .thanks-single {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
 }
-.thanks-single .thanks-group { max-width: 640px; }
-/* 类别里的人：竖着一列往下排（宽度跟着自己那一列走） */
-.thanks-people { width: 100%; }
+/* 2026-10-05 起不再限宽 640px：限了宽，3 列会挤成一团 */
+.thanks-single .thanks-group { max-width: none; }
+/* 类别里的人：**3 列向下排**（多列布局，列宽自适应，列间距 56px） */
+.thanks-people {
+  width: 100%;
+  column-count: 3;
+  column-gap: 56px;
+}
+/* 一个人（名字 · 平台 · 描述）绝不被拆到两列去 */
+.thanks-person,
+.thanks-person * { break-inside: avoid; }
 .thanks-group .cat-title {
   font-weight: 700;
   color: var(--text);
@@ -1664,10 +1675,23 @@ html.lite .seg-panel:not([hidden]) {
   .seg-tab { padding: 7px 14px; font-size: 0.82rem; }
 }
 
+/* 2026-10-05 鸣谢页「3 列向下排」的窄屏降级：
+   900px 以下 2 列、480px 以下 1 列（480 那条在文件末尾的媒体查询里）。 */
+@media (max-width: 900px) {
+  .thanks-people {
+    column-count: 2;
+    column-gap: 32px;
+  }
+  .thanks-groups .thanks-group + .thanks-group { margin-top: 30px; }
+}
+
 @media (max-width: 480px) {
   .modal-content { padding: 18px; }
   .modal-content h2 { font-size: 1.2rem; }
   .toast { font-size: 0.85rem; padding: 10px 20px; bottom: 20px; }
+  /* 鸣谢页「3 列向下排」的最后一档降级：480px 以下收成单列（人多了也不用横着滚） */
+  .thanks-people { column-count: 1; }
+  .thanks-groups .thanks-group + .thanks-group { margin-top: 26px; }
   .credits-card { padding: 16px; }
   .credits-icon { width: 40px; height: 40px; }
   /* 导航栏现在是三个入口（首页 / 反馈 / 鸣谢），窄屏上品牌文字会把它们挤到折行 ——
