@@ -1,11 +1,17 @@
 /* ============================================================
-   织雾满穗 · 处理无效上报（需认证 + 同源）
+   织雾满穗 · 处理上报（需认证 + 同源）
    2026-10-05：新增。action：
-     remove        确认无效 → 写入 quarantine_admin（全站隐藏）+ 清掉后台加的歌 + 上报标记 removed
-     ignore        这个上报不算 → status='ignored'
-     restore       撤销下架 / 把已忽略恢复为待处理 → 回到 pending
-     clear-ignored 清空已忽略段
-
+     remove         确认无效 → 写入 quarantine_admin（全站隐藏）+ 清掉后台加的歌 + 上报标记 removed
+     ignore         这个上报不算 → status='ignored'
+     restore        撤销下架 / 把已忽略恢复为待处理 → 回到 pending
+     clear-ignored  清空已忽略段
+   2026-10-07 站主要求「『已忽略』其实没必要，没有问题的上报的 ID 直接删除后台记录就行」：
+     · 去掉 ignore / clear-ignored 两个动作；
+     · 新增 delete-records：把待处理里那条 ID 的上报记录**真删掉** ——
+       删完之后，上报的人在他自己的「问题上报」里也就看不到这个 ID 了
+       （页面上列的就是这同一张表），而歌本身照旧留在宝库里能搜到。
+       ⚠️ 不碰 quarantine_admin、不碰 songs_extra：只是「这条上报不作数」。
+   ------------------------------------------------------------
    为什么整份 ID 列表塞进 json_each(?) 而不是逐 ID 拼 SQL：
      D1 单条语句最多 100 个绑定参数、一次批量动作最多 500 个 ID，
      逐 ID 写法要 1500 条语句 + 一条 500 参数的 IN 查询（直接超限）。
@@ -21,7 +27,7 @@ const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 /* 一次最多处理 500 个 ID（后台是分页勾选，正常远小于这个数） */
 const MAX_IDS = 500;
 
-const ACTIONS = ['remove', 'ignore', 'restore', 'clear-ignored'];
+const ACTIONS = ['remove', 'delete-records', 'restore'];
 
 /* 已下架记录里的来源标记：后台「已下架」段据此区分是谁下架的 */
 const SOURCE_INVALID = '无效上报';
@@ -48,14 +54,6 @@ export async function onRequestPost(context) {
 
     if (!ACTIONS.includes(action)) {
       return json({ ok: false, error: 'unknown action' }, 400);
-    }
-
-    /* 清空已忽略不需要 ids，其余三个动作都要 */
-    if (action === 'clear-ignored') {
-      const result = await env.DB.prepare(
-        `DELETE FROM invalid_reports WHERE status = 'ignored'`
-      ).run();
-      return json({ ok: true, action, changed: changes(result) });
     }
 
     const rawIds = Array.isArray(body.ids) ? body.ids : (body.id ? [body.id] : []);
@@ -105,21 +103,20 @@ export async function onRequestPost(context) {
       ]);
       /* changed = 本次真正新写进「已下架」的条数（原本就已下架的不会再算一次） */
       changed = changes(results[0]);
-    } else if (action === 'ignore') {
+    } else if (action === 'delete-records') {
+      /* 2026-10-07：这条上报不作数 → 把记录真删掉（不是打标记）。
+         只删这一张表：宝库里的歌、已下架名单、D1 加的歌都不受影响。
+         删完上报者自己的「📌 问题上报」里也就没有这个 ID 了 —— 那是同一张表。 */
       const results = await env.DB.batch([
         env.DB.prepare(
-          `UPDATE invalid_reports
-           SET status = 'ignored', updated_at = datetime('now', 'localtime')
-           WHERE status = 'pending' AND music_id IN (SELECT value FROM json_each(?))`
+          `DELETE FROM invalid_reports
+            WHERE music_id IN (SELECT value FROM json_each(?))`
         ).bind(idJson)
       ]);
       changed = changes(results[0]);
     } else {
-      /* restore 一条路服务后台两个按钮：
-           「已下架 → 🔓 恢复上架」= 删 quarantine_admin + 上报从 removed 退回 pending；
-           「已忽略 → ♻️ 恢复为待处理」= 上报从 ignored 退回 pending。
-         2026-10-05：契约 3.4 只写了 status='removed'，但第 5 节的「已忽略恢复为待处理」
-         也走 restore，只匹配 removed 会让那个按钮静默失效，所以这里放开到两种状态。 */
+      /* restore：后台「已下架 → 🔓 恢复上架」= 删 quarantine_admin + 上报退回 pending。
+         （2026-10-07「已忽略」下线后，ignored 状态只剩历史数据，这里仍兼容着。） */
       const results = await env.DB.batch([
         env.DB.prepare(
           `DELETE FROM quarantine_admin WHERE music_id IN (SELECT value FROM json_each(?))`

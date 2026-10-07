@@ -196,6 +196,12 @@
       var PLAYER_THANKS_KEYWORD = '玩家感谢';
       var INNOVATOR_KEYWORD = '网站创新家';
 
+      /* 2026-10-07 站主要求：把「💬 反馈贡献者」整个类别删掉（反馈功能早就下线了）。
+         页面这边**先挡住**：即使 D1 里还留着那几行（站主还没跑 migrations.sql 第 3 组的清理语句），
+         页面上也不再出现这一类 —— 这样「删掉」立刻生效，清库只是补最后一刀。
+         后台下拉里那一项也一起删了（admin.html）。 */
+      var REMOVED_CATEGORY = '💬 反馈贡献者';
+
       function isPlayerThanks(cat) {
         var name = String((cat && cat.category) || cat || '');
         if (!name) return false;
@@ -425,9 +431,11 @@
         var list = (Array.isArray(groups) ? groups : []).filter(function (cat) {
           if (!cat || !cat.people || cat.people.length === 0) return false;
           /* 赞助者（👑 赞助者）在上面那一栏专门展示；「🚫 已删除赞助者」是底档删除用的
-             隐藏标记 —— 两个都跳过（同一个机构/人不在两个 tab 里重复出现）。 */
+             隐藏标记 —— 两个都跳过（同一个机构/人不在两个 tab 里重复出现）。
+             2026-10-07：「💬 反馈贡献者」整类删掉，这里也挡住（见 REMOVED_CATEGORY）。 */
           if (cat.category === SPONSOR_CATEGORY) return false;
           if (cat.category === SPONSOR_HIDDEN_CATEGORY) return false;
+          if (cat.category === REMOVED_CATEGORY) return false;
           return isPlayerThanks(cat) === !!wantPlayer;
         });
 

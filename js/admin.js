@@ -222,6 +222,7 @@ function scrollListIntoView(el) {
 
   loadRobloxStats();
   loadSongs();
+  loadSubmissions();   /* 2026-10-07：D1歌曲管理下面的「📥 玩家投稿」 */
   loadThanks();
   /* 2026-10-05：卡片管理是默认打开的面板，所以无效音乐ID管理一进来就拉一次；
      （原来这里第一行拉的是反馈列表，反馈面板整块下线后换成 loadInvalid()） */
@@ -256,6 +257,17 @@ function scrollListIntoView(el) {
      只服务于它们的弹窗和处理函数也一并删了；「📥 导入」是在 admin.html 的内联脚本里
      单独绑的，跟这里无关）。所以这一块现在只剩「🧹 清空」一条绑定。 */
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
+
+  /* 📥 玩家投稿（2026-10-07）：D1歌曲管理里那一块的「🔄 刷新」 */
+  const refreshSubmissionsBtn = document.getElementById('refreshSubmissionsBtn');
+  if (refreshSubmissionsBtn) refreshSubmissionsBtn.onclick = async () => {
+    refreshSubmissionsBtn.disabled = true;
+    refreshSubmissionsBtn.textContent = '⏳ 刷新中...';
+    await loadSubmissions();
+    refreshSubmissionsBtn.disabled = false;
+    refreshSubmissionsBtn.textContent = '🔄 刷新';
+    showToast('✅ 已刷新玩家投稿');
+  };
 
   /* 📤 导出按钮（2026-09-29 用户要求：「卡片管理」和「鸣谢名单」各加一键导出） */
   const exportSongsBtn = document.getElementById('exportSongsBtn');
@@ -640,36 +652,39 @@ async function loadRobloxStats() {
    ------------------------------------------------------------
    数据口径（契约 .verify/SPEC-invalid-20261005.md 第 3 节，别自己改）：
      · 待处理 / 已忽略 → GET /api/invalid/list（按 music_id 聚合，响应里带 summary）
+     · 待处理 → GET /api/invalid/list
+                  （按 music_id 聚合；响应里带 summary：待处理 ID / 累计上报 / 其中信息出错 / 已下架）
      · 已下架          → GET /api/quarantine/list
                          （quarantine_admin 这张旧表沿用不改名，界面文案统一叫「已下架」）
      · 操作            → POST /api/invalid/handle { ids, action }
-         remove        确认无效 → 从全站下架
-         ignore        判定这条上报不算
-         restore       撤销下架重新上架 / 把已忽略的恢复为待处理（两处共用同一个 action）
-         clear-ignored 清空全部已忽略
+         remove          确认无效 → 从全站下架
+         delete-records  这条上报不作数 → **真删记录**（2026-10-07 取代原来的 ignore）
+         restore         撤销下架重新上架（已下架 → 🔓 恢复上架）
+         （原来的 ignore / clear-ignored 已随「已忽略」那一段一起下线）
      · handle 返回的 changed 只是「受影响行数」（重复执行 remove 也还是 1），
        所以这里一律以列表接口给回来的 status 为准，不拿 changed 当「处理过」的凭据。
    导出：跟 data/admin_quarantine.json 完全一致 —— [{id, name, category}] 数组，
    拿到直接覆盖那个文件即可。
    ============================================================ */
 
-/* 三段各自的缓存与页码：切段 / 翻页只重画，不重新发请求（点「🔄 刷新」才重拉） */
+/* 两段各自的缓存与页码：切段 / 翻页只重画，不重新发请求（点「🔄 刷新」才重拉） */
 let invalidPendingCache = [];
-let invalidIgnoredCache = [];
+/* 两段各自的缓存与页码（2026-10-07「已忽略」下线后不再有 invalidIgnoredCache） */
 let invalidRemovedCache = [];
 let invalidPendingPage = 1;
-let invalidIgnoredPage = 1;
 let invalidRemovedPage = 1;
 
 /* 已下架那一栏的加载错误（拉到一半失败时，列表里要说人话，不能假装是空的） */
 let invalidRemovedError = '';
 
-/* 当前在哪一段：pending / ignored / removed，跟着三段按钮上的 data-seg 走 */
+/* 当前在哪一段：pending / removed，跟着两段按钮上的 data-seg 走
+   （2026-10-07 站主要求去掉「已忽略」那一段） */
 let invalidSeg = 'pending';
 
-/* 2026-10-05 站主要求：三个分类各自搜索自己的（互不影响）。
-   空串 = 这一段不过滤；匹配 ID / 歌名 / 分类 / 来源，忽略大小写。 */
-const invalidSearch = { pending: '', ignored: '', removed: '' };
+/* 2026-10-05 站主要求：分类各自搜索自己的（互不影响）。
+   空串 = 这一段不过滤；匹配 ID / 歌名 / 分类 / 来源，忽略大小写。
+   2026-10-07：「已忽略」下线 → 搜索词只剩两段。 */
+const invalidSearch = { pending: '', removed: '' };
 
 /* 按该段的搜索词过滤。三段的分页都基于「过滤后的结果」，所以页码也会跟着重算。 */
 function filterInvalidList(list, seg) {
@@ -699,15 +714,13 @@ function invalidStatNum(v) {
   return Number(v).toLocaleString('en-US');
 }
 
-/* 拉数据：待处理 + 已忽略一个请求就够（status=all），已下架单独一个接口 */
+/* 拉数据：待处理（含「信息出错」那一类，同一个接口）+ 已下架（单独一个接口） */
 async function loadInvalid() {
   const boxPending = document.getElementById('invalidPendingList');
   if (!boxPending) return;   /* 面板不在页面上（比如以后又挪走了）就安静退出 */
 
-  const boxIgnored = document.getElementById('invalidIgnoredList');
   const boxRemoved = document.getElementById('invalidRemovedList');
   boxPending.innerHTML = '<div class="loading">加载中...</div>';
-  if (boxIgnored) boxIgnored.innerHTML = '<div class="loading">加载中...</div>';
   if (boxRemoved) boxRemoved.innerHTML = '<div class="loading">加载中...</div>';
 
   let summary = null;
@@ -717,39 +730,38 @@ async function loadInvalid() {
     /* limit 取服务端上限 2000：分页在前端做，争取一次把要用的都拿回来 */
     const res = await fetch('/api/invalid/list?status=all&limit=2000&t=' + Date.now(), { credentials: 'include' });
     if (!res.ok) {
-      const msg = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
-      boxPending.innerHTML = msg;
-      if (boxIgnored) boxIgnored.innerHTML = msg;
+      boxPending.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
       setStatText('statInvalidPending', '-');
       setStatText('statInvalidReports', '-');
-      setStatText('statInvalidIgnored', '-');
+      setStatText('statInvalidInfo', '-');
     } else {
       const data = await res.json();
       if (!data || data.ok !== true || !Array.isArray(data.data)) {
-        const msg = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '返回格式不对') + '</div>';
-        boxPending.innerHTML = msg;
-        if (boxIgnored) boxIgnored.innerHTML = msg;
+        boxPending.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '返回格式不对') + '</div>';
       } else {
         const rows = data.data.map(it => ({
           id: String((it && it.musicId) || ''),
           name: String((it && it.name) || '') || '未知歌名',
           category: String((it && it.category) || '') || '未分类',
           count: Number(it && it.count) || 0,
-          status: (it && it.status) === 'ignored' ? 'ignored' : 'pending',
+          status: 'pending',
+          /* 2026-10-07：一条 ID 可能既被报「无效」又被报「信息出错」，
+             接口给了最近一条的类型与条数，这里带进渲染。 */
+          type: (it && it.type) === 'info' ? 'info' : 'invalid',
+          infoCount: Number(it && it.infoCount) || 0,
+          invalidCount: Number(it && it.invalidCount) || 0,
+          note: String((it && it.note) || ''),
           firstAt: (it && it.firstAt) || '',
           lastAt: (it && it.lastAt) || ''
         })).filter(it => it.id);
 
-        invalidPendingCache = rows.filter(it => it.status !== 'ignored');
-        invalidIgnoredCache = rows.filter(it => it.status === 'ignored');
+        invalidPendingCache = rows;
         summary = (data && data.summary) || null;
         listOk = true;
       }
     }
   } catch (err) {
-    const msg = '<div class="empty-state">加载失败，请检查网络</div>';
-    boxPending.innerHTML = msg;
-    if (boxIgnored) boxIgnored.innerHTML = msg;
+    boxPending.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
   }
 
   /* 已下架：单独一个接口，失败不影响上面两段 */
@@ -773,33 +785,33 @@ async function loadInvalid() {
     invalidRemovedError = '加载失败，请检查网络';
   }
 
-  /* 统计卡：四张都取自列表接口的 summary；
+  /* 统计卡：都取自列表接口的 summary；
      已下架那张在 summary 拿不到时用列表长度兜底（口径一样，都是 quarantine_admin 的行数） */
   if (summary) {
     setStatText('statInvalidPending', invalidStatNum(summary.pendingIds));
     setStatText('statInvalidReports', invalidStatNum(summary.pendingReports));
-    setStatText('statInvalidIgnored', invalidStatNum(summary.ignoredIds));
+    setStatText('statInvalidInfo', invalidStatNum(summary.infoIds));
     setStatText('statInvalidRemoved', invalidStatNum(summary.removedIds));
   } else {
     setStatText('statInvalidRemoved', invalidStatNum(invalidRemovedCache.length));
     if (!listOk) {
       setStatText('statInvalidPending', '-');
       setStatText('statInvalidReports', '-');
-      setStatText('statInvalidIgnored', '-');
+      setStatText('statInvalidInfo', '-');
     }
   }
 
   renderInvalidSegment();
 }
 
-/* 按当前段把列表画出来（三段各自分页） */
+/* 按当前段把列表画出来（两段各自分页；「已忽略」2026-10-07 下线） */
 function renderInvalidSegment() {
-  if (invalidSeg === 'ignored') renderInvalidIgnored();
-  else if (invalidSeg === 'removed') renderInvalidRemoved();
+  if (invalidSeg === 'removed') renderInvalidRemoved();
   else renderInvalidPending();
 }
 
-/* ① 待处理上报：勾选若干条 → 批量下架 / 批量忽略 */
+/* ① 待处理上报：勾选若干条 → 批量下架 / 批量删除记录
+   2026-10-07：每行还带一个「🗑️ 删除记录」（没问题的上报直接删掉，不是打标记）。 */
 function renderInvalidPending() {
   const container = document.getElementById('invalidPendingList');
   const pager = document.getElementById('invalidPendingPager');
@@ -830,24 +842,30 @@ function renderInvalidPending() {
     el.innerHTML = `
       <div class="row1">
         <span class="invalid-head-left">
-          <label class="invalid-pick" title="勾选后可批量下架 / 批量忽略">
+          <label class="invalid-pick" title="勾选后可批量下架 / 批量删除记录">
             <input type="checkbox" class="invalid-pick-cb" data-id="${escapeHtml(item.id)}">
           </label>
           <span class="name">${escapeHtml(item.name)}</span>
         </span>
         <span>
           <span class="type-tag">${escapeHtml(item.category)}</span>
-          <span class="type-tag red">🚫 上报 ${item.count} 次</span>
+          ${item.type === 'info'
+            ? '<span class="type-tag gold">✏️ 信息出错' + (item.infoCount > 1 ? ' ' + item.infoCount + ' 条' : '') + '</span>'
+            : '<span class="type-tag red">🚫 上报 ' + item.count + ' 次</span>'}
+          ${item.type === 'info' && item.invalidCount > 0 ? '<span class="type-tag red">🚫 还有 ' + item.invalidCount + ' 条无效上报</span>' : ''}
         </span>
       </div>
+      ${item.note ? '<div class="message">✏️ 玩家说明：' + escapeHtml(item.note) + '</div>' : ''}
       <div class="meta">
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
         ${item.firstAt ? ' · <span title="北京时间">首次 ' + escapeHtml(adminTime(item.firstAt)) + '</span>' : ''}
       </div>
       <div class="actions">
-        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
-        <button class="btn-invalid-ignore" data-id="${escapeHtml(item.id)}">🙈 忽略</button>
+        ${item.type === 'info' && item.invalidCount === 0
+          ? ''
+          : '<button class="btn-invalid-remove" data-id="' + escapeHtml(item.id) + '">✅ 确认无效并下架</button>'}
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除记录</button>
       </div>
     `;
     container.appendChild(el);
@@ -859,8 +877,8 @@ function renderInvalidPending() {
   container.querySelectorAll('.btn-invalid-remove').forEach(btn => {
     btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
   });
-  container.querySelectorAll('.btn-invalid-ignore').forEach(btn => {
-    btn.addEventListener('click', () => handleInvalidAction([btn.dataset.id], 'ignore'));
+  container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
+    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id]));
   });
 
   renderAdminPager(pager, total, invalidPendingPage, '个 ID', (p) => {
@@ -872,61 +890,9 @@ function renderInvalidPending() {
   updateInvalidPickInfo();
 }
 
-/* ② 已忽略：单行「♻️ 恢复为待处理」（跟已下架的「🔓 恢复上架」是同一个 restore） */
-function renderInvalidIgnored() {
-  const container = document.getElementById('invalidIgnoredList');
-  const pager = document.getElementById('invalidIgnoredPager');
-  if (!container) return;
-
-  const all = invalidIgnoredCache;
-  const list = filterInvalidList(all, 'ignored');
-  const total = list.length;
-  invalidIgnoredPage = clampPage(invalidIgnoredPage, total);
-  updateInvalidSearchInfo('ignored', total, all.length);
-
-  if (total === 0) {
-    container.innerHTML = String(invalidSearch.ignored || '').trim()
-      ? '<div class="empty-state">这一栏里没有匹配「' + escapeHtml(invalidSearch.ignored.trim()) + '」的条目。</div>'
-      : '<div class="empty-state">没有已忽略的上报。</div>';
-    if (pager) pager.hidden = true;
-    return;
-  }
-
-  const start = (invalidIgnoredPage - 1) * ADMIN_PAGE_SIZE;
-  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
-
-  container.innerHTML = '';
-  pageItems.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'list-item';
-    el.innerHTML = `
-      <div class="row1">
-        <span class="name">${escapeHtml(item.name)}</span>
-        <span class="type-tag">🙈 已忽略</span>
-      </div>
-      <div class="meta">
-        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
-        ${item.category ? ' · 📂 ' + escapeHtml(item.category) : ''}
-        · 🚫 上报 ${item.count} 次
-        ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
-      </div>
-      <div class="actions">
-        <button class="btn-invalid-restore" data-id="${escapeHtml(item.id)}">♻️ 恢复为待处理</button>
-      </div>
-    `;
-    container.appendChild(el);
-  });
-
-  container.querySelectorAll('.btn-invalid-restore').forEach(btn => {
-    btn.addEventListener('click', () => handleInvalidAction([btn.dataset.id], 'restore'));
-  });
-
-  renderAdminPager(pager, total, invalidIgnoredPage, '个 ID', (p) => {
-    invalidIgnoredPage = p;
-    renderInvalidIgnored();
-    scrollListIntoView(container);
-  });
-}
+/* ② 已忽略：2026-10-07 站主要求整段删除（「没有问题的上报的 ID 直接删除后台记录就行」）——
+   原来这里的 renderInvalidIgnored() 整块跟着那一段一起删掉；
+   现在「没问题」= 在待处理里点「🗑️ 删除记录」（handleInvalidAction 的 delete-records）。 */
 
 /* ③ 已下架：来自 /api/quarantine/list，单行「🔓 恢复上架」 */
 function renderInvalidRemoved() {
@@ -1021,32 +987,24 @@ async function confirmInvalidRemove(ids) {
   handleInvalidAction(list, 'remove');
 }
 
-/* 批量忽略：忽略只是「这条上报不算」，记录留着，能恢复 */
-async function confirmInvalidIgnore(ids) {
+/* 删除记录（单个 / 批量，2026-10-07 取代原来的「批量忽略」）：
+   站主原话「没有问题的上报的 ID 直接删除后台记录就行」——
+   删掉的是 invalid_reports 里那几条上报记录，歌本身不动（宝库照旧能搜到）。
+   删完之后上报者自己的「📌 问题上报」里也就没有这个 ID 了（同一张表）。 */
+async function confirmInvalidDelete(ids) {
   const list = (ids || []).filter(Boolean);
-  if (list.length === 0) { showToast('请先勾选要忽略的上报'); return; }
+  if (list.length === 0) { showToast('请先勾选要删除记录的上报'); return; }
 
+  const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   const confirmed = await showConfirm(
-    '批量忽略上报',
-    '确定忽略这 ' + list.length + ' 个上报吗？\n\n' +
-    '忽略后它们不再算「待处理」，记录还留着，之后可以在「🙈 已忽略」里点「♻️ 恢复为待处理」。'
+    '删除上报记录',
+    '确定把这 ' + list.length + ' 个 ID 的上报记录删掉吗？\n\n' +
+    preview + '\n\n' +
+    '删除后：这些上报从「待处理」里消失，上报的人在他自己的「📌 问题上报」里也看不到它们了；\n' +
+    '歌**不会**被下架，宝库里照旧能搜到（想下架请点「✅ 确认无效并下架」）。'
   );
   if (!confirmed) return;
-  handleInvalidAction(list, 'ignore');
-}
-
-/* 清空已忽略：连记录一起删（契约里明确要二次确认） */
-async function clearIgnoredInvalid() {
-  const n = invalidIgnoredCache.length;
-  if (n === 0) { showToast('已经没有已忽略的记录了'); return; }
-
-  const confirmed = await showConfirm(
-    '清空已忽略',
-    '确定清空全部已忽略的记录吗？（当前列表里 ' + n + ' 个 ID）\n\n' +
-    '清空后这些上报连记录一起删掉，不能再恢复为待处理；待处理和已下架的都不受影响。'
-  );
-  if (!confirmed) return;
-  handleInvalidAction([], 'clear-ignored');
+  handleInvalidAction(list, 'delete-records');
 }
 
 /* ============================================================
@@ -1192,11 +1150,12 @@ async function handleManualRemove() {
   }
 }
 
-/* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID（clear-ignored 不用传）。
-   成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。 */
+/* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID。
+   成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。
+   2026-10-07：动作只剩 remove（下架）/ delete-records（删记录）/ restore（恢复上架）。 */
 async function handleInvalidAction(ids, action) {
   const body = { action: action };
-  if (action !== 'clear-ignored') body.ids = (ids || []).filter(Boolean);
+  body.ids = (ids || []).filter(Boolean);
 
   try {
     const res = await fetch('/api/invalid/handle', {
@@ -1215,9 +1174,8 @@ async function handleInvalidAction(ids, action) {
 
     let tip;
     if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
-    else if (action === 'ignore') tip = '🙈 已忽略 ' + body.ids.length + ' 个上报';
-    else if (action === 'restore') tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
-    else tip = '🧹 已清空全部已忽略';
+    else if (action === 'delete-records') tip = '🗑️ 已删除 ' + body.ids.length + ' 个 ID 的上报记录（歌保留）';
+    else tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
     showToast(tip);
 
     /* 下架会顺手删掉 D1 里同 ID 的歌（契约 3.4 第 2 步），所以歌曲列表和统计跟着刷新；
@@ -1296,11 +1254,11 @@ function bindInvalidPanel() {
   const batchRemove = document.getElementById('invalidBatchRemove');
   if (batchRemove) batchRemove.onclick = () => confirmInvalidRemove(pickedInvalidIds());
 
-  const batchIgnore = document.getElementById('invalidBatchIgnore');
-  if (batchIgnore) batchIgnore.onclick = () => confirmInvalidIgnore(pickedInvalidIds());
+  /* 2026-10-07：「🙈 批量忽略」改成「🗑️ 批量删除记录」（元素 id 没变，省得动样式） */
+  const batchDelete = document.getElementById('invalidBatchIgnore');
+  if (batchDelete) batchDelete.onclick = () => confirmInvalidDelete(pickedInvalidIds());
 
-  const clearBtn = document.getElementById('clearIgnoredBtn');
-  if (clearBtn) clearBtn.onclick = clearIgnoredInvalid;
+  /* 2026-10-07：「🧹 清空已忽略」那颗按钮连同那一段一起删了 */
 
   /* ➕ 手动下架 ID（2026-10-05）：已下架段那颗按钮 + 极简弹窗 */
   const manualBtn = document.getElementById('manualRemoveBtn');
@@ -1323,15 +1281,15 @@ function bindInvalidPanel() {
   const exportBtn = document.getElementById('exportInvalidBtn');
   if (exportBtn) exportBtn.onclick = handleExportRemoved;
 
-  /* 三段各自的搜索框（2026-10-05 站主要求）：只过滤自己那一段，输入停 150ms 再重画，
-     页码回到第 1 页（否则搜到第 3 页的旧页码会显示成空）。 */
-  ['pending', 'ignored', 'removed'].forEach(seg => {
+  /* 两段各自的搜索框（2026-10-05 站主要求；2026-10-07「已忽略」下线后只剩两段）：
+     只过滤自己那一段，输入停 150ms 再重画，页码回到第 1 页
+     （否则搜到第 3 页的旧页码会显示成空）。 */
+  ['pending', 'removed'].forEach(seg => {
     const input = document.getElementById('invalid' + seg.charAt(0).toUpperCase() + seg.slice(1) + 'Search');
     if (!input) return;
     const apply = debounce(() => {
       invalidSearch[seg] = input.value || '';
       if (seg === 'pending') { invalidPendingPage = 1; renderInvalidPending(); }
-      else if (seg === 'ignored') { invalidIgnoredPage = 1; renderInvalidIgnored(); }
       else { invalidRemovedPage = 1; renderInvalidRemoved(); }
     }, 150);
     input.addEventListener('input', apply);
@@ -1341,7 +1299,6 @@ function bindInvalidPanel() {
       input.value = '';
       invalidSearch[seg] = '';
       if (seg === 'pending') { invalidPendingPage = 1; renderInvalidPending(); }
-      else if (seg === 'ignored') { invalidIgnoredPage = 1; renderInvalidIgnored(); }
       else { invalidRemovedPage = 1; renderInvalidRemoved(); }
     });
   });
@@ -1401,6 +1358,128 @@ function filterSongList(list) {
     String(it.name || '').toLowerCase().indexOf(kw) !== -1 ||
     String(it.category || '').toLowerCase().indexOf(kw) !== -1
   ));
+}
+
+/* ============================================================
+   📥 玩家投稿（2026-10-07 站主要求）
+   ------------------------------------------------------------
+   宝库页「➕ 添加歌曲ID」投上来的 ID 落在 D1 的 song_submissions（待审核），
+   站长在这一块审核：点「✅ 通过」→ 写进 songs_extra（宝库立刻能搜到）并删掉投稿行；
+   点「🗑️ 不要」→ 只删投稿行。
+   接口：GET /api/songs/submissions（列表）/ POST 同地址 { action:'approve'|'delete', ids }。
+   ============================================================ */
+let submissionCache = [];
+let submissionPage = 1;
+
+async function loadSubmissions() {
+  const container = document.getElementById('submissionList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch('/api/songs/submissions?t=' + Date.now(), { credentials: 'include' });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || data.ok !== true || !Array.isArray(data.data)) {
+      container.innerHTML = '<div class="empty-state">加载失败' +
+        (res.ok ? '：' + escapeHtml((data && data.error) || '返回格式不对') : '（HTTP ' + res.status + '）') + '</div>';
+      const pager = document.getElementById('submissionPager');
+      if (pager) pager.hidden = true;
+      return;
+    }
+    submissionCache = data.data.map(it => ({
+      id: String((it && it.musicId) || ''),
+      name: String((it && it.name) || '') || '（玩家没填歌名）',
+      category: String((it && it.category) || '') || '未分类',
+      count: Number(it && it.count) || 0,
+      lastAt: (it && it.lastAt) || ''
+    })).filter(it => it.id);
+    renderSubmissionPage();
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+  }
+}
+
+function renderSubmissionPage() {
+  const container = document.getElementById('submissionList');
+  const pager = document.getElementById('submissionPager');
+  if (!container) return;
+
+  const total = submissionCache.length;
+  submissionPage = clampPage(submissionPage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">还没有玩家投稿。' +
+      '（宝库页那颗「➕ 添加歌曲ID」投上来的会出现在这里）</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (submissionPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = submissionCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span>
+          <span class="type-tag">${escapeHtml(item.category)}</span>
+          <span class="type-tag green">📥 玩家投稿${item.count > 1 ? ' ' + item.count + ' 次' : ''}</span>
+        </span>
+      </div>
+      <div class="meta">
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
+        ${item.lastAt ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
+      </div>
+      <div class="actions">
+        <button class="btn-submission-approve" data-id="${escapeHtml(item.id)}">✅ 通过（加进 D1）</button>
+        <button class="btn-submission-delete" data-id="${escapeHtml(item.id)}">🗑️ 不要</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-submission-approve').forEach(btn => {
+    btn.addEventListener('click', () => handleSubmissionAction([btn.dataset.id], 'approve'));
+  });
+  container.querySelectorAll('.btn-submission-delete').forEach(btn => {
+    btn.addEventListener('click', () => handleSubmissionAction([btn.dataset.id], 'delete'));
+  });
+
+  renderAdminPager(pager, total, submissionPage, '首', (p) => {
+    submissionPage = p;
+    renderSubmissionPage();
+    scrollListIntoView(container);
+  });
+}
+
+async function handleSubmissionAction(ids, action) {
+  const list = (ids || []).filter(Boolean);
+  if (list.length === 0) { showToast('没有要处理的投稿'); return; }
+
+  try {
+    const res = await fetch('/api/songs/submissions', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ids: list })
+    });
+    const data = await res.json().catch(() => null);
+    if (!data || data.ok !== true) {
+      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
+      return;
+    }
+    showToast(action === 'approve'
+      ? '✅ 已通过 ' + list.length + ' 首，已进 D1 歌曲列表'
+      : '🗑️ 已丢掉 ' + list.length + ' 条投稿');
+    /* 通过之后 D1 歌曲列表和统计都变了，一起刷新 */
+    if (action === 'approve') loadSongs();
+    loadSubmissions();
+  } catch (err) {
+    showToast('网络异常，操作没生效');
+  }
 }
 
 /* 只画当前这一页（每页 100 条） */

@@ -228,8 +228,14 @@
     .invalid-bar .btn-pick-none:hover { background: #e6c9cf; }
     .invalid-bar .btn-batch-remove { background: var(--danger); color: #fff; }
     .invalid-bar .btn-batch-remove:hover { background: #a93226; }
-    .invalid-bar .btn-batch-ignore { background: var(--gold); color: #fff; }
-    .invalid-bar .btn-batch-ignore:hover { background: #b8894f; }
+    /* 「🗑️ 批量删除记录」（2026-10-07 由「🙈 批量忽略」改来）：中性描边款 ——
+       它删的只是上报记录（歌还在），跟左边那颗红色的「✅ 批量下架」区分开，
+       别再给它金色（金色在下架那段表示「手动下架」那种正向操作）。 */
+    .invalid-bar .btn-batch-ignore {
+      background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
+    }
+    .invalid-bar .btn-batch-ignore:hover { background: var(--bg-tint); color: var(--primary); }
+    /* 「🧹 清空已忽略」那颗按钮 2026-10-07 随那一段一起删了，样式留着不碍事（下面那行只是记录） */
     .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
     .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
 
@@ -287,10 +293,20 @@
     .invalid-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .list-item .actions .btn-invalid-remove { background: var(--danger); color: #fff; }
     .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-2px); }
-    .list-item .actions .btn-invalid-ignore {
+    /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
+       中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
+       真下架才是上面那颗红色的。原来的 .btn-invalid-ignore 样式留给批量那颗按钮复用。 */
+    .list-item .actions .btn-invalid-ignore,
+    .list-item .actions .btn-invalid-delete {
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
-    .list-item .actions .btn-invalid-ignore:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-ignore:hover,
+    .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-2px); }
+    /* 📥 玩家投稿那一块的两个按钮（2026-10-07） */
+    .list-item .actions .btn-submission-approve { background: var(--success-strong); color: #fff; }
+    .list-item .actions .btn-submission-approve:hover { background: var(--success-dark); transform: translateY(-2px); }
+    .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
+    .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-2px); }
     .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: #fff; }
     .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-2px); }
 
@@ -683,7 +699,8 @@
 
       <div class="subpanel active" id="card1-panel">
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
-          <button class="subtab active" data-subpanel="card1-songs">🎶 歌曲管理</button>
+          <!-- 2026-10-07 站主要求：这颗子标签从「🎶 歌曲管理」改名成「🎶 D1歌曲管理」 -->
+          <button class="subtab active" data-subpanel="card1-songs">🎶 D1歌曲管理</button>
           <!-- 2026-10-05 站主要求：原来的「⛔ 开发者隔离区」并入「🚫 无效音乐ID管理」，
                子面板名 / id 一起改（旧名字整个作废，代码和样式里都不再出现）。 -->
           <button class="subtab" data-subpanel="card1-invalid">🚫 无效音乐ID管理</button>
@@ -744,6 +761,24 @@
             <!-- 2026-10-01 站主要求：这个列表按「100 组/页」分页，跟宝库页一样 -->
             <nav class="pager" id="songPager" aria-label="歌曲分页" hidden></nav>
           </div>
+
+          <!-- 📥 玩家投稿（2026-10-07 站主要求）：宝库页「➕ 添加歌曲ID」投上来的 ID 先落到这儿，
+               站长点「✅ 通过」才进上面的 D1 歌曲列表（宝库立刻能搜到），点「🗑️ 不要」就丢掉。 -->
+          <div class="panel-card">
+            <h2>
+              📥 玩家投稿
+              <span class="head-actions">
+                <button class="btn btn-secondary" id="refreshSubmissionsBtn">🔄 刷新</button>
+              </span>
+            </h2>
+            <p class="panel-desc">
+              玩家在宝库页「➕ 添加歌曲ID」投上来的，通过之后才会进上面的 D1 歌曲列表。
+            </p>
+            <div id="submissionList">
+              <div class="loading">加载中...</div>
+            </div>
+            <nav class="pager" id="submissionPager" aria-label="玩家投稿分页" hidden></nav>
+          </div>
         </div>
 
         <div class="subpanel" id="card1-invalid">
@@ -761,9 +796,11 @@
                 <div class="num" id="statInvalidReports">-</div>
                 <div class="label">累计上报</div>
               </div>
+              <!-- 2026-10-07 站主要求：去掉「已忽略」（没问题的上报直接删记录），
+                   这一张换成「信息出错」的条数 -->
               <div class="stat-card">
-                <div class="num" id="statInvalidIgnored">-</div>
-                <div class="label">已忽略</div>
+                <div class="num" id="statInvalidInfo">-</div>
+                <div class="label">其中信息出错</div>
               </div>
               <div class="stat-card">
                 <div class="num" id="statInvalidRemoved">-</div>
@@ -785,15 +822,14 @@
                  待处理→下架/忽略、导出=已下架、没人报就手动下架。
                  细节（字段格式、手动下架不占累计上报等）挪进代码注释与 README，界面上不再铺开。 -->
             <p class="panel-desc">
-              访客上报进「待处理」：确认无效就下架，不算就忽略。<br>
+              访客上报进「待处理」：确认无效就下架；没问题的直接「🗑️ 删除记录」。<br>
               「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
             </p>
 
-            <!-- 三段切换（2026-10-05 新增）：data-subpanel 交给 admin.html 里那套通用切换逻辑，
-                 这里再用 data-seg 记一下「当前是哪一段」，渲染时按它取对应的缓存。 -->
+            <!-- 2026-10-05 新增、2026-10-07 改成两段：站主说「『已忽略』其实没必要，
+                 没有问题的上报的 ID 直接删除后台记录就行」→「🙈 已忽略」整段删掉。 -->
             <div class="subtabs subtabs-lv3" data-tabs-group="invalid" id="invalidSegTabs">
               <button class="subtab active" data-subpanel="invalid-pending" data-seg="pending">🚫 待处理上报</button>
-              <button class="subtab" data-subpanel="invalid-ignored" data-seg="ignored">🙈 已忽略</button>
               <button class="subtab" data-subpanel="invalid-removed" data-seg="removed">✅ 已下架</button>
             </div>
 
@@ -804,7 +840,7 @@
                 <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
                 <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
-                <button class="btn-batch-ignore" id="invalidBatchIgnore">🙈 批量忽略</button>
+                <button class="btn-batch-ignore" id="invalidBatchIgnore">🗑️ 批量删除记录</button>
               </div>
               <!-- 2026-10-05 站主要求：三个分类各自搜索自己的（这一栏只搜「待处理上报」）。
                   匹配 ID / 歌名 / 分类，右边的字会显示「匹配 N 条 / 共 M 条」。 -->
@@ -819,22 +855,10 @@
               <nav class="pager" id="invalidPendingPager" aria-label="待处理上报分页" hidden></nav>
             </div>
 
-            <!-- ② 已忽略：单行 ♻️ 恢复为待处理；整段可以清空 -->
-            <div class="subpanel" id="invalid-ignored">
-              <div class="invalid-bar">
-                <span class="invalid-bar-info">这些上报被判定为「不算」，记录留着；点「♻️ 恢复为待处理」随时能反悔。</span>
-                <button class="btn-clear-ignored" id="clearIgnoredBtn">🧹 清空已忽略</button>
-              </div>
-              <div class="panel-search-row">
-                <input type="text" class="panel-search" id="invalidIgnoredSearch"
-                       placeholder="🔍 搜索这一栏的 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
-                <span class="panel-search-info" id="invalidIgnoredSearchInfo"></span>
-              </div>
-              <div id="invalidIgnoredList">
-                <div class="loading">加载中...</div>
-              </div>
-              <nav class="pager" id="invalidIgnoredPager" aria-label="已忽略分页" hidden></nav>
-            </div>
+            <!-- ② 已忽略：2026-10-07 站主要求整段删除（原话「『已忽略』其实没必要，
+                 没有问题的上报的 ID 直接删除后台记录就行」）——
+                 现在没问题就在「待处理上报」里点「🗑️ 删除记录」，记录真的没了，
+                 上报者自己的「📌 问题上报」里也就看不到这个 ID 了（同一张表）。 -->
 
             <!-- ③ 已下架：来自 /api/quarantine/list（旧表沿用不改名，界面文案统一叫「已下架」） -->
             <div class="subpanel" id="invalid-removed">
@@ -1121,7 +1145,8 @@
             <div class="select-option" data-value="💡 网站创新家" data-scope="players">💡 网站创新家</div>
             <div class="select-option" data-value="🎬 ID公益UP主/作者" data-scope="roblox">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者" data-scope="roblox">📋 歌单整理者</div>
-            <div class="select-option" data-value="💬 反馈贡献者" data-scope="roblox">💬 反馈贡献者</div>
+            <!-- 2026-10-07 站主要求：把「💬 反馈贡献者」整类删掉（反馈功能早就下线了）——
+                 下拉里不再提供这一项，D1 里的历史行用 migrations.sql 第 3 组那两句清掉。 -->
             <!-- 2026-10-04 那版这里还有一项「✏️ 自定义类别…」（选中后露出输入框、自己起名字）。
                  站主 2026-10-05 要求「把后台的所有关于自定义类别的都删除了」→ 整项连输入框一起删掉。
                  现在只能从「上面这几项固定类别 + D1 里已经存在的类别」里选：

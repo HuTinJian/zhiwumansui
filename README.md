@@ -462,7 +462,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **更新公告** | `data/updates.json` | 内容直接写在这个文件里：每个页面一个 `version`（改了就弹一次）+ `updates`（弹窗内容）。改完版本号，访客下次打开对应页面就会看到弹窗。**⚠️ 2026-09-30 用户新增硬规矩：弹窗只有用户明确说要搞的时候才能加，不许当成任务收尾的固定动作顺手写（「小调整」这种也一样，先问）；标题与文案必须问用户要、不许自己代写；背景颜色不要问用户，按下面「主题色 = 更新程度」的对照、根据他给的文字自己判断。** 主题色 = 更新程度（老规矩，2026-09-30 从已删除的 `tools/update-notice.html` 里找回）：**粉=日常更新 / 紫=重大更新 / 蓝=体验优化 / 金=活动更新 / 绿=修复更新**。详见附一第 11 节 |
 | **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来（汇总卡 + 📢 访问渠道来源）；点「🔄 刷新」重新拉一次。**（2026-10-01）歌曲管理 / 无效音乐ID管理 / 鸣谢名单三个面板上面也各有一块自己的统计卡**（**2026-10-05**：原来那个「开发者隔离区」面板已并入「🚫 无效音乐ID管理」），切到那个面板就是最新数字 |
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
-| **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改。**2026-10-05：当天核了几次，依次是 `¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`，核对日期都是 `2026-10-05`** |
+| **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改。**2026-10-05：当天核了几次，依次是 `¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`，核对日期都是 `2026-10-05`；2026-10-07 又核了一次：`¥175.77` → `¥180.04`，核对日期改成 `2026-10-07`** |
 | **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 2026-10-04 按用户要求，在「花了多少钱」右边加了第二笔账（`.hero-sponsor-cost-got`，占位属性 `data-sponsor-total`）。它**每次打开首页现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准（口径和鸣谢页完全一致）。接口挂掉时保留 `index.html` 里写死的兜底数字 `¥25`，不会显示半份数据算出来的偏小值。**「截至 xxxx-xx-xx」那一行由两笔账共用**（`.hero-sponsor-stats-date`，占位属性仍是 `data-site-cost-date`），不再只挂在花费上 |
 | **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗），**右边那一小块就是「本站花了多少钱」**（`.hero-sponsor-cost`）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
@@ -478,7 +478,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-invite` 属性的元素，点一下就会弹出分享弹窗。**入口现在只剩一处：首页 hero 的「🔗 分享本站」**（`.zb-invite`）。⚠️ 2026-10-04 站主最后明确「任何页面的页脚都不要有分享链接」，所以页脚那三个入口全部下线了，**别再加回页脚**；宝库页本来就不要分享。
 | **分享按钮的颜色** | `css/style.css` 的 `.zb-invite` | 2026-10-04 站主要求「贴主题 + 护眼」，所以走站点本来就有的**金色系**（和首页滚动公告、赞赏码块同一套变量）：浅色模式淡金底 `#fbf3e8` + 深金棕字 `#8a5a1c`（对比度 ≈5.4:1），深色模式暖褐底 `#2a2229` + 浅金字 `#eec48d`（≈9.5:1）。现在用它的地方：**只有首页 hero 那颗分享按钮**（`.zb-invite`）。它刻意比主按钮 `.btn-primary` 弱一档，不跟「🚀 开始逛逛」抢焦点；换色只改这一处。**页脚那套金色文字样式（`.footer .footer-links .zb-invite-link`）当前没有元素在用**，留着是因为站主随时可能又要页脚入口，写个 `<button class="zb-invite-link" data-invite>` 就能直接用 |
 | **~~反馈表单哪些必须填~~（已下线）** | ~~`feedback.html` + `functions/api/feedback.js`~~ | **2026-10-05：反馈功能整页下线** —— `feedback.html` 已删除，`functions/api/feedback.js` 与 `functions/api/feedback/` 整个目录已删除，后台「💬 反馈管理」面板、`js/common.js` 的反馈回执弹窗也一并删除。D1 里的 `feedback` 表**保留不删**（老数据留档，仅供考古）。它原来的用途（提意见、上报无效 ID）现在由「🚫 无效处理」承担（**批量入口 2026-10-05 已按站主要求删除**）；要联系站主走首页公告里的 QQ 群 |
-| **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→ 对应子面板的「➕ 添加鸣谢 / ➕ 添加玩家感谢」 | 类别**只能从下拉里现有的项选**：固定几项（`💡 网站创新家` / `🎬 ID公益UP主/作者` / `📋 歌单整理者` / `💬 反馈贡献者`）+ D1 里已经出现过的类别（`js/admin.js` 的 `syncThanksCategoryOptions()` 自动补进列表，所以历史数据、以前自建过的类别照样选得到）。**2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」**：原来下拉最后那一项「✏️ 自定义类别…」和它旁边那个输入框、以及「在玩家感谢栏保存时自动补 `🙏 ` 前缀」的逻辑，全部删掉（历史实现见 `git show 4e559d0 -- admin.html js/admin.js`）。要加新类别：改 `admin.html` 下拉里的固定项（一行一个 `div.select-option`，记得写 `data-scope="roblox"` 或 `"players"`）。**2026-10-05 起下拉还按子面板过滤**：在「🎮 Roblox ID 宝库」里只列不属于玩家感谢的类别，在「🙏 玩家感谢」里只列属于它的。`thanks.html` 按类别名分块显示 |
+| **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→ 对应子面板的「➕ 添加鸣谢 / ➕ 添加玩家感谢」 | 类别**只能从下拉里现有的项选**：固定几项（`💡 网站创新家` / `🎬 ID公益UP主/作者` / `📋 歌单整理者`）+ D1 里已经出现过的类别（`js/admin.js` 的 `syncThanksCategoryOptions()` 自动补进列表，所以历史数据、以前自建过的类别照样选得到）。**2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」**：原来下拉最后那一项「✏️ 自定义类别…」和它旁边那个输入框、以及「在玩家感谢栏保存时自动补 `🙏 ` 前缀」的逻辑，全部删掉（历史实现见 `git show 4e559d0 -- admin.html js/admin.js`）。**2026-10-07 站主要求删掉「💬 反馈贡献者」**：下拉里那一项已移除，`thanks.html` 加了一道 `REMOVED_CATEGORY` 过滤（D1 里那几行即使还没清也**不会显示**），数据用 `migrations.sql` 第 3 组的 `DELETE FROM thanks WHERE category = '💬 反馈贡献者';` 清。要加新类别：改 `admin.html` 下拉里的固定项（一行一个 `div.select-option`，记得写 `data-scope="roblox"` 或 `"players"`）。**2026-10-05 起下拉还按子面板过滤**：在「🎮 Roblox ID 宝库」里只列不属于玩家感谢的类别，在「🙏 玩家感谢」里只列属于它的。`thanks.html` 按类别名分块显示 |
 | **~~宝库页隔离区的反馈入口~~（已下线）** | ~~`roblox_music.html`（`#quarantineFeedbackBtn`）~~ | **2026-10-05：「⛔ 我的隔离区」弹窗整个删除**（连带那颗「💬 去反馈」），访客隔离区、批量隔离、每行的 ✕ 三条老路全部由「🚫 无效处理」取代（那颗「无效批量处理」按钮 2026-10-05 也按站主要求删了）；本地旧键 `roblox_quarantine_guest` 不再被读取（数据留在访客浏览器里，不主动删） |
 
 > 小提示：改完如果发现页面没变，先按 `Ctrl + F5` 强制刷新一次，
@@ -919,7 +919,7 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 
 **⑤ 花费数字**：`js/common.js` 最上面的 `SITE_COST`（首页赞赏码右边那一块），
 改 `amount` 时顺手把 `checkedAt` 改成核对当天的日期，`index.html` 里没脚本时的兜底也一起改。
-**2026-10-05 当前值：`¥175.77` / `2026-10-05`**（10-04 那天从 `¥141.51` → `¥151.36` → `¥153.54` 核了两次；10-05 又核了几次：`¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`）；它右边那块「收到赞助」不用手改，见下面第 11 节。
+**2026-10-07 当前值：`¥180.04` / `2026-10-07`**（10-04 那天从 `¥141.51` → `¥151.36` → `¥153.54` 核了两次；10-05 又核了几次：`¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`；10-07 核到 `¥180.04`）；它右边那块「收到赞助」不用手改，见下面第 11 节。
 
 ---
 
@@ -934,7 +934,7 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
    **当晚又按用户要求把「截至 xxxx-xx-xx」抽出来，做成两笔账共用的一行**
    （`.hero-sponsor-stats` = 整块 → `.hero-sponsor-nums` 两个数字 + `.hero-sponsor-stats-date` 共用日期；
    桌面压在两个数字下面居中，手机上整块换行、两个数字并排、日期在下一行）。
-3. 花费数字 **`¥141.51` → `¥151.36` →（当晚又核一次）`¥153.54` →（2026-10-05）`¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`**
+3. 花费数字 **`¥141.51` → `¥151.36` →（当晚又核一次）`¥153.54` →（2026-10-05）`¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77` →（2026-10-07）`¥180.04`**
    （`js/common.js` 的 `SITE_COST.amount` + `index.html` 的兜底 + `checkedAt` 改成 `2026-10-04`）。
 4. **分享本站**：`js/common.js` 里新增 `buildShareModal()` / `openShareModal()` /
    `initShareTriggers()`（事件委托 `[data-invite]`），样式在 `css/style.css` 的
@@ -983,3 +983,72 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
    `z-index: 950` 压在弹窗之下）；深色模式开关改挂到页头的 `[data-theme-slot]`，
    反馈入口挪进隔离区弹窗（见第 7 条）。**这一页也没有分享入口**（工具栏那组和页脚那个
    后来都按站主要求撤了，见第 4 条③），工具栏只剩「浏览」「管理」两组。
+
+### 12）2026-10-07 这一轮改了什么（站主一次列了 8 件事）
+
+> 站主原话：「以下任务实现后，做好适配。并且如果完成了这个任务，但是整个网站没有与之适配的
+> 功能也加上（完成任务为主，思考是必须的，请添加记忆：不要过度思考）」，随后又补了一句
+> 「任务完成后，我需要所有修改过地方的更新弹窗」。**这一轮动了 3 个页面 + 6 个接口 + 1 次迁移。**
+
+1. **删掉鸣谢里的「💬 反馈贡献者」**（站主：「包括跟它有关的 D1 和文件等」）：
+   `data/thanks.json` 里那一整块删掉、`admin.html` 类别下拉里那一项删掉，
+   `thanks.html` 再加一道 `REMOVED_CATEGORY` **过滤**（D1 里那几行即使还没清也**不显示**）；
+   D1 里的数据用 `migrations.sql` 第 3 组的 `DELETE FROM thanks WHERE category = '💬 反馈贡献者';` 清。
+   ⚠️ 顺手删掉的还有反馈功能早就留下的 `page_updates` 里那行死数据（同一条 SQL 里）。
+2. **宝库页「📋 复制全部」→「✏️ 信息出错」**（站主：「让玩家修改信息，然后点击『确定上报』
+   然后上报到后台」「按钮颜色要区分开，但是要护眼」）：按钮在每首歌的右上角（`.btn-info-error`），
+   点开 `#infoErrorModal`：**歌名 / 分类按当前值预填**（玩家在原文上改）、可选写一句说明，
+   点「✅ 确定上报」→ `POST /api/invalid/report` 带 `type:'info'`，落到后台待处理。
+   颜色用**琥珀色**（浅色 `#a97a2f` / 深色 `#e8b866` + 淡琥珀底），跟柔红的「🚫 无效处理」、
+   中性的「📋 复制」都能一眼分开，也不刺眼（`.group-actions .btn-info-error`）。
+   ⚠️ **「复制全部」这个功能随之取消**（站主要求「改成」，不是「再加一个」）；要整组复制
+   可以逐个点「📋 复制」，想恢复整组复制就说一声。
+3. **「📋 我上报的」→「📌 问题上报」，里面分两类**：`#myReportsModal` 里加了
+   `#myRepTypeTabs`（`🚫 无效ID（N）` / `✏️ 信息出错（N）`），数据还是 `GET /api/invalid/mine`，
+   接口多回了 `type` 与 `note`；「信息出错」那一类多一列「你写的说明」。
+   撤回按钮统一叫「↩️ 撤回」/「↩️ 全部撤回（N）」（只撤当前这一类里后台待处理的那些）。
+   ⚠️ 同一个人对**同一个 ID** 只会留一条上报：先报无效、后又点了「信息出错」，
+   后台那条会按**最近一次**刷新类型（唯一键是 `(music_id, reporter)`，见 `report.js` 的说明）。
+4. **旁边加「➕ 添加歌曲ID」**（站主：「让玩家把自己得到的歌曲ID上报上来，然后后台可以控制，
+   这个放在 D1歌曲管理里面」）：`#submitSongModal` 填歌名 / 分类（选填）/ ID（一行一个，最多 20 个），
+   `POST /api/songs/submit` → 落到 **D1 新表 `song_submissions`（待审核）**，
+   **不直接进宝库**；后台「🎶 D1歌曲管理 → 📥 玩家投稿」里点「✅ 通过（加进 D1）」才写进
+   `songs_extra`（那时宝库搜得到），点「🗑️ 不要」就丢掉。接口：`GET /api/songs/submissions`
+   （按 ID 聚合的待审列表）+ `POST` 同地址 `{action:'approve'|'delete', ids}`。
+5. **「🎶 歌曲管理」→「🎶 D1歌曲管理」**（子标签 + 面板标题一起改；面板 id 还是 `card1-songs`）。
+6. **「🙈 已忽略」整段下线**（站主：「其实没必要，没有问题的上报的 ID 直接删除后台记录就行，
+   Roblox ID 宝库里面谁将它上报了，谁的上报区里面就没有这个 ID 了，并且搜索这个歌曲仍然能在
+   Roblox 搜索到」）：`admin.html` 那一段（含搜索框 / 分页 / 「🧹 清空已忽略」）删掉，
+   后台只剩「🚫 待处理上报 / ✅ 已下架」两段；待处理每行多一颗 **「🗑️ 删除记录」**
+   （批量那颗也从「🙈 批量忽略」改成「🗑️ 批量删除记录」），走
+   `POST /api/invalid/handle {action:'delete-records'}` = **真删 `invalid_reports` 里那几条**：
+   删完上报者自己的「📌 问题上报」里自然就没有这个 ID 了（同一张表），
+   而 `quarantine_admin` / `songs_extra` **一概不碰** —— 歌还在，宝库照样搜得到。
+   接口里原来的 `ignore` / `clear-ignored` 两个动作一起删掉；统计卡「已忽略」换成「其中信息出错」。
+   D1 里的历史 `ignored` 行由迁移脚本那句 `DELETE FROM invalid_reports WHERE status = 'ignored';` 清。
+7. **三个页面各弹一次更新弹窗**（站主：「我需要所有修改过地方的更新弹窗」）：
+   `data/updates.json` 的 `index` → `V2.2.2`（天青 · 体验优化）、`roblox` → `V2.1.0`（紫罗兰 · 重大更新）、
+   新增 `thanks` → `V1.1.0`（苔绿 · 修复更新）。文案只写访客能察觉到的变化，
+   后台相关的一个字都没提（符合这个文件顶部那条硬规矩）。
+   ⚠️ 站主没给成稿，这三段是**用他列的需求条目拼的**；要换成他自己的原话，改 `updates.json` 即可
+   （`_说明` 里写着怎么改、主题色怎么选）。
+8. **D1 迁移**（`migrations.sql` 第 3 组，站主要在 D1 Console 里跑一次）：
+   ```sql
+   ALTER TABLE invalid_reports ADD COLUMN type TEXT NOT NULL DEFAULT 'invalid';
+   ALTER TABLE invalid_reports ADD COLUMN note TEXT;
+   CREATE TABLE IF NOT EXISTS song_submissions ( ... );
+   CREATE UNIQUE INDEX IF NOT EXISTS idx_song_sub_unique ON song_submissions(music_id, reporter);
+   CREATE INDEX IF NOT EXISTS idx_song_sub_status ON song_submissions(status, music_id);
+   DELETE FROM invalid_reports WHERE status = 'ignored';
+   DELETE FROM thanks WHERE category = '💬 反馈贡献者';
+   DELETE FROM page_updates WHERE page_key = 'feedback';
+   ```
+   `ALTER TABLE ... ADD COLUMN` 只能成功一次，第二遍会报 `duplicate column name` ——
+   报这个错就跳过那两句，继续跑后面的（`CREATE` / `DELETE` 都可重复执行）。
+   **代码在迁移之前也不会崩**：`type` 缺列时 `report.js` 会报 500（这一点必须靠迁移解决），
+   所以站主跑完 SQL 再让玩家上报；`thanks.html` 那道过滤则在迁移前后都正确。
+
+**这一轮的验收**：`.verify/lead-round1007-check.mjs`（43 项，真浏览器 + 真请求体）
+覆盖上面 1~7 的每一条；连同 10 个既有用例一起跑，**合计 270 项全绿**。
+此外花费数字 **`¥175.77` → `¥180.04`**，核对日期改成 **`2026-10-07`**
+（`js/common.js` 的 `SITE_COST.amount` + `index.html` 兜底 + 这个 README 第 11 节那条流水）。

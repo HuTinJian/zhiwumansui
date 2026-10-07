@@ -138,9 +138,9 @@
       transform: scale(0.93);
     }
 
-    /* ========== 「📋 我上报的」按钮 + 上报表（2026-10-05 站主要求新增） ==========
-       访客点过「🚫 无效处理」的歌在这里集中看到，可以单条恢复 / 全部恢复。
-       本质上是「只属于自己的那份隔离区」：数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
+    /* ========== 「📌 问题上报」按钮 + 上报面板（2026-10-05 新增，10-07 改名并分两类） ==========
+       访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
+       可以单条撤回 / 全部撤回。数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
     .btn-mine {
       background: linear-gradient(135deg, #f0a5b8, #dc6b82);
       color: #fff;
@@ -153,6 +153,67 @@
       box-shadow: 0 8px 22px rgba(220, 107, 130, 0.55);
     }
     .btn-mine:active { transform: scale(0.93); }
+
+    /* 「➕ 添加歌曲ID」（2026-10-07 站主要求）：金黄色，跟「问题上报」的粉色区分开，
+       也不跟蓝色的「📢 告诉我们你从哪来」撞色 —— 三个按钮都得一眼认出来。 */
+    .btn-submit-song {
+      background: linear-gradient(135deg, #f0c674, #dfa63a);
+      color: #4a3410;
+      border: none;
+      box-shadow: 0 6px 18px rgba(223, 166, 58, 0.35);
+      font-weight: 800;
+    }
+    .btn-submit-song:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(223, 166, 58, 0.55);
+    }
+    .btn-submit-song:active { transform: scale(0.93); }
+
+    /* 「📌 问题上报」弹窗里的两类标签（2026-10-07）：复用全局 .seg-tabs 那套药丸样式 */
+    .myrep-tabs { margin: 0 0 12px; }
+    .myrep-tabs .seg-tab { font-size: 0.8rem; padding: 6px 14px; }
+
+    /* ✏️ 信息出错 / ➕ 添加歌曲ID 两个弹窗里的表单（同一个样式块） */
+    .info-err-form { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
+    .info-err-form label { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
+    .info-err-form input,
+    .info-err-form textarea {
+      width: 100%;
+      font-family: var(--font);
+      font-size: 0.86rem;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text);
+      resize: vertical;
+    }
+    .info-err-form input:focus,
+    .info-err-form textarea:focus { outline: 2px solid rgba(232, 184, 102, 0.5); border-color: #dfa63a; }
+    /* 「✅ 确定上报 / 提交投稿」：跟「信息出错」同一族的琥珀色（护眼、不刺眼） */
+    .btn-info-confirm {
+      background: linear-gradient(135deg, #f0c674, #dfa63a);
+      color: #4a3410;
+      border: none;
+      font-weight: 800;
+      box-shadow: 0 5px 14px rgba(223, 166, 58, 0.32);
+    }
+    .btn-info-confirm:hover { transform: translateY(-2px); }
+    .btn-info-confirm[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* 信息出错那一类的徽标（表格里「状态」旁边） */
+    .myrep-type-tag {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-right: 6px;
+      background: rgba(232, 184, 102, 0.18);
+      color: #8a6218;
+    }
+    [data-theme="dark"] .myrep-type-tag { color: #e8b866; }
+    .myrep-note-cell { color: var(--text-light); font-size: 0.78rem; max-width: 260px; word-break: break-word; }
 
     .myrep-note {
       margin: 0 0 10px;
@@ -560,6 +621,41 @@
       font-size: 0.7rem;
       padding: 4px 9px;
     }
+
+    /* 「✏️ 信息出错」—— 2026-10-07 站主要求：原来这里是「📋 复制全部」，
+       改成「信息出错」（点开改歌名/分类/说明再上报到后台）。
+       颜色要求「区分开、但护眼」：用**琥珀色**（暖黄橙）而不是刺眼的红 ——
+       暗底上这块 #e8b866 的对比度够看，又不扎眼；跟「🚫 无效处理」的柔红（--danger）
+       和「📋 复制」的中性灰都能一眼分开。 */
+    .group-actions .btn-info-error {
+      background: transparent;
+      color: #a97a2f;
+      border: 1px solid rgba(201, 154, 76, 0.55);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft),
+                  border-color 0.25s var(--ease-soft), transform 0.2s var(--ease-bounce);
+    }
+    .group-actions .btn-info-error:hover {
+      color: #7d5716;
+      border-color: #c99a4c;
+      background: rgba(232, 184, 102, 0.16);
+    }
+    .group-actions .btn-info-error:active { transform: scale(0.94); }
+    .group-actions .btn-info-error.reported {
+      color: #7d5716;
+      border-color: #c99a4c;
+      background: rgba(232, 184, 102, 0.18);
+    }
+    [data-theme="dark"] .group-actions .btn-info-error { color: #e8b866; border-color: rgba(232, 184, 102, 0.5); }
+    [data-theme="dark"] .group-actions .btn-info-error:hover,
+    [data-theme="dark"] .group-actions .btn-info-error.reported { color: #f3cf90; background: rgba(232, 184, 102, 0.22); }
     .id-actions .btn-invalid:hover {
       color: var(--danger);
       border-color: var(--danger);
@@ -1215,7 +1311,10 @@
                每条 ID 上的「🚫 无效处理」（点错了点它变出来的「↩️ 撤销」回退）。 -->
           <!-- 2026-10-05 站主要求：加一颗「📋 我上报的」——打开上报表，
                能看到自己点过「无效处理」的歌，单条 / 全部恢复。 -->
-          <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些 ID，可以在这里恢复">📋 我上报的</button>
+          <!-- 2026-10-07 站主要求：这颗按钮改名「📌 问题上报」（原来是「📋 我上报的」），
+               并在它旁边加一颗「➕ 添加歌曲ID」（玩家投稿，后台在 D1歌曲管理里审核）。 -->
+          <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些问题，可以在这里撤回">📌 问题上报</button>
+          <button class="btn btn-submit-song" id="openSubmitSongBtn" title="把你找到的歌曲 ID 投稿给站长">➕ 添加歌曲ID</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
@@ -1331,23 +1430,78 @@
        站主明确：无效处理这一套代替隔离区、批量隔离、叉叉与后台反馈 ——
        弹窗删掉，反馈页也整页下线（feedback.html 已删除），不再有任何反馈入口。 -->
 
-  <!-- 2026-10-05 站主要求：加一张「上报表」—— 访客能看到自己点过「🚫 无效处理」的歌，
-       单条恢复 / 全部恢复（本质上就是只属于自己的那份隔离区）。
-       数据来自 GET /api/invalid/mine（按浏览器匿名身份过滤，只读），
-       恢复走已有的 POST /api/invalid/withdraw（服务端只允许删自己那条 pending 记录）。 -->
+  <!-- 2026-10-07 站主要求：这个弹窗改名「📌 问题上报」，并且里面分两类 ——
+       「🚫 无效ID」（原来那一类）和「✏️ 信息出错」（新加的那一类）。
+       数据还是 GET /api/invalid/mine（按浏览器匿名身份过滤，只读），
+       撤回走 POST /api/invalid/withdraw。 -->
   <div class="modal" id="myReportsModal">
     <div class="modal-content">
-      <h2>📋 我上报的无效 ID</h2>
+      <h2>📌 问题上报</h2>
       <p class="myrep-note">
-        这些是<b>你这台浏览器</b>点过「🚫 无效处理」的歌，共 <span class="myrep-count" id="myRepCount">0</span> 条。
-        后台还没处理的可以点「↩️ 恢复」撤回；已经下架或忽略的由管理员那边定，你自己改不了。
+        这些是<b>你这台浏览器</b>上报过的东西，共 <span class="myrep-count" id="myRepCount">0</span> 条。
+        后台还没处理的可以点「↩️ 撤回」；已经下架的由管理员那边定，你自己改不了。
       </p>
+      <!-- 两类上报的切换（2026-10-07）：只切这一个弹窗里显示哪一类，不发请求 -->
+      <div class="seg-tabs myrep-tabs" id="myRepTypeTabs" role="tablist" aria-label="上报类型">
+        <button type="button" class="seg-tab active" data-rtype="invalid" role="tab" aria-selected="true">🚫 无效ID</button>
+        <button type="button" class="seg-tab" data-rtype="info" role="tab" aria-selected="false">✏️ 信息出错</button>
+      </div>
       <div class="myrep-wrap" id="myRepWrap" aria-live="polite">
         <div class="myrep-empty">加载中…</div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="myRepRestoreAll" disabled>↩️ 全部恢复</button>
+        <button type="button" class="btn btn-secondary" id="myRepRestoreAll" disabled>↩️ 全部撤回</button>
         <button type="button" class="btn btn-primary" id="myRepClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✏️ 信息出错（2026-10-07 取代原来的「📋 复制全部」按钮）：
+       玩家把歌名 / 分类改成正确的，或写一句说明，点「确定上报」送到后台。
+       上报类型是 type='info'，在「📌 问题上报」里归到「✏️ 信息出错」那一类。 -->
+  <div class="modal" id="infoErrorModal">
+    <div class="modal-content">
+      <h2>✏️ 信息出错</h2>
+      <p class="myrep-note">
+        这首歌的信息哪里不对？直接改成正确的，或者写一句说明，点「确定上报」就会送到后台。<br>
+        涉及的 ID：<b id="infoErrIds">—</b>
+      </p>
+      <div class="info-err-form">
+        <label for="infoErrName">正确的歌名</label>
+        <input type="text" id="infoErrName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
+        <label for="infoErrCategory">正确的分类</label>
+        <input type="text" id="infoErrCategory" maxlength="30" placeholder="例如：中文流行（不确定可以留空）" autocomplete="off">
+        <label for="infoErrNote">说明（选填）</label>
+        <textarea id="infoErrNote" maxlength="300" rows="3"
+                  placeholder="例如：这个 ID 放出来不是这首歌 / 歌名里有错别字 / 分类应该是摇滚"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="cancelInfoError">取消</button>
+        <button type="button" class="btn-info-confirm" id="confirmInfoError">✅ 确定上报</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ➕ 添加歌曲ID（2026-10-07 站主要求：玩家把找到的歌曲 ID 投稿上来，
+       后台在「🎶 D1歌曲管理 → 📥 玩家投稿」里审核，通过了才进 D1 歌曲列表）。 -->
+  <div class="modal" id="submitSongModal">
+    <div class="modal-content">
+      <h2>➕ 添加歌曲ID</h2>
+      <p class="myrep-note">
+        把你找到的歌曲 ID 投稿上来（歌名顺手写上，管理员好核对）。<br>
+        投完要等站长在后台审核通过，通过之后就会出现在宝库里。
+      </p>
+      <div class="info-err-form">
+        <label for="submitSongName">歌名</label>
+        <input type="text" id="submitSongName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
+        <label for="submitSongCategory">分类（选填）</label>
+        <input type="text" id="submitSongCategory" maxlength="30" placeholder="例如：中文流行" autocomplete="off">
+        <label for="submitSongIds">歌曲 ID（一行一个，最多 20 个）</label>
+        <textarea id="submitSongIds" rows="3" placeholder="例如：&#10;1876950732&#10;1441450732"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="cancelSubmitSong">取消</button>
+        <button type="button" class="btn-info-confirm" id="confirmSubmitSong">✅ 提交投稿</button>
       </div>
     </div>
   </div>
@@ -2235,7 +2389,7 @@
           <div class="group-header">
             <div class="group-name">${nameHtml}</div>
             <div class="group-actions">
-              <button type="button" class="btn-copy-group" title="复制该组全部 ID">📋 复制全部</button>
+              <button type="button" class="btn-info-error" title="这首歌的歌名 / 分类 / ID 哪里不对？点这里改一改再上报">✏️ 信息出错</button>
             </div>
             <span class="group-category">${escapeHtml(catStr)}</span>
           </div>
@@ -2266,28 +2420,77 @@
       showToast('✅ 已复制 ID ' + id);
     }
 
-    /* 复制整组的 ID（换行分隔） */
-    async function copyGroupIds(btn) {
-      const groupEl = btn.closest('.song-group');
+    /* 「✏️ 信息出错」（2026-10-07 取代原来的「📋 复制全部」）：
+       站主原话「让玩家修改信息，然后点击『确定上报』然后上报到后台」。
+       这一组歌的歌名 / 分类直接带进弹窗当**预填值**（玩家在原文上改，比从空白写省事），
+       ID 列表原样带上（只显示、不提交）—— 弹窗里再决定改什么、写不写说明。 */
+    function openInfoError(btn) {
+      const groupEl = btn.closest ? btn.closest('.song-group') : null;
       if (!groupEl) return;
 
       const ids = Array.prototype.map
         .call(groupEl.querySelectorAll('.id-number'), el => el.textContent.trim())
         .filter(Boolean);
-      if (ids.length === 0) return;
+      if (ids.length === 0) { showToast('这一组没有可上报的 ID'); return; }
 
-      const ok = await copyText(ids.join('\n'));
-      if (!ok) {
-        showToast('复制失败，请手动选择后再复制');
+      const nameInput = document.getElementById('infoErrName');
+      const catInput = document.getElementById('infoErrCategory');
+      const noteInput = document.getElementById('infoErrNote');
+
+      /* 当前歌名 / 分类：优先取渲染时挂在 DOM 上的数据（.group-name 的文本就是歌名） */
+      const nameText = (groupEl.dataset.name || '').trim();
+      const catText = (groupEl.querySelector('.group-category') || {}).textContent || '';
+      if (nameInput) nameInput.value = nameText;
+      /* 分类可能带前缀图标（「🎬 电子舞曲」这种）——**只有真的带了「图标 + 空格」才去掉前缀**。
+         ⚠️ 别写成「斜杠 + 上箭头 + 反斜杠 S + 加号 + 反斜杠 s + 星号 + 斜杠」那种正则：
+         分类名本身不带空格时（「电子舞曲」），它会连整个名字一起吃掉，预填就空了
+         （2026-10-07 用例抓到过）。正确写法是要求后面**必须有一个空格**：^[^\s]+\s+ */
+      if (catInput) catInput.value = catText.replace(/^[^\s]+\s+/, '').trim();
+      if (noteInput) noteInput.value = '';
+
+      const ref = document.getElementById('infoErrIds');
+      if (ref) ref.textContent = ids.join('、');
+
+      const modal = document.getElementById('infoErrorModal');
+      if (modal) modal.dataset.ids = JSON.stringify(ids);
+      openModal('infoErrorModal');
+    }
+
+    /* 点「确定上报」：把玩家改好的信息作为 type='info' 上报给后台 */
+    async function submitInfoError() {
+      const modal = document.getElementById('infoErrorModal');
+      if (!modal) return;
+      let ids = [];
+      try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch (e) { ids = []; }
+      if (!Array.isArray(ids) || ids.length === 0) { showToast('没拿到 ID，请关掉重新点一次'); return; }
+
+      const name = (document.getElementById('infoErrName') || {}).value || '';
+      const category = (document.getElementById('infoErrCategory') || {}).value || '';
+      const note = (document.getElementById('infoErrNote') || {}).value || '';
+
+      if (!String(name).trim() && !String(category).trim() && !String(note).trim()) {
+        showToast('至少改一样、或者写一句说明，再点「确定上报」');
         return;
       }
-      btn.textContent = '✅ 已复制 ' + ids.length + ' 个';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = '📋 复制全部';
-        btn.classList.remove('copied');
-      }, 1600);
-      showToast('✅ 已复制 ' + ids.length + ' 个 ID（换行分隔）');
+
+      const okBtn = document.getElementById('confirmInfoError');
+      if (okBtn) okBtn.disabled = true;
+
+      /* 一类上报只报一条：带上这一组的主 ID（第一个），避免同一个问题在后台出现好几行。
+         主要信息放在 name / category / note 里，管理员一眼就能看出要改什么。 */
+      const ok = await sendInvalidReport([{
+        id: ids[0],
+        name: String(name).trim(),
+        category: String(category).trim(),
+        type: 'info',
+        note: String(note).trim()
+      }]);
+
+      if (okBtn) okBtn.disabled = false;
+      if (!ok) return;
+
+      closeModal('infoErrorModal');
+      showToast('✏️ 已上报「信息出错」，站长会在后台看到（可在「📌 问题上报」里撤回）');
     }
 
     /* 整个列表只绑一次监听器：新增节点自动生效，不用反复绑定 */
@@ -2303,7 +2506,8 @@
         if (btn.classList.contains('btn-copy')) { copyOneId(btn); return; }
         /* 2026-10-05：新按钮 —— 没报过就上报，报过了就撤销（原来这里是隔离用的 ✕） */
         if (btn.classList.contains('btn-invalid')) { toggleInvalidReport(btn); return; }
-        if (btn.classList.contains('btn-copy-group')) { copyGroupIds(btn); }
+        /* 2026-10-07：原来是 btn-copy-group（复制该组全部 ID），站主要求改成「✏️ 信息出错」 */
+        if (btn.classList.contains('btn-info-error')) { openInfoError(btn); }
       });
     }
 
@@ -2707,15 +2911,25 @@
     }
     const esc = repEsc;
 
+    /* 两类上报（2026-10-07 站主要求）：
+       invalid = 🚫 无效ID（这个 ID 放不出声）；info = ✏️ 信息出错（歌名 / 分类不对）。 */
+    const MY_REP_TYPES = {
+      invalid: { text: '🚫 无效ID', empty: '你还没有上报过无效 ID。<br>在宝库里点某首歌旁边的「🚫 无效处理」就会出现在这里。' },
+      info: { text: '✏️ 信息出错', empty: '你还没有报过「信息出错」。<br>在宝库里点某首歌右上角的「✏️ 信息出错」，改好信息再「确定上报」就会出现在这里。' }
+    };
+
     const MY_REP_STATUS = {
       pending: { text: '⏳ 后台待处理', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
-      ignored: { text: '🙈 后台已忽略', cls: 'ignored', canRestore: false, tip: '后台看过了、认为这首歌没问题，歌还在库里，不用管' },
       removed: { text: '🗑️ 已下架', cls: 'removed', canRestore: false, tip: '已经被管理员下架，这条不用你处理' },
       local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
     };
+    /* 2026-10-07：「已忽略」这个状态随后台那一段一起下线（没问题的上报后台直接删记录）。
+       D1 里万一还留着历史 ignored 行，页面**不再显示**它们（下面 mergeMyRepRows 里过滤掉），
+       数据由 migrations.sql 第 3 组那句 DELETE 清。 */
 
-    let myRepRows = [];        /* 当前表格里的行（渲染 + 全部恢复都用它） */
+    let myRepRows = [];        /* 当前拉到的全部行（两类都在这，渲染时按标签过滤） */
     let myRepLoading = false;
+    let myRepType = 'invalid'; /* 当前看的是哪一类（invalid / info） */
 
     /* 从已加载的主数据里按 ID 找歌名 / 分类（本地残留那几条没有服务端数据时用） */
     function findSongById(id) {
@@ -2772,14 +2986,22 @@
       (Array.isArray(serverItems) ? serverItems : []).forEach(item => {
         const id = String(item && item.id || '');
         if (!id || seen[id]) return;
+        /* 2026-10-07：「已忽略」下线 —— 历史 ignored 行不再往访客面前摆
+           （后台已经改成「没问题就直接删记录」，这些行由迁移脚本清掉） */
+        if (String(item.status || '') === 'ignored') return;
         seen[id] = true;
         const meta = MY_REP_STATUS[item.status] || MY_REP_STATUS.pending;
+        const type = item.type === 'info' ? 'info' : 'invalid';
         rows.push({
           id: id,
           name: item.name || '（未记歌名）',
           status: item.status || 'pending',
           statusText: meta.text,
           statusCls: meta.cls,
+          /* 2026-10-07：带上是哪一类 + 玩家写的说明（信息出错那类会显示在表格里） */
+          type: type,
+          typeText: MY_REP_TYPES[type].text,
+          note: item.note || '',
           canRestore: meta.canRestore,
           tip: meta.tip,
           /* rawTime 留着给排序用（ISO，字典序即时间序）；time 是给人看的北京时间 */
@@ -2789,7 +3011,8 @@
         });
       });
 
-      /* 本地有、服务端没有的：显示成「仅本地记录」，只清本地标记 */
+      /* 本地有、服务端没有的：显示成「仅本地记录」，只清本地标记。
+         这一类只可能出现在「无效ID」标签里 —— 那个本地标记就是点「🚫 无效处理」记下的。 */
       invalidReported.forEach(id => {
         const sid = String(id);
         if (seen[sid]) return;
@@ -2801,6 +3024,9 @@
           status: 'local',
           statusText: MY_REP_STATUS.local.text,
           statusCls: MY_REP_STATUS.local.cls,
+          type: 'invalid',
+          typeText: MY_REP_TYPES.invalid.text,
+          note: '',
           canRestore: true,
           tip: MY_REP_STATUS.local.tip,
           time: '—',
@@ -2825,41 +3051,62 @@
       return rows;
     }
 
+    /* 画表格：只画当前标签那一类（2026-10-07 起分「🚫 无效ID / ✏️ 信息出错」） */
     function paintMyRepTable(offline) {
       const wrap = document.getElementById('myRepWrap');
       const countEl = document.getElementById('myRepCount');
       const allBtn = document.getElementById('myRepRestoreAll');
       if (!wrap) return;
 
+      const counts = { invalid: 0, info: 0 };
+      myRepRows.forEach(r => { if (counts[r.type] !== undefined) counts[r.type]++; });
       if (countEl) countEl.textContent = String(myRepRows.length);
 
-      const restorable = myRepRows.filter(r => r.canRestore && r.status === 'pending').length;
-      if (allBtn) {
-        allBtn.disabled = restorable === 0;
-        allBtn.textContent = restorable > 0 ? ('↩️ 全部恢复（' + restorable + '）') : '↩️ 全部恢复';
+      /* 标签上的条数也顺手更新（切过来之前就知道哪类有几条） */
+      const tabsBox = document.getElementById('myRepTypeTabs');
+      if (tabsBox) {
+        tabsBox.querySelectorAll('[data-rtype]').forEach(btn => {
+          const t = btn.dataset.rtype;
+          const base = MY_REP_TYPES[t] ? MY_REP_TYPES[t].text : t;
+          btn.textContent = base + '（' + (counts[t] || 0) + '）';
+          const on = t === myRepType;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
       }
 
-      if (myRepRows.length === 0) {
-        wrap.innerHTML = '<div class="myrep-empty">你还没有上报过任何无效 ID。<br>' +
-          '在宝库里点某首歌旁边的「🚫 无效处理」就会出现在这里。</div>';
+      const list = myRepRows.filter(r => r.type === myRepType);
+      const restorable = list.filter(r => r.canRestore && r.status === 'pending').length;
+      if (allBtn) {
+        allBtn.disabled = restorable === 0;
+        allBtn.textContent = restorable > 0 ? ('↩️ 全部撤回（' + restorable + '）') : '↩️ 全部撤回';
+      }
+
+      if (list.length === 0) {
+        const tip = (MY_REP_TYPES[myRepType] || MY_REP_TYPES.invalid).empty;
+        wrap.innerHTML = '<div class="myrep-empty">' + tip + '</div>';
         return;
       }
 
+      const isInfo = myRepType === 'info';
       let html = '<table class="myrep-table"><thead><tr>' +
-        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（北京时间）</th><th>状态</th><th>操作</th>' +
+        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（北京时间）</th>' +
+        (isInfo ? '<th>你写的说明</th>' : '') +
+        '<th>状态</th><th>操作</th>' +
         '</tr></thead><tbody>';
 
-      myRepRows.forEach((row, index) => {
+      list.forEach((row, index) => {
         html += '<tr>';
         html += '<td class="myrep-name">' + esc(row.name) + '</td>';
         html += '<td class="myrep-id">' + esc(row.id) + '</td>';
         html += '<td class="myrep-time">' + esc(row.time) + '</td>';
+        if (isInfo) html += '<td class="myrep-note-cell">' + (row.note ? esc(row.note) : '—') + '</td>';
         html += '<td><span class="myrep-status ' + row.statusCls + '" title="' + escAttr(row.tip) + '">' +
           esc(row.statusText) + '</span></td>';
         html += '<td>';
         if (row.canRestore) {
           html += '<button type="button" class="myrep-btn" data-restore="' + escAttr(row.id) + '" data-index="' + index + '">' +
-            (row.status === 'local' ? '🧹 清除' : '↩️ 恢复') + '</button>';
+            (row.status === 'local' ? '🧹 清除' : '↩️ 撤回') + '</button>';
         } else {
           html += '<button type="button" class="myrep-btn" disabled title="' + escAttr(row.tip) + '">—</button>';
         }
@@ -2899,10 +3146,10 @@
       }
     }
 
-    /* 单条恢复：pending / 本地残留都能走这里（服务端幂等，withdrew=0 也算成功） */
+    /* 单条撤回：pending / 本地残留都能走这里（服务端幂等，withdrew=0 也算成功） */
     async function restoreMyReport(id, index) {
       const sid = String(id);
-      const row = myRepRows[index] || myRepRows.find(r => r.id === sid);
+      const row = myRepRows.find(r => r.id === sid) || myRepRows[index];
       const ok = await withdrawInvalid([sid]);
       if (!ok) return;
 
@@ -2910,14 +3157,15 @@
       paintMyRepTable(false);
       showToast(row && row.status === 'local'
         ? ('🧹 已清除本地标记：' + sid)
-        : ('↩️ 已恢复 ID ' + sid + '（这条无效上报撤掉了）'));
+        : ('↩️ 已撤回：' + sid));
     }
 
-    /* 全部恢复：只恢复「后台待处理」的那些（已下架 / 已忽略的本来就不该由访客改），
-       本地残留一并清掉 */
+    /* 全部撤回：只撤当前标签里「后台待处理」的那些，本地残留一并清掉 */
     async function restoreAllMyReports() {
-      const targets = myRepRows.filter(r => r.canRestore && r.status === 'pending').map(r => r.id);
-      if (targets.length === 0) { showToast('没有可以恢复的记录'); return; }
+      const targets = myRepRows
+        .filter(r => r.type === myRepType && r.canRestore && r.status === 'pending')
+        .map(r => r.id);
+      if (targets.length === 0) { showToast('这一类里没有可以撤回的记录'); return; }
 
       const btn = document.getElementById('myRepRestoreAll');
       if (btn) btn.disabled = true;
@@ -2929,7 +3177,73 @@
       targets.forEach(id => { done[id] = true; });
       myRepRows = myRepRows.filter(r => !done[r.id]);
       paintMyRepTable(false);
-      showToast('↩️ 已全部恢复，共 ' + targets.length + ' 条');
+      showToast('↩️ 已全部撤回，共 ' + targets.length + ' 条');
+    }
+
+    /* ============================================================
+       ➕ 添加歌曲ID（2026-10-07 站主要求）
+       ------------------------------------------------------------
+       玩家把自己找到的歌曲 ID 投稿上来 → POST /api/songs/submit
+       → 落到 D1 的 song_submissions（待审核）→ 站长在后台「🎶 D1歌曲管理 → 📥 玩家投稿」
+       里点「✅ 通过」才会进 songs_extra（那时宝库才搜得到）。
+       ============================================================ */
+    function openSubmitSong() {
+      const nameEl = document.getElementById('submitSongName');
+      const catEl = document.getElementById('submitSongCategory');
+      const idsEl = document.getElementById('submitSongIds');
+      if (nameEl) nameEl.value = '';
+      if (catEl) catEl.value = '';
+      if (idsEl) idsEl.value = '';
+      openModal('submitSongModal');
+    }
+
+    async function submitSongIds() {
+      const name = ((document.getElementById('submitSongName') || {}).value || '').trim();
+      const category = ((document.getElementById('submitSongCategory') || {}).value || '').trim();
+      const rawIds = ((document.getElementById('submitSongIds') || {}).value || '')
+        .split(/[\s,，、;；]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (!name) { showToast('歌名写一下吧，管理员好核对'); return; }
+      if (rawIds.length === 0) { showToast('至少填一个歌曲 ID'); return; }
+
+      /* 只留合法 ID（1~32 位字母数字下划线连字符），并且去重、限 20 个 */
+      const seen = Object.create(null);
+      const ids = [];
+      rawIds.forEach(v => {
+        if (!/^[A-Za-z0-9_-]{1,32}$/.test(v)) return;
+        if (seen[v]) return;
+        seen[v] = true;
+        if (ids.length < INVALID_CHUNK) ids.push(v);
+      });
+      if (ids.length === 0) { showToast('这些看起来不是有效的歌曲 ID'); return; }
+      if (rawIds.length > ids.length) showToast('已自动去掉 ' + (rawIds.length - ids.length) + ' 个重复或不合法的 ID');
+
+      const btn = document.getElementById('confirmSubmitSong');
+      if (btn) btn.disabled = true;
+
+      try {
+        const items = ids.map(id => ({ id: id, name: name, category: category }));
+        /* 服务端单次最多 20 条（见 functions/api/songs/submit.js），超出就分批 */
+        for (let i = 0; i < items.length; i += 20) {
+          const res = await zmPostJson('/api/songs/submit', {
+            items: items.slice(i, i + 20),
+            reporter: reporterId()
+          }, 'song-submit');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json().catch(() => null);
+          if (!data || !data.ok) throw new Error((data && data.error) || 'bad response');
+        }
+      } catch (err) {
+        if (btn) btn.disabled = false;
+        showToast('⚠️ 投稿失败，请稍后再试');
+        return;
+      }
+
+      if (btn) btn.disabled = false;
+      closeModal('submitSongModal');
+      showToast('✅ 已投稿 ' + ids.length + ' 个 ID，等站长审核通过就会出现在宝库里');
     }
 
     /* 事件绑定（bindControls 里调用一次） */
@@ -2938,6 +3252,7 @@
       const closeBtn = document.getElementById('myRepClose');
       const allBtn = document.getElementById('myRepRestoreAll');
       const wrap = document.getElementById('myRepWrap');
+      const tabsBox = document.getElementById('myRepTypeTabs');
 
       if (openBtn) openBtn.addEventListener('click', openMyReports);
       if (closeBtn) closeBtn.addEventListener('click', () => closeModal('myReportsModal'));
@@ -2949,6 +3264,29 @@
           restoreMyReport(btn.dataset.restore, Number(btn.dataset.index));
         });
       }
+      /* 「🚫 无效ID / ✏️ 信息出错」两个标签：只切显示，不用重新拉数据 */
+      if (tabsBox) {
+        tabsBox.addEventListener('click', e => {
+          const btn = e.target.closest ? e.target.closest('[data-rtype]') : null;
+          if (!btn || !tabsBox.contains(btn)) return;
+          myRepType = btn.dataset.rtype === 'info' ? 'info' : 'invalid';
+          paintMyRepTable(false);
+        });
+      }
+
+      /* ✏️ 信息出错弹窗（2026-10-07） */
+      const cancelInfo = document.getElementById('cancelInfoError');
+      const confirmInfo = document.getElementById('confirmInfoError');
+      if (cancelInfo) cancelInfo.addEventListener('click', () => closeModal('infoErrorModal'));
+      if (confirmInfo) confirmInfo.addEventListener('click', submitInfoError);
+
+      /* ➕ 添加歌曲ID 弹窗（2026-10-07） */
+      const openSong = document.getElementById('openSubmitSongBtn');
+      const cancelSong = document.getElementById('cancelSubmitSong');
+      const confirmSong = document.getElementById('confirmSubmitSong');
+      if (openSong) openSong.addEventListener('click', openSubmitSong);
+      if (cancelSong) cancelSong.addEventListener('click', () => closeModal('submitSongModal'));
+      if (confirmSong) confirmSong.addEventListener('click', submitSongIds);
     }
 
     /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑

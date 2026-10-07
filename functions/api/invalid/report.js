@@ -22,6 +22,9 @@ const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
 /* 一次最多 200 条，和前端的批量上限对齐 */
 const MAX_ITEMS = 200;
 
+/* 2026-10-07：上报类型 —— invalid = 🚫 无效ID（默认）；info = ✏️ 信息出错（歌名/分类不对） */
+const REPORT_TYPES = ['invalid', 'info'];
+
 /* 同一浏览器身份（拿不到身份时退化为单 IP）10 分钟最多 60 次上报，防刷 */
 const limiter = createRateLimiter(60, 10 * 60 * 1000);
 
@@ -51,13 +54,18 @@ export async function onRequestPost(context) {
   if (!ts.ok) return turnstileRejection(ts);
 
   try {
-    /* 两种写法都收：单条 { id, name, category } / 批量 { items: [...] } */
+    /* 两种写法都收：单条 { id, name, category, type, note } / 批量 { items: [...] }
+       2026-10-07 站主要求：上报分两类 ——
+         · type='invalid'（🚫 无效ID，默认）：这个 ID 放不出声 / 已经失效；
+         · type='info'（✏️ 信息出错）：歌名或分类不对，玩家在弹窗里改了信息再点「确定上报」。
+       两类都存在同一张表用 type 区分（页面上「问题上报」分两个标签显示）。 */
     const raw = Array.isArray(body.items) ? body.items : [body];
     if (raw.length > MAX_ITEMS) {
       return json({ ok: false, error: 'too many items' }, 400);
     }
 
     const stmts = [];
+    const refreshes = [];   /* 已经存在的那条（同一个人同一个 ID）：按最新一次上报刷新类型与内容 */
     for (const item of raw) {
       if (!item || typeof item !== 'object') continue;
 
@@ -67,12 +75,22 @@ export async function onRequestPost(context) {
 
       const name = String(item.name || '').trim().slice(0, 100);
       const category = String(item.category || '').trim().slice(0, 30);
+      const type = REPORT_TYPES.includes(String(item.type || '').trim()) ? String(item.type).trim() : 'invalid';
+      const note = String(item.note || '').trim().slice(0, 300);
 
       stmts.push(
         env.DB.prepare(
-          `INSERT OR IGNORE INTO invalid_reports (music_id, name, category, reporter)
-           VALUES (?, ?, ?, ?)`
-        ).bind(id, name || null, category || null, validReporter)
+          `INSERT OR IGNORE INTO invalid_reports (music_id, name, category, reporter, type, note)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        ).bind(id, name || null, category || null, validReporter, type, note || null)
+      );
+      refreshes.push(
+        env.DB.prepare(
+          `UPDATE invalid_reports
+              SET type = ?, name = ?, category = ?, note = ?,
+                  status = 'pending', updated_at = datetime('now', 'localtime')
+            WHERE music_id = ? AND reporter = ? AND status = 'pending'`
+        ).bind(type, name || null, category || null, note || null, id, validReporter)
       );
     }
 
@@ -84,10 +102,17 @@ export async function onRequestPost(context) {
     let added = 0;
     let duplicates = 0;
     const results = await env.DB.batch(stmts);
-    for (const r of results) {
+    const refreshStmts = [];
+    results.forEach((r, i) => {
       if (r && r.meta && r.meta.changes > 0) added++;
-      else duplicates++;
-    }
+      else {
+        /* 之前已经报过（同一个人同一个 ID）：按这次的内容刷新那条记录 ——
+           这样「先报无效、后改成信息出错」也能生效，界面不会两边都留着。 */
+        duplicates++;
+        refreshStmts.push(refreshes[i]);
+      }
+    });
+    if (refreshStmts.length > 0) await env.DB.batch(refreshStmts);
 
     return json({ ok: true, added, duplicates });
   } catch (err) {

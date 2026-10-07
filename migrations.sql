@@ -73,3 +73,34 @@ CREATE TABLE IF NOT EXISTS invalid_reports (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id, reporter);
 
 CREATE INDEX IF NOT EXISTS idx_invalid_status ON invalid_reports(status, music_id);
+
+
+-- ---------- 第 3 组：上报分两类 + 玩家歌曲投稿（2026-10-07 新增） ----------
+-- 站主这一轮的要求：
+--   ① 「问题上报」里要分「🚫 无效ID」和「✏️ 信息出错」两类 → 给 invalid_reports 加 type / note；
+--   ② 「已忽略」不要了（没问题的上报直接删记录）→ 顺手把历史 ignored 行清掉；
+--   ③ 玩家能「添加歌曲ID」投稿，**后台控制**后才进 D1 歌曲 → 新建 song_submissions 待审核表；
+--   ④ 鸣谢里的「💬 反馈贡献者」整类删掉（反馈功能早就下线了）。
+-- ⚠️ ALTER TABLE ADD COLUMN 只在第一次执行成功；第二次会报「duplicate column name」——
+--    报这个错说明这一列已经有了，跳过继续执行后面的语句即可（D1 Console 里可以只选后面几句再跑）。
+ALTER TABLE invalid_reports ADD COLUMN type TEXT NOT NULL DEFAULT 'invalid';
+ALTER TABLE invalid_reports ADD COLUMN note TEXT;
+
+CREATE TABLE IF NOT EXISTS song_submissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  music_id TEXT NOT NULL,
+  name TEXT,
+  category TEXT,
+  reporter TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_song_sub_unique ON song_submissions(music_id, reporter);
+CREATE INDEX IF NOT EXISTS idx_song_sub_status ON song_submissions(status, music_id);
+
+-- 清理历史数据（可重复执行，删不到东西也不会报错）
+DELETE FROM invalid_reports WHERE status = 'ignored';
+DELETE FROM thanks WHERE category = '💬 反馈贡献者';
+DELETE FROM page_updates WHERE page_key = 'feedback';
