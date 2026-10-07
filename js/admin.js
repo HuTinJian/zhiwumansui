@@ -686,6 +686,10 @@ let invalidSeg = 'pending';
    2026-10-07：「已忽略」下线 → 搜索词只剩两段。 */
 const invalidSearch = { pending: '', removed: '' };
 
+/* ✏️ 信息出错管理那一栏自己的搜索词与页码（2026-10-07 新增） */
+let invalidInfoSearch = '';
+let invalidInfoPage = 1;
+
 /* 按该段的搜索词过滤。三段的分页都基于「过滤后的结果」，所以页码也会跟着重算。 */
 function filterInvalidList(list, seg) {
   const kw = String(invalidSearch[seg] || '').trim().toLowerCase();
@@ -733,7 +737,8 @@ async function loadInvalid() {
       boxPending.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）· 登录可能已过期，请重新登录</div>';
       setStatText('statInvalidPending', '-');
       setStatText('statInvalidReports', '-');
-      setStatText('statInvalidInfo', '-');
+      setStatText('statInfoPending', '-');
+      setStatText('statInfoReports', '-');
     } else {
       const data = await res.json();
       if (!data || data.ok !== true || !Array.isArray(data.data)) {
@@ -790,18 +795,22 @@ async function loadInvalid() {
   if (summary) {
     setStatText('statInvalidPending', invalidStatNum(summary.pendingIds));
     setStatText('statInvalidReports', invalidStatNum(summary.pendingReports));
-    setStatText('statInvalidInfo', invalidStatNum(summary.infoIds));
     setStatText('statInvalidRemoved', invalidStatNum(summary.removedIds));
   } else {
     setStatText('statInvalidRemoved', invalidStatNum(invalidRemovedCache.length));
     if (!listOk) {
       setStatText('statInvalidPending', '-');
       setStatText('statInvalidReports', '-');
-      setStatText('statInvalidInfo', '-');
     }
   }
 
   renderInvalidSegment();
+  /* ✏️ 信息出错管理那一栏跟待处理共用同一份缓存，一起重画（它在另一个子面板里，
+     站长切过去时数据已经是新的） */
+  renderInvalidInfo();
+  const infoPending = invalidPendingCache.filter(it => (it.infoCount || 0) > 0);
+  setStatText('statInfoPending', invalidStatNum(infoPending.length));
+  setStatText('statInfoReports', invalidStatNum(infoPending.reduce((n, it) => n + (it.infoCount || 0), 0)));
 }
 
 /* 按当前段把列表画出来（两段各自分页；「已忽略」2026-10-07 下线） */
@@ -811,14 +820,16 @@ function renderInvalidSegment() {
 }
 
 /* ① 待处理上报：勾选若干条 → 批量下架 / 批量删除记录
-   2026-10-07：每行还带一个「🗑️ 删除记录」（没问题的上报直接删掉，不是打标记）。 */
+   2026-10-07：每行还带一个「🗑️ 删除记录」（没问题的上报直接删掉，不是打标记）。
+   ⚠️ 这里只画**无效上报**（invalidCount > 0）；纯「信息出错」的去「✏️ 信息出错管理」那一栏，
+      两个面板各管各的，站长不用在一堆混合数据里挑。 */
 function renderInvalidPending() {
   const container = document.getElementById('invalidPendingList');
   const pager = document.getElementById('invalidPendingPager');
   if (!container) return;
 
   const all = invalidPendingCache;
-  const list = filterInvalidList(all, 'pending');
+  const list = filterInvalidList(all.filter(it => (it.invalidCount || 0) > 0), 'pending');
   const total = list.length;
   invalidPendingPage = clampPage(invalidPendingPage, total);
   updateInvalidSearchInfo('pending', total, all.length);
@@ -849,10 +860,9 @@ function renderInvalidPending() {
         </span>
         <span>
           <span class="type-tag">${escapeHtml(item.category)}</span>
-          ${item.type === 'info'
-            ? '<span class="type-tag gold">✏️ 信息出错' + (item.infoCount > 1 ? ' ' + item.infoCount + ' 条' : '') + '</span>'
-            : '<span class="type-tag red">🚫 上报 ' + item.count + ' 次</span>'}
-          ${item.type === 'info' && item.invalidCount > 0 ? '<span class="type-tag red">🚫 还有 ' + item.invalidCount + ' 条无效上报</span>' : ''}
+          <span class="type-tag red">🚫 上报 ${item.count} 次</span>
+          <!-- 这条 ID 同时还有「信息出错」的上报时，给个小提示（那条在「✏️ 信息出错管理」里处理） -->
+          ${item.infoCount > 0 ? '<span class="type-tag gold">✏️ 另有 ' + item.infoCount + ' 条信息出错</span>' : ''}
         </span>
       </div>
       ${item.note ? '<div class="message">✏️ 玩家说明：' + escapeHtml(item.note) + '</div>' : ''}
@@ -862,9 +872,7 @@ function renderInvalidPending() {
         ${item.firstAt ? ' · <span title="北京时间">首次 ' + escapeHtml(adminTime(item.firstAt)) + '</span>' : ''}
       </div>
       <div class="actions">
-        ${item.type === 'info' && item.invalidCount === 0
-          ? ''
-          : '<button class="btn-invalid-remove" data-id="' + escapeHtml(item.id) + '">✅ 确认无效并下架</button>'}
+        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
         <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除记录</button>
       </div>
     `;
@@ -893,6 +901,87 @@ function renderInvalidPending() {
 /* ② 已忽略：2026-10-07 站主要求整段删除（「没有问题的上报的 ID 直接删除后台记录就行」）——
    原来这里的 renderInvalidIgnored() 整块跟着那一段一起删掉；
    现在「没问题」= 在待处理里点「🗑️ 删除记录」（handleInvalidAction 的 delete-records）。 */
+
+/* ②.5 ✏️ 信息出错管理（2026-10-07 站主要求新增，跟「🚫 无效音乐ID管理」并列的第二个子面板）
+   ------------------------------------------------------------
+   数据来源跟待处理同一份缓存（invalidPendingCache），这里只画 infoCount > 0 的；
+   每行把**玩家改好的歌名 / 分类**和说明摆出来，站长照着改完点「🗑️ 删记录」就收工；
+   要是这个 ID 根本没声音，就直接「🚫 确认无效并下架」。 */
+function renderInvalidInfo() {
+  const container = document.getElementById('invalidInfoList');
+  const pager = document.getElementById('invalidInfoPager');
+  if (!container) return;
+
+  const all = invalidPendingCache.filter(it => (it.infoCount || 0) > 0);
+  const kw = String(invalidInfoSearch || '').trim().toLowerCase();
+  const list = kw
+    ? all.filter(it => (
+      String(it.id || '').toLowerCase().indexOf(kw) !== -1 ||
+      String(it.name || '').toLowerCase().indexOf(kw) !== -1 ||
+      String(it.category || '').toLowerCase().indexOf(kw) !== -1 ||
+      String(it.note || '').toLowerCase().indexOf(kw) !== -1
+    ))
+    : all;
+
+  const total = list.length;
+  invalidInfoPage = clampPage(invalidInfoPage, total);
+  const infoEl = document.getElementById('invalidInfoSearchInfo');
+  if (infoEl) {
+    infoEl.textContent = kw
+      ? '匹配 ' + total.toLocaleString('en-US') + ' 条 / 共 ' + all.length.toLocaleString('en-US') + ' 条'
+      : '';
+  }
+
+  if (total === 0) {
+    container.innerHTML = kw
+      ? '<div class="empty-state">这一栏里没有匹配「' + escapeHtml(kw) + '」的条目。<br>换个关键词试试，或清空搜索框。</div>'
+      : '<div class="empty-state">还没有「信息出错」的上报。<br>宝库页访客点某首歌右上角的「✏️ 信息出错」就会出现在这里。</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (invalidInfoPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = list.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+      <div class="row1">
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span>
+          <span class="type-tag">${escapeHtml(item.category)}</span>
+          <span class="type-tag gold">✏️ 信息出错 ${item.infoCount} 条</span>
+          ${item.invalidCount > 0 ? '<span class="type-tag red">🚫 另有 ' + item.invalidCount + ' 条无效上报</span>' : ''}
+        </span>
+      </div>
+      ${item.note ? '<div class="message">✏️ 玩家说明：' + escapeHtml(item.note) + '</div>' : '<div class="message">（玩家没写说明，只改了歌名 / 分类）</div>'}
+      <div class="meta">
+        🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
+        ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
+      </div>
+      <div class="actions">
+        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删记录（处理完）</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('.btn-invalid-remove').forEach(btn => {
+    btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
+  });
+  container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
+    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id]));
+  });
+
+  renderAdminPager(pager, total, invalidInfoPage, '个 ID', (p) => {
+    invalidInfoPage = p;
+    renderInvalidInfo();
+    scrollListIntoView(container);
+  });
+}
 
 /* ③ 已下架：来自 /api/quarantine/list，单行「🔓 恢复上架」 */
 function renderInvalidRemoved() {
@@ -1277,6 +1366,33 @@ function bindInvalidPanel() {
     refreshBtn.textContent = '🔄 刷新';
     showToast('✅ 已刷新');
   };
+
+  /* ✏️ 信息出错管理那一栏（2026-10-07）：刷新 + 它自己的搜索框 */
+  const refreshInfo = document.getElementById('refreshInfoBtn');
+  if (refreshInfo) refreshInfo.onclick = async () => {
+    refreshInfo.disabled = true;
+    refreshInfo.textContent = '⏳ 刷新中...';
+    await loadInvalid();
+    refreshInfo.disabled = false;
+    refreshInfo.textContent = '🔄 刷新';
+    showToast('✅ 已刷新信息出错');
+  };
+  const infoSearchInput = document.getElementById('invalidInfoSearch');
+  if (infoSearchInput) {
+    const applyInfo = debounce(() => {
+      invalidInfoSearch = infoSearchInput.value || '';
+      invalidInfoPage = 1;
+      renderInvalidInfo();
+    }, 150);
+    infoSearchInput.addEventListener('input', applyInfo);
+    infoSearchInput.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      infoSearchInput.value = '';
+      invalidInfoSearch = '';
+      invalidInfoPage = 1;
+      renderInvalidInfo();
+    });
+  }
 
   const exportBtn = document.getElementById('exportInvalidBtn');
   if (exportBtn) exportBtn.onclick = handleExportRemoved;

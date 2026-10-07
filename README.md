@@ -1032,7 +1032,7 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
    后台相关的一个字都没提（符合这个文件顶部那条硬规矩）。
    ⚠️ 站主没给成稿，这三段是**用他列的需求条目拼的**；要换成他自己的原话，改 `updates.json` 即可
    （`_说明` 里写着怎么改、主题色怎么选）。
-8. **D1 迁移**（`migrations.sql` 第 3 组，站主要在 D1 Console 里跑一次）：
+8. **D1 迁移**（`migrations.sql` 第 3 组 + 第 4 组，站主要在 D1 Console 里跑一次）：
    ```sql
    ALTER TABLE invalid_reports ADD COLUMN type TEXT NOT NULL DEFAULT 'invalid';
    ALTER TABLE invalid_reports ADD COLUMN note TEXT;
@@ -1042,13 +1042,52 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
    DELETE FROM invalid_reports WHERE status = 'ignored';
    DELETE FROM thanks WHERE category = '💬 反馈贡献者';
    DELETE FROM page_updates WHERE page_key = 'feedback';
+
+   CREATE TABLE IF NOT EXISTS report_notices ( ... );   -- 第 4 组：上报结果通知
+   CREATE INDEX IF NOT EXISTS idx_notice_reporter ON report_notices(reporter, seen);
    ```
    `ALTER TABLE ... ADD COLUMN` 只能成功一次，第二遍会报 `duplicate column name` ——
    报这个错就跳过那两句，继续跑后面的（`CREATE` / `DELETE` 都可重复执行）。
-   **代码在迁移之前也不会崩**：`type` 缺列时 `report.js` 会报 500（这一点必须靠迁移解决），
-   所以站主跑完 SQL 再让玩家上报；`thanks.html` 那道过滤则在迁移前后都正确。
+   **代码在迁移之前也不会崩**：`type` 缺列时 `report.js` 会自动退回旧的 4 列写法
+   （上报照旧进后台，只是少了类型与说明），`/api/notices/mine` 查不到表时当作「没有通知」。
+   但**「添加歌曲ID」投稿必须有 `song_submissions` 表**，所以第 3 组最好尽快跑。
+9. **更新弹窗大标题「再长也一行」**（站主：「4 个字很好看，大于 4 个字就换行，就变得很难看」）：
+   `js/common.js` 的 `fitUpdateTitle()` —— **先上屏、再用 Range 量文字真实宽度、再缩**：
+   ① 只收字距 5px→1px；② 还不够再收字号 30px→16px；③ 都到下限才允许折行并用
+   `text-wrap: balance` 让两行接近。预算宽度 = `css/update-modal.css` 里 `.left-block` 的
+   `max-width: 420px`（原来左块是 `flex: 0 1 auto` 会被挤到 ~110px，所以连 4 个字都折行 —— 那才是病根）。
+   实测：4/6/8/12 字全程 30px + 5px 一行；17 字自动缩到 24px + 1px 仍是一行。
+   ⚠️ 两个坑写在这儿免得再踩：① 量尺必须放在 `fitCanvas()` 里（canvas 宽度是那一步才定下来的）；
+   ② Chrome 里 `white-space` 是**简写**（含 text-wrap-mode），`el.style.textWrap = ''` 会把
+   `whiteSpace = 'nowrap'` 一起清掉 —— 顺序必须是「先清 text-wrap、最后设 white-space」。
+10. **「✏️ 信息出错管理」独立子面板**（站主：「卡片管理，Roblox ID 宝库中加一个信息出错管理」）：
+    第二级子标签从 2 个变 3 个（`card1-songs` / `card1-invalid` / `card1-info`）。
+    它跟「🚫 无效音乐ID管理」共用 `/api/invalid/list` 那份缓存，前端按 `infoCount > 0` 分栏：
+    信息出错的条目只在**新面板**里出现（每行带玩家改好的歌名/分类 + 说明 + 操作），
+    无效那一栏只放无效上报；统计卡也跟着分开（无效面板 3 张、信息出错面板 2 张）。
+11. **「📥 玩家投稿」改成并列子标签**（站主：「不要放在最下面，跟『待处理上报』和『已下架』一样并列」）：
+    `#card1-songs` 里加了 `#songSegTabs`（`🎶 歌曲列表` / `📥 玩家投稿`），两块是**同级** `.subpanel`
+    （`#songs-list` / `#songs-submissions`），不再一个套在另一个下面。
+12. **「以无效为主」**（站主：「如果他点了无效，就不能修改信息」）：
+    · 访客端：这一组只要报过无效，`✏️ 信息出错` 按钮就置灰（`.blocked` + `aria-disabled`），
+      点了不开弹窗，只提示并把「📌 问题上报」打开到「🚫 无效ID」那一栏；撤回后自动恢复可点
+      （`groupHasInvalidReport()` / `syncInfoErrorBtn()`，上报与撤回两条路都会同步）。
+    · 服务端：`report.js` 先查这个身份在这个 ID 上是否已有 `type='invalid'` 的待处理记录，
+      是则**整条跳过**并回 `blocked:N`，前端据此如实提示。
+13. **站长下架 / 删记录 → 上报的人收到我们自己的弹窗**（站主：「上报的人都会收到弹窗提示，
+    弹窗是我们自己的」）：新表 `report_notices`（第 4 组迁移）；
+    `invalid/handle.js` 在 `remove` 时写 `kind='removed'`、在 `delete-records` 时写 `kind='deleted'`
+    ——⚠️ 删记录那条链是**先写通知、再删上报记录**（记录删了就查不到 reporter 了）；
+    访客端 `js/common.js` 的 `checkReportNotices()` 在每个页面打开 1.2 秒后查一次
+    （`GET /api/notices/mine?reporter=`，同一标签页用 sessionStorage 只查一次），
+    有未读就弹 `.modal` 那套**自己的弹窗**（最多列 5 条），点「我知道了」→ `POST` 标已读。
+    接口挂了 / 没跑迁移 → 静默跳过，绝不弹错误框打扰访客。
+14. **按钮胶囊**（站主：「提交投稿的按钮样式不好看，不是胶囊的」）：
+    `.btn-info-confirm`（「✅ 确定上报 / 提交投稿」共用）补上 `border-radius: var(--radius-pill)`
+    + 对齐其它弹窗按钮的内边距，跟「关闭」那颗圆角一致（实测都是 50px）。
 
-**这一轮的验收**：`.verify/lead-round1007-check.mjs`（43 项，真浏览器 + 真请求体）
-覆盖上面 1~7 的每一条；连同 10 个既有用例一起跑，**合计 270 项全绿**。
+**这一轮的验收**：`.verify/lead-round1007-check.mjs`（42 项）+ `.verify/lead-round1007b-check.mjs`（34 项）
++ `.verify/lead-update-title-check.mjs`（11 项，4/6/8/12/17 字 + 手机档 + 截图）
+都是真浏览器 + 真请求体；连同 10 个既有用例一起跑，**合计 314 项全绿**。
 此外花费数字 **`¥175.77` → `¥180.04`**，核对日期改成 **`2026-10-07`**
 （`js/common.js` 的 `SITE_COST.amount` + `index.html` 兜底 + 这个 README 第 11 节那条流水）。

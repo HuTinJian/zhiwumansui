@@ -190,15 +190,28 @@
     }
     .info-err-form input:focus,
     .info-err-form textarea:focus { outline: 2px solid rgba(232, 184, 102, 0.5); border-color: #dfa63a; }
-    /* 「✅ 确定上报 / 提交投稿」：跟「信息出错」同一族的琥珀色（护眼、不刺眼） */
+    /* 「✅ 确定上报 / 提交投稿」：跟「信息出错」同一族的琥珀色（护眼、不刺眼）。
+       2026-10-07 站主反馈「提交投稿的按钮样式不好看，不是胶囊的」——
+       原来这里没写圆角，落到了通用按钮的圆角上；现在跟弹窗里其它按钮一样用**胶囊**
+       （border-radius: var(--radius-pill)），内边距也对齐「关闭 / 取消」那几颗。 */
     .btn-info-confirm {
       background: linear-gradient(135deg, #f0c674, #dfa63a);
       color: #4a3410;
       border: none;
+      border-radius: var(--radius-pill);
+      padding: 10px 22px;
+      font-size: 0.9rem;
       font-weight: 800;
+      line-height: 1.2;
+      cursor: pointer;
       box-shadow: 0 5px 14px rgba(223, 166, 58, 0.32);
+      transition: transform 0.2s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft);
     }
-    .btn-info-confirm:hover { transform: translateY(-2px); }
+    .btn-info-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(223, 166, 58, 0.5);
+    }
+    .btn-info-confirm:active { transform: scale(0.96); }
     .btn-info-confirm[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     /* 信息出错那一类的徽标（表格里「状态」旁边） */
@@ -656,6 +669,15 @@
     [data-theme="dark"] .group-actions .btn-info-error { color: #e8b866; border-color: rgba(232, 184, 102, 0.5); }
     [data-theme="dark"] .group-actions .btn-info-error:hover,
     [data-theme="dark"] .group-actions .btn-info-error.reported { color: #f3cf90; background: rgba(232, 184, 102, 0.22); }
+    /* 「以无效为主」（2026-10-07）：这一组已报过无效 → 信息出错按钮置灰、点了只提示 */
+    .group-actions .btn-info-error.blocked {
+      opacity: 0.5;
+      cursor: not-allowed;
+      color: var(--text-muted);
+      border-color: var(--border);
+      background: transparent;
+    }
+    .group-actions .btn-info-error.blocked:hover { transform: none; background: transparent; color: var(--text-muted); }
     .id-actions .btn-invalid:hover {
       color: var(--danger);
       border-color: var(--danger);
@@ -2396,6 +2418,10 @@
           ${rowsHtml}
         `;
 
+      /* 「以无效为主」（2026-10-07）：这一组里只要有人报过无效，信息出错那颗按钮就先置灰
+         （要用到已经插好的 DOM，所以在这里调，而不是在模板字符串里算） */
+      syncInfoErrorBtn(el.querySelector('.btn-info-error'));
+
       /* 事件不在这里逐个绑定：
          1500 条数据下，逐节点绑定会产生上千个监听器，
          改成在 #songList 上用「事件委托」统一处理（见 bindListDelegation）。 */
@@ -2424,9 +2450,50 @@
        站主原话「让玩家修改信息，然后点击『确定上报』然后上报到后台」。
        这一组歌的歌名 / 分类直接带进弹窗当**预填值**（玩家在原文上改，比从空白写省事），
        ID 列表原样带上（只显示、不提交）—— 弹窗里再决定改什么、写不写说明。 */
+
+    /* 「以无效为主」（2026-10-07 站主原话：「如果他点了无效，就不能修改信息」）：
+       这一组里只要有任何一个 ID 已经报过无效，这颗按钮就置灰、点了也只提示，
+       并把他送到「📌 问题上报 → 🚫 无效ID」去撤回。 */
+    function groupHasInvalidReport(groupEl) {
+      if (!groupEl) return false;
+      const ids = Array.prototype.map
+        .call(groupEl.querySelectorAll('.id-row .id-number'), el => el.textContent.trim())
+        .filter(Boolean);
+      return ids.some(id => invalidReported.has(String(id)));
+    }
+
+    /* 把某一行所在的那一组「✏️ 信息出错」按钮状态同步一下（上报 / 撤回后调用）。
+       传 ID 或按钮元素都行。 */
+    function syncInfoErrorBtn(target) {
+      let groupEl = null;
+      if (target && target.closest) {
+        groupEl = target.closest('.song-group');
+      } else {
+        const sid = String(target || '');
+        const rowBtn = [...document.querySelectorAll('.btn-invalid')].find(b => b.dataset.id === sid);
+        groupEl = rowBtn ? rowBtn.closest('.song-group') : null;
+      }
+      if (!groupEl) return;
+      const btn = groupEl.querySelector('.btn-info-error');
+      if (!btn) return;
+      const blocked = groupHasInvalidReport(groupEl);
+      btn.classList.toggle('blocked', blocked);
+      btn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+      btn.title = blocked
+        ? '这首歌你已经报过「无效」了：先在「📌 问题上报 → 🚫 无效ID」里撤回，才能报「信息出错」'
+        : '这首歌的歌名 / 分类 / ID 哪里不对？点这里改一改再上报';
+    }
+
     function openInfoError(btn) {
       const groupEl = btn.closest ? btn.closest('.song-group') : null;
       if (!groupEl) return;
+
+      /* 「以无效为主」：这一组已经报过无效 → 不开弹窗，直接告诉他去撤回 */
+      if (groupHasInvalidReport(groupEl)) {
+        showToast('🚫 这首歌你已经报过「无效」了：先在「📌 问题上报 → 🚫 无效ID」里撤回，才能报「信息出错」');
+        openMyReports('invalid');
+        return;
+      }
 
       const ids = Array.prototype.map
         .call(groupEl.querySelectorAll('.id-number'), el => el.textContent.trim())
@@ -2478,7 +2545,7 @@
 
       /* 一类上报只报一条：带上这一组的主 ID（第一个），避免同一个问题在后台出现好几行。
          主要信息放在 name / category / note 里，管理员一眼就能看出要改什么。 */
-      const ok = await sendInvalidReport([{
+      const res = await sendInvalidReport([{
         id: ids[0],
         name: String(name).trim(),
         category: String(category).trim(),
@@ -2487,7 +2554,16 @@
       }]);
 
       if (okBtn) okBtn.disabled = false;
-      if (!ok) return;
+      if (!res.ok) return;
+
+      /* 2026-10-07 站主定的规矩「以无效为主」：这个 ID 已经报过无效时，后端会挡下来，
+         这里如实说明，并把「问题上报」面板打开到「🚫 无效ID」那一栏，方便他撤回。 */
+      if (res.blocked > 0) {
+        closeModal('infoErrorModal');
+        showToast('🚫 这个 ID 你已经报过「无效」了：要先撤回无效上报，才能报「信息出错」');
+        openMyReports('invalid');
+        return;
+      }
 
       closeModal('infoErrorModal');
       showToast('✏️ 已上报「信息出错」，站长会在后台看到（可在「📌 问题上报」里撤回）');
@@ -2816,6 +2892,7 @@
     /* 发上报。返回 true = 服务端确实收下了，本地才允许标记。 */
     async function sendInvalidReport(items) {
       try {
+        let blocked = 0;
         for (let i = 0; i < items.length; i += INVALID_CHUNK) {
           const res = await zmPostJson(INVALID_REPORT_URL, {
             items: items.slice(i, i + INVALID_CHUNK),
@@ -2824,12 +2901,14 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json().catch(() => null);
           if (!data || !data.ok) throw new Error((data && data.error) || 'bad response');
+          /* 2026-10-07：后端会把「已经报过无效、这次的信息出错被挡下」的条数回在 blocked 里 */
+          blocked += Number(data.blocked) || 0;
         }
-        return true;
+        return { ok: true, blocked };
       } catch (err) {
         /* 断网 / 纯静态托管（没有 Functions）时走这里：如实报错，绝不假装成功 */
         showToast('⚠️ 上报失败，请稍后再试');
-        return false;
+        return { ok: false, blocked: 0 };
       }
     }
 
@@ -2852,6 +2931,8 @@
       }
       ids.forEach(id => { invalidReported.delete(String(id)); paintInvalidRow(String(id)); });
       saveInvalidReported();
+      /* 撤回之后，「✏️ 信息出错」重新可用（以无效为主：无效在就不给改信息） */
+      ids.forEach(id => syncInfoErrorBtn(id));
       return true;
     }
 
@@ -2866,16 +2947,18 @@
         return;
       }
 
-      const ok = await sendInvalidReport([{
+      const res = await sendInvalidReport([{
         id: id,
         name: btn.dataset.name || '',
         category: btn.dataset.category || ''
       }]);
-      if (!ok) return;
+      if (!res.ok) return;
 
       invalidReported.add(id);
       saveInvalidReported();
       paintInvalidRow(id);
+      /* 2026-10-07「以无效为主」：报过无效之后，这首歌的「✏️ 信息出错」就该关掉了 */
+      syncInfoErrorBtn(btn);
       showToast('🚫 已上报 ID ' + id + ' 无效，点「↩️ 撤销」可以撤回');
     }
 
@@ -3122,8 +3205,11 @@
       wrap.innerHTML = html;
     }
 
-    /* 打开弹窗：先画「加载中」，再拉数据合并重画 */
-    async function openMyReports() {
+    /* 打开弹窗：先画「加载中」，再拉数据合并重画。
+       type（2026-10-07 新增）：'info' 时直接落在「✏️ 信息出错」那一栏，
+       默认 'invalid'（点「问题上报」按钮进来时看的是无效那一类）。 */
+    async function openMyReports(type) {
+      if (type === 'info' || type === 'invalid') myRepType = type;
       const wrap = document.getElementById('myRepWrap');
       if (wrap) wrap.innerHTML = '<div class="myrep-empty">加载中…</div>';
       const allBtn = document.getElementById('myRepRestoreAll');

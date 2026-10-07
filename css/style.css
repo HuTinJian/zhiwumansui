@@ -1085,6 +1085,37 @@ body.modal-open .particles i { animation-play-state: paused; }
    全站没有元素再用这几个类。求关注入口只在首页的 .bili-follow 那条细横幅。
    历史实现见 git 提交 dca915f。 */
 
+/* ---------- 📬 「你上报的内容有结果了」提示弹窗（2026-10-07 站主要求新增） ----------
+   站长下架 ID / 删除上报记录后，上报的人下次打开任意页面就会看到它。
+   用的是全站那套 .modal（我们自己的弹窗，不是浏览器的通知），
+   这里只补列表排版：一行一条、左边一条竖线，像留言。 */
+.zm-notice-content { max-width: 560px; }
+.zm-notice-list {
+  margin: 4px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 46vh;
+  overflow: auto;
+}
+.zm-notice-line {
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text-light);
+  background: var(--bg-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.zm-notice-line b { color: var(--primary-ink); font-family: 'Courier New', monospace; }
+.zm-notice-line.zm-notice-more { color: var(--text-muted); font-style: italic; border-left-color: var(--border); }
+.zm-notice-foot {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 /* ---------- 开发者与支持者（首页 / 反馈页共用） ---------- */
 .credits-section {
   display: flex;

@@ -1248,6 +1248,11 @@ function initShareTriggers() {
 
     /* 2026-10-05：原来这里还会调 checkFeedbackDecision() 去查「我提过的反馈有没有被处理」。
        反馈功能整页下线（feedback.html 已删、/api/feedback/* 已删），回执弹窗一并删除。 */
+
+    /* 2026-10-07 站主要求：站长下架了 ID / 删了上报记录，上报的人要收到**我们自己的**弹窗提示。
+       延后 1.2 秒再查：先让页面把内容画出来，免得跟「版本更新」弹窗同时抢屏
+       （两者都弹时，先来的那个在上面，用户点掉一个再看下一个，不会互相盖住）。 */
+    setTimeout(checkReportNotices, 1200);
   }
 
   if (document.readyState === 'loading') {
@@ -1404,6 +1409,91 @@ function initShareTriggers() {
   /* ============================================================
      8. 桌面 / 平板：canvas 图片式弹窗
      ============================================================ */
+
+  /* 更新弹窗大标题的「一行塞得下」自适应（2026-10-07 站主反馈后新增）
+     ------------------------------------------------------------
+     背景：站主说 4 个字的标题（「问题上报」）很好看，超过 4 个字就换行、变难看。
+     做法不猜字数，而是**量出来再缩**，任何标题长度、任何屏幕宽度都成立：
+       ① 先只收字距：5px → 1px（中文 4~8 字时，字距就是罪魁祸首，字号几乎不用动）；
+       ② 还不够就收字号：30px → 16px（每档 1px）；
+       ③ 都到下限还放不下（比如十几个字），才允许折行，并用 text-wrap: balance
+          让两行长度接近，比「第一行满满、第二行一个孤字」好看得多。
+     量的是元素自身坐标系（scrollWidth vs clientWidth），外层 .canvas-scaler 的
+     scale() 缩放不影响判断。预算宽度 = CSS 里 .left-block 的 max-width（420px）。
+     ⚠️ 必须在元素**已经上屏**之后调用：还没显示时 clientWidth 是 0，什么都量不出来。 */
+  function fitUpdateTitle(el, base) {
+    if (!el) return;
+    const text = String(el.textContent || '').trim();
+    if (!text) return;
+
+    const BASE_SIZE = (base && base.size) || 30;   /* 跟 css/update-modal.css 里 .title 对齐 */
+    const BASE_TRACK = (base && base.track) || 5;
+    const MIN_SIZE = 16;
+    const MIN_TRACK = 1;
+
+    /* 每次从基准值重新量：不然上一轮缩过的值会叠上来。
+       ⚠️ 顺序很重要：Chrome 里 white-space 是**简写**（= white-space-collapse + text-wrap-mode），
+       `el.style.textWrap = ''` 会把简写里的 text-wrap-mode 一起清掉 —— 写成
+       「先 whiteSpace='nowrap' 再 textWrap=''」的话，nowrap 会被抹掉、文字照样折行，
+       于是量出来的宽度永远「放得下」，缩放整个失效（2026-10-07 实测踩了这个坑）。
+       正确顺序：先清 text-wrap，最后设 white-space。 */
+    el.style.textWrap = '';
+    el.style.fontSize = BASE_SIZE + 'px';
+    el.style.letterSpacing = BASE_TRACK + 'px';
+    el.style.whiteSpace = 'nowrap';
+
+    /* 预算宽度 = 左块能给的最大宽度（CSS 的 max-width）；拿不到就用它当前的客户区 */
+    const parent = el.parentElement;
+    const budget = Math.max(
+      el.clientWidth || 0,
+      Math.min((parent && parent.clientWidth) || 0, 420)
+    );
+    if (budget <= 0) return;   /* 还没上屏（display:none）→ 交给下一次调用 */
+
+    /* 量文字真实宽度：**不能只看 scrollWidth** —— 元素是 overflow: visible 时，
+       Chrome 的 scrollWidth 会被 clientWidth 卡住（文字明明超了也只报容器宽度），
+       于是「装不下」判断永远为真、缩放白做（2026-10-07 实测踩到）。
+       用 Range 直接量这串文字的宽度，nowrap 时就是它真正需要的宽度。
+       留 4px 余量：Range 的包围盒不含最后一个字的字距，贴着边量容易差几个像素。 */
+    const SAFETY = 4;
+    const range = document.createRange();
+    const textWidth = () => {
+      range.selectNodeContents(el);
+      const r = range.getBoundingClientRect();
+      return r.width || 0;
+    };
+    const fits = () => textWidth() <= budget - SAFETY;
+
+    /* ① 收字距 */
+    let track = BASE_TRACK;
+    while (!fits() && track > MIN_TRACK) {
+      track -= 1;
+      el.style.letterSpacing = track + 'px';
+    }
+
+    /* ② 收字号 */
+    let size = BASE_SIZE;
+    while (!fits() && size > MIN_SIZE) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+    }
+
+    /* ③ 实在放不下：允许折行，并且让两行尽量一样长（text-wrap 必须写在 white-space 后面才生效） */
+    const wrapped = !fits();
+    if (wrapped) {
+      el.style.whiteSpace = 'normal';
+      el.style.textWrap = 'balance';
+      el.style.letterSpacing = Math.min(track, 3) + 'px';
+    }
+
+    /* 记下来给用例/调试看：缩到多少、是不是折了行 */
+    el.dataset.fitSize = String(size);
+    el.dataset.fitTrack = String(track);
+    el.dataset.fitLines = wrapped ? '2' : '1';
+    el.dataset.fitWidth = String(Math.round(textWidth()));
+    el.dataset.fitBudget = String(Math.round(budget));
+  }
+
   function showCanvasUpdateModal(cfg, version, storageKey) {
     const modalId = 'updateModal';
     const old = document.getElementById(modalId);
@@ -1504,7 +1594,24 @@ function initShareTriggers() {
       rightEl.appendChild(div);
     });
 
+    /* 2026-10-07 站主反馈：「更新弹窗的大标题，如『上报更顺手了』在 4 个字的情况下很美观，
+       但是大于 4 个字，它就会换行，就变得很难看」。
+       原因：标题挤在左边那一块里（30px + 5px 字距），字一多就超出块宽被折行。
+       办法：**先上屏、再量、再缩**（不猜字数）—— 字距 5px→1px，还不够就 30px→16px；
+       实在放不下才允许换行，并且用 text-wrap: balance 让两行长度尽量一样。
+       量的是元素自身坐标系（scrollWidth vs clientWidth），外层 .canvas-scaler 的
+       scale() 缩放到多小都不影响判断；预算宽度 = CSS 里 .left-block 的 max-width。
+       ⚠️ 必须在 openModal() 之后量：元素还没显示时 clientWidth 是 0，量不出东西（踩过）。 */
+    /* 先记下基准值（CSS 里写的），缩放后要还原 */
+    const titleBase = titleEl
+      ? { size: parseFloat(getComputedStyle(titleEl).fontSize) || 30, track: parseFloat(getComputedStyle(titleEl).letterSpacing) || 5 }
+      : null;
+
     openModal(modalId);
+
+    const fitTitle = () => { if (titleEl) fitUpdateTitle(titleEl, titleBase); };
+    fitTitle();
+    requestAnimationFrame(fitTitle);
 
     /* 自适应缩放：以顶部中心为原点，保证缩放后依然居中 */
     const fitCanvas = () => {
@@ -1523,10 +1630,14 @@ function initShareTriggers() {
       scaler.style.marginLeft = 'auto';
       scaler.style.marginRight = 'auto';
       inner.style.height = Math.round(CANVAS_H * scale + 32) + 'px';
+
+      /* ⚠️ 标题的量尺必须放在这里：canvas 宽度是**这一步**才定下来的，
+         在那之前左块可能还是「未约束」的宽度，量出来会以为怎么都放得下（2026-10-07 踩过）。
+         每次缩放（含窗口 resize）都重新量一次，任何宽度下都对。 */
+      fitTitle();
     };
 
     requestAnimationFrame(fitCanvas);
-    window.addEventListener('resize', fitCanvas);
 
     let cleaned = false;
     const cleanup = () => {
@@ -1667,7 +1778,6 @@ function initShareTriggers() {
      ============================================================ */
 
   const CLIENT_ID_KEY = 'zm_client_id';
-
   function getClientId() {
     let id = null;
     try { id = localStorage.getItem(CLIENT_ID_KEY); } catch (e) {}
@@ -1687,6 +1797,100 @@ function initShareTriggers() {
 
     try { localStorage.setItem(CLIENT_ID_KEY, next); } catch (e) {}
     return next;
+  }
+
+  /* ============================================================
+     10.5 「你的上报有结果了」提示（2026-10-07 站主要求新增）
+     ------------------------------------------------------------
+     站主原话：「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示，
+               弹窗是我们自己的」。
+     谁写进去的：后台「✅ 确认无效并下架」/「🗑️ 删除记录」时，
+       functions/api/invalid/handle.js 会给当时报过这个 ID 的人各写一条 report_notices。
+     这里只做两件事：
+       ① 页面打开时拉一次 GET /api/notices/mine?reporter=<本机身份>；
+       ② 有未读就弹**我们自己的**弹窗（.modal 那套，不是浏览器的 Notification），
+          点「我知道了」→ POST 把这几条标成已读，之后不再弹。
+     几个刻意的取舍：
+       · 纯静态托管 / 接口挂了 → 静默跳过，绝不弹错误框打扰访客；
+       · 一次最多列 5 条（再多也只说「还有 N 条」），弹窗不会长到离谱；
+       · 用 sessionStorage 记住「这次会话已经查过了」，同一标签页里翻来翻去不重复请求
+         （新开标签页/重开浏览器会再查一次，保证通知不会漏）。
+     ============================================================ */
+  const NOTICE_API = '/api/notices/mine';
+  const NOTICE_SESSION_KEY = 'zm_notice_checked';
+
+  function noticeLine(n) {
+    const id = escapeHtml(String(n.musicId || ''));
+    const name = n.name ? '「' + escapeHtml(String(n.name)) + '」' : '';
+    if (n.kind === 'removed') {
+      return '🚫 你上报的 ID <b>' + id + '</b>' + name + ' 已被确认无效，已从宝库里下架。';
+    }
+    /* deleted：上报记录被删掉（这个 ID 本身没问题，歌还在） */
+    return '🗑️ 你上报的 ID <b>' + id + '</b>' + name + ' 站长看过了：这个 ID 没问题，上报记录已删除（歌还在宝库里）。';
+  }
+
+  function showReportNotices(items) {
+    if (!Array.isArray(items) || items.length === 0) return;
+
+    const old = document.getElementById('zmNoticeModal');
+    if (old) old.remove();
+
+    const shown = items.slice(0, 5);
+    const more = items.length - shown.length;
+
+    const modal = document.createElement('div');
+    modal.id = 'zmNoticeModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content zm-notice-content">
+        <h2>📬 你上报的内容有结果了</h2>
+        <div class="zm-notice-list">
+          ${shown.map(n => '<div class="zm-notice-line">' + noticeLine(n) + '</div>').join('')}
+          ${more > 0 ? '<div class="zm-notice-line zm-notice-more">…还有 ' + more + ' 条，不再一一列出</div>' : ''}
+        </div>
+        <p class="zm-notice-foot">谢谢你帮忙校对宝库 ❤️</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-primary" id="zmNoticeOk">我知道了</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    openModal('zmNoticeModal');
+
+    const okBtn = document.getElementById('zmNoticeOk');
+    if (okBtn) {
+      okBtn.addEventListener('click', () => {
+        closeModal('zmNoticeModal');
+        /* 标成已读：失败也没关系（下次打开会再弹一次，不会丢消息） */
+        try {
+          fetch(NOTICE_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reporter: getClientId(), ids: items.map(n => n.id) }),
+            keepalive: true
+          }).catch(() => {});
+        } catch (e) { /* 忽略 */ }
+      });
+    }
+  }
+
+  async function checkReportNotices() {
+    let seen = '';
+    try { seen = sessionStorage.getItem(NOTICE_SESSION_KEY) || ''; } catch (e) {}
+    if (seen === '1') return;
+    try { sessionStorage.setItem(NOTICE_SESSION_KEY, '1'); } catch (e) {}
+
+    try {
+      const res = await fetch(NOTICE_API + '?reporter=' + encodeURIComponent(getClientId()) + '&t=' + Date.now(), {
+        cache: 'no-store'
+      });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (!data || data.ok !== true || !Array.isArray(data.items)) return;
+      if (data.items.length > 0) showReportNotices(data.items);
+    } catch (e) {
+      /* 静态托管 / 断网 → 静默跳过 */
+    }
   }
 
   /* ============================================================

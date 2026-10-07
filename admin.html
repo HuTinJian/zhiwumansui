@@ -704,6 +704,9 @@
           <!-- 2026-10-05 站主要求：原来的「⛔ 开发者隔离区」并入「🚫 无效音乐ID管理」，
                子面板名 / id 一起改（旧名字整个作废，代码和样式里都不再出现）。 -->
           <button class="subtab" data-subpanel="card1-invalid">🚫 无效音乐ID管理</button>
+          <!-- 2026-10-07 站主要求：「卡片管理 → Roblox ID 宝库」再加一个「✏️ 信息出错管理」，
+               跟前面两个子面板并列（玩家在宝库页点「✏️ 信息出错」报上来的都在这里）。 -->
+          <button class="subtab" data-subpanel="card1-info">✏️ 信息出错管理</button>
         </div>
 
         <div class="subpanel active" id="card1-songs">
@@ -728,6 +731,15 @@
             </div>
           </div>
 
+          <!-- 2026-10-07 站主要求：「📥 玩家投稿」不要摆在歌曲列表最下面，要跟
+               「🚫 待处理上报 / ✅ 已下架」那样**并列成子标签** ——
+               于是 D1歌曲管理 里也分两段：🎶 歌曲列表 / 📥 玩家投稿。 -->
+          <div class="subtabs subtabs-lv3" data-tabs-group="songs" id="songSegTabs">
+            <button class="subtab active" data-subpanel="songs-list">🎶 歌曲列表</button>
+            <button class="subtab" data-subpanel="songs-submissions">📥 玩家投稿</button>
+          </div>
+
+          <div class="subpanel active" id="songs-list">
           <div class="panel-card">
             <h2>
               🎶 D1 歌曲管理
@@ -761,9 +773,12 @@
             <!-- 2026-10-01 站主要求：这个列表按「100 组/页」分页，跟宝库页一样 -->
             <nav class="pager" id="songPager" aria-label="歌曲分页" hidden></nav>
           </div>
+          </div><!-- /#songs-list -->
 
           <!-- 📥 玩家投稿（2026-10-07 站主要求）：宝库页「➕ 添加歌曲ID」投上来的 ID 先落到这儿，
-               站长点「✅ 通过」才进上面的 D1 歌曲列表（宝库立刻能搜到），点「🗑️ 不要」就丢掉。 -->
+               站长点「✅ 通过」才进上面的 D1 歌曲列表（宝库立刻能搜到），点「🗑️ 不要」就丢掉。
+               它跟「🎶 歌曲列表」是**并列的子标签**（见上面 #songSegTabs）。 -->
+          <div class="subpanel" id="songs-submissions">
           <div class="panel-card">
             <h2>
               📥 玩家投稿
@@ -772,13 +787,14 @@
               </span>
             </h2>
             <p class="panel-desc">
-              玩家在宝库页「➕ 添加歌曲ID」投上来的，通过之后才会进上面的 D1 歌曲列表。
+              玩家在宝库页「➕ 添加歌曲ID」投上来的，通过之后才会进「🎶 歌曲列表」。
             </p>
             <div id="submissionList">
               <div class="loading">加载中...</div>
             </div>
             <nav class="pager" id="submissionPager" aria-label="玩家投稿分页" hidden></nav>
           </div>
+          </div><!-- /#songs-submissions -->
         </div>
 
         <div class="subpanel" id="card1-invalid">
@@ -796,12 +812,8 @@
                 <div class="num" id="statInvalidReports">-</div>
                 <div class="label">累计上报</div>
               </div>
-              <!-- 2026-10-07 站主要求：去掉「已忽略」（没问题的上报直接删记录），
-                   这一张换成「信息出错」的条数 -->
-              <div class="stat-card">
-                <div class="num" id="statInvalidInfo">-</div>
-                <div class="label">其中信息出错</div>
-              </div>
+              <!-- 2026-10-07：原来这里有一张「其中信息出错」，现在那类上报有了自己的
+                   子面板（✏️ 信息出错管理）和自己的统计卡，这里就不重复放了。 -->
               <div class="stat-card">
                 <div class="num" id="statInvalidRemoved">-</div>
                 <div class="label">已下架</div>
@@ -878,6 +890,48 @@
               </div>
               <nav class="pager" id="invalidRemovedPager" aria-label="已下架分页" hidden></nav>
             </div>
+          </div>
+        </div>
+
+        <!-- ✏️ 信息出错管理（2026-10-07 站主要求新增，跟 D1歌曲管理 / 无效音乐ID管理并列）
+             玩家在宝库页点「✏️ 信息出错」、把歌名/分类改好（或写一句说明）报上来的都在这里。
+             处理完点「🗑️ 删记录」就行（记录删掉后，他自己那份「📌 问题上报」里也没了）；
+             如果这个 ID 其实根本没声音，就用「🚫 确认无效并下架」。
+             数据跟「🚫 无效音乐ID管理」同一个接口（/api/invalid/list），前端按 infoCount 分栏。 -->
+        <div class="subpanel" id="card1-info">
+          <div class="panel-card">
+            <h2>📈 数据统计</h2>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="num" id="statInfoPending">-</div>
+                <div class="label">待处理 ID</div>
+              </div>
+              <div class="stat-card">
+                <div class="num" id="statInfoReports">-</div>
+                <div class="label">累计信息出错</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h2>
+              ✏️ 信息出错管理
+              <span class="head-actions">
+                <button class="btn btn-secondary" id="refreshInfoBtn">🔄 刷新</button>
+              </span>
+            </h2>
+            <p class="panel-desc">
+              玩家改好的歌名 / 分类和说明都在这儿，改完信息点「🗑️ 删记录」。
+            </p>
+            <div class="panel-search-row">
+              <input type="text" class="panel-search" id="invalidInfoSearch"
+                     placeholder="🔍 搜索 ID / 歌名 / 分类 / 说明..." autocomplete="off" spellcheck="false">
+              <span class="panel-search-info" id="invalidInfoSearchInfo"></span>
+            </div>
+            <div id="invalidInfoList">
+              <div class="loading">加载中...</div>
+            </div>
+            <nav class="pager" id="invalidInfoPager" aria-label="信息出错分页" hidden></nav>
           </div>
         </div>
       </div>

@@ -327,9 +327,16 @@
   z-index: 6;
 }
 
-/* 左块 */
+/* 左块
+   2026-10-07 站主反馈：大标题 4 个字很好看，超过 4 个字就换行、难看。
+   根因在这里 —— 原来左块是 `flex: 0 1 auto`（能被压缩），右边那些说明行是 `flex: 1 1 auto`，
+   两边一起挤的时候左边被压到 ~110px，于是连「问题上报」4 个字都被折成 2+2 两行。
+   现在：左块**按内容占位、不参与压缩**（flex: 0 0 auto），并给它一个明确的上限
+   （max-width: 420px）—— 标题的「预算」就是这 420px，js/common.js 的 fitUpdateTitle()
+   据此量出该缩多少字号/字距，缩不进去才折行；右边那一块自己吃掉剩下的宽度。 */
 .update-image-modal .left-block {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  max-width: 420px;
   min-width: 0;
   text-align: right;
   color: #fff;
@@ -340,6 +347,11 @@
   letter-spacing: 5px;
   line-height: 1.15;
   margin-bottom: 10px;
+  /* 2026-10-07：标题默认**不折行**（fitUpdateTitle() 会先把字距、再把字号缩到装得下）；
+     万一长到缩不下去，JS 会改成 normal + balance（两行长度接近）。
+     ⚠️ 这里**不能**同时写 text-wrap: balance —— Chrome 里 white-space 是简写，
+     后面的 text-wrap 会把 nowrap 覆盖掉，标题就又折行了（踩过）。 */
+  white-space: nowrap;
   background: linear-gradient(180deg, #ffffff 0%, #fff5d8 45%, #ffd98a 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -557,6 +569,9 @@
   letter-spacing: 3px;
   margin-top: 10px;
   text-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  /* 2026-10-07：简洁版是居中标题，万一长到要折行，让两行长度接近（text-wrap: balance），
+     比「第一行满、第二行一个孤字」顺眼；支持的浏览器就用，不支持的照旧折行。 */
+  text-wrap: balance;
 }
 .update-image-modal .update-simple-version {
   font-size: 0.92rem;

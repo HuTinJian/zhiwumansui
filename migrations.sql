@@ -104,3 +104,22 @@ CREATE INDEX IF NOT EXISTS idx_song_sub_status ON song_submissions(status, music
 DELETE FROM invalid_reports WHERE status = 'ignored';
 DELETE FROM thanks WHERE category = '💬 反馈贡献者';
 DELETE FROM page_updates WHERE page_key = 'feedback';
+
+
+-- ---------- 第 4 组：给上报的人留个通知（2026-10-07 新增） ----------
+-- 站主原话：「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示，弹窗是我们自己的」。
+-- 做法：站长在后台做「✅ 确认无效并下架」或「🗑️ 删除记录」时，顺手给**当时报过这个 ID 的人**
+-- 各写一条通知（下面这张表）；访客下次打开任意页面时，js/common.js 会拉一次未读通知，
+-- 有就弹**我们自己的弹窗**（不是浏览器的通知），点「我知道了」回写 seen=1，之后不再弹。
+-- ⚠️「删除记录」那条链是**先写通知、再删上报记录**（记录删了就查不到 reporter 了）。
+CREATE TABLE IF NOT EXISTS report_notices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  reporter TEXT NOT NULL,
+  music_id TEXT NOT NULL,
+  name TEXT,
+  kind TEXT NOT NULL DEFAULT 'deleted',   -- removed = 已下架；deleted = 上报记录被删（歌还在）
+  seen INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_notice_reporter ON report_notices(reporter, seen);

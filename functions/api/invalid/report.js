@@ -65,7 +65,36 @@ export async function onRequestPost(context) {
     }
 
     const stmts = [];
-    const refreshes = [];   /* 已经存在的那条（同一个人同一个 ID）：按最新一次上报刷新类型与内容 */
+    const refreshes = [];
+    /* 2026-10-07 站主定的规矩：「以无效为主，如果他点了无效，就不能修改信息」——
+       已经报过无效的 ID，这次如果是 type='info'，**整条跳过**（不改、不新增），
+       并计入 blocked 返回给前端，让页面提示「先撤回无效上报」。 */
+    let blocked = 0;
+    let existingTypes = Object.create(null);
+    try {
+      const idList = [];
+      for (const item of raw) {
+        if (!item || typeof item !== 'object') continue;
+        const id = String(item.id === undefined || item.id === null ? '' : item.id).trim();
+        if (ID_PATTERN.test(id) && !idList.includes(id)) idList.push(id);
+      }
+      if (idList.length > 0) {
+        const rows = await env.DB.prepare(
+          `SELECT music_id, type FROM invalid_reports
+            WHERE reporter = ? AND status = 'pending'
+              AND music_id IN (SELECT value FROM json_each(?))`
+        ).bind(validReporter, JSON.stringify(idList)).all();
+        for (const r of (rows.results || [])) {
+          /* 同一 ID 可能有多条（不同状态/不同人），只要有一条是 invalid 就算已报无效 */
+          if (String(r.type || 'invalid') === 'invalid') existingTypes[String(r.music_id)] = true;
+        }
+      }
+    } catch (err) {
+      /* 迁移还没跑（没有 type 列）时这里会报错 —— 当作「查不到已报无效」处理，
+         上报照旧进后台（下面还有旧写法兜底）。 */
+      existingTypes = Object.create(null);
+    }
+
     for (const item of raw) {
       if (!item || typeof item !== 'object') continue;
 
@@ -77,6 +106,8 @@ export async function onRequestPost(context) {
       const category = String(item.category || '').trim().slice(0, 30);
       const type = REPORT_TYPES.includes(String(item.type || '').trim()) ? String(item.type).trim() : 'invalid';
       const note = String(item.note || '').trim().slice(0, 300);
+
+      if (type === 'info' && existingTypes[id]) { blocked++; continue; }
 
       stmts.push(
         env.DB.prepare(
@@ -95,6 +126,8 @@ export async function onRequestPost(context) {
     }
 
     if (stmts.length === 0) {
+      /* 全被「已报无效」挡住了：不算错，如实告诉前端 blocked 有几条 */
+      if (blocked > 0) return json({ ok: true, added: 0, duplicates: 0, blocked });
       return json({ ok: false, error: 'missing id' }, 400);
     }
 
@@ -149,7 +182,7 @@ export async function onRequestPost(context) {
     });
     if (refreshStmts.length > 0) await env.DB.batch(refreshStmts);
 
-    return json({ ok: true, added, duplicates });
+    return json({ ok: true, added, duplicates, blocked });
   } catch (err) {
     console.error('[invalid/report]', err);
     return json({ ok: false, error: 'server error' }, 500);

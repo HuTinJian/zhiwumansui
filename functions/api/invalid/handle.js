@@ -11,6 +11,9 @@
        删完之后，上报的人在他自己的「问题上报」里也就看不到这个 ID 了
        （页面上列的就是这同一张表），而歌本身照旧留在宝库里能搜到。
        ⚠️ 不碰 quarantine_admin、不碰 songs_extra：只是「这条上报不作数」。
+   2026-10-07 同日站主又要求「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示」：
+     · remove / delete-records 两个动作都会先给**报过这个 ID 的人**写一条 report_notices
+       （kind = removed / deleted），访客下次打开页面时由 js/common.js 弹我们自己的提示。
    ------------------------------------------------------------
    为什么整份 ID 列表塞进 json_each(?) 而不是逐 ID 拼 SQL：
      D1 单条语句最多 100 个绑定参数、一次批量动作最多 500 个 ID，
@@ -99,21 +102,49 @@ export async function onRequestPost(context) {
           `UPDATE invalid_reports
            SET status = 'removed', updated_at = datetime('now', 'localtime')
            WHERE music_id IN (SELECT value FROM json_each(?))`
+        ).bind(idJson),
+
+        /* 4) 2026-10-07：给**报过这些 ID 的人**各留一条通知（kind='removed'），
+              他们下次打开页面会看到我们自己的弹窗提示（见 ../notices/mine.js）。
+              去重靠 (reporter, music_id) 那一对：同一个人同一个 ID 只留一条未读。 */
+        env.DB.prepare(
+          `INSERT INTO report_notices (reporter, music_id, name, kind)
+           SELECT DISTINCT r.reporter, r.music_id, r.name, 'removed'
+             FROM invalid_reports r
+            WHERE r.music_id IN (SELECT value FROM json_each(?))
+              AND r.reporter <> ''
+              AND NOT EXISTS (
+                SELECT 1 FROM report_notices n
+                 WHERE n.reporter = r.reporter AND n.music_id = r.music_id AND n.seen = 0
+              )`
         ).bind(idJson)
       ]);
       /* changed = 本次真正新写进「已下架」的条数（原本就已下架的不会再算一次） */
       changed = changes(results[0]);
     } else if (action === 'delete-records') {
       /* 2026-10-07：这条上报不作数 → 把记录真删掉（不是打标记）。
+         ⚠️ 顺序不能反：**先给上报的人写通知**（kind='deleted'），再删记录 ——
+         记录一删就查不到 reporter 了，通知也就无从写起。
          只删这一张表：宝库里的歌、已下架名单、D1 加的歌都不受影响。
          删完上报者自己的「📌 问题上报」里也就没有这个 ID 了 —— 那是同一张表。 */
       const results = await env.DB.batch([
+        env.DB.prepare(
+          `INSERT INTO report_notices (reporter, music_id, name, kind)
+           SELECT DISTINCT r.reporter, r.music_id, r.name, 'deleted'
+             FROM invalid_reports r
+            WHERE r.music_id IN (SELECT value FROM json_each(?))
+              AND r.reporter <> ''
+              AND NOT EXISTS (
+                SELECT 1 FROM report_notices n
+                 WHERE n.reporter = r.reporter AND n.music_id = r.music_id AND n.seen = 0
+              )`
+        ).bind(idJson),
         env.DB.prepare(
           `DELETE FROM invalid_reports
             WHERE music_id IN (SELECT value FROM json_each(?))`
         ).bind(idJson)
       ]);
-      changed = changes(results[0]);
+      changed = changes(results[1]);
     } else {
       /* restore：后台「已下架 → 🔓 恢复上架」= 删 quarantine_admin + 上报退回 pending。
          （2026-10-07「已忽略」下线后，ignored 状态只剩历史数据，这里仍兼容着。） */
