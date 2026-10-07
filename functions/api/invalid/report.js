@@ -101,7 +101,42 @@ export async function onRequestPost(context) {
     /* 唯一键 (music_id, reporter) 负责去重：INSERT OR IGNORE 命中的行 changes=0 */
     let added = 0;
     let duplicates = 0;
-    const results = await env.DB.batch(stmts);
+    let results;
+    /* refreshLegacy：迁移没跑、退回旧写法时为 true（旧表没有 type/note 列，别去刷） */
+    let refreshLegacy = false;
+    try {
+      results = await env.DB.batch(stmts);
+    } catch (err) {
+      /* 2026-10-07 加的 type / note 两列要靠 migrations.sql 第 3 组补上。
+         万一是「代码先上线、SQL 还没跑」，这里的 INSERT 会报 no such column ——
+         不能让玩家看到「上报失败」：**退回旧的 4 列写法**，上报照旧进后台（只是少了类型与说明），
+         站主跑完 SQL 就自动走上面那条路。 */
+      const legacy = raw
+        .filter(item => item && typeof item === 'object')
+        .map(item => String(item.id === undefined || item.id === null ? '' : item.id).trim())
+        .filter(id => ID_PATTERN.test(id));
+      if (legacy.length === 0) throw err;
+      const legacyStmts = [];
+      for (const item of raw) {
+        if (!item || typeof item !== 'object') continue;
+        const id = String(item.id === undefined || item.id === null ? '' : item.id).trim();
+        if (!ID_PATTERN.test(id)) continue;
+        legacyStmts.push(
+          env.DB.prepare(
+            `INSERT OR IGNORE INTO invalid_reports (music_id, name, category, reporter)
+             VALUES (?, ?, ?, ?)`
+          ).bind(
+            id,
+            String(item.name || '').trim().slice(0, 100) || null,
+            String(item.category || '').trim().slice(0, 30) || null,
+            validReporter
+          )
+        );
+      }
+      console.warn('[invalid/report] type/note 列还不存在（迁移没跑？），已退回旧写法：', err && err.message);
+      results = await env.DB.batch(legacyStmts);
+      refreshLegacy = true;
+    }
     const refreshStmts = [];
     results.forEach((r, i) => {
       if (r && r.meta && r.meta.changes > 0) added++;
@@ -109,7 +144,7 @@ export async function onRequestPost(context) {
         /* 之前已经报过（同一个人同一个 ID）：按这次的内容刷新那条记录 ——
            这样「先报无效、后改成信息出错」也能生效，界面不会两边都留着。 */
         duplicates++;
-        refreshStmts.push(refreshes[i]);
+        if (!refreshLegacy) refreshStmts.push(refreshes[i]);
       }
     });
     if (refreshStmts.length > 0) await env.DB.batch(refreshStmts);
