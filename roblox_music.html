@@ -911,8 +911,10 @@
     [data-theme="dark"] .visit-other-input { background: var(--bg-soft); }
     [data-theme="dark"] .visit-other-input input { background: var(--bg-card); }
     /* 2026-10-05：#quarantineModal 在深色模式下的那条覆盖规则随弹窗一起删除 */
-    [data-theme="dark"] #riskModal .sub-warning { background: rgba(239, 125, 116, 0.14); }
-    [data-theme="dark"] #riskModal .redirect-notice { background: rgba(239, 125, 116, 0.12); }
+    [data-theme="dark"] #riskModal .sub-warning,
+    [data-theme="dark"] #riskConfirmModal .sub-warning { background: rgba(239, 125, 116, 0.14); }
+    [data-theme="dark"] #riskModal .redirect-notice,
+    [data-theme="dark"] #riskConfirmModal .redirect-notice { background: rgba(239, 125, 116, 0.12); }
     [data-theme="dark"] .update-image-modal .modal-content { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.75); }
     [data-theme="dark"] .song-group.flash-target {
       animation-name: targetFlashDark;
@@ -924,12 +926,18 @@
     }
     [data-theme="dark"] .group-actions button { background: rgba(239, 142, 164, 0.16); }
 
-    #riskModal .modal-content {
+    /* 2026-10-09：两个风险弹窗（#riskModal 告知 / #riskConfirmModal 二次确认）现在共用同一套
+       「元素」—— h2 + .sub-warning 小胶囊 + .redirect-notice 提示条 + .risk-body + .section-title。
+       所以下面几条选择器**同时罩住两个弹窗**，两边长得一模一样；各自独有的（.btn-confirm 的
+       倒计时态）保持单独写。改样式时别只改一个，改完请打开两个弹窗各看一眼。 */
+    #riskModal .modal-content,
+    #riskConfirmModal .modal-content {
       max-width: 700px;
       border: 1px solid var(--border);
       padding: 24px 28px 16px;
     }
-    #riskModal .modal-content h2 {
+    #riskModal .modal-content h2,
+    #riskConfirmModal .modal-content h2 {
       font-size: 1.3rem;
       font-weight: 700;
       color: var(--danger);
@@ -938,7 +946,8 @@
       align-items: center;
       gap: 8px;
     }
-    #riskModal .sub-warning {
+    #riskModal .sub-warning,
+    #riskConfirmModal .sub-warning {
       display: inline-block;
       font-size: 0.78rem;
       font-weight: 600;
@@ -949,7 +958,8 @@
       border: 1px solid var(--danger-light);
       margin-bottom: 10px;
     }
-    #riskModal .redirect-notice {
+    #riskModal .redirect-notice,
+    #riskConfirmModal .redirect-notice {
       background: var(--danger-bg);
       border-left: 4px solid var(--danger);
       padding: 8px 14px;
@@ -959,7 +969,8 @@
       color: var(--danger);
       border-radius: 0 6px 6px 0;
     }
-    #riskModal .risk-body {
+    #riskModal .risk-body,
+    #riskConfirmModal .risk-body {
       max-height: 48vh;
       overflow-y: auto;
       padding-right: 6px;
@@ -970,7 +981,8 @@
       word-break: break-word;
       margin-bottom: 12px;
     }
-    #riskModal .risk-body .section-title {
+    #riskModal .risk-body .section-title,
+    #riskConfirmModal .risk-body .section-title {
       display: block;
       font-weight: 700;
       color: var(--danger);
@@ -978,7 +990,8 @@
       margin-bottom: 2px;
       font-size: 0.88rem;
     }
-    #riskModal .risk-body .section-title:first-of-type {
+    #riskModal .risk-body .section-title:first-of-type,
+    #riskConfirmModal .risk-body .section-title:first-of-type {
       margin-top: 0;
     }
     #riskModal .modal-actions {
@@ -1009,31 +1022,17 @@
       background: rgba(220, 107, 130, 0.25);
       border-radius: 10px;
     }
-    #riskModal .risk-body {
+    #riskModal .risk-body,
+    #riskConfirmModal .risk-body {
       scrollbar-width: thin;
       scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
     }
 
-    #riskConfirmModal .modal-content { max-width: 620px; }
-    #riskConfirmModal .risk-body {
-      font-size: 0.88rem;
-      line-height: 1.9;
-      color: var(--text-light);
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 14px;
-    }
-    #riskConfirmModal .section-title {
-      display: block;
-      font-weight: 700;
-      color: var(--primary);
-      margin-top: 10px;
-      margin-bottom: 2px;
-      font-size: 0.9rem;
-    }
-    #riskConfirmModal .section-title:first-of-type {
-      margin-top: 0;
-    }
+    /* 2026-10-09：二次确认弹窗（#riskConfirmModal）原来单独写了一套 .modal-content / .risk-body /
+       .section-title 样式，长得跟告知弹窗不一样；现在两者共用上面那套「元素」，这四段重复规则
+       已删除（只保留下面这条注释，方便日后对照）。
+       删除前它长这样：.modal-content{max-width:620px} / .risk-body{font-size:.88rem;line-height:1.9;
+       margin-bottom:14px} / .section-title{color:var(--primary);font-size:.9rem}。 */
 
     /* 2026-10-09：两个风险弹窗正文里的邮箱链接（版权投诉入口）。
        页面没有全局的 a 样式，不写这段就会用浏览器默认的蓝色，跟主题不搭。 */
@@ -1455,7 +1454,9 @@
 
   <div class="modal" id="riskConfirmModal">
     <div class="modal-content">
-      <h2>⚠️ 二次确认</h2>
+      <h2>⚠️ 最后确认一次</h2>
+      <div class="sub-warning">本站只做跳转，不提供任何音频</div>
+      <div class="redirect-notice">即将打开 Roblox 官方页面</div>
       <div class="risk-body">
         <!-- 2026-10-09 站主要求（合规加固）：整个二次确认弹窗一并重写。
              ① 原文「访问 Roblox 官方页面可能需要网络加速器」已改成中性说法 ——
@@ -1463,15 +1464,24 @@
                 第 14 条罚则（警告 + 1.5 万元以下罚款）；那句话字面上等于教用户走非法定信道。
              ② 「我们已在上一页向你完整告知全部法律与平台风险」跟着上一页一起改了，
                 现在只说事实：本站只做跳转、不播放不存储不传播。
-             ③ 增加投诉入口：权利人找得到人，才谈得上《条例》第 23 条的「接到通知后断链」。 -->
-<span class="section-title">【再确认一次】</span>
-接下来会在新标签页打开 <b>Roblox 官方页面</b>（create.roblox.com）。本站只做跳转，<b>不播放、不存储、不传播任何音频文件</b>。
+             ③ 增加投诉入口与法条页入口：权利人找得到人，才谈得上《条例》第 23 条的
+                「接到通知后断链」；完整条文统一放 law.html。
+             ④ 站主要求（同日稍后）：「第 2 次确认弹窗你也重做一下，要符合之前的风险弹窗的相关
+                元素」→ 现在两个弹窗共用同一套元素：h2 + .sub-warning 胶囊 + .redirect-notice
+                提示条 + .risk-body（含 .section-title 小节），样式选择器也合并成「两个弹窗一起罩」
+                （见上面 CSS 注释）。改一个记得两个一起看。 -->
+<span class="section-title">【你确认的是这件事】</span>
+接下来会在<b>新标签页打开 Roblox 官方页面</b>（create.roblox.com）。本站只做跳转：<b>不播放、不存储、不传播任何音频文件</b>，页面上也不会留下任何东西。
+
+<span class="section-title">【为什么会多这一步】</span>
+上一次点击时你已经看过风险提示，这一步只是再确认一次「确实要打开外部站点」。点「取消」＝放弃这次试听，什么都不会发生。
 
 <span class="section-title">【关于"不再提示"】</span>
-选「我已知晓，不再提示」后，这台浏览器以后点「🔗 试听」会直接跳转，不再弹这段提示；本站更新提示内容后，你会重新看到一次。
+选「我已知晓，不再提示」后，这台浏览器以后点「🔗 试听」会直接跳转，不再弹这套提示；本站更新提示内容后，你会重新看到一次。
 
-<span class="section-title">【联系与投诉】</span>
-权利人或访客有任何异议，请发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>，我们会尽快处理；涉及版权的内容，收到通知后会立即断开相关链接。
+<span class="section-title">【版权投诉 · 内容下架】</span>
+如果你是权利人，认为本站整理的某个 ID 或链接侵犯了你的权利，请发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>。本站不存储任何音频文件，<b>收到通知后会立即断开相关链接</b>。
+完整法律条文（著作权法、信息网络传播权保护条例、民法典、刑法与 2025 年司法解释等）见 <a href="law.html">⚖️ 法律与风险提示</a>。
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="riskConfirmCancel">取消</button>
@@ -1644,9 +1654,11 @@
          · 后台重置           → 服务端变了   → 所有人重新看一次（原有行为不变）
          · 改文案并给这里 +1  → 内容版本变了 → 同样所有人重新看一次
        v1（同日早些时候）：弹窗按“保护本站”的方向重写（删自我指控、加断链承诺与投诉邮箱）。
-       v2（当前）：弹窗指向新建的 law.html「⚖️ 法律与风险提示」—— 站主要求把完整法律条文
-                   放到站内提醒用户，弹窗只留摘要 + 一个入口。 */
-    const RISK_CONTENT_VERSION = 'v2';
+       v2（同日）：弹窗指向新建的 law.html「⚖️ 法律与风险提示」—— 站主要求把完整法律条文
+                   放到站内提醒用户，弹窗只留摘要 + 一个入口。
+       v3（当前）：二次确认弹窗也按同一套元素重做（h2 + .sub-warning + .redirect-notice +
+                   四个小节 + 法条页入口），两个弹窗长得一样了。 */
+    const RISK_CONTENT_VERSION = 'v3';
 
     function riskVersion() {
       return (serverRiskVersion || RISK_FALLBACK_VERSION) + '|' + RISK_CONTENT_VERSION;
