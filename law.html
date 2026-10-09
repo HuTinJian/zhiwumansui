@@ -48,70 +48,210 @@
   </script>
 
   <style>
-    /* 本页局部样式：尽量只用 css/style.css 里已有的变量，明暗主题自动跟随 */
-    .law-wrap { max-width: 900px; margin: 0 auto; padding: 0 4px; }
+    /* ============================================================
+       本页局部样式（2026-10-09 改版：更方便 + 更高级）
+       ------------------------------------------------------------
+       站主要求「法律那个页面的定位等内容可以改一改，更加方便和高级」→ 本版四件事：
+         ① 顶部改成 hero + 「30 秒速览」+ 三张身份入口卡（使用者 / 权利人 / 看法条），
+            只想拿结论的人 30 秒看完，不必翻长文；
+         ② 桌面端左右分栏：左侧粘性目录（滚动时一直跟着），右侧正文，长文不迷路；
+         ③ 法条原文块带「条号胶囊」、每节标题带序号，长条文列表更好扫；
+         ④ 只用 css/style.css 里的变量，深浅色主题自动跟随；全部静态、不加 JS。
+       ⚠️ 只动样式与版面结构，条文一个字没改（条文改错 = 证据改错，别乱动）。
+       ============================================================ */
+    .law-wrap { max-width: 1040px; margin: 0 auto; padding: 0 4px; }
 
-    .law-lead {
+    /* ---------- 顶部 hero ---------- */
+    .law-hero {
+      position: relative;
+      overflow: hidden;
+      margin: 18px 0 16px;
+      padding: 30px 30px 26px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--header-grad-a), var(--header-grad-b));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .law-hero::after {
+      content: '';
+      position: absolute;
+      right: -70px; top: -80px;
+      width: 240px; height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .law-hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.5rem, 3.4vw, 2rem);
+      letter-spacing: -0.5px;
+    }
+    .law-hero .law-sub {
+      margin: 0 0 16px;
+      max-width: 62ch;
+      color: var(--text-light);
+      line-height: 1.95;
+    }
+    .law-hero .law-sub b { color: var(--primary-ink); }
+    .law-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .law-chip {
+      font-size: 0.76rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--bg-glass-strong);
+      border: 1px solid var(--border);
+      color: var(--text-light);
+    }
+
+    /* ---------- 30 秒速览 ---------- */
+    .law-quick { display: grid; gap: 10px; margin: 0 0 16px; }
+    .law-quick-item {
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+      padding: 14px 18px;
+      border-radius: 16px;
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px 24px;
       box-shadow: var(--shadow-sm);
-      margin: 18px 0 22px;
     }
-    .law-lead h1 { margin: 0 0 10px; font-size: 1.45rem; }
-    .law-lead p { margin: 8px 0; color: var(--text-light); line-height: 1.9; }
-    .law-lead b { color: var(--primary-ink); }
+    .law-quick-item .ico { font-size: 1.15rem; line-height: 1.6; flex: 0 0 auto; }
+    .law-quick-item p { margin: 0; line-height: 1.9; color: var(--text-light); }
+    .law-quick-item b { color: var(--primary-ink); }
+    .law-quick-item a { color: var(--primary-ink); font-weight: 700; }
 
-    .law-toc {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      margin: 16px 0 4px; padding: 0; list-style: none;
+    /* ---------- 三张身份入口卡 ---------- */
+    .law-entry {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 22px;
     }
-    .law-toc a {
-      display: inline-block;
-      padding: 5px 12px;
-      border: 1px solid var(--border-strong);
-      border-radius: 999px;
-      font-size: 0.83rem;
+    .law-entry a {
+      display: block;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      text-decoration: none;
+      transition: transform var(--dur) var(--ease-soft),
+                  box-shadow var(--dur) var(--ease-soft),
+                  border-color var(--dur) var(--ease-soft);
+    }
+    .law-entry a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--primary-light);
+    }
+    .law-entry .t {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .law-entry .d { display: block; font-size: 0.82rem; line-height: 1.75; color: var(--text-muted); }
+
+    /* ---------- 左右分栏：粘性目录 + 正文 ---------- */
+    .law-layout {
+      display: grid;
+      grid-template-columns: 228px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+    .law-side { position: sticky; top: 84px; }
+    .law-side-title {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+    .law-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+    .law-nav a {
+      display: flex;
+      gap: 9px;
+      align-items: baseline;
+      padding: 7px 10px;
+      border-radius: 10px;
+      font-size: 0.84rem;
       color: var(--text-light);
       text-decoration: none;
-      transition: color var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+      transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft);
     }
-    .law-toc a:hover { color: var(--primary-ink); border-color: var(--primary-light); }
+    .law-nav a:hover { background: var(--bg-tint); color: var(--primary-ink); }
+    .law-nav .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 0.74rem;
+      color: var(--primary);
+      flex: 0 0 auto;
+    }
+    .law-side-foot {
+      margin: 14px 2px 0;
+      font-size: 0.75rem;
+      line-height: 1.85;
+      color: var(--text-muted);
+    }
+    .law-side-foot b { color: var(--text-light); }
 
+    /* ---------- 正文卡片 ---------- */
+    .law-content [id] { scroll-margin-top: 84px; }
     .law-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px 24px 22px;
+      border-radius: 20px;
+      padding: 22px 24px 24px;
       box-shadow: var(--shadow-sm);
-      margin: 18px 0;
-      scroll-margin-top: 84px;
+      margin: 0 0 16px;
     }
     .law-card > h2 {
-      margin: 0 0 6px;
-      font-size: 1.12rem;
-      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 4px;
+      font-size: 1.08rem;
+      padding-bottom: 9px;
       border-bottom: 1px dashed var(--border);
     }
+    .law-card > h2::before {
+      content: '';
+      flex: 0 0 auto;
+      width: 4px;
+      height: 18px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-light));
+    }
     .law-card .law-src {
-      font-size: 0.78rem;
+      margin: 8px 0 14px;
+      font-size: 0.76rem;
       color: var(--text-muted);
-      margin: 0 0 14px;
     }
     .law-card h3 {
-      font-size: 0.95rem;
       margin: 18px 0 6px;
+      font-size: 0.94rem;
       color: var(--primary-ink);
     }
-    .law-card p { line-height: 1.95; color: var(--text-light); margin: 8px 0; }
+    .law-card p { margin: 8px 0; line-height: 1.95; color: var(--text-light); }
 
-    /* 法条原文块：左侧色条 + 稍浅底色，和普通说明文字区分开 */
+    /* 「这一节回答什么」的提示带 */
+    .law-aim {
+      margin: 0 0 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      border: 1px dashed var(--border-strong);
+      font-size: 0.83rem;
+      line-height: 1.85;
+      color: var(--text-light);
+    }
+    .law-aim b { color: var(--primary-ink); }
+
+    /* ---------- 法条原文块 ---------- */
     .law-quote {
-      margin: 10px 0;
-      padding: 12px 16px;
+      margin: 12px 0;
+      padding: 14px 16px 14px 18px;
       border-left: 3px solid var(--primary-light);
-      border-radius: 0 10px 10px 0;
+      border-radius: 0 12px 12px 0;
       background: var(--bg-soft);
       font-size: 0.88rem;
       line-height: 2;
@@ -119,49 +259,99 @@
       white-space: normal;
     }
     .law-quote b { color: var(--danger); }
-    .law-quote .law-no { color: var(--text-muted); font-weight: 600; }
+    .law-quote .law-no {
+      display: inline-block;
+      margin-right: 7px;
+      padding: 1px 9px;
+      border-radius: 6px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 0.79rem;
+    }
 
+    /* ---------- 人话 / 警告 / 列表 / 联系块 ---------- */
     .law-tip {
       margin: 12px 0 0;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border-radius: 12px;
       background: var(--bg-tint);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       line-height: 1.9;
       color: var(--text-light);
     }
     .law-tip b { color: var(--primary-ink); }
-
     .law-warn {
       margin: 12px 0 0;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border-radius: 12px;
       background: var(--danger-bg);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       line-height: 1.9;
       color: var(--text);
     }
-
     .law-list { margin: 8px 0 8px 20px; padding: 0; line-height: 2; color: var(--text-light); }
-    .law-list li { margin: 4px 0; }
+    .law-list li { margin: 5px 0; }
 
     .law-contact {
       background: var(--gold-bg);
       border: 1px solid var(--gold-light);
-      border-radius: 18px;
-      padding: 20px 24px;
-      margin: 18px 0 26px;
+      border-radius: 20px;
+      padding: 22px 24px;
+      margin: 0 0 16px;
       line-height: 1.95;
       color: var(--text);
     }
-    .law-contact h2 { margin: 0 0 8px; font-size: 1.08rem; }
+    .law-contact h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 10px;
+      font-size: 1.08rem;
+    }
+    .law-contact h2::before {
+      content: '';
+      flex: 0 0 auto;
+      width: 4px;
+      height: 18px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-light));
+    }
     .law-contact a { color: var(--gold-ink); font-weight: 700; }
 
     .law-foot {
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      margin: 4px 0 18px;
+      font-size: 0.79rem;
       line-height: 1.9;
-      margin: 0 0 26px;
+      color: var(--text-muted);
+    }
+    .law-top { margin: 0 0 26px; text-align: right; }
+    .law-top a {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      font-size: 0.8rem;
+      color: var(--text-light);
+      text-decoration: none;
+      transition: color var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+    }
+    .law-top a:hover { color: var(--primary-ink); border-color: var(--primary-light); }
+
+    /* ---------- 窄屏：目录收到正文上面，入口卡竖排 ---------- */
+    @media (max-width: 900px) {
+      .law-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+      .law-side { position: static; }
+      .law-side .law-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .law-side-foot { display: none; }
+    }
+    @media (max-width: 720px) {
+      .law-entry { grid-template-columns: minmax(0, 1fr); }
+      .law-hero { padding: 24px 20px 22px; }
+      .law-card { padding: 18px 18px 20px; }
+      .law-contact { padding: 18px 18px 20px; }
+      .law-side .law-nav { grid-template-columns: minmax(0, 1fr); }
     }
   </style>
 </head>
@@ -183,36 +373,82 @@
   </nav>
 
   <main class="container" id="main">
-    <div class="law-wrap">
+    <div class="law-wrap" id="top">
 
-      <section class="law-lead">
+      <header class="law-hero">
         <h1>⚖️ 法律与风险提示</h1>
-        <p>这一页写给两种人：<b>① 在 Roblox 上使用他人音乐的人</b>（先看第 2～5 节，知道自己在做什么）；<b>② 权利人</b>（第 1 节和第 8 节写清了本站的定位与下架通道）。</p>
-        <p>下面所有条文都<b>照抄现行有效的官方文本</b>（只加粗重点，不改字句）；标「节选」的地方是只摘了与音频使用相关的部分。看条文请以官方公布文本为准。</p>
-        <ul class="law-toc">
-          <li><a href="#s1">1 · 本站的定位</a></li>
-          <li><a href="#s2">2 · 著作权法</a></li>
-          <li><a href="#s3">3 · 信息网络传播权保护条例</a></li>
-          <li><a href="#s4">4 · 民法典</a></li>
-          <li><a href="#s5">5 · 刑法与司法解释</a></li>
-          <li><a href="#s6">6 · 其它相关规定</a></li>
-          <li><a href="#s7">7 · 给使用者的建议</a></li>
-          <li><a href="#s8">8 · 权利人的下架通道</a></li>
-        </ul>
+        <p class="law-sub">在 Roblox 上使用别人的音乐之前，花两分钟看完这一页 —— 这里写清了<b>本站是什么</b>、<b>你要注意什么</b>、<b>权利人怎么找我们</b>，以及完整的法条原文。</p>
+        <div class="law-chips">
+          <span class="law-chip">📅 更新于 2026-10-09</span>
+          <span class="law-chip">📚 9 部法律法规与司法解释</span>
+          <span class="law-chip">📄 27 段条文原文</span>
+          <span class="law-chip">🔒 本站不存储任何音频</span>
+          <span class="law-chip">📮 权利人可直接联系下架</span>
+        </div>
+      </header>
+
+      <section class="law-quick" aria-label="三十秒速览">
+        <div class="law-quick-item">
+          <span class="ico" aria-hidden="true">🧭</span>
+          <p><b>本站是什么：</b>Roblox 音频 ID 的<b>索引 + 跳转</b>工具 —— 只整理 ID、只跳到 Roblox 官方页面，<b>不存储、不播放、不传播任何音频文件</b>。</p>
+        </div>
+        <div class="law-quick-item">
+          <span class="ico" aria-hidden="true">⚠️</span>
+          <p><b>你要注意什么：</b>在 Roblox 上使用别人的音乐（上传音频、或放进自己的体验），通常要<b>事先取得权利人许可</b>；把音乐平台的歌搬过去尤其不行。</p>
+        </div>
+        <div class="law-quick-item">
+          <span class="ico" aria-hidden="true">📮</span>
+          <p><b>权利人要下架：</b>发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>，我们<b>收到通知就立即断开相关链接</b>，并回复处理结果。</p>
+        </div>
       </section>
+
+      <nav class="law-entry" aria-label="按身份选择入口">
+        <a href="#s7">
+          <span class="t">🙋 我是使用者</span>
+          <span class="d">想知道怎么用才安全 → 先看第 7 节的结论，条文在第 2～5 节</span>
+        </a>
+        <a href="#s8">
+          <span class="t">📮 我是权利人</span>
+          <span class="d">要下架某个 ID 或链接 → 第 8 节，写明三件事就行</span>
+        </a>
+        <a href="#s2">
+          <span class="t">📚 我要看条文原文</span>
+          <span class="d">著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法 → 第 2～6 节</span>
+        </a>
+      </nav>
+
+      <div class="law-layout">
+        <!-- 桌面端粘性目录：滚动时一直跟着；窄屏自动收成两列排到正文上面 -->
+        <aside class="law-side">
+          <p class="law-side-title">本页目录</p>
+          <ul class="law-nav">
+            <li><a href="#s1"><span class="num">01</span>本站的定位</a></li>
+            <li><a href="#s2"><span class="num">02</span>著作权法</a></li>
+            <li><a href="#s3"><span class="num">03</span>信息网络传播权保护条例</a></li>
+            <li><a href="#s4"><span class="num">04</span>民法典</a></li>
+            <li><a href="#s5"><span class="num">05</span>刑法与司法解释</a></li>
+            <li><a href="#s6"><span class="num">06</span>其它相关规定</a></li>
+            <li><a href="#s7"><span class="num">07</span>给使用者的建议</a></li>
+            <li><a href="#s8"><span class="num">08</span>权利人的下架通道</a></li>
+          </ul>
+          <p class="law-side-foot">条文<b>照抄官方文本</b>，加粗只标重点；摘录处标注「节选」。遇到具体纠纷请咨询执业律师。</p>
+        </aside>
+
+        <div class="law-content">
 
       <!-- ==================== 1 · 本站的定位 ==================== -->
       <section class="law-card" id="s1">
         <h2>1 · 本站的定位：只做索引和跳转</h2>
-        <p class="law-src">这一节不是法条，是本站自己的公开声明（也是下面所有条文的适用前提）。</p>
-        <p>本站是一个 <b>Roblox 音频 ID 的索引工具</b>：把 ID 整理成清单，<b>并提供跳转到 Roblox 官方页面的链接</b>。除此之外什么都不做：</p>
+        <p class="law-src">这一节不是法条，是本站的公开声明 —— 也是下面所有条文的适用前提。</p>
+        <div class="law-aim"><b>一句话：</b>本站是"路牌"，不是"唱片店" —— 不生产、不搬运、不播放音乐，音乐本身在 Roblox 的官方页面里。</div>
+        <p>本站是一个 <b>Roblox 音频 ID 的索引工具</b>：把 ID 整理成清单，<b>并提供跳转到 Roblox 官方页面的链接</b>。整站跟音频有关的操作只有三种，全是「看」和「跳」：</p>
         <ul class="law-list">
-          <li>本站<b>不存储、不转存、不播放、不传播任何音频文件</b>，也不提供任何下载；</li>
-          <li>试听、下载、使用都在 Roblox 官方页面（create.roblox.com）进行，内容由 Roblox 及其用户提供；</li>
-          <li>本站<b>不保证</b>第三方内容的合法性、准确性或可用性，是否使用由你自行判断；</li>
-          <li>如果你是权利人、认为本站整理的某个 ID 或链接侵犯了你的权利，请见第 8 节，<b>收到通知后本站会立即断开相关链接</b>。</li>
+          <li><b>看</b>：浏览、搜索 ID 与分类；</li>
+          <li><b>复制</b>：把 ID 复制走，自己去 Roblox 使用；</li>
+          <li><b>跳</b>：点「🔗 试听」→ 在<b>新标签页打开 Roblox 官方页面</b>，试听与下载都在那边完成。</li>
         </ul>
-        <div class="law-tip"><b>一句话：</b>本站相当于"路牌"，不生产、不搬运、不播放音乐；音乐本身在 Roblox 的官方页面里。</div>
+        <p>所以本站<b>不存储、不转存、不播放、不传播任何音频文件</b>，也不提供任何下载；第三方内容的合法性、准确性由 Roblox 及其用户负责，本站<b>不作保证</b>，是否使用由你自行判断。</p>
+        <div class="law-tip"><b>对权利人的一句话：</b>不用走复杂流程 —— 发邮件到页脚那个邮箱，说明哪个 ID 或链接有问题即可；<b>我们收到通知后会立即断开相关链接</b>（详见第 8 节）。</div>
       </section>
 
       <!-- ==================== 2 · 著作权法 ==================== -->
@@ -435,6 +671,11 @@
       <p class="law-foot">
         说明：本页条文摘自中国政府网、国家法律法规数据库公布的现行文本，仅作提示之用，<b>不构成法律意见</b>；如与官方公布文本不一致，以官方文本为准。需要处理具体纠纷，请咨询执业律师。
       </p>
+
+      <p class="law-top"><a href="#top">↑ 回到顶部</a></p>
+
+        </div><!-- /.law-content -->
+      </div><!-- /.law-layout -->
 
     </div>
   </main>
