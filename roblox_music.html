@@ -138,6 +138,23 @@
       transform: scale(0.93);
     }
 
+    /* 2026-10-09 站主说「在首页的时候，没看到『法律』的页面」→ 宝库页工具栏也补一颗
+       「⚖️ 法律」（指向 law.html，新标签打开、不打断当前页面）。
+       配色与风险弹窗顶上那条法条横幅一致（金色系）。 */
+    .btn-law {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #5c3d10;
+      border: none;
+      box-shadow: 0 6px 18px rgba(212, 160, 106, 0.35);
+      font-weight: 700;
+    }
+    .btn-law:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(212, 160, 106, 0.6);
+      color: #4a3009;
+    }
+    .btn-law:active { transform: scale(0.93); }
+
     /* ========== 「📌 问题上报」按钮 + 上报面板（2026-10-05 新增，10-07 改名并分两类） ==========
        访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
        可以单条撤回 / 全部撤回。数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
@@ -1388,6 +1405,10 @@
           <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些问题，可以在这里撤回">📌 问题上报</button>
           <button class="btn btn-submit-song" id="openSubmitSongBtn" title="把你找到的歌曲 ID 投稿给站长">➕ 添加歌曲ID</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
+          <!-- 2026-10-09 站主：「在首页的时候，没看到『法律』的页面」→ 这一页没有导航栏，
+               于是把「⚖️ 法律」放进工具栏（新标签打开 law.html，不打断当前页）。
+               为什么放这儿：这一页正是大家点「🔗 试听」的地方，法律入口在旁边最顺手。 -->
+          <a class="btn btn-law" href="law.html" target="_blank" rel="noopener" title="著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法与 2025 年司法解释 —— 条文原文">⚖️ 法律</a>
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
              当天站主先要求加上（「分享链接只有主页有」），随后又明确这一页不要分享
