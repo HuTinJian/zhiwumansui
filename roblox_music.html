@@ -969,6 +969,46 @@
       color: var(--danger);
       border-radius: 0 6px 6px 0;
     }
+    /* 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」。
+       所以两个弹窗都在 .risk-body **外面**（＝滚动区上方、始终可见）放一条金色横幅入口：
+       点它新标签打开 law.html，弹窗本身不消失、倒计时也不受影响。
+       放在滚动区外面是刻意的 —— 长文弹窗往上翻的时候它也一直在。 */
+    .risk-law-link {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 2px 0 12px;
+      padding: 11px 15px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold-bg), var(--bg-card));
+      border: 1px solid var(--gold-light);
+      text-decoration: none;
+      color: var(--text);
+      transition: transform var(--dur) var(--ease-soft),
+                  box-shadow var(--dur) var(--ease-soft),
+                  border-color var(--dur) var(--ease-soft);
+    }
+    .risk-law-link:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--gold);
+    }
+    .risk-law-link .ico { font-size: 1.15rem; flex: 0 0 auto; }
+    .risk-law-link .txt { flex: 1 1 auto; min-width: 0; }
+    .risk-law-link .txt b {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--gold-ink);
+    }
+    .risk-law-link .txt i {
+      display: block;
+      margin-top: 2px;
+      font-style: normal;
+      font-size: 0.74rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+    .risk-law-link .arrow { flex: 0 0 auto; font-weight: 700; color: var(--gold-ink); }
     #riskModal .risk-body,
     #riskConfirmModal .risk-body {
       max-height: 48vh;
@@ -1417,6 +1457,17 @@
       <h2>⚠️ 跳转前请先看这一段</h2>
       <div class="sub-warning">本站只做跳转，不提供任何音频</div>
       <div class="redirect-notice">即将跳转至 Roblox 官方页面</div>
+      <!-- 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」——
+           这条金色横幅是弹窗里最显眼的入口，且刻意放在 .risk-body **外面**：
+           正文往上翻的时候它一直停在顶部看得见。点它新标签打开 law.html，弹窗不消失。 -->
+      <a class="risk-law-link" href="law.html" target="_blank" rel="noopener">
+        <span class="ico" aria-hidden="true">⚖️</span>
+        <span class="txt">
+          <b>完整法律条文都在这里</b>
+          <i>著作权法 · 信息网络传播权保护条例 · 民法典 · 刑法与 2025 年司法解释 —— 共 27 段原文</i>
+        </span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
       <div class="risk-body" id="riskBody">
         <!-- 2026-10-09 站主要求：「风险弹窗的整个弹窗你也可以选择重做，里面的相关内容如法律之类的，
              可以修改，增加等，只为了我们更加安全！」→ 整个弹窗按「保护本站」的方向重写。
@@ -1440,7 +1491,7 @@
 
 <span class="section-title">【版权投诉 · 内容下架】</span>
 如果你是权利人，认为本站整理的某个 ID 或链接侵犯了你的权利，请发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>（页脚也有联系方式）。本站不存储任何音频文件，<b>收到通知后会立即断开相关链接</b>，必要时整条移除。
-完整法律条文（著作权法、信息网络传播权保护条例、民法典、刑法与 2025 年司法解释等）见 <a href="law.html">⚖️ 法律与风险提示</a>。
+（完整条文入口在弹窗最上面那条金色横幅里。）
 
 <span class="section-title">【继续之前】</span>
 点「取消」可以随时退出，什么都不会发生。点「确认跳转」表示你已阅读并理解以上内容，并同意自行承担使用第三方平台的风险。
@@ -1457,6 +1508,15 @@
       <h2>⚠️ 最后确认一次</h2>
       <div class="sub-warning">本站只做跳转，不提供任何音频</div>
       <div class="redirect-notice">即将打开 Roblox 官方页面</div>
+      <!-- 同上：二次确认弹窗也把「完整法条」入口放在最上面、且在滚动区外面。 -->
+      <a class="risk-law-link" href="law.html" target="_blank" rel="noopener">
+        <span class="ico" aria-hidden="true">⚖️</span>
+        <span class="txt">
+          <b>完整法律条文都在这里</b>
+          <i>著作权法 · 信息网络传播权保护条例 · 民法典 · 刑法与 2025 年司法解释 —— 共 27 段原文</i>
+        </span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
       <div class="risk-body">
         <!-- 2026-10-09 站主要求（合规加固）：整个二次确认弹窗一并重写。
              ① 原文「访问 Roblox 官方页面可能需要网络加速器」已改成中性说法 ——
@@ -1481,7 +1541,7 @@
 
 <span class="section-title">【版权投诉 · 内容下架】</span>
 如果你是权利人，认为本站整理的某个 ID 或链接侵犯了你的权利，请发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>。本站不存储任何音频文件，<b>收到通知后会立即断开相关链接</b>。
-完整法律条文（著作权法、信息网络传播权保护条例、民法典、刑法与 2025 年司法解释等）见 <a href="law.html">⚖️ 法律与风险提示</a>。
+（完整条文入口在弹窗最上面那条金色横幅里。）
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="riskConfirmCancel">取消</button>
@@ -1656,9 +1716,12 @@
        v1（同日早些时候）：弹窗按“保护本站”的方向重写（删自我指控、加断链承诺与投诉邮箱）。
        v2（同日）：弹窗指向新建的 law.html「⚖️ 法律与风险提示」—— 站主要求把完整法律条文
                    放到站内提醒用户，弹窗只留摘要 + 一个入口。
-       v3（当前）：二次确认弹窗也按同一套元素重做（h2 + .sub-warning + .redirect-notice +
-                   四个小节 + 法条页入口），两个弹窗长得一样了。 */
-    const RISK_CONTENT_VERSION = 'v3';
+       v3（同日）：二次确认弹窗也按同一套元素重做（h2 + .sub-warning + .redirect-notice +
+                   四个小节 + 法条页入口），两个弹窗长得一样了。
+       v4（当前）：站主要求「法律那个页面的跳转，在相关弹窗请放在最上面突出」→ 两个弹窗在
+                   .risk-body 外面（滚动区上方、始终可见）加了一条金色横幅 .risk-law-link，
+                   新标签打开 law.html；正文里那条重复的入口句同时删掉。 */
+    const RISK_CONTENT_VERSION = 'v4';
 
     function riskVersion() {
       return (serverRiskVersion || RISK_FALLBACK_VERSION) + '|' + RISK_CONTENT_VERSION;
