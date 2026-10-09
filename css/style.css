@@ -801,6 +801,28 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .footer .footer-links a:hover { color: var(--primary-ink); }
 
+/* 2026-10-09 站主要求（合规加固）：页脚新增「法律定位 + 隐私说明 + 联系站长」三行。
+   四个页面共用这一套样式，刻意做得低调：字号比版权行再小一档、颜色更淡，不抢版面。
+   ⚠️ 内容全部在 <footer> 内部 —— 【页脚下面】依然什么都没有（站主硬约束，别挪出去）。 */
+.footer .footer-legal {
+  max-width: 760px;
+  margin: 10px auto 0;
+  color: var(--text-light);
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+.footer .footer-legal b {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.footer .footer-legal a {
+  color: var(--primary-ink);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  transition: color var(--dur) var(--ease-soft);
+}
+.footer .footer-legal a:hover { color: var(--gold-ink); }
+
 /* 页脚里的「🔗 分享本站」（2026-10-04 新增，同日又按站主要求下线）：
    ⚠ 现在四个页面的页脚都不放分享入口了（站主：「任何页面的页脚都不要有分享链接」），
      所以下面这条规则【当前没有元素在用】—— 留着是为了万一以后要加回页脚入口，
