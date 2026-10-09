@@ -7,6 +7,12 @@
 node_modules/
 dist/
 
+# 2026-10-10 补记：仓库根目录出现过一个 backup/robloxsong-tool-output/（约 12MB，是另一个
+# 工具 robloxsong-tool 的导出：index.html / songs-classified.json / 歌单.md / categories 等），
+# 与本站无关。**不许提交、不许部署** —— 加这条是给「谁顺手 git add -A」上一道保险；
+# 真要清掉这个目录得站主自己删（AI 不擅自删用户的数据）。
+backup/
+
 # 本地工具产生的数据（dsh-graph 目标看板的脚手架），与网站无关，不要提交也不要部署
 .dsh-graph/
 
