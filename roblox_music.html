@@ -1634,8 +1634,18 @@
        仍然让“我已知晓，不再提示”能够生效，而不是每次试听都弹窗。 */
     const RISK_FALLBACK_VERSION = 'local-1';
 
+    /* 2026-10-09 新增：告知【内容】的版本号 —— ⚠️ 以后改了弹窗里的法律文案就 +1（v1 → v2 …）。
+       为什么需要它：老用户点过「我已知晓，不再提示」后，localStorage 里存的是当时的版本号；
+       而服务端那个版本号（/api/risk 读 D1 的 page_updates）只有后台主动调用
+       POST /api/risk 重置才会变 —— 所以光改文案，老用户永远看不到新内容。
+       现在把「服务端版本 + 内容版本」拼起来当有效版本号：
+         · 后台重置           → 服务端变了   → 所有人重新看一次（原有行为不变）
+         · 改文案并给这里 +1  → 内容版本变了 → 同样所有人重新看一次
+       本次 v1：弹窗按“保护本站”的方向重写（删掉自我指控内容、加断链承诺与投诉邮箱）。 */
+    const RISK_CONTENT_VERSION = 'v1';
+
     function riskVersion() {
-      return serverRiskVersion || RISK_FALLBACK_VERSION;
+      return (serverRiskVersion || RISK_FALLBACK_VERSION) + '|' + RISK_CONTENT_VERSION;
     }
 
     const prefersReducedMotion = window.matchMedia &&
