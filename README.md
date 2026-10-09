@@ -361,6 +361,11 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
   与 256 KB 请求体上限。这些都是「单实例内存限速」，只用于挡住脚本暴力尝试，不是分布式全局限流。
 - **同源校验（CSRF）**：所有写接口（POST）都会校验 `Origin`：缺失或与请求主机一致才放行，
   跨站表单 / 跨站 fetch 会被 403 拒绝。
+  **2026-10-10 例外（只针对一个接口）**：热门上报 `functions/api/hot/report.js` 改成**必须带 Origin**
+  （`requireOriginStrict`，缺 Origin 直接 403）。原因：共享的 `requireSameOrigin()` 在"没带 Origin"
+  时是放行的（`_utils.js:167`），脚本用 curl 不带 Origin 就能刷热度榜。**只收紧这一个接口**，
+  登录 / 无效上报 / 渠道上报 / 投稿继续用原口径 —— 那些接口宁可漏挡也不能漏记（个别扩展会剥掉 Origin）。
+  单测：`.verify/test-origin-strict.js`（从源码里抠出函数原文跑 5 个用例）。
 - **响应头**：`functions/` 返回的 JSON 统一带 `Cache-Control: no-store` 与
   `X-Content-Type-Options: nosniff`；静态文件的响应头由根目录 `_headers` 配置
   （全站 `nosniff` + `Referrer-Policy: strict-origin-when-cross-origin`，
@@ -463,7 +468,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **后台搜索（歌曲管理 / 无效音乐ID管理）** | `admin.html`（`#songSearch` / `#invalidPendingSearch` 等）+ `js/admin.js` | 2026-10-05 站主要求：**歌曲管理**一个搜索框（`filterSongList()`），**无效音乐ID管理的三段各有一个**（`filterInvalidList()`，键分别是 pending / ignored / removed）。都只作用于当前这一块 + 当前这一页的显示，**不会改 D1 里的数据**；样式共用 `.panel-search`（`admin.html` 自己的 `<style>` 里，避开 style.css 的 `.form-group input` 干扰）。 |
 | **更新公告** | `data/updates.json` | 内容直接写在这个文件里：每个页面一个 `version`（改了就弹一次）+ `updates`（弹窗内容）。改完版本号，访客下次打开对应页面就会看到弹窗。**⚠️ 2026-09-30 用户新增硬规矩：弹窗只有用户明确说要搞的时候才能加，不许当成任务收尾的固定动作顺手写（「小调整」这种也一样，先问）；标题与文案必须问用户要、不许自己代写；背景颜色不要问用户，按下面「主题色 = 更新程度」的对照、根据他给的文字自己判断。** 主题色 = 更新程度（老规矩，2026-09-30 从已删除的 `tools/update-notice.html` 里找回）：**粉=日常更新 / 紫=重大更新 / 蓝=体验优化 / 金=活动更新 / 绿=修复更新**。详见附一第 11 节。**2026-10-09**：站主明确说「你自己写一个 Roblox ID 宝库和首页的相关更新弹窗」→ 这一次是**AI 代写**的（与 2026-09-30「标题文案必须问用户要」那条规矩冲突，按新指令执行，站主知情）：`index` → `V2.2.3`（天青 · 体验优化，标题「法律页上线」）、`roblox` → `V2.2.0`（天青 · 体验优化，标题「试听提示改版」）；两条都只写访客能察觉的变化（法律页入口 / 试听弹窗改版 / 页脚联系方式），没提后台与接口。要换成站主自己的原话，只改这两个键的 `title` / `lines`，**版本键与弹窗里那行「→ 新版本」必须一起改**。 |
 | **看访问渠道统计** | 后台「📊 数据统计」 | 数据本来就在 D1 里，这个标签页把它们显示出来（汇总卡 + 📢 访问渠道来源）；点「🔄 刷新」重新拉一次。**（2026-10-01）歌曲管理 / 无效音乐ID管理 / 鸣谢名单三个面板上面也各有一块自己的统计卡**（**2026-10-05**：原来那个「开发者隔离区」面板已并入「🚫 无效音乐ID管理」），切到那个面板就是最新数字 |
-| **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:` |
+| **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:`。**⚠️ 2026-10-10：`roblox_music.html` 里那两处「收录 2900+ 个」早就过时了，已改成 `4799+`（对应当时 `data/roblox_music.json` 的条数）** —— 数据条数变了就顺手把这两个数字一起改。**别用 JS 动态改 `og:description`**：微信 / QQ / Twitter / Facebook 的分享卡片抓取器不执行 JS，动态写进去它们看不到，对搜索与分享有效的只有写死的静态值 |
 | **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在首页 hero 那条赞赏码的右边显示**（`.hero-sponsor-cost`，2026-09-30 从 `thanks.html` 挪过来的；鸣谢页那行 `.thanks-cost` 已删掉；赞赏码弹窗、新人弹窗也都不写金额和核对日期）。要改数字，就改 `amount` 这一行，顺便把 `checkedAt` 改成你核对这天的日期；HTML 里还有一份**没脚本时的兜底**数字和日期（占位属性 `data-site-cost` / `data-site-cost-date`，见 `js/common.js` 里 `fillSiteCost` 的选择器），换数字时顺手一起改。**2026-10-05：当天核了几次，依次是 `¥167.76` → `¥168.52` → `¥169.47` → `¥172.41` → `¥175.77`，核对日期都是 `2026-10-05`；2026-10-07 又核了两次：`¥175.77` → `¥180.04` → `¥182.03`，核对日期都是 `2026-10-07`；2026-10-09 站主给了 `¥184.47`，核对日期 `2026-10-09`** |
 | **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 2026-10-04 按用户要求，在「花了多少钱」右边加了第二笔账（`.hero-sponsor-cost-got`，占位属性 `data-sponsor-total`）。它**每次打开首页现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准（口径和鸣谢页完全一致）。接口挂掉时保留 `index.html` 里写死的兜底数字 `¥25`，不会显示半份数据算出来的偏小值。**「截至 xxxx-xx-xx」那一行由两笔账共用**（`.hero-sponsor-stats-date`，占位属性仍是 `data-site-cost-date`），不再只挂在花费上 |
 | **赞赏码放在哪 / 换成别的码** | `images/sponsor-qrcode.png` + `index.html` + `js/common.js` | 换码直接替换那张图。二维码只露一处：首页「🚀 开始逛逛」按钮下面那条（`<button class="hero-sponsor">`，点开是全站同一套大图弹窗），**右边那一小块就是「本站花了多少钱」**（`.hero-sponsor-cost`）。**新人弹窗里不放图**，只留一句「赞助码在首页」的提示（`js/common.js` 里的 `.preview-notice-sponsor-tip`）—— 顺带省掉首访下载 220KB 二维码的开销。**鸣谢页（`thanks.html`）里那块赞赏码小图按用户要求已删除**，那一页只有名单 |
