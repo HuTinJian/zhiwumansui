@@ -974,7 +974,8 @@
     }
     /* 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」。
        所以两个弹窗都在 .risk-body **外面**（＝滚动区上方、始终可见）放一条金色横幅入口：
-       点它新标签打开 law.html，弹窗本身不消失、倒计时也不受影响。
+       点它是**站内跳转**去 law.html（2026-10-09 站主明确「要在页面里面跳转，不要新开标签」，
+       所以没有 target="_blank"）。
        放在滚动区外面是刻意的 —— 长文弹窗往上翻的时候它也一直在。 */
     .risk-law-link {
       display: flex;
@@ -1507,7 +1508,7 @@
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="riskCancelBtn">取消</button>
-        <button class="btn btn-confirm" id="riskConfirmBtn" disabled>确认跳转 (10s)</button>
+        <button class="btn btn-confirm" id="riskConfirmBtn" disabled>确认跳转 (5s)</button>
       </div>
     </div>
   </div>
@@ -2883,16 +2884,21 @@
         riskCountdownCleanup = null;
       }
 
+      /* 2026-10-09 站主要求：「风险弹窗的倒计时改成 5 秒」→ 原来 10 秒，现在 5 秒。
+         秒数是**一处定义**：这里的常量 + HTML 里那颗按钮的初始文案（确认跳转 (5s)）。
+         改秒数时两处一起改，否则弹窗刚打开的一瞬间会闪一下旧数字。 */
+      const RISK_COUNTDOWN_SECONDS = 5;
+
       dom.riskBody.scrollTop = 0;
       const btn = dom.riskConfirmBtn;
       btn.disabled = true;
       btn.classList.remove('active');
       btn.setAttribute('aria-disabled', 'true');
-      btn.textContent = '确认跳转 (10s)';
+      btn.textContent = `确认跳转 (${RISK_COUNTDOWN_SECONDS}s)`;
 
       openModal('riskModal');
 
-      let remaining = 10;
+      let remaining = RISK_COUNTDOWN_SECONDS;
       let timerId = null;
       const update = () => {
         if (remaining > 0) {
