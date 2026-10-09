@@ -103,22 +103,9 @@
       color: var(--text-light);
     }
 
-    /* ---------- 30 秒速览 ---------- */
-    .law-quick { display: grid; gap: 10px; margin: 0 0 16px; }
-    .law-quick-item {
-      display: flex;
-      gap: 13px;
-      align-items: flex-start;
-      padding: 14px 18px;
-      border-radius: 16px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-    }
-    .law-quick-item .ico { font-size: 1.15rem; line-height: 1.6; flex: 0 0 auto; }
-    .law-quick-item p { margin: 0; line-height: 1.9; color: var(--text-light); }
-    .law-quick-item b { color: var(--primary-ink); }
-    .law-quick-item a { color: var(--primary-ink); font-weight: 700; }
+    /* ---------- （已删除）30 秒速览 ----------
+       2026-10-09 站主要求把页面里那块「30 秒速览」整块删掉，所以
+       .law-quick / .law-quick-item 这几个类已经没有元素在用，规则一并清掉。 */
 
     /* ---------- 三张身份入口卡 ---------- */
     .law-entry {
@@ -387,20 +374,10 @@
         </div>
       </header>
 
-      <section class="law-quick" aria-label="三十秒速览">
-        <div class="law-quick-item">
-          <span class="ico" aria-hidden="true">🧭</span>
-          <p><b>本站是什么：</b>Roblox 音频 ID 的<b>索引 + 跳转</b>工具 —— 只整理 ID、只跳到 Roblox 官方页面，<b>不存储、不播放、不传播任何音频文件</b>。</p>
-        </div>
-        <div class="law-quick-item">
-          <span class="ico" aria-hidden="true">⚠️</span>
-          <p><b>你要注意什么：</b>在 Roblox 上使用别人的音乐（上传音频、或放进自己的体验），通常要<b>事先取得权利人许可</b>；把音乐平台的歌搬过去尤其不行。</p>
-        </div>
-        <div class="law-quick-item">
-          <span class="ico" aria-hidden="true">📮</span>
-          <p><b>权利人要下架：</b>发邮件到 <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>，我们<b>收到通知就立即断开相关链接</b>，并回复处理结果。</p>
-        </div>
-      </section>
+      <!-- 2026-10-09：这里原来有一块「30 秒速览」（🧭 本站是什么 / ⚠️ 你要注意什么 /
+           📮 权利人要下架 三条）。站主当天要求整块删除，已删；
+           对应的 .law-quick / .law-quick-item 样式也一并清掉了。
+           ⚠️ 别再往这一页加「速览 / 摘要」类的内容 —— 结论分别在第 1、7、8 节里。 -->
 
       <nav class="law-entry" aria-label="按身份选择入口">
         <a href="#s7">

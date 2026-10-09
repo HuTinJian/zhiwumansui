@@ -138,22 +138,8 @@
       transform: scale(0.93);
     }
 
-    /* 2026-10-09 站主说「在首页的时候，没看到『法律』的页面」→ 宝库页工具栏也补一颗
-       「⚖️ 法律」（指向 law.html，新标签打开、不打断当前页面）。
-       配色与风险弹窗顶上那条法条横幅一致（金色系）。 */
-    .btn-law {
-      background: linear-gradient(135deg, var(--gold-light), var(--gold));
-      color: #5c3d10;
-      border: none;
-      box-shadow: 0 6px 18px rgba(212, 160, 106, 0.35);
-      font-weight: 700;
-    }
-    .btn-law:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(212, 160, 106, 0.6);
-      color: #4a3009;
-    }
-    .btn-law:active { transform: scale(0.93); }
+    /* 2026-10-09：为工具栏那颗「⚖️ 法律」写过的 .btn-law 金色样式，随按钮一起删掉
+       （站主当天要求把宝库页的「法律」按钮删掉）。别再往这一页工具栏加法律按钮。 */
 
     /* ========== 「📌 问题上报」按钮 + 上报面板（2026-10-05 新增，10-07 改名并分两类） ==========
        访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
@@ -1405,10 +1391,10 @@
           <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些问题，可以在这里撤回">📌 问题上报</button>
           <button class="btn btn-submit-song" id="openSubmitSongBtn" title="把你找到的歌曲 ID 投稿给站长">➕ 添加歌曲ID</button>
           <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
-          <!-- 2026-10-09 站主：「在首页的时候，没看到『法律』的页面」→ 这一页没有导航栏，
-               于是把「⚖️ 法律」放进工具栏（新标签打开 law.html，不打断当前页）。
-               为什么放这儿：这一页正是大家点「🔗 试听」的地方，法律入口在旁边最顺手。 -->
-          <a class="btn btn-law" href="law.html" target="_blank" rel="noopener" title="著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法与 2025 年司法解释 —— 条文原文">⚖️ 法律</a>
+          <!-- 2026-10-09：这里曾经加过一颗「⚖️ 法律」（指向 law.html），
+               当天站主就要求删掉 ——「把 Roblox ID 宝库里面的『法律』按钮删除了」。
+               ⚠️ 别再往这一页的工具栏加法律入口：这一页的入口只保留页脚那条
+               与试听弹窗顶部那条金色横幅（弹窗里那条是当前页内跳转，不新开标签）。 -->
         </div>
         <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
              当天站主先要求加上（「分享链接只有主页有」），随后又明确这一页不要分享
@@ -1480,8 +1466,10 @@
       <div class="redirect-notice">即将跳转至 Roblox 官方页面</div>
       <!-- 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」——
            这条金色横幅是弹窗里最显眼的入口，且刻意放在 .risk-body **外面**：
-           正文往上翻的时候它一直停在顶部看得见。点它新标签打开 law.html，弹窗不消失。 -->
-      <a class="risk-law-link" href="law.html" target="_blank" rel="noopener">
+           正文往上翻的时候它一直停在顶部看得见。
+           同日稍后站主又要求：「我要点击跳转是在页面里面跳转，而不是换了一个新标签」
+           → 已去掉 target="_blank" / rel，改成普通站内链接（当前页跳转）。 -->
+      <a class="risk-law-link" href="law.html">
         <span class="ico" aria-hidden="true">⚖️</span>
         <span class="txt">
           <b>完整法律条文都在这里</b>
@@ -1529,8 +1517,9 @@
       <h2>⚠️ 最后确认一次</h2>
       <div class="sub-warning">本站只做跳转，不提供任何音频</div>
       <div class="redirect-notice">即将打开 Roblox 官方页面</div>
-      <!-- 同上：二次确认弹窗也把「完整法条」入口放在最上面、且在滚动区外面。 -->
-      <a class="risk-law-link" href="law.html" target="_blank" rel="noopener">
+      <!-- 同上：二次确认弹窗也把「完整法条」入口放在最上面、且在滚动区外面；
+           同样是站内跳转（不新开标签）。 -->
+      <a class="risk-law-link" href="law.html">
         <span class="ico" aria-hidden="true">⚖️</span>
         <span class="txt">
           <b>完整法律条文都在这里</b>
