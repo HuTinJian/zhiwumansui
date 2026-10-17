@@ -260,6 +260,65 @@
       border-radius: 10px;
       background: var(--bg-card);
     }
+    /* ============================================================
+       2026-10-17：上报列表从「6 列大表格」改成「卡片行」，四要素一眼看到：
+         第一行：歌名（长名字自动省略号 + 悬停看全名）、状态
+         第二行：ID、时间、操作按钮
+       基准尺寸 = 小米 17 6.3 英寸（CSS 视口约 407×886），
+       所以第一行用 flex + min-width:0 + ellipsis 防撑破，第二行用 nowrap + auto 推按钮。
+       【回退办法】删掉 .myrep-list / .myrep-row / .myrep-row-main / .myrep-row-sub /
+         .myrep-note-line 这五组规则即可（旧 .myrep-table 样式一直保留着，没删）。
+       ============================================================ */
+    .myrep-list { display: flex; flex-direction: column; }
+    .myrep-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .myrep-row:last-child { border-bottom: none; }
+    .myrep-row-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;                 /* 关键：不给 min-width:0，ellipsis 不生效 */
+    }
+    .myrep-row-main .myrep-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--primary-ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .myrep-row-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+    .myrep-row-sub .myrep-id {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      color: var(--text-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 46%;
+    }
+    .myrep-row-sub .myrep-time { white-space: nowrap; }
+    .myrep-row-sub .myrep-btn { margin-left: auto; flex: 0 0 auto; }
+    .myrep-note-line {
+      font-size: 0.74rem;
+      color: var(--text-light);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .myrep-table {
       width: 100%;
       border-collapse: collapse;
@@ -319,6 +378,13 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s var(--ease-soft);
+      /* 2026-10-17：按小米 17（407×886）实测这颗按钮只有 26px 高，手指偏难点中；
+         补到 30px 并垂直居中（再大会把卡片副行撑高，反而不好看）。
+         【回退办法】删掉下面三行即可恢复原来的 26px。 */
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .myrep-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
     .myrep-btn:active { transform: scale(0.94); }
@@ -2977,12 +3043,13 @@
 
       const sid = String(payloadId);
       const meta = songMetaById(sid);
-      showToast('🚫 这个 ID 在 Roblox 那边不存在（404），已标记为「无效 ID」');
+      /* 2026-10-17 判据改了：不再只说 404，而是「在 Roblox 那边取不到音频」（下架/不存在都算） */
+      showToast('🚫 这个 ID 在 Roblox 那边取不到音频，已标记为「无效 ID」');
 
       if (typeof showConfirm !== 'function') return status;
       const want = await showConfirm(
         '🚫 这个 ID 无效',
-        'ID ' + sid + ' 在 Roblox 官方那边打开是 404（资源不存在），' +
+        'ID ' + sid + ' 在 Roblox 那边**取不到音频**（已经下架 / 不存在），' +
         '所以这个 ID 是无效的 —— 放了也没有声音。\n\n' +
         '要把它报给站长处理吗？（报完站长会在后台下架它）',
         { okText: '✏️ 上报这个无效 ID', cancelText: '不用了' }
@@ -2995,7 +3062,7 @@
         return status;
       }
       openInfoErrorModal([sid], meta.name, meta.category,
-        '试听时在 Roblox 官方页面打开是 404：这个 ID 已经不存在了。');
+        '试听时在 Roblox 那边取不到音频（下架或不存在）：这个 ID 是无效的。');
       return status;
     }
 
@@ -3291,13 +3358,20 @@
       info: { text: '✏️ 信息出错', empty: '你还没有报过「信息出错」。<br>在宝库里点某首歌右上角的「✏️ 信息出错」，改好信息再「确定上报」就会出现在这里。' }
     };
 
+    /* 2026-10-17 站主定的状态文案：
+         · 还没处理            → 「审核进行中」
+         · 后台点「确认无效并下架」→ 「审核失败」（这个 ID 审核没通过）
+         · 后台点「无效反馈」     → 「反馈成功」，并且这条会从列表里消失（见 mergeMyRepRows）
+       【回退办法】把下面四条 text 改回原来的「⏳ 后台待处理 / 🚫 已审核·已下架 / ✅ 已审核」。 */
     const MY_REP_STATUS = {
-      pending: { text: '⏳ 后台待处理', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
+      pending: { text: '⏳ 反馈进行中', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
       /* 2026-10-17 站主反馈：「自己反馈的 ID 想要看到有没有过审核」——
          凡是后台动过的上报，状态里都带「已审核」四个字，并显示审核时间（见 auditStatusText()）。 */
-      removed: { text: '🚫 已审核·已下架', cls: 'removed', canRestore: false, tip: '管理员已确认这个 ID 无效，并把它从宝库下架了' },
+      removed: { text: '❌ 反馈失败', cls: 'removed', canRestore: false, tip: '管理员确认这个 ID 无效，已从宝库下架（这条会永久保留，随时能查）' },
       /* noted = 2026-10-17 新增：后台「🗑️ 删记录（处理完）」标的态（软删） */
-      noted: { text: '✅ 已审核', cls: 'noted', canRestore: false, tip: '管理员已经看过你这条上报、做了处理（没下架这首歌）' },
+      /* 「反馈成功」= 管理员核实这个 ID 没问题（是你报错了）。站主要求：这种情况直接消失，
+         所以 mergeMyRepRows 里不渲染它；用户会先收到一条「反馈成功」的弹窗提示。 */
+      noted: { text: '✅ 反馈成功', cls: 'noted', canRestore: false, tip: '管理员核实这个 ID 没问题。这条会在你第一次看到它之后 30 分钟自动消失' },
       local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
     };
     /* 2026-10-07：「已忽略」这个状态随后台那一段一起下线（没问题的上报后台直接删记录）。
@@ -3307,10 +3381,56 @@
     /* 审核类状态的时间后缀：把「已审核」变成「已审核 · 10-17 09:20」。
        为什么要这么细：站主要的就是「有没有过审核」，光写「已审核」看不出是什么时候被看的；
        pending / local 这类没有审核时间，原样返回。 */
-    function auditStatusText(status, text, updatedAt) {
-      if (status !== 'removed' && status !== 'noted') return text;
-      const when = fmtReportTime(updatedAt);
-      return (when && when !== '—') ? (text + ' · ' + when) : text;
+    /* 2026-10-17 修正：状态里**不再拼时间**。
+       原因：在小米 17（407px）实测，「反馈成功 · 10-17 08:55」会占掉大半行宽，
+       把歌名挤成很短的一截；而副行里本来就有时间。所以状态只留纯文案，
+       时间统一放副行（已处理的显示处理时间，见下面 mergeMyRepRows）。
+       完整信息（上报 + 处理）挂在 title 上，悬停能看全。 */
+    function auditStatusText(status, text) {
+      return text;
+    }
+
+    /* ============================================================
+       2026-10-17：「反馈成功」保留 30 分钟后自动消失
+       ------------------------------------------------------------
+       站主原话：「用户在第一次看到『反馈成功』…后 30min 内不删除，30min 后…删除，
+                  不影响用户查看『反馈进行中』后『反馈失败』」。
+       实现取舍（为什么记在 localStorage）：
+         · 服务端只知道「什么时候处理的」，不知道「用户什么时候看到的」；
+         · 要做到「第一次看到后 30 分钟」，只能在前端记首看时间戳；
+         · 换浏览器 / 清了缓存会重新计一次 30 分钟 —— 这是可接受的（不会让数据错乱）。
+       「反馈失败」(removed) **不参与**这个计时，永久保留。
+       【回退办法】把下面 MYREP_KEEP_MS 改成 Infinity 即等于「永不消失」；
+         删掉这个 localStorage 键 myrep_seen_noted 也能让所有记录重新可见。 */
+    const MYREP_KEEP_MS = 30 * 60 * 1000;      /* 30 分钟 */
+    const MYREP_SEEN_KEY = 'myrep_seen_noted'; /* { [id]: 首次看到的时间戳 } */
+
+    function loadSeenNoted() {
+      try {
+        const raw = localStorage.getItem(MYREP_SEEN_KEY);
+        const obj = raw ? JSON.parse(raw) : null;
+        return (obj && typeof obj === 'object') ? obj : {};
+      } catch (e) { return {}; }
+    }
+    function saveSeenNoted(map) {
+      try { localStorage.setItem(MYREP_SEEN_KEY, JSON.stringify(map || {})); } catch (e) {}
+    }
+    /* 返回 true = 这条「反馈成功」还该显示；false = 超过 30 分钟，已经可以收走 */
+    function notedStillVisible(id) {
+      const now = Date.now();
+      const map = loadSeenNoted();
+      const first = Number(map[id]) || 0;
+      if (!first) {
+        /* 第一次看到：记下时间，正常显示 */
+        map[id] = now;
+        saveSeenNoted(map);
+        return true;
+      }
+      if (now - first < MYREP_KEEP_MS) return true;
+      /* 超过 30 分钟：不再显示，顺手把这条记录从 localStorage 里删掉 */
+      delete map[id];
+      saveSeenNoted(map);
+      return false;
     }
 
     let myRepRows = [];        /* 当前拉到的全部行（两类都在这，渲染时按标签过滤） */
@@ -3377,7 +3497,13 @@
            历史 ignored 行同样是「后台动过」的记录，当成 noted（已审核）显示才不违背这个要求。 */
         const rawStatus = String(item.status || '');
         const status = rawStatus === 'ignored' ? 'noted' : (rawStatus || 'pending');
+        /* ⚠️ 必须先记 seen：哪怕下面要跳过渲染，也得让「本地兜底」知道服务端有这条，
+           否则它会被当成「仅本地记录」再冒出来 —— 那就等于没消失。 */
         seen[id] = true;
+        /* 2026-10-17 站主要求（第二轮修正）：noted（反馈成功）**先给看 30 分钟**，超时才收走。
+           第一版是「直接不显示」，站主指出太急 —— 所以要让人真的看到这句「反馈成功」。
+           notedStillVisible() 会顺手把首次看到的时间记进 localStorage。 */
+        if (status === 'noted' && !notedStillVisible(id)) return;
         const meta = MY_REP_STATUS[status] || MY_REP_STATUS.pending;
         const type = item.type === 'info' ? 'info' : 'invalid';
         rows.push({
@@ -3393,9 +3519,16 @@
           note: item.note || '',
           canRestore: meta.canRestore,
           tip: meta.tip,
-          /* rawTime 留着给排序用（ISO，字典序即时间序）；time 是给人看的北京时间 */
+          /* rawTime 留着给排序用（ISO，字典序即时间序）；time 是给人看的北京时间。
+             2026-10-17：已处理（removed/noted）优先显示**处理时间**，
+             因为访客关心的就是「什么时候被审的」；未处理才显示上报时间。
+             两个时间都放进 title，悬停能看全。 */
           rawTime: item.createdAt || '',
-          time: fmtReportTime(item.createdAt),
+          time: (status === 'removed' || status === 'noted')
+            ? (fmtReportTime(item.updatedAt) || fmtReportTime(item.createdAt))
+            : fmtReportTime(item.createdAt),
+          timeTitle: '上报 ' + fmtReportTime(item.createdAt) +
+            (item.updatedAt ? ' · 处理 ' + fmtReportTime(item.updatedAt) : ''),
           fromServer: true
         });
       });
@@ -3477,35 +3610,41 @@
         return;
       }
 
-      const isInfo = myRepType === 'info';
-      /* 表头时间那列 2026-10-17 补了「审核处」三个字：站主要看「有没有过审核」，
-         而「已审核 · 10-17 09:20」里的时间就是后台处理的那一刻（adminTime 口径一致）。 */
-      let html = '<table class="myrep-table"><thead><tr>' +
-        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（审核处显示处理时间）</th>' +
-        (isInfo ? '<th>你写的说明</th>' : '') +
-        '<th>状态</th><th>操作</th>' +
-        '</tr></thead><tbody>';
+      /* 2026-10-17：不再用 6 列表格（手机上根本放不下），改成「卡片行」：
+           第一行  歌名（长名字省略号，悬停看全名） + 状态
+           第二行  ID + 时间 + 操作
+           第三行  玩家自己写的说明（有才显示，同样省略号）
+         顺序就是站主要求的「歌名 + 时间 + 状态 + 操作」，只是按屏幕宽度重排成两行。 */
+      let html = '<div class="myrep-list">';
 
       list.forEach((row, index) => {
-        html += '<tr>';
-        html += '<td class="myrep-name">' + esc(row.name) + '</td>';
-        html += '<td class="myrep-id">' + esc(row.id) + '</td>';
-        html += '<td class="myrep-time">' + esc(row.time) + '</td>';
-        if (isInfo) html += '<td class="myrep-note-cell">' + (row.note ? esc(row.note) : '—') + '</td>';
-        html += '<td><span class="myrep-status ' + row.statusCls + '" title="' + escAttr(row.tip) + '">' +
-          esc(row.statusText) + '</span></td>';
-        html += '<td>';
+        html += '<div class="myrep-row">';
+        /* 第一行：歌名 + 状态 */
+        html += '<div class="myrep-row-main">';
+        html += '<span class="myrep-name" title="' + escAttr(row.name) + '">' + esc(row.name) + '</span>';
+        html += '<span class="myrep-status ' + row.statusCls + '" title="' + escAttr(row.tip) + '">' +
+          esc(row.statusText) + '</span>';
+        html += '</div>';
+        /* 第二行：ID + 时间 + 操作 */
+        html += '<div class="myrep-row-sub">';
+        html += '<span class="myrep-id" title="' + escAttr(row.id) + '">' + esc(row.id) + '</span>';
+        html += '<span class="myrep-time" title="' + escAttr(row.timeTitle || '北京时间') + '">' +
+        esc(row.time) + '</span>';
         if (row.canRestore) {
           html += '<button type="button" class="myrep-btn" data-restore="' + escAttr(row.id) + '" data-index="' + index + '">' +
             (row.status === 'local' ? '🧹 清除' : '↩️ 撤回') + '</button>';
         } else {
           html += '<button type="button" class="myrep-btn" disabled title="' + escAttr(row.tip) + '">—</button>';
         }
-        html += '</td>';
-        html += '</tr>';
+        html += '</div>';
+        /* 第三行：说明（有才显示） */
+        if (row.note) {
+          html += '<div class="myrep-note-line" title="' + escAttr(row.note) + '">💬 ' + esc(row.note) + '</div>';
+        }
+        html += '</div>';
       });
 
-      html += '</tbody></table>';
+      html += '</div>';
       if (offline) {
         html += '<div class="myrep-empty">⚠️ 后台暂时连不上，这里只显示<b>本机记录</b>；' +
           '稍后再打开就能看到每条的实时状态。</div>';
@@ -3528,6 +3667,22 @@
       myRepLoading = true;
       const serverItems = await fetchMyReports();
       myRepLoading = false;
+
+      /* 2026-10-17：被判定「反馈成功」(noted) 的 ID 已经了结 ——
+         把本机那份「已上报」标记也清掉，宝库页那颗按钮恢复成「🚫 无效处理」，
+         免得访客以为还挂着一条没结果的反馈。 */
+      if (serverItems) {
+        const settled = [];
+        serverItems.forEach(it => {
+          const st = String((it && it.status) || '');
+          const sid = String((it && it.id) || '');
+          if (sid && (st === 'noted' || st === 'ignored') && invalidReported.has(sid)) settled.push(sid);
+        });
+        if (settled.length) {
+          settled.forEach(sid => { invalidReported.delete(sid); paintInvalidRow(sid); });
+          saveInvalidReported();
+        }
+      }
 
       myRepRows = mergeMyRepRows(serverItems, '（后台没有这条记录）');
       paintMyRepTable(serverItems === null);

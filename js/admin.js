@@ -1419,7 +1419,8 @@ async function scanSongsValidity() {
   const ok = await showConfirm(
     '体检待处理上报里的 ID',
     '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」。\n\n' +
-    '只有**明确回 404（不存在）**的才会被列出来，确认之后才下架 —— 不会自动动数据。\n' +
+    '只有**在 Roblox 那边确实取不到音频**的才会被列出来（已下架 / 不存在），' +
+    '确认之后才下架 —— 不会自动动数据。\n' +
     '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，大约要等十几秒。\n\n' +
     '（只管这一栏的待处理上报，不动 D1 歌曲、不动主数据、不动已下架名单）'
   );
@@ -1465,7 +1466,8 @@ async function scanSongsValidity() {
     '体检结果：待处理里有 ' + invalid.length + ' 个 ID 无效',
     '「🚫 待处理上报」共体检 ' + total + ' 个 ID：\n' +
     '· 存在（正常）' + counts.valid + ' 个\n' +
-    '· 不存在（404，**无效**）' + invalid.length + ' 个\n' +
+    /* 2026-10-17 判据改了：现在是「取不到音频」= 下架(403) 或 不存在(404)，不再是单一 404 */
+    '· 取不到音频（已下架 / 不存在，**无效**）' + invalid.length + ' 个\n' +
     '· 查不出（连不上 Roblox / 被限速，没算无效）' + counts.unknown + ' 个' +
     (failed ? '\n· ' + failed + ' 批请求失败（重试一次会更准）' : '') + '\n\n' +
     '无效的那几个：\n' + preview + '\n\n' +

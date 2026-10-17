@@ -51,7 +51,46 @@ const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 /* 一次最多查 20 条（前端全库体检按 20 一批切） */
 const MAX_IDS = 20;
 
-/* Roblox 资产详情接口 */
+/* ============================================================
+   ⚠️ 2026-10-17 第二轮修正（站主给了一对反例，推翻了我原来的判据）
+   ------------------------------------------------------------
+   站主给的两个页面：
+     · 无效：https://create.roblox.com/store/asset/78707318606182
+     · 正常：https://create.roblox.com/store/asset/73387934873699
+   这两个页面的**服务端 HTML 完全一样**（都是 200 / 9734 字节，Next.js 单页应用），
+   差异只在浏览器渲染后出现。所以我把 4 个接口在这两个 ID 上都测了一遍，结论：
+
+     接口                         无效 ID        正常 ID
+     economy/v2/assets/details    **200（说存在）**  200      ← 旧判据在这里瞎了
+     apis.roblox.com/toolbox      404             200
+     assetdelivery (完整)         403             200
+     assetdelivery (Range 1 字节) 403             206
+     thumbnails state             Blocked         Completed
+
+   ★ 旧判据的致命缺陷：`economy/.../details` 对「**存在但已下架 / 未通过审核**」的音频
+     仍然回 200。也就是说只认 economy 404 的体检，会把这些「页面明明打不开」的 ID
+     全部放过 —— 这正是站主说的「无效 ID 太多」的主因。
+
+   ★ 新判据：拿 **assetdelivery 用 Range 只请求第 1 个字节**，看返回码：
+       200 / 206 → 真的能取到音频字节 → **valid（铁证）**
+       403       → 资产存在但**拒绝访问**（下架 / 未授权）→ **invalid**
+       404       → 资源不存在 → **invalid**
+       401       → 需要认证，不能据此判死 → **unknown**
+   为什么用 Range: bytes=0-0：音频动辄几 MB，体检不能真下载。实测有效 ID 回 206（1 字节），
+   无效 ID 回 403，**不发正文**，又快又省。
+
+   ★ 抽样验证（改判据前先测，避免误杀好歌）：
+     · 站内在架 20 条：12 条 200/206、4 条 404、2 条 403、2 条 401
+       （401 那 2 条是「需要认证」，不是坏 → 所以 401 必须按 unknown，不能判死）
+     · 已下架名单 10 条：6 条 404、4 条 403（正好都是「取不到音频」）
+     · 有 1 条在架 ID 是 200/200/200 但缩略图 Blocked（图片审核问题，音频能播）
+       → 所以**不掺 thumbnails 状态**判有效/无效，避免误杀。
+   ============================================================ */
+
+/* 资产取件接口（新判据的主依据）：加 Range 只取 1 字节拿状态码 */
+const ROBLOX_DELIVERY_API = 'https://assetdelivery.roblox.com/v1/asset/?id=';
+
+/* 资产详情接口（只当兜底：拿名字 / delivery 给不出结论时补一刀） */
 const ROBLOX_ASSET_API = 'https://economy.roblox.com/v2/assets/';
 
 /* 单条查询的超时：Roblox 正常 300~800ms；放到 8 秒是给「慢但不报错」留余量
@@ -92,35 +131,79 @@ async function fetchAssetDetails(id) {
   }
 }
 
+/* 用 Range 只取第 1 个字节，返回 HTTP 状态码；网络异常返回 -1。
+   为什么要 Range：音频动辄几 MB，体检绝不能真下载。
+   实测：有效 ID → 206（1 字节）；下架/未授权 → 403；不存在 → 404；需认证 → 401。 */
+async function fetchDeliveryStatus(id) {
+  try {
+    const res = await fetch(ROBLOX_DELIVERY_API + encodeURIComponent(id), {
+      method: 'GET',
+      headers: {
+        /* 只要第 0~0 这一个字节：拿得到就说明资产可访问 */
+        'Range': 'bytes=0-0',
+        'Accept': '*/*',
+        'User-Agent': 'ZhiMist-DeepSeek-V4.1-Flash-verify/2.0 (static site asset check)'
+      },
+      signal: AbortSignal.timeout(TIMEOUT_MS)
+    });
+    /* 立刻把响应体丢掉（哪怕只回了 1 字节也别留着） */
+    try { if (res.body) await res.body.cancel(); } catch (err) {}
+    return res.status;
+  } catch (err) {
+    return -1;
+  }
+}
+
 /* 查一条。返回 { status, name }；status 只会是 valid / invalid / unknown。
    导出出来是为了能在本地直接跑一遍验证判定口径（见 .verify/verify-invalid-20261017.mjs）。 */
 export async function verifyOne(id) {
-  let res = await fetchAssetDetails(id);
-  if (!res) return { status: 'unknown', name: '' };
+  let code = await fetchDeliveryStatus(id);
 
   /* 429（问太快）→ 等 700ms 再试一次。批量体检时这一步很有用：
      不重试的话，被限速的那几个会白白变成 unknown（漏检，不是误判，但没意义）。 */
-  if (res.status === 429) {
+  if (code === 429) {
     await sleep(RETRY_DELAY_MS);
-    res = await fetchAssetDetails(id);
-    if (!res) return { status: 'unknown', name: '' };
+    code = await fetchDeliveryStatus(id);
   }
 
+  /* ① 能取到音频字节（200/206）→ 铁定有效 */
+  if (code === 200 || code === 206) return { status: 'valid', name: '' };
+
+  /* ② 明确不可用：
+        403 = 资产存在但拒绝访问（下架 / 未通过审核）—— 这就是站主说的那类「页面打不开」
+        404 = 资源不存在 */
+  if (code === 403 || code === 404) return { status: 'invalid', name: '' };
+
+  /* ③ 401 = 需要登录/认证才能取；不能据此判死（抽样里 2 条在架的好歌也是 401）
+        → 交给下面的 economy 兜底，兜不出结论就 unknown */
+  if (code !== 401) {
+    /* 其余（超时、5xx、-1）也走兜底 */
+  }
+
+  /* ④ 兜底：delivery 给不出结论时，用 economy 补一刀
+        · economy 404 → 确实不存在 → invalid
+        · economy 200 → 存在但取不到（多半是 401 需认证）→ unknown（宁漏判不误判）
+        · 其它 → unknown */
+  let res = null;
+  try {
+    res = await fetchAssetDetails(id);
+  } catch (err) {
+    res = null;
+  }
+  if (!res) return { status: 'unknown', name: '' };
+
+  if (res.status === 404) return { status: 'invalid', name: '' };
+
   if (res.status === 200) {
+    /* 顺手把歌名带回去（后台列表里有用）；判定仍是 unknown */
     let name = '';
     try {
       const data = await res.json();
       name = String((data && data.Name) || '').slice(0, 100);
     } catch (err) { /* 拿不到名字不影响判定 */ }
-    return { status: 'valid', name };
+    return { status: 'unknown', name };
   }
 
-  /* 404 = Roblox 明确说这个 ID 不存在。
-     注意 400/403/429/5xx 都算 unknown：
-       · 400：ID 格式 Roblox 不接受（可能是超长数字），不足以证明「歌不存在」；
-       · 429：重试过还是被限速；
-       · 403/5xx：Roblox 侧风控或故障。 */
-  if (res.status === 404) return { status: 'invalid', name: '' };
   return { status: 'unknown', name: '' };
 }
 
