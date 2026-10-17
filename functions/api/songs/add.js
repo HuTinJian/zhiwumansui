@@ -19,7 +19,14 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const musicId = String(body.musicId || '').trim();
     const name = String(body.name || '').trim();
-    const category = String(body.category || '未分类').trim() || '未分类';
+    /* 2026-10-17：后台导入时“认不出”的分类由 admin.html 的 guessCategory() 决定，
+       这里只是最后一道兜底 —— 空 / 「未分类」/「未完成」都归到「🧩 玩家提供」
+       （跟 functions/api/songs/submit.js、submissions.js 保持同一个字面量）。
+       【回退办法】把这一行换回 `String(body.category || '未分类').trim() || '未分类'`。 */
+    const rawCategory = String(body.category || '').trim();
+    const category = (!rawCategory || rawCategory === '未分类' || rawCategory === '未完成')
+      ? '🧩 玩家提供'
+      : rawCategory;
 
     if (!musicId || !name) {
       return json({ ok: false, error: 'missing fields' }, 400);

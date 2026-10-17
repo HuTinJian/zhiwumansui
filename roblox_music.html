@@ -183,7 +183,13 @@
     /* ✏️ 信息出错 / ➕ 添加歌曲ID 两个弹窗里的表单（同一个样式块） */
     .info-err-form { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
     .info-err-form label { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
+    /* 2026-10-17 新增 select：任务「游客添加歌曲的类型可以继续选择」——
+       「➕ 添加歌曲ID」弹窗的「分类」从纯手写改成下拉（也能手写自定义），
+       下拉沿用同一套表单外观（和 input / textarea 完全一致）。
+       【回退办法】删掉下面选择器里的 `.info-err-form select,` 这一行即可，
+       下拉会退回浏览器默认外观（功能不受影响）。 */
     .info-err-form input,
+    .info-err-form select,
     .info-err-form textarea {
       width: 100%;
       font-family: var(--font);
@@ -196,7 +202,10 @@
       resize: vertical;
     }
     .info-err-form input:focus,
+    .info-err-form select:focus,
     .info-err-form textarea:focus { outline: 2px solid rgba(232, 184, 102, 0.5); border-color: #dfa63a; }
+    /* 下拉本身跟输入框一样高、一样圆角；cursor 给个指针免得看不出来能点 */
+    .info-err-form select { cursor: pointer; }
     /* 「✅ 确定上报 / 提交投稿」：跟「信息出错」同一族的琥珀色（护眼、不刺眼）。
        2026-10-07 站主反馈「提交投稿的按钮样式不好看，不是胶囊的」——
        原来这里没写圆角，落到了通用按钮的圆角上；现在跟弹窗里其它按钮一样用**胶囊**
@@ -1633,8 +1642,20 @@
       <div class="info-err-form">
         <label for="submitSongName">歌名</label>
         <input type="text" id="submitSongName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
-        <label for="submitSongCategory">分类（选填）</label>
-        <input type="text" id="submitSongCategory" maxlength="30" placeholder="例如：中文流行" autocomplete="off">
+        <label for="submitSongCategory">分类</label>
+        <!-- 2026-10-17 站主要求「游客添加歌曲的类型可以继续选择，如『中文流行』」：
+             原来这里是一个**只能手打**的输入框（写错字或不写就变「未分类」）；
+             现在改成下拉选择：默认「🧩 玩家提供（不确定就选这个）」，其余是站内已有的分类
+             （点开「➕ 添加歌曲ID」时由 fillSubmitCategories() 从宝库里动态填进来）。
+             最后一排仍然是想自己写的人用的 —— 选「✍️ 其它（自己写）」会变出一个输入框。
+             【回退办法】把这一整段 <select> + <input> 换回原来的
+             <input type="text" id="submitSongCategory" maxlength="30" placeholder="例如：中文流行">，
+             再删掉 js 里的 fillSubmitCategories() / resolveSubmitCategory() 两个函数即可。 -->
+        <select id="submitSongCategory">
+          <option value="🧩 玩家提供">🧩 玩家提供（不确定就选这个）</option>
+        </select>
+        <input type="text" id="submitSongCategoryCustom" maxlength="30"
+               placeholder="自己写一个分类名，例如：中文流行" autocomplete="off" hidden>
         <label for="submitSongIds">歌曲 ID（一行一个，最多 20 个）</label>
         <textarea id="submitSongIds" rows="3" placeholder="例如：&#10;1876950732&#10;1441450732"></textarea>
       </div>
@@ -2066,7 +2087,7 @@
         mergedMap.set(String(i.id), {
           id: String(i.id),
           name: i.name || '未知歌名',
-          category: i.category || '未分类',
+          category: i.category || '🧩 玩家提供',
           lineIndex: i.lineIndex || 0
         });
       });
@@ -2076,7 +2097,7 @@
         mergedMap.set(String(i.id), {
           id: String(i.id),
           name: i.name || '未知歌名',
-          category: i.category || '未分类',
+          category: i.category || '🧩 玩家提供',
           lineIndex: i.lineIndex || 100000,
           _fromD1: true
         });
@@ -2634,26 +2655,36 @@
         .filter(Boolean);
       if (ids.length === 0) { showToast('这一组没有可上报的 ID'); return; }
 
-      const nameInput = document.getElementById('infoErrName');
-      const catInput = document.getElementById('infoErrCategory');
-      const noteInput = document.getElementById('infoErrNote');
-
       /* 当前歌名 / 分类：优先取渲染时挂在 DOM 上的数据（.group-name 的文本就是歌名） */
       const nameText = (groupEl.dataset.name || '').trim();
       const catText = (groupEl.querySelector('.group-category') || {}).textContent || '';
-      if (nameInput) nameInput.value = nameText;
+
       /* 分类可能带前缀图标（「🎬 电子舞曲」这种）——**只有真的带了「图标 + 空格」才去掉前缀**。
          ⚠️ 别写成「斜杠 + 上箭头 + 反斜杠 S + 加号 + 反斜杠 s + 星号 + 斜杠」那种正则：
          分类名本身不带空格时（「电子舞曲」），它会连整个名字一起吃掉，预填就空了
          （2026-10-07 用例抓到过）。正确写法是要求后面**必须有一个空格**：^[^\s]+\s+ */
-      if (catInput) catInput.value = catText.replace(/^[^\s]+\s+/, '').trim();
-      if (noteInput) noteInput.value = '';
+      openInfoErrorModal(ids, nameText, catText.replace(/^[^\s]+\s+/, '').trim(), '');
+    }
+
+    /* 真正打开「✏️ 信息出错」弹窗的那一步（2026-10-17 抽出来的：
+       宝库页那颗「信息出错」和「试听发现 ID 无效」两处都要用，预填值不一样）。
+       name / category / note 都只是**预填**，玩家还能改；ids 只显示、不提交（只报 ids[0]）。 */
+    function openInfoErrorModal(ids, name, category, note) {
+      const list = (ids || []).map(v => String(v || '').trim()).filter(Boolean);
+      if (list.length === 0) { showToast('没拿到 ID，请关掉重新点一次'); return; }
+
+      const nameInput = document.getElementById('infoErrName');
+      const catInput = document.getElementById('infoErrCategory');
+      const noteInput = document.getElementById('infoErrNote');
+      if (nameInput) nameInput.value = name || '';
+      if (catInput) catInput.value = category || '';
+      if (noteInput) noteInput.value = note || '';
 
       const ref = document.getElementById('infoErrIds');
-      if (ref) ref.textContent = ids.join('、');
+      if (ref) ref.textContent = list.join('、');
 
       const modal = document.getElementById('infoErrorModal');
-      if (modal) modal.dataset.ids = JSON.stringify(ids);
+      if (modal) modal.dataset.ids = JSON.stringify(list);
       openModal('infoErrorModal');
     }
 
@@ -2712,7 +2743,14 @@
         if (!btn || !dom.songList.contains(btn)) return;
 
         if (btn.classList.contains('btn-fav')) { toggleFavorite(btn.dataset.id, btn); return; }
-        if (btn.classList.contains('btn-play')) { previewId(btn.dataset.id); return; }
+        if (btn.classList.contains('btn-play')) {
+          /* 2026-10-17：试听照旧立刻打开（别让访客等一次网络请求），
+             同时在后台体检一次这个 ID —— 是 404 就在页面上告诉他并给一键上报。
+             这两件事互不阻塞：verifyPreview() 是异步的，任何异常都只是「没查出问题」。 */
+          previewId(btn.dataset.id);
+          verifyPreview(btn.dataset.id, false);
+          return;
+        }
         if (btn.classList.contains('btn-copy')) { copyOneId(btn); return; }
         /* 2026-10-05：新按钮 —— 没报过就上报，报过了就撤销（原来这里是隔离用的 ✕） */
         if (btn.classList.contains('btn-invalid')) { toggleInvalidReport(btn); return; }
@@ -2846,6 +2884,100 @@
       if (showFavOnly && !favorites.has(id)) {
         renderList({ keepPage: true });
       }
+    }
+
+    /* ============================================================
+       🔍 试听时的「ID 到底存不存在」体检（2026-10-17 站主要求）
+       ------------------------------------------------------------
+       站主原话：「无效ID太多了，如果点击试听后，页面显示404的话，我们就认为这个 ID 无效，
+                 请做出相关功能（玩家想要试听，需要加速器）」。
+       为什么必须由**我们自己的后端**去问 Roblox：
+         · Roblox 的官方资产页 create.roblox.com 对**任何** ID 都返回 200（它是 Next.js 单页应用，
+           页面内容由浏览器再拉接口渲染）——直接看这个页面的状态码永远看不出 404；
+         · 真正能区分「存在 / 不存在」的是 Roblox 的 economy 接口
+            GET https://economy.roblox.com/v2/assets/<id>/details
+            存在 → 200（带 assetTypeId）；不存在 → 404；ID 格式离谱 → 400；
+            问太快 → 429。实测（2026-10-17，拿已下架名单里的 12 条 + 在架的 8 条对照）：
+            已下架的绝大多数 404，在架的绝大多数 200，区分得很干净；
+         · 这些接口**不带 CORS 头**（Access-Control-Allow-Origin 为空），浏览器里读不到状态码，
+            所以放到 Cloudflare Functions 里转一手（见 functions/api/invalid/verify.js）。
+       三种判定：
+         · invalid  —— Roblox 明确说不存在（404 / 400）→ 这就是「点进去是 404」的那种；
+         · valid    —— Roblox 说存在（200）；
+         · unknown  —— 连不上 Roblox / 被限速 / 返回了看不懂的东西。
+           注意：**没有加速器时多半是 unknown 而不是 invalid** —— 所以绝不会因为
+           「你连不上」就误判一首好歌是无效的（这是刻意留的安全边界）。
+       注意：只查一次不缓存？—— 每次点试听都查会慢（Roblox 接口 300~800ms）。
+           所以每个 ID 的结果在本次会话里记一份（verifiedIds），翻回来再点直接给结论。
+       ============================================================ */
+    const VERIFY_URL = '/api/invalid/verify';
+    /* 'invalid' / 'valid' / 'unknown'，本次会话内的缓存（刷新页面就重查） */
+    const verifiedIds = new Map();
+
+    /* 返回 'invalid' / 'valid' / 'unknown'。任何异常一律 unknown（宁可没检出，也不误判）。 */
+    async function verifyMusicId(id) {
+      const sid = String(id || '').trim();
+      if (!sid) return 'unknown';
+      if (verifiedIds.has(sid)) return verifiedIds.get(sid);
+
+      let status = 'unknown';
+      try {
+        const res = await fetch(VERIFY_URL + '?id=' + encodeURIComponent(sid), {
+          cache: 'no-store'
+        });
+        const data = await res.json().catch(() => null);
+        const s = data && data.data && data.data[0] && data.data[0].status;
+        if (s === 'valid' || s === 'invalid') status = s;
+      } catch (e) {
+        /* 纯静态托管（没有 Functions）或断网 → 静默 unknown，不打扰访客 */
+        status = 'unknown';
+      }
+      /* 只缓存明确的结论（valid / invalid）。
+         'unknown' **刻意不缓存**：那可能是「刚才没挂加速器 / 网络抽了一下」，
+         缓存住会让访客之后挂了加速器再点也永远只看到「查不出」。 */
+      if (status !== 'unknown') verifiedIds.set(sid, status);
+      return status;
+    }
+
+    /* 名单里的这首歌（取歌名 / 分类，用来预填上报弹窗；取不到也没关系） */
+    function songMetaById(id) {
+      const sid = String(id || '');
+      const hit = (Array.isArray(songDatabase) ? songDatabase : []).find(s => String(s.id) === sid);
+      return {
+        name: (hit && hit.name) ? String(hit.name) : '',
+        category: (hit && hit.category) ? String(hit.category) : ''
+      };
+    }
+
+    /* 试听那一下的体检（**不挡试听**：新标签在 previewId 那一步已经打开了，这里只是补一句结论）。
+       查出来无效 → 弹窗告诉访客，并给一颗「✏️ 立刻上报信息出错」把 ID 直接填进上报弹窗。 */
+    async function verifyPreview(payloadId, silent) {
+      const status = await verifyMusicId(payloadId);
+      if (silent) return status;
+      if (status !== 'invalid') return status;
+
+      const sid = String(payloadId);
+      const meta = songMetaById(sid);
+      showToast('🚫 这个 ID 在 Roblox 那边不存在（404），已标记为「无效 ID」');
+
+      if (typeof showConfirm !== 'function') return status;
+      const want = await showConfirm(
+        '🚫 这个 ID 无效',
+        'ID ' + sid + ' 在 Roblox 官方那边打开是 404（资源不存在），' +
+        '所以这个 ID 是无效的 —— 放了也没有声音。\n\n' +
+        '要把它报给站长处理吗？（报完站长会在后台下架它）',
+        { okText: '✏️ 上报这个无效 ID', cancelText: '不用了' }
+      );
+      if (!want) return status;
+
+      /* 已经报过无效的不重复报（以无效为主） */
+      if (invalidReported.has(sid)) {
+        showToast('🚫 这个 ID 你已经报过「无效」了，站长会处理的');
+        return status;
+      }
+      openInfoErrorModal([sid], meta.name, meta.category,
+        '试听时在 Roblox 官方页面打开是 404：这个 ID 已经不存在了。');
+      return status;
     }
 
     /* 打开 Roblox 官方资产页。
@@ -3406,25 +3538,136 @@
     }
 
     /* ============================================================
-       ➕ 添加歌曲ID（2026-10-07 站主要求）
+       ➕ 添加歌曲ID（2026-10-07 站主要求；2026-10-17 三处加强）
        ------------------------------------------------------------
        玩家把自己找到的歌曲 ID 投稿上来 → POST /api/songs/submit
        → 落到 D1 的 song_submissions（待审核）→ 站长在后台「🎶 D1歌曲管理 → 📥 玩家投稿」
        里点「✅ 通过」才会进 songs_extra（那时宝库才搜得到）。
+
+       2026-10-17 按站主要求加的三件事（都是这一段的）：
+         · 分类改成**下拉可选**（原来只能手打），见 fillSubmitCategories()；
+         · 认不出分类时不再算「未分类 / 未完成」，统一记「🧩 玩家提供」，
+           见 resolveSubmitCategory() 与 functions/api/songs/submit.js；
+         · ID 必须是**纯数字**：写成英文、1234 这种捣乱的一律弹窗拦下
+           （弹窗文案是站主指定的），见 warnJunkSongIds()。
        ============================================================ */
+
+    /* 认不出分类时统一用的名字（英文提交服务端也用同一个字面量） */
+    const CAT_PLAYER_PROVIDED = '🧩 玩家提供';
+    /* 下拉里「自己写一个」那一项的值（不是真分类，只用来切换出输入框） */
+    const CAT_CUSTOM_OPTION = '__custom__';
+
+    /* 站内已有的分类（取自 data/roblox_music.json 的 category 去重结果）。
+       为什么写死：宝库页的主数据是从 data/roblox_music.json 抽出来的，
+       D1 里还有后台自己加的；写死这一份当**下拉的兜底与排序依据**，
+       再叠加上数据里真实出现过的分类，就既稳定又不会漏。 */
+    const CATEGORY_WHITELIST = [
+      '中文流行', '英文热门', '电子舞曲', '古风国风', '搞笑音效', '剧情情绪',
+      '游戏动漫', '舒缓治愈', '古典器乐', '恐怖紧张', '摇滚金属', '嘻哈说唱',
+      '音效素材', '影视节日'
+    ];
+
+    /* 打开弹窗时把下拉填好：
+       ① 默认选中「🧩 玩家提供」；
+       ② 站内分类按上面那 14 个的顺序排在前面（没有的也留着，免得玩家选不到）；
+       ③ 数据里真实出现过、但不在白名单里的自定义分类追加在后面；
+       ④ 最后永远是「✍️ 其它（自己写）」。
+       每次都重建：数据是异步加载的，第一次打开时可能还没加载完，重建一次就补上了。 */
+    function fillSubmitCategories() {
+      const sel = document.getElementById('submitSongCategory');
+      if (!sel) return;
+
+      const known = [];
+      const seen = Object.create(null);
+      const push = (name) => {
+        const c = String(name || '').trim();
+        if (!c || seen[c]) return;
+        seen[c] = true;
+        known.push(c);
+      };
+      CATEGORY_WHITELIST.forEach(push);
+      (Array.isArray(songDatabase) ? songDatabase : []).forEach(s => push(s && s.category));
+
+      sel.innerHTML = '';
+      const def = document.createElement('option');
+      def.value = CAT_PLAYER_PROVIDED;
+      def.textContent = CAT_PLAYER_PROVIDED + '（不确定就选这个）';
+      sel.appendChild(def);
+      known.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name;
+        o.textContent = name;
+        sel.appendChild(o);
+      });
+      const own = document.createElement('option');
+      own.value = CAT_CUSTOM_OPTION;
+      own.textContent = '✍️ 其它（自己写）';
+      sel.appendChild(own);
+
+      sel.value = CAT_PLAYER_PROVIDED;
+      syncSubmitCategoryCustom();
+    }
+
+    /* 「✍️ 其它（自己写）」被选中 → 变出输入框；选回分类 → 收起并清空 */
+    function syncSubmitCategoryCustom() {
+      const sel = document.getElementById('submitSongCategory');
+      const custom = document.getElementById('submitSongCategoryCustom');
+      if (!sel || !custom) return;
+      const isCustom = sel.value === CAT_CUSTOM_OPTION;
+      custom.hidden = !isCustom;
+      if (!isCustom) custom.value = '';
+      else if (!custom.value) custom.focus();
+    }
+
+    /* 最终要提交的分类：
+       下拉选的是真分类 → 用它；选「其它」→ 用输入框里手写的；
+       什么都不填 → 「🧩 玩家提供」（任务 2：认不出 = 玩家提供，不是「未完成」）。 */
+    function resolveSubmitCategory() {
+      const sel = document.getElementById('submitSongCategory');
+      const custom = document.getElementById('submitSongCategoryCustom');
+      let value = sel ? String(sel.value || '').trim() : '';
+      if (value === CAT_CUSTOM_OPTION || !value) {
+        value = custom ? String(custom.value || '').trim() : '';
+      }
+      if (!value || value === CAT_CUSTOM_OPTION) return CAT_PLAYER_PROVIDED;
+      return value.slice(0, 30);
+    }
+
+    /* 「这个 ID 看起来就不是正经音乐 ID」的判定（纯数字 + 9~20 位）。
+       真实的 Roblox 音频 ID 全是纯数字，且没有 9 位以下的
+       （data/roblox_music.json 里 4799 条实测最短 9 位、最长 15 位）；
+       所以英文、`zzz`、`1234`、「中文」这些一眼就不是 ID 的，直接判为捣乱。 */
+    const SONG_ID_OK = /^\d{9,20}$/;
+
+    /* 捣乱 ID 的弹窗警告（文案 2026-10-17 站主指定）。
+       返回 true = 他确认「我明白了，去改」→ 调用方**不要**提交；
+       返回 false = 他点了「仍要提交」→ 我们照收（后台审核拦得住）。 */
+    async function warnJunkSongIds(badIds) {
+      const list = (badIds || []).slice(0, 5).join('、') +
+        (badIds.length > 5 ? ' …（共 ' + badIds.length + ' 个）' : '');
+      return showConfirm(
+        '⚠️ 这些 ID 看起来不是歌曲 ID',
+        '你填的这些「ID」既不是数字，也不是正常的 Roblox 音频 ID：\n' +
+        list + '\n\n' +
+        'Roblox 的音频 ID 全都是纯数字（例如 1876950732）。\n' +
+        '我们十分希望你只是好奇，而不是真的想加入这种歌曲 ID。\n\n' +
+        '如果确实想加，请你回到 Roblox 里找到正确的 ID 再提交。',
+        { okText: '我明白了，去改', cancelText: '仍要提交', danger: false }
+      );
+    }
+
     function openSubmitSong() {
       const nameEl = document.getElementById('submitSongName');
-      const catEl = document.getElementById('submitSongCategory');
       const idsEl = document.getElementById('submitSongIds');
       if (nameEl) nameEl.value = '';
-      if (catEl) catEl.value = '';
       if (idsEl) idsEl.value = '';
+      fillSubmitCategories();
       openModal('submitSongModal');
     }
 
     async function submitSongIds() {
       const name = ((document.getElementById('submitSongName') || {}).value || '').trim();
-      const category = ((document.getElementById('submitSongCategory') || {}).value || '').trim();
+      const category = resolveSubmitCategory();
       const rawIds = ((document.getElementById('submitSongIds') || {}).value || '')
         .split(/[\s,，、;；]+/)
         .map(s => s.trim())
@@ -3433,17 +3676,22 @@
       if (!name) { showToast('歌名写一下吧，管理员好核对'); return; }
       if (rawIds.length === 0) { showToast('至少填一个歌曲 ID'); return; }
 
-      /* 只留合法 ID（1~32 位字母数字下划线连字符），并且去重、限 20 个 */
+      /* 去重 + 限 20 个（服务端单次上限也是 20） */
       const seen = Object.create(null);
       const ids = [];
       rawIds.forEach(v => {
-        if (!/^[A-Za-z0-9_-]{1,32}$/.test(v)) return;
         if (seen[v]) return;
         seen[v] = true;
         if (ids.length < INVALID_CHUNK) ids.push(v);
       });
-      if (ids.length === 0) { showToast('这些看起来不是有效的歌曲 ID'); return; }
-      if (rawIds.length > ids.length) showToast('已自动去掉 ' + (rawIds.length - ids.length) + ' 个重复或不合法的 ID');
+
+      /* 任务 4：明显的捣乱 ID（英文 / 1234 这种）→ 弹窗警告，默认请他去改。
+         warning 返回 true = 「我明白了，去改」→ 直接中止，不提交。 */
+      const badIds = ids.filter(v => !SONG_ID_OK.test(v));
+      if (badIds.length > 0) {
+        const goFix = await warnJunkSongIds(badIds);
+        if (goFix) return;
+      }
 
       const btn = document.getElementById('confirmSubmitSong');
       if (btn) btn.disabled = true;
@@ -3468,7 +3716,7 @@
 
       if (btn) btn.disabled = false;
       closeModal('submitSongModal');
-      showToast('✅ 已投稿 ' + ids.length + ' 个 ID，等站长审核通过就会出现在宝库里');
+      showToast('✅ 已投稿 ' + ids.length + ' 个 ID（分类：' + category + '），等站长审核通过就会出现在宝库里');
     }
 
     /* 事件绑定（bindControls 里调用一次） */
@@ -3512,6 +3760,15 @@
       if (openSong) openSong.addEventListener('click', openSubmitSong);
       if (cancelSong) cancelSong.addEventListener('click', () => closeModal('submitSongModal'));
       if (confirmSong) confirmSong.addEventListener('click', submitSongIds);
+      /* 2026-10-17：分类下拉选「✍️ 其它（自己写）」时要变出手写输入框。
+         下拉本身每次打开都会被 fillSubmitCategories() 重建，所以这里监听**容器**的
+         change 事件（委托），重建后依然有效。 */
+      const songForm = document.querySelector('#submitSongModal .info-err-form');
+      if (songForm) {
+        songForm.addEventListener('change', e => {
+          if (e.target && e.target.id === 'submitSongCategory') syncSubmitCategoryCustom();
+        });
+      }
     }
 
     /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑

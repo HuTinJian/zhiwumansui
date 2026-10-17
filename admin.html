@@ -261,8 +261,15 @@
     }
     .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
-    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
+    /* 2026-10-17：手动下架原来靠 margin-left:auto 顶到最右；现在它右边多了「🔍 批量体检」
+       一颗按钮，改成让**最右那颗**（体检）吃掉这个 auto，两颗贴在一起更整齐。
+       【回退办法】把 .btn-scan-validity 那条 margin-left:auto 删掉、
+       把 .btn-manual-remove 那条加回来即可。 */
+    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; }
     .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
+    .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); margin-left: auto; }
+    .invalid-bar .btn-scan-validity:hover { background: var(--bg-tint); color: var(--primary); }
+    .invalid-bar .btn-scan-validity:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* 待处理行的勾选框（观感跟原来那枚圆形勾选框一致，反馈面板下线后搬过来） */
     .invalid-pick { display: inline-flex; align-items: center; flex-shrink: 0; cursor: pointer; }
@@ -309,6 +316,11 @@
     .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-2px); }
     .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: #fff; }
     .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-2px); }
+    /* ✏️ 修改信息（2026-10-17 新增）：信息出错那一栏的主操作，
+       用金黄色（跟「➕ 添加歌曲 / ✏️ 信息出错」同一族），一眼能看出是「改」不是「删 / 下架」。
+       【回退办法】删掉这两行即可（按钮会退回默认外观，功能不受影响）。 */
+    .list-item .actions .btn-info-edit { background: var(--gold, #dfa63a); color: #4a3410; font-weight: 700; }
+    .list-item .actions .btn-info-edit:hover { background: #f0c674; transform: translateY(-2px); }
 
     .stat-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
@@ -474,6 +486,28 @@
     }
     #manualRemoveModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #manualRemoveModal .import-status.err { color: var(--danger); font-weight: 600; }
+
+    /* ✏️ 修改信息弹窗（2026-10-17 新增）：预填玩家报上来的歌名 / 分类。
+       宽度跟「手动下架」那类弹窗一致；ID 与玩家说明只读，用浅底块显示。
+       【回退办法】删掉这四条规则即可（弹窗结构本身删不删都不影响其它样式）。 */
+    #infoEditModal .modal-content { max-width: 560px; }
+    #infoEditModal .info-edit-id {
+      font-family: 'Courier New', monospace; font-size: 0.95rem; font-weight: 700;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-soft); color: var(--text);
+      word-break: break-all;
+    }
+    #infoEditModal .info-edit-note {
+      font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-soft); color: var(--text-light);
+    }
+    #infoEditModal .import-status {
+      font-size: 0.85rem; margin: 10px 0; min-height: 20px;
+      color: var(--text-light); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+    }
+    #infoEditModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
+    #infoEditModal .import-status.err { color: var(--danger); font-weight: 600; }
 
     /* 两个「单个录入」弹窗（鸣谢 / 赞助者）保持同一个宽度
        （原来还有第三个「添加歌曲」弹窗，2026-09-29 用户要求去掉那个按钮，弹窗一并删除） */
@@ -879,6 +913,10 @@
                 <!-- 2026-10-05 站主要求补回「站主自己下架」的能力：没人上报、但你知道这 ID 不能用时，
                      走这颗「手动下架」（直接写已下架名单，不进「待处理上报」）。 -->
                 <button class="btn-manual-remove" id="manualRemoveBtn">➕ 手动下架 ID</button>
+                <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：
+                     拿服务端去问 Roblox「这些 ID 到底还在不在」，把 404 的挑出来一键下架。
+                     接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。 -->
+                <button class="btn-scan-validity" id="scanValidityBtn">🔍 批量体检无效 ID</button>
               </div>
               <div class="panel-search-row">
                 <input type="text" class="panel-search" id="invalidRemovedSearch"
@@ -921,7 +959,8 @@
               </span>
             </h2>
             <p class="panel-desc">
-              玩家改好的歌名 / 分类和说明都在这儿，改完信息点「🗑️ 删记录」。
+              玩家改好的歌名 / 分类和说明都在这儿：点「✏️ 修改信息」直接改好保存（这是主操作）；
+              这个 ID 要是根本没声音，再用「🚫 确认无效并下架」。
             </p>
             <div class="panel-search-row">
               <input type="text" class="panel-search" id="invalidInfoSearch"
@@ -1179,6 +1218,44 @@
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelManualRemove">取消</button>
         <button class="btn btn-danger" id="confirmManualRemove">✅ 确认下架</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✏️ 修改信息弹窗（2026-10-17 站主要求新增）
+       问题 1 的原话：「使用信息出错后，在后台提示的是是否加入隔离区而不是修改信息」——
+       玩家报「信息出错」是在说「歌名 / 分类不对」，后台该能**直接改**。
+       这个弹窗从「✏️ 信息出错管理」里那颗「✏️ 修改信息」打开，
+       预填玩家改好的值，点「✅ 保存并生效」→ POST /api/songs/add（upsert 歌名 / 分类）
+       → 再把这条上报删掉（js/admin.js 的 handleInfoEdit）。
+       【回退办法】连同 js/admin.js 里的 openInfoEditModal / handleInfoEdit 一起删掉即可。 -->
+  <div class="modal" id="infoEditModal">
+    <div class="modal-content">
+      <h2>✏️ 修改信息</h2>
+      <p class="panel-desc">
+        玩家报上来的「正确信息」已经填好了，你可以再改；点「✅ 保存并生效」就会写进 D1 的歌曲列表
+        （宝库页刷新即生效），并自动把这条上报标记为处理完。
+      </p>
+      <div class="form-group">
+        <label>歌曲 ID</label>
+        <div class="info-edit-id" id="infoEditId">—</div>
+      </div>
+      <div class="form-group">
+        <label for="infoEditName">歌名</label>
+        <input type="text" id="infoEditName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="infoEditCategory">分类</label>
+        <input type="text" id="infoEditCategory" maxlength="30" placeholder="例如：中文流行" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>玩家说明</label>
+        <div class="info-edit-note" id="infoEditNote">（玩家没写说明）</div>
+      </div>
+      <div class="import-status" id="infoEditStatus"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelInfoEdit">取消</button>
+        <button class="btn btn-gold" id="confirmInfoEdit">✅ 保存并生效</button>
       </div>
     </div>
   </div>
@@ -1810,10 +1887,13 @@
     }
 
     /* 智能分类：先关键词，再拟声词，最后按文字种类兜底（日韩文→游戏动漫、
-       有汉字→中文流行、纯英文→英文热门）。返回的一定是站点现有的分类之一。 */
+       有汉字→中文流行、纯英文→英文热门）。
+       2026-10-17 站主要求：「如果识别不出是什么类型，就默认为【玩家提供】，
+       而不是『未完成』」——所以最后一档兜底从「未分类」改成「🧩 玩家提供」。
+       【回退办法】把下面两处 '🧩 玩家提供' 改回 '未分类' 即可。 */
     function guessCategory(name) {
       const raw = String(name || '').trim();
-      if (!raw || raw === '未知歌名') return '未分类';
+      if (!raw || raw === '未知歌名') return '🧩 玩家提供';
       const lower = raw.toLowerCase();
 
       for (const rule of CATEGORY_RULES) {
@@ -1829,7 +1909,7 @@
       if (kana > 0 || hangul > 0) return '游戏动漫';   /* 日文 / 韩文，多半是番剧或游戏曲 */
       if (han > 0) return '中文流行';
       if (latin >= 2) return '英文热门';
-      return '未分类';
+      return '🧩 玩家提供';
     }
 
     /* 解析粘贴进来的文本，能认的形式（混着贴也行）：

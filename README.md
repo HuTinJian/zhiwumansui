@@ -59,7 +59,7 @@
 │       ├── auth/              login.js（登录）/ check.js（登录态）/ logout.js（退出）
 │       ├── songs/             list.js / add.js / delete.js / clear.js / export.js
 │       ├── quarantine/        list.js / import.js / delete.js（已下架名单，界面上叫「已下架」）
-│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销自己的上报）/ list.js（后台看）/ handle.js（下架·忽略·恢复）
+│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销自己的上报）/ list.js（后台看）/ handle.js（下架·删记录·恢复）/ **verify.js（体检 ID 存不存在，2026-10-17 新增）**
 │       ├── hot/               list.js（公开榜单）/ report.js（上报）
 │       ├── visit/             stats.js（渠道统计）/ report.js（上报）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
@@ -1101,3 +1101,120 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 都是真浏览器 + 真请求体；连同 10 个既有用例一起跑，**合计 314 项全绿**。
 此外花费数字 **`¥182.03` → `¥184.47`**，核对日期改成 **`2026-10-09`**
 （`js/common.js` 的 `SITE_COST.amount` + `index.html` 兜底 + 这个 README 第 11 节那条流水）。
+
+---
+
+### 13）2026-10-17 这一轮改了什么（问题 1 条 + 任务 4 条）
+
+站主一次列了 1 个问题 + 4 件事，逐条对应如下。
+
+**①【问题】信息出错的上报，后台该提示「修改信息」，不是「加入隔离区」**
+
+站主原话：「使用信息出错后，在后台提示的是是否加入隔离区而不是修改信息」。
+原来「✏️ 信息出错管理」每行只有两颗按钮（`🚫 确认无效并下架` / `🗑️ 删记录（处理完）`）
+—— 玩家报的是「歌名 / 分类不对」，后台却只问要不要下架，等于没回答玩家。
+
+- 前台：`roblox_music.html` 的那颗按钮**本来就叫**「✏️ 信息出错」，弹窗也预填了歌名 / 分类
+  （2026-10-07 就是这样），这部分没变，是后台缺那一环。
+- 后台（本次新增）：`renderInvalidInfo()` 每行**第一颗**按钮改成 `✏️ 修改信息`
+  （`data-id/name/category/note`），点开 `#infoEditModal` 弹窗预填玩家改好的值，
+  点「✅ 保存并生效」→ `POST /api/songs/add`（本来就是 upsert：同 ID 只更新歌名 / 分类）
+  → 再 `handleInvalidAction(id, 'delete-records')` 把这条上报标记处理完并通知上报者
+  （见 `js/admin.js` 的 `openInfoEditModal()` / `handleInfoEdit()`）。
+- ⚠️ 一个必须说清的边界：保存只写 **D1 的 `songs_extra`**。宝库里 4700+ 首主数据在
+  静态文件 `data/roblox_music.json` 里，网页端改不了它 —— 所以弹窗里明确写了这一点，
+  真要改主数据那份得用后台「📤 导出」+ 桌面上的合并工具。
+- 面板说明也改了：从「改完信息点『🗑️ 删记录』」改成
+  「点『✏️ 修改信息』直接改好保存（**这是主操作**）；这个 ID 要是根本没声音，再用『🚫 确认无效并下架』」。
+
+**②【任务】游客添加歌曲时，类型可以继续选择（如「中文流行」）**
+
+`roblox_music.html` 的「➕ 添加歌曲ID」弹窗原来分类是**纯手打**输入框
+（写错字就没了，不写就变「未分类」）。现在改成 `<select>` 下拉：
+
+- 默认项 = `🧩 玩家提供（不确定就选这个）`；
+- 其余 = 站内 14 个分类（`CATEGORY_WHITELIST`）+ 宝库数据里出现过的自定义分类，
+  顺序稳定（写死白名单在前），每次 `openSubmitSong()` 时由 `fillSubmitCategories()` 重建，
+  所以数据是异步加载回来也不会漏；
+- 最后一项 `✍️ 其它（自己写）` → 变出 `#submitSongCategoryCustom` 手写框
+  （`syncSubmitCategoryCustom()`，监听挂在表单容器上，重建下拉也不会失效）。
+
+**③【任务】认不出类型就默认【玩家提供】，而不是「未完成」**
+
+「未完成」在代码里其实不存在，站主指的应该是数据里的 `未分类`（以及兜底留空）。
+本次统一成一个字面量 **`🧩 玩家提供`**，五处一起改（注释里互相点名，改一处要全改）：
+
+| 位置 | 作用 |
+| --- | --- |
+| `functions/api/songs/submit.js` | 玩家投稿：空 / `未分类` / `未完成` → 玩家提供 |
+| `functions/api/songs/submissions.js` | 后台「✅ 通过」投稿时再归一一次（老数据也不会漏） |
+| `functions/api/songs/add.js` | 后台加歌 / 修改信息保存的最后一道兜底 |
+| `functions/api/songs/list.js` | D1 列表接口的空分类兜底 |
+| `admin.html` 的 `guessCategory()` | 「➕ 添加歌曲」智能分类**最后一档**兜底（原来 `未分类`） |
+| `roblox_music.html` / `js/admin.js` | 前端合并数据与展示时的兜底（`normalizeSongCategory()`） |
+
+> 注意：`/api/invalid/list`、`/api/quarantine/list` 里的 `未分类` **没动** ——
+> 那是「这条上报没填分类」，跟歌曲分类不是一回事。
+
+**④【任务】试听发现 404 就认定 ID 无效（新增体检功能）**
+
+站主原话：「无效ID太多了，如果点击试听后，页面显示404的话，我们就认为这个 ID 无效，
+请做出相关功能（玩家想要试听，需要加速器）」。
+
+- **为什么必须走服务端**：宝库页试听跳的是 `create.roblox.com/store/asset/<id>`，
+  那是 Next.js 单页应用 —— **任何 ID 都返回 200**（2026-10-17 实测：有效 ID、不存在的 ID、
+  `id=0`、`id=zzzzzzzz`，HEAD 全是 200），所以「页面显示 404」在浏览器里读不到。
+  真正能区分的是 `GET https://economy.roblox.com/v2/assets/<id>/details`：
+  存在 → 200、不存在 → 404、格式离谱 → 400、问太快 → 429（实测对照：下架名单里多为 404、
+  在架的多为 200）。而这个接口**没有 CORS 头**，浏览器读不到状态码 → 只能服务端代查。
+- 新增 `functions/api/invalid/verify.js`：`GET ?id=` 单条 / `?ids=` 批量（≤20），
+  同源校验 + 单 IP 10 分钟 120 次限速，返回 `{id, status, name}`，
+  `status ∈ valid / invalid / unknown`。
+- **安全边界（刻意留的）**：只有 Roblox **明确回 404** 才算 `invalid`；
+  连不上 / 超时 / 429 / 403 / 400 / 5xx 一律 `unknown`。
+  这样「没挂加速器、服务端连不上 Roblox」永远不会把一首好歌判成无效。
+- 前台（`roblox_music.html`）：点「🔗 试听」**照旧立刻打开**（不让访客等网络），
+  同时 `verifyPreview()` 在后台体检一次；判为无效就弹窗说明
+  「ID 在 Roblox 官方那边打开是 404」，并给一颗「✏️ 上报这个无效 ID」→
+  直接打开信息出错弹窗（ID / 歌名 / 说明都填好）。结果按会话缓存，**但 `unknown` 不缓存**
+  （挂了加速器再点能重新查）。
+- 后台（`admin.html` 的「✅ 已下架」那一栏）：新增「🔍 批量体检无效 ID」按钮
+  （`js/admin.js` 的 `scanSongsValidity()`）——把 D1 歌曲 + 主数据的 ID 按 20 个一批送检，
+  **只列出明确 404 的**，先给站长看统计（存在 / 不存在 / 查不出三档）再确认，
+  确认后走已有的 `handleInvalidAction(ids, 'remove')` 一键下架（可随时恢复上架）。
+  单次上限 500 个 ID、必须人工触发（不做定时体检），理由：整库体检是 25 次 Functions 调用。
+
+**⑤【任务】游客添加的歌曲 ID 必须是正经 ID，捣乱的弹窗警告**
+
+- 规则：**9~20 位纯数字**（`/^\d{9,20}$/`）。依据：真实 Roblox 音频 ID 全是纯数字，
+  且 `data/roblox_music.json` 里 4799 条实测最短 9 位、最长 15 位。
+  于是 `abc` / `zzz` / `1234` / `1.23` / 负数 / 21 位以上全被拒。
+- 前端（`submitSongIds()`）：先弹窗警告，文案是站主指定的：
+  > 我们十分希望你只是好奇，而不是真的想加入这种歌曲 ID。
+
+  默认按钮「我明白了，去改」（中止提交），另一颗「仍要提交」才放行（后台审核拦得住）；
+  服务端同时把 `submit.js` 的 `ID_PATTERN` 收紧成同一个正则，
+  所以**就算前端被绕过，脏 ID 也进不了 `song_submissions`**。
+- 边界：这次收紧只影响**新的投稿**；`songs_extra` 里已有的行、以及宝库主数据都不动
+  （否则等于替站主删数据）。
+
+**这一轮的验收（都是真跑，不是看代码）**
+
+| 脚本 | 内容 | 结果 |
+| --- | --- | --- |
+| `.verify/syntax-check-20261017.mjs` | 6 个页面的内联 JS + 7 个 js/functions 文件语法 | 9 段 + 7 文件全过 |
+| `.verify/test-songs-category-20261017.mjs` | 真 import 三个接口 + 假 D1（node:sqlite）跑一遍 | 19/19 |
+| `.verify/verify-invalid-20261017.mjs` | 分类兜底 / ID 口径 / `verifyOne()` 真连 Roblox | 59/59 |
+| `.verify/accept-20261017.mjs` | headless Edge + mock 接口，端到端点完整流程 | 46/46 |
+
+`.verify/accept-20261017.mjs` 覆盖的现场动作：点开「➕ 添加歌曲ID」→ 下拉 14 个分类都在、
+默认玩家提供、选「自己写」能提交自定义分类；填 `abc` / `1234` → 警告窗（含站主指定文案）→
+点「去改」**真的没有发出投稿**；填正常 ID → 真的 `POST /api/songs/submit` 且分类带对；
+点无效 ID 的「🔗 试听」→ 弹「这个 ID 无效」→ 一键上报 → 信息出错弹窗预填好；
+后台「✏️ 修改信息」弹窗预填 → 保存真的写到 `/api/songs/add` 并清掉上报；
+「🔍 批量体检」→ 列出 1 个无效 → 确认 → 真的下架那一个（没误伤正常的）。
+上述两个页面全程 **0 条 JS 报错**。
+
+> 验证脚本都放在 `.verify/`（已在 `.gitignore` 里，不进仓库也不部署）。
+> 本地用 Node 直接跑 `verify.js` 时若报 `fetch failed ... unable to verify the first certificate`，
+> 那是 Node 自带 CA 不认 Roblox 证书链，加 `--use-system-ca` 即可（Cloudflare Workers 无此问题）。

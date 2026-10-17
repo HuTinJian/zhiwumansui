@@ -747,7 +747,7 @@ async function loadInvalid() {
         const rows = data.data.map(it => ({
           id: String((it && it.musicId) || ''),
           name: String((it && it.name) || '') || '未知歌名',
-          category: String((it && it.category) || '') || '未分类',
+          category: normalizeSongCategory(it && it.category),
           count: Number(it && it.count) || 0,
           status: 'pending',
           /* 2026-10-07：一条 ID 可能既被报「无效」又被报「信息出错」，
@@ -962,6 +962,10 @@ function renderInvalidInfo() {
         ${item.lastAt ? ' · <span title="北京时间">🕒 最近上报 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
       </div>
       <div class="actions">
+        <!-- 2026-10-17 站主反馈：「信息出错」这一类里只给「下架 / 删记录」两颗按钮不对 ——
+             玩家报的是「歌名 / 分类不对」，后台该给的提示是**修改信息**，不是加入隔离区。
+             所以这里补一颗「✏️ 修改信息」，它排在最前面（点击后能直接改歌名 / 分类并生效）。 -->
+        <button class="btn-info-edit" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name || '')}" data-category="${escapeHtml(item.category || '')}" data-note="${escapeHtml(item.note || '')}">✏️ 修改信息</button>
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
         <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删记录（处理完）</button>
       </div>
@@ -969,6 +973,14 @@ function renderInvalidInfo() {
     container.appendChild(el);
   });
 
+  container.querySelectorAll('.btn-info-edit').forEach(btn => {
+    btn.addEventListener('click', () => openInfoEditModal({
+      id: btn.dataset.id,
+      name: btn.dataset.name || '',
+      category: btn.dataset.category || '',
+      note: btn.dataset.note || ''
+    }));
+  });
   container.querySelectorAll('.btn-invalid-remove').forEach(btn => {
     btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
   });
@@ -1058,6 +1070,98 @@ function updateInvalidPickInfo() {
   const el = document.getElementById('invalidPendingInfo');
   if (!el) return;
   el.innerHTML = '已选 <strong>' + pickedInvalidIds().length + '</strong> 条';
+}
+
+/* ============================================================
+   ✏️ 修改信息（2026-10-17 站主要求新增）
+   ------------------------------------------------------------
+   站主原话（问题 1）：「使用信息出错后，在后台提示的是是否加入隔离区而不是修改信息」。
+   也就是说：玩家在宝库页报「✏️ 信息出错」（歌名 / 分类不对）时，
+   后台「✏️ 信息出错管理」里该给的**主操作是「修改信息」**，
+   而不是一上来就问他「要不要加入隔离区（下架）」。
+   所以这里补一颗按钮 + 一个弹窗：
+     · 弹窗预填玩家报上来的「正确的歌名 / 分类」和说明，站长可以再改；
+     · 点「✅ 保存并生效」→ POST /api/songs/add（本来就是 upsert：同一个 ID 只更新歌名 / 分类）
+       → 再走 handleInvalidAction(..., 'delete-records') 把这条上报清掉并通知上报者；
+     · ⚠️ 保存只写 D1 的 songs_extra。宝库里那 4000+ 首主数据在
+       data/roblox_music.json 里（静态文件，网页端改不了），所以对那些歌
+       弹窗里会明确写「这首歌在主数据里，保存只会改 D1 那一份」，
+       真正的改法是把导出的 JSON 合并回主数据（桌面上的合并工具）。
+   【回退办法】删掉这一段 + admin.html 里的 #infoEditModal 弹窗 +
+   renderInvalidInfo 里那颗 .btn-info-edit 按钮与它的绑定，即回到原状。
+   ============================================================ */
+
+/* 打开「修改信息」弹窗。data = { id, name, category, note } */
+function openInfoEditModal(data) {
+  const d = data || {};
+  const modal = document.getElementById('infoEditModal');
+  if (!modal) { showToast('弹窗还没加载好，刷新一下再试'); return; }
+
+  const idEl = document.getElementById('infoEditId');
+  const nameEl = document.getElementById('infoEditName');
+  const catEl = document.getElementById('infoEditCategory');
+  const noteEl = document.getElementById('infoEditNote');
+
+  modal.dataset.id = String(d.id || '');
+  if (idEl) idEl.textContent = String(d.id || '—');
+  /* 预填玩家改好的值；玩家没填就退回他自己上报时带的原值 */
+  if (nameEl) nameEl.value = String(d.name || '');
+  if (catEl) catEl.value = normalizeSongCategory(d.category);
+  if (noteEl) noteEl.textContent = String(d.note || '（玩家没写说明）');
+
+  const statusEl = document.getElementById('infoEditStatus');
+  if (statusEl) { statusEl.textContent = ''; statusEl.className = 'import-status'; }
+
+  const okBtn = document.getElementById('confirmInfoEdit');
+  if (okBtn) { okBtn.disabled = false; okBtn.textContent = '✅ 保存并生效'; }
+
+  openModal('infoEditModal');
+  if (nameEl) setTimeout(() => nameEl.focus(), 80);
+}
+
+/* 「✅ 保存并生效」：先写 D1，再把这条上报清掉（清掉时后端会给上报者写通知） */
+async function handleInfoEdit() {
+  const modal = document.getElementById('infoEditModal');
+  if (!modal) return;
+
+  const id = String(modal.dataset.id || '').trim();
+  if (!id) { showToast('没拿到 ID，请关掉重新点一次'); return; }
+
+  const nameEl = document.getElementById('infoEditName');
+  const catEl = document.getElementById('infoEditCategory');
+  const statusEl = document.getElementById('infoEditStatus');
+  const setStatus = (text, type) => {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = 'import-status' + (type ? ' ' + type : '');
+  };
+
+  const name = ((nameEl || {}).value || '').trim();
+  const category = normalizeSongCategory((catEl || {}).value);
+
+  if (!name) { setStatus('⚠️ 歌名不能为空（空着就不知道该叫什么了）', 'err'); return; }
+  if (name.length > 100) { setStatus('⚠️ 歌名最多 100 个字', 'err'); return; }
+
+  const okBtn = document.getElementById('confirmInfoEdit');
+  if (okBtn) { okBtn.disabled = true; okBtn.textContent = '保存中…'; }
+
+  const saved = await addSongToServer({ musicId: id, name, category });
+  if (!saved || saved.ok !== true) {
+    if (okBtn) { okBtn.disabled = false; okBtn.textContent = '✅ 保存并生效'; }
+    setStatus('⚠️ 保存失败：' + ((saved && saved.error) || '网络异常') +
+      '（上报记录没有动，可以重试）', 'err');
+    return;
+  }
+
+  /* 保存成功 → 这条上报就处理完了：删记录（顺带通知上报者「站长看过了」） */
+  try {
+    await handleInvalidAction([id], 'delete-records');
+  } catch (err) { /* handleInvalidAction 自己会提示失败；保存本身已经成功 */ }
+
+  closeModal('infoEditModal');
+  showToast('✅ 已保存：' + name + '（' + category + '）');
+  /* D1 歌曲列表和统计都变了，一起刷新 */
+  loadSongs();
 }
 
 /* 下架（单个 / 批量）：下架 = 全站隐藏，先问一句 */
@@ -1239,6 +1343,131 @@ async function handleManualRemove() {
   }
 }
 
+/* ============================================================
+   🔍 批量体检无效 ID（2026-10-17 站主要求新增）
+   ------------------------------------------------------------
+   站主原话（任务 3）：「无效ID太多了，如果点击试听后，页面显示404的话，
+   我们就认为这个 ID 无效，请做出相关功能」。
+   宝库页那颗是「访客试听时单条体检」；这一颗是**站长在后台整库体检**：
+     · 取 D1 歌曲（songs_extra）+ 主数据 data/roblox_music.json 的所有 ID；
+     · 按 20 个一批丢给 /api/invalid/verify（服务端去问 Roblox 的资产详情接口）；
+     · 只把 Roblox **明确回 404** 的那些挑出来（'unknown' 一律不算，
+       因为「连不上 Roblox」绝不能当成「这首歌无效」）；
+     · 列出来让站长确认，确认后走已有的 handleInvalidAction(ids, 'remove') 一键下架。
+   ⚠️ 为什么只查 D1 + 主数据、且强制确认：每次体检最多消耗
+      上限 500 / 20 = 25 次 Functions 调用（免费额度 10 万/天，跑 40 次就到顶），
+      所以它必须是一次**人为触发**的动作，不做自动定时体检。
+   【回退办法】删掉本函数 + admin.html 里那颗 #scanValidityBtn 与
+      bindInvalidPanel 里的绑定，即可完全移除批量体检。
+   ============================================================ */
+const VERIFY_API = '/api/invalid/verify';
+/* 服务端一次最多收 20 个 ID（见 functions/api/invalid/verify.js 的 MAX_IDS） */
+const VERIFY_CHUNK = 20;
+/* 单次体检的 ID 上限（跟服务端限速 120 次/10 分钟的量级对齐） */
+const VERIFY_MAX_IDS = 500;
+
+async function scanSongsValidity() {
+  const btn = document.getElementById('scanValidityBtn');
+  const setBtn = (text, disabled) => {
+    if (!btn) return;
+    btn.textContent = text;
+    btn.disabled = !!disabled;
+  };
+
+  setBtn('⏳ 收集 ID…', true);
+
+  /* ① D1 歌曲 */
+  const ids = [];
+  const seen = Object.create(null);
+  const push = (v) => {
+    const id = String(v === undefined || v === null ? '' : v).trim();
+    if (!/^[A-Za-z0-9_-]{1,32}$/.test(id) || seen[id]) return;
+    seen[id] = true;
+    ids.push(id);
+  };
+  (songCache || []).forEach(it => push(it && it.id));
+
+  /* ② 主数据（静态 JSON；拉不到就只体检 D1 那部分，不报错） */
+  setBtn('⏳ 读取主数据…', true);
+  try {
+    const res = await fetch('data/roblox_music.json?t=' + Date.now(), { cache: 'no-store' });
+    const raw = await res.json();
+    (Array.isArray(raw) ? raw : []).forEach(it => push(it && it.id));
+  } catch (err) { /* 主数据拿不到：只体检 D1 */ }
+
+  /* ③ 已经下架过的不用再查 */
+  const removed = new Set((invalidRemovedCache || []).map(it => String(it.id)));
+  const targets = ids.filter(id => !removed.has(id)).slice(0, VERIFY_MAX_IDS);
+
+  if (targets.length === 0) {
+    setBtn('🔍 批量体检无效 ID', false);
+    showToast('没有可体检的 ID（D1 和主数据都是空的？）');
+    return;
+  }
+
+  const ok = await showConfirm(
+    '批量体检无效 ID',
+    '将拿这 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」，' +
+    '只有**明确回 404（不存在）**的才会被列出来。\n\n' +
+    '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，几百个 ID 大约要等十几秒到一分钟。\n' +
+    '体检完会先列给你看，确认之后才下架 —— 不会自动动数据。'
+  );
+  if (!ok) { setBtn('🔍 批量体检无效 ID', false); return; }
+
+  const invalid = [];
+  const counts = { valid: 0, invalid: 0, unknown: 0 };
+  let failed = 0;
+  const total = targets.length;
+
+  for (let i = 0; i < total; i += VERIFY_CHUNK) {
+    const chunk = targets.slice(i, i + VERIFY_CHUNK);
+    setBtn('⏳ 体检中 ' + Math.min(i + chunk.length, total) + '/' + total + '（无效 ' + invalid.length + '）', true);
+    try {
+      const res = await fetch(VERIFY_API + '?ids=' + encodeURIComponent(chunk.join(',')), {
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      const data = await res.json().catch(() => null);
+      if (!data || data.ok !== true || !Array.isArray(data.data)) { failed++; continue; }
+      data.data.forEach(row => {
+        const st = row && row.status;
+        if (st === 'invalid') { counts.invalid++; invalid.push(String(row.id)); }
+        else if (st === 'valid') counts.valid++;
+        else counts.unknown++;
+      });
+    } catch (err) {
+      failed++;
+    }
+  }
+
+  setBtn('🔍 批量体检无效 ID', false);
+
+  if (invalid.length === 0) {
+    showToast('✅ 体检完了：' + total + ' 个 ID 里没有发现明确无效的' +
+      '（存在 ' + counts.valid + ' / 查不出 ' + counts.unknown +
+      (failed ? ' / ' + failed + ' 批请求失败' : '') + '）');
+    return;
+  }
+
+  const preview = invalid.slice(0, 10).join('、') + (invalid.length > 10 ? ' …' : '');
+  const wantRemove = await showConfirm(
+    '体检结果：' + invalid.length + ' 个 ID 无效',
+    '共体检 ' + total + ' 个 ID：\n' +
+    '· 存在（正常）' + counts.valid + ' 个\n' +
+    '· 不存在（404，**无效**）' + invalid.length + ' 个\n' +
+    '· 查不出（连不上 Roblox / 被限速，没算无效）' + counts.unknown + ' 个' +
+    (failed ? '\n· ' + failed + ' 批请求失败（重试一次会更准）' : '') + '\n\n' +
+    '无效的那几个：\n' + preview + '\n\n' +
+    '现在就把这 ' + invalid.length + ' 个 ID 下架吗？（在「✅ 已下架」里随时能恢复）'
+  );
+  if (!wantRemove) {
+    showToast('已取消：体检结果没有改动任何数据');
+    return;
+  }
+
+  await handleInvalidAction(invalid, 'remove');
+}
+
 /* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID。
    成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。
    2026-10-07：动作只剩 remove（下架）/ delete-records（删记录）/ restore（恢复上架）。 */
@@ -1352,6 +1581,9 @@ function bindInvalidPanel() {
   /* ➕ 手动下架 ID（2026-10-05）：已下架段那颗按钮 + 极简弹窗 */
   const manualBtn = document.getElementById('manualRemoveBtn');
   if (manualBtn) manualBtn.onclick = openManualRemoveModal;
+  /* 🔍 批量体检（2026-10-17）：整库问一遍 Roblox，把 404 的挑出来让站主一键下架 */
+  const scanBtn = document.getElementById('scanValidityBtn');
+  if (scanBtn) scanBtn.onclick = scanSongsValidity;
   const cancelManual = document.getElementById('cancelManualRemove');
   if (cancelManual) cancelManual.onclick = () => closeModal('manualRemoveModal');
   const confirmManual = document.getElementById('confirmManualRemove');
@@ -1366,6 +1598,13 @@ function bindInvalidPanel() {
     refreshBtn.textContent = '🔄 刷新';
     showToast('✅ 已刷新');
   };
+
+  /* ✏️ 修改信息弹窗（2026-10-17 新增）：取消 / 保存两颗按钮在这里挂一次。
+     列表里的「✏️ 修改信息」按钮是每次重绘后各自绑的（见 renderInvalidInfo）。 */
+  const cancelInfoEdit = document.getElementById('cancelInfoEdit');
+  if (cancelInfoEdit) cancelInfoEdit.onclick = () => closeModal('infoEditModal');
+  const confirmInfoEdit = document.getElementById('confirmInfoEdit');
+  if (confirmInfoEdit) confirmInfoEdit.onclick = handleInfoEdit;
 
   /* ✏️ 信息出错管理那一栏（2026-10-07）：刷新 + 它自己的搜索框 */
   const refreshInfo = document.getElementById('refreshInfoBtn');
@@ -1453,6 +1692,8 @@ async function loadSongs() {
     if (data.ok && Array.isArray(data.data)) {
       list = data.data;
     }
+    /* 2026-10-17：D1 里的歌可能有空分类（老数据）→ 统一显示成「🧩 玩家提供」 */
+    list.forEach(it => { if (it) it.category = normalizeSongCategory(it.category); });
     setStatText('statD1Songs', list.length);
     songCache = list;
     renderSongPage();
@@ -1505,7 +1746,7 @@ async function loadSubmissions() {
     submissionCache = data.data.map(it => ({
       id: String((it && it.musicId) || ''),
       name: String((it && it.name) || '') || '（玩家没填歌名）',
-      category: String((it && it.category) || '') || '未分类',
+      category: normalizeSongCategory(it && it.category),
       count: Number(it && it.count) || 0,
       lastAt: (it && it.lastAt) || ''
     })).filter(it => it.id);
@@ -1664,6 +1905,19 @@ function renderSongPage() {
    （openAddSongModal / resetSongForm / handleAddSong）。
    用户要求去掉那个按钮，弹窗 HTML 和这三个函数一起删了。
    注意：addSongToServer() 还留着 —— 「📥 导入」和它共用同一个 /api/songs/add。 */
+
+/* 2026-10-17 站主要求：认不出分类时统一记「🧩 玩家提供」（不要「未分类」这种像半成品的字眼）。
+   必须与前端 roblox_music.html 的 CAT_PLAYER_PROVIDED、functions/api/songs/submit.js、
+   functions/api/songs/submissions.js 三处字面量一致。
+   注意：只用于**歌曲**（D1 歌曲管理 / 玩家投稿）；已下架、无效上报那几处仍保留「未分类」，
+   那是「这条上报没填分类」的意思，跟歌曲分类不是一回事。 */
+const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
+
+function normalizeSongCategory(raw) {
+  const c = String(raw || '').trim();
+  if (!c || c === '未分类' || c === '未完成') return CATEGORY_PLAYER_PROVIDED;
+  return c;
+}
 
 /* 调后端 /api/songs/add（批量导入都用它） */
 async function addSongToServer({ musicId, name, category }) {

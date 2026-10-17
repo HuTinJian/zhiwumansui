@@ -15,6 +15,17 @@ import { toUtcIso } from '../_time.js';
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 const MAX_IDS = 200;
 
+/* 2026-10-17 站主要求：分类认不出 → 「🧩 玩家提供」（不再出现「未分类」这种像半成品的字眼）。
+   必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED、functions/api/songs/submit.js 一致。 */
+const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
+
+/* 把投稿里的分类归一：空 / 「未分类」/「未完成」→ 玩家提供；其余原样（截 30 字） */
+function normalizeSubmissionCategory(raw) {
+  const c = String(raw || '').trim().slice(0, 30);
+  if (!c || c === '未分类' || c === '未完成') return CATEGORY_PLAYER_PROVIDED;
+  return c;
+}
+
 const ACTIONS = ['approve', 'delete'];
 
 function changes(result) {
@@ -123,7 +134,7 @@ export async function onRequestPost(context) {
            ON CONFLICT(music_id) DO UPDATE SET
              name = excluded.name,
              category = excluded.category`
-        ).bind(String(r.music_id), r.name || '', r.category || '未分类', next);
+        ).bind(String(r.music_id), r.name || '', normalizeSubmissionCategory(r.category), next);
       });
 
       await env.DB.batch([

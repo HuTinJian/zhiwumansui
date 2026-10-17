@@ -23,10 +23,22 @@ import {
   turnstileRejection
 } from '../_utils.js';
 
-/* 音乐 ID 形态：1~32 位字母 / 数字 / 下划线 / 连字符 */
-const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
+/* 音乐 ID 形态（2026-10-17 收紧）：
+   站主要求「游客添加的歌曲 ID 要符合，而不是什么英文和 1234 这些捣乱的」——
+   真实的 Roblox 音频 ID 全是**纯数字**（data/roblox_music.json 里 4799 条实测
+   最短 9 位、最长 15 位），所以这里只收 9~20 位纯数字。
+   ⚠️ 这里一收紧，老库里可能残留的非数字投稿就永远进不了 songs_extra ——
+      那正是我们要的（它们本来就不是有效 ID）；
+      但**审核通过时**（functions/api/songs/submissions.js）还没有这些行，
+      所以不会影响任何已经在 D1 里的数据。
+   【回退办法】把这一行换回 /^[A-Za-z0-9_-]{1,32}$/ 即可恢复旧口径。 */
+const ID_PATTERN = /^\d{9,20}$/;
 /* 浏览器匿名身份（前端 getClientId()）：小写字母数字 8~64 位 */
 const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
+
+/* 2026-10-17 站主要求：认不出分类时一律记「🧩 玩家提供」，不再留空 / 未完成。
+   这个字面量必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED 一致。 */
+const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
 
 const MAX_ITEMS = 20;
 
@@ -68,13 +80,17 @@ export async function onRequestPost(context) {
       if (!ID_PATTERN.test(id)) continue;
 
       const name = String(item.name || '').trim().slice(0, 100);
-      const category = String(item.category || '').trim().slice(0, 30);
+      /* 2026-10-17：分类只收 30 字以内；空 / 认不出 → 「🧩 玩家提供」 */
+      const rawCategory = String(item.category || '').trim().slice(0, 30);
+      const category = rawCategory && rawCategory !== '未分类' && rawCategory !== '未完成'
+        ? rawCategory
+        : CATEGORY_PLAYER_PROVIDED;
 
       stmts.push(
         env.DB.prepare(
           `INSERT OR IGNORE INTO song_submissions (music_id, name, category, reporter)
            VALUES (?, ?, ?, ?)`
-        ).bind(id, name || null, category || null, validReporter)
+        ).bind(id, name || null, category, validReporter)
       );
     }
 

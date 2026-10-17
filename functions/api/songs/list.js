@@ -23,7 +23,7 @@ export async function onRequestGet(context) {
     const list = (result.results || []).map(r => ({
       id: r.music_id,
       name: r.name,
-      category: r.category || '未分类',
+      category: r.category || '🧩 玩家提供',
       lineIndex: r.line_index || 0
     }));
 
