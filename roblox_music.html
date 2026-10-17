@@ -301,7 +301,10 @@
       white-space: nowrap;
     }
     .myrep-status.pending { background: rgba(220, 107, 130, 0.14); color: var(--primary-ink); }
-    .myrep-status.ignored { background: var(--bg-tint); color: var(--text-muted); }
+    /* 2026-10-17：.ignored 那条规则随「已忽略」一起没有写作对象了，
+       改给新状态 .noted（已审核·无需处理）用 —— 绿色系，跟「已下架」的灰色区分开，
+       让人一眼看出「这条有人看过了」而不是「这条没了」。 */
+    .myrep-status.noted { background: rgba(114, 163, 146, 0.20); color: var(--success-dark); }
     .myrep-status.removed { background: rgba(120, 120, 120, 0.16); color: var(--text-muted); }
     .myrep-status.local { background: rgba(107, 182, 232, 0.16); color: var(--text-light); }
     .myrep-btn {
@@ -3274,12 +3277,25 @@
 
     const MY_REP_STATUS = {
       pending: { text: '⏳ 后台待处理', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
-      removed: { text: '🗑️ 已下架', cls: 'removed', canRestore: false, tip: '已经被管理员下架，这条不用你处理' },
+      /* 2026-10-17 站主反馈：「自己反馈的 ID 想要看到有没有过审核」——
+         凡是后台动过的上报，状态里都带「已审核」四个字，并显示审核时间（见 auditStatusText()）。 */
+      removed: { text: '🚫 已审核·已下架', cls: 'removed', canRestore: false, tip: '管理员已确认这个 ID 无效，并把它从宝库下架了' },
+      /* noted = 2026-10-17 新增：后台「🗑️ 删记录（处理完）」标的态（软删） */
+      noted: { text: '✅ 已审核', cls: 'noted', canRestore: false, tip: '管理员已经看过你这条上报、做了处理（没下架这首歌）' },
       local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
     };
     /* 2026-10-07：「已忽略」这个状态随后台那一段一起下线（没问题的上报后台直接删记录）。
-       D1 里万一还留着历史 ignored 行，页面**不再显示**它们（下面 mergeMyRepRows 里过滤掉），
-       数据由 migrations.sql 第 3 组那句 DELETE 清。 */
+       D1 里万一还留着历史 ignored 行，页面**不再显示**它们（下面 mergeMyRepRows 里过滤掉）；
+       2026-10-17 起这些历史 ignored 行还会被当成「已审核」，老上报不会凭空消失。 */
+
+    /* 审核类状态的时间后缀：把「已审核」变成「已审核 · 10-17 09:20」。
+       为什么要这么细：站主要的就是「有没有过审核」，光写「已审核」看不出是什么时候被看的；
+       pending / local 这类没有审核时间，原样返回。 */
+    function auditStatusText(status, text, updatedAt) {
+      if (status !== 'removed' && status !== 'noted') return text;
+      const when = fmtReportTime(updatedAt);
+      return (when && when !== '—') ? (text + ' · ' + when) : text;
+    }
 
     let myRepRows = [];        /* 当前拉到的全部行（两类都在这，渲染时按标签过滤） */
     let myRepLoading = false;
@@ -3340,17 +3356,20 @@
       (Array.isArray(serverItems) ? serverItems : []).forEach(item => {
         const id = String(item && item.id || '');
         if (!id || seen[id]) return;
-        /* 2026-10-07：「已忽略」下线 —— 历史 ignored 行不再往访客面前摆
-           （后台已经改成「没问题就直接删记录」，这些行由迁移脚本清掉） */
-        if (String(item.status || '') === 'ignored') return;
+        /* 2026-10-07：「已忽略」下线 —— 不再往访客面前摆这个状态。
+           2026-10-17：但**也不许把行藏起来** —— 站主要求「自己反馈的 ID 想要看到有没有过审核」，
+           历史 ignored 行同样是「后台动过」的记录，当成 noted（已审核）显示才不违背这个要求。 */
+        const rawStatus = String(item.status || '');
+        const status = rawStatus === 'ignored' ? 'noted' : (rawStatus || 'pending');
         seen[id] = true;
-        const meta = MY_REP_STATUS[item.status] || MY_REP_STATUS.pending;
+        const meta = MY_REP_STATUS[status] || MY_REP_STATUS.pending;
         const type = item.type === 'info' ? 'info' : 'invalid';
         rows.push({
           id: id,
           name: item.name || '（未记歌名）',
-          status: item.status || 'pending',
-          statusText: meta.text,
+          status: status,
+          /* 审核类状态会带上审核时间（站主要的就是「有没有过审核」，光两个字看不出时间） */
+          statusText: auditStatusText(status, meta.text, item.updatedAt || ''),
           statusCls: meta.cls,
           /* 2026-10-07：带上是哪一类 + 玩家写的说明（信息出错那类会显示在表格里） */
           type: type,
@@ -3443,8 +3462,10 @@
       }
 
       const isInfo = myRepType === 'info';
+      /* 表头时间那列 2026-10-17 补了「审核处」三个字：站主要看「有没有过审核」，
+         而「已审核 · 10-17 09:20」里的时间就是后台处理的那一刻（adminTime 口径一致）。 */
       let html = '<table class="myrep-table"><thead><tr>' +
-        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（北京时间）</th>' +
+        '<th>歌名</th><th>ID</th><th class="myrep-time" title="北京时间">上报时间（审核处显示处理时间）</th>' +
         (isInfo ? '<th>你写的说明</th>' : '') +
         '<th>状态</th><th>操作</th>' +
         '</tr></thead><tbody>';

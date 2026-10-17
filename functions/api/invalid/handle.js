@@ -7,10 +7,12 @@
      clear-ignored  清空已忽略段
    2026-10-07 站主要求「『已忽略』其实没必要，没有问题的上报的 ID 直接删除后台记录就行」：
      · 去掉 ignore / clear-ignored 两个动作；
-     · 新增 delete-records：把待处理里那条 ID 的上报记录**真删掉** ——
-       删完之后，上报的人在他自己的「问题上报」里也就看不到这个 ID 了
-       （页面上列的就是这同一张表），而歌本身照旧留在宝库里能搜到。
-       ⚠️ 不碰 quarantine_admin、不碰 songs_extra：只是「这条上报不作数」。
+     · 新增 delete-records：把待处理里那条 ID 移出「待处理」——
+       2026-10-07 当时是**真删行**；2026-10-17 站主又说「自己反馈的 ID 想要看到有没有过审核」，
+       于是改成**软删**：status 标成 'noted'（已审核·无需处理），行留在表里。
+       后台待处理只查 pending，所以站主那边看到的还是「这条没了」，但上报者查自己的上报表
+       还能看到结果（GET /api/invalid/mine）。歌本身照旧留在宝库里能搜到。
+       ⚠️ 不碰 quarantine_admin、不碰 songs_extra：只是「这条上报处理完了」。
    2026-10-07 同日站主又要求「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示」：
      · remove / delete-records 两个动作都会先给**报过这个 ID 的人**写一条 report_notices
        （kind = removed / deleted），访客下次打开页面时由 js/common.js 弹我们自己的提示。
@@ -122,17 +124,28 @@ export async function onRequestPost(context) {
       /* changed = 本次真正新写进「已下架」的条数（原本就已下架的不会再算一次） */
       changed = changes(results[0]);
     } else if (action === 'delete-records') {
-      /* 2026-10-07：这条上报不作数 → 把记录真删掉（不是打标记）。
-         ⚠️ 顺序不能反：**先给上报的人写通知**（kind='deleted'），再删记录 ——
-         记录一删就查不到 reporter 了，通知也就无从写起。
-         只删这一张表：宝库里的歌、已下架名单、D1 加的歌都不受影响。
-         删完上报者自己的「📌 问题上报」里也就没有这个 ID 了 —— 那是同一张表。 */
+      /* 2026-10-07：这条上报不作数 → 不进「待处理」了。
+         2026-10-17 站主反馈：「无效反馈时，自己反馈的 ID 想要看到有没有过审核」——
+         所以这里**不再把行真删掉**，改成把状态标成 'noted'（已审核·无需处理）：
+           · 后台「待处理 / 累计上报」都只查 status='pending'，标了 noted 就自动从待处理里消失，
+             站主的体验跟原来「删掉了」完全一样；
+           · 但上报者那边查 GET /api/invalid/mine 还能看到这一行 + 审核结果，
+             这正是站主要的「能查到自己报的过没过审核」。
+         ⚠️ 顺序与语义：先写通知（kind='deleted'，访客下次打开页面弹一次），
+            再把 pending 标成 noted。为什么要写通知：标状态是**静默**的，
+            不弹一下的话「我报的 ID 被审核了」这件事永远没人告诉他。
+         ⚠️ 只动 status='pending' 的行：已经被「确认无效并下架」标成 removed 的行保持原样
+            （那是另一条链的结果，不该被这次操作覆盖）。
+         ⚠️ 这条链**只碰 invalid_reports 一张表**：宝库里的歌、已下架名单、D1 加的歌都不受影响。
+         【回退办法】把下面的 UPDATE ... SET status='noted' 换回原来的
+            `DELETE FROM invalid_reports WHERE music_id IN (...)` 即可恢复「真删」。 */
       const results = await env.DB.batch([
         env.DB.prepare(
           `INSERT INTO report_notices (reporter, music_id, name, kind)
            SELECT DISTINCT r.reporter, r.music_id, r.name, 'deleted'
              FROM invalid_reports r
             WHERE r.music_id IN (SELECT value FROM json_each(?))
+              AND r.status = 'pending'
               AND r.reporter <> ''
               AND NOT EXISTS (
                 SELECT 1 FROM report_notices n
@@ -140,8 +153,10 @@ export async function onRequestPost(context) {
               )`
         ).bind(idJson),
         env.DB.prepare(
-          `DELETE FROM invalid_reports
-            WHERE music_id IN (SELECT value FROM json_each(?))`
+          `UPDATE invalid_reports
+              SET status = 'noted', updated_at = datetime('now', 'localtime')
+            WHERE status = 'pending'
+              AND music_id IN (SELECT value FROM json_each(?))`
         ).bind(idJson)
       ]);
       changed = changes(results[1]);

@@ -39,9 +39,12 @@ export async function onRequestGet(context) {
 
     /* 按时间倒序：最近上报的排最前（2026-10-05 站主要求「按时间排序，从最近到最后」）。
        created_at 是 UTC（见 ../_time.js 的说明），同一秒内再按 id 倒序兜底。
-       2026-10-07：多带回 type 与 note —— 前端「问题上报」按「🚫 无效ID / ✏️ 信息出错」分两个标签。 */
+       2026-10-07：多带回 type 与 note —— 前端「问题上报」按「🚫 无效ID / ✏️ 信息出错」分两个标签。
+       2026-10-17：再带回 updated_at —— 站主要求「自己反馈的 ID 想要看到有没有过审核」，
+       审核时间就是这一行的 updated_at（后台处理时会写 datetime('now','localtime')），
+       前端显示成「已审核 · 10-17 09:20」，让人一眼看出是什么时候被看过的。 */
     const result = await env.DB.prepare(
-      `SELECT music_id, name, category, status, type, note, created_at
+      `SELECT music_id, name, category, status, type, note, created_at, updated_at
          FROM invalid_reports
         WHERE reporter = ?
         ORDER BY created_at DESC, id DESC
@@ -52,13 +55,18 @@ export async function onRequestGet(context) {
       id: String(row.music_id),
       name: row.name || '',
       category: row.category || '',
-      /* pending = 后台还没处理（访客可自行恢复）；removed = 已下架 */
+      /* pending = 后台还没处理（访客可自行恢复）
+         removed = 已审核·已下架（后台确认无效）
+         noted   = 已审核·无需处理（2026-10-17 起，「🗑️ 删记录」标的就是这个）
+         ignored = 已忽略（历史遗留，前端不显示） */
       status: String(row.status || 'pending'),
       /* invalid = 🚫 无效ID；info = ✏️ 信息出错（老数据没有 type 列，一律按 invalid 算） */
       type: String(row.type || 'invalid') === 'info' ? 'info' : 'invalid',
       note: row.note || '',
       /* 带时区的 UTC ISO（…Z）：客户端据此换算成北京时间显示，不会再差 8 小时 */
-      createdAt: toUtcIso(row.created_at)
+      createdAt: toUtcIso(row.created_at),
+      /* 审核（处理）时间：pending 时它跟 created_at 一样，没有意义，前端不显示 */
+      updatedAt: toUtcIso(row.updated_at)
     }));
 
     return json({ ok: true, items, count: items.length });

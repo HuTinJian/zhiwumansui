@@ -261,11 +261,12 @@
     }
     .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
-    /* 2026-10-17：手动下架原来靠 margin-left:auto 顶到最右；现在它右边多了「🔍 批量体检」
-       一颗按钮，改成让**最右那颗**（体检）吃掉这个 auto，两颗贴在一起更整齐。
-       【回退办法】把 .btn-scan-validity 那条 margin-left:auto 删掉、
-       把 .btn-manual-remove 那条加回来即可。 */
-    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; }
+    /* 2026-10-17：手动下架（「✅ 已下架」栏里唯一那颗）继续靠 margin-left:auto 顶到最右。
+       「🔍 批量体检无效 ID」当天从这一栏挪到了「🚫 待处理上报」栏 ——
+       它体检的是**还没处理的**上报，放在已下架那一栏是站主指出来的错。
+       在待处理那一栏它排最后，同样用 margin-left:auto 跟左边那排批量按钮分开。
+       【回退办法】把两条 margin-left 换回原来的位置（体检那颗挪回 .btn-manual-remove 那栏）。 */
+    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
     .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
     .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); margin-left: auto; }
     .invalid-bar .btn-scan-validity:hover { background: var(--bg-tint); color: var(--primary); }
@@ -868,7 +869,7 @@
                  待处理→下架/忽略、导出=已下架、没人报就手动下架。
                  细节（字段格式、手动下架不占累计上报等）挪进代码注释与 README，界面上不再铺开。 -->
             <p class="panel-desc">
-              访客上报进「待处理」：确认无效就下架；没问题的直接「🗑️ 删除记录」。<br>
+              访客上报进「待处理」：确认无效就下架；没问题的直接「✅ 标记已审核」。<br>
               「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
             </p>
 
@@ -886,7 +887,14 @@
                 <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
                 <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
-                <button class="btn-batch-ignore" id="invalidBatchIgnore">🗑️ 批量删除记录</button>
+                <button class="btn-batch-ignore" id="invalidBatchIgnore">✅ 批量标记已审核</button>
+                <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：拿服务端去问 Roblox
+                     「这些 ID 到底还在不在」，把 404 的挑出来，确认后一键下架。
+                     接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。
+                     【2026-10-17 当天修正】这颗按钮**一开始被我放到了「✅ 已下架」那一栏**，
+                     站主指出那不对：体检的对象是**待审核的**上报（还没处理的那些），
+                     所以挪到「🚫 待处理上报」这一栏；已下架名单本来就是处理过的结果，不需要再体检。 -->
+                <button class="btn-scan-validity" id="scanValidityBtn">🔍 批量体检无效 ID</button>
               </div>
               <!-- 2026-10-05 站主要求：三个分类各自搜索自己的（这一栏只搜「待处理上报」）。
                   匹配 ID / 歌名 / 分类，右边的字会显示「匹配 N 条 / 共 M 条」。 -->
@@ -903,8 +911,10 @@
 
             <!-- ② 已忽略：2026-10-07 站主要求整段删除（原话「『已忽略』其实没必要，
                  没有问题的上报的 ID 直接删除后台记录就行」）——
-                 现在没问题就在「待处理上报」里点「🗑️ 删除记录」，记录真的没了，
-                 上报者自己的「📌 问题上报」里也就看不到这个 ID 了（同一张表）。 -->
+                 现在没问题就在「待处理上报」里点「✅ 标记已审核」，它就从这个「待处理」消失。
+                 ⚠️ 2026-10-17 起「标记已审核」不是真删行：状态标成 noted 留在库里，
+                 上报的人在「📌 我上报的」里能看到「✅ 已审核」+ 处理时间
+                 （站主要求「自己反馈的 ID 想要看到有没有过审核」），后台这边看到的效果跟以前一样。 -->
 
             <!-- ③ 已下架：来自 /api/quarantine/list（旧表沿用不改名，界面文案统一叫「已下架」） -->
             <div class="subpanel" id="invalid-removed">
@@ -913,10 +923,6 @@
                 <!-- 2026-10-05 站主要求补回「站主自己下架」的能力：没人上报、但你知道这 ID 不能用时，
                      走这颗「手动下架」（直接写已下架名单，不进「待处理上报」）。 -->
                 <button class="btn-manual-remove" id="manualRemoveBtn">➕ 手动下架 ID</button>
-                <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：
-                     拿服务端去问 Roblox「这些 ID 到底还在不在」，把 404 的挑出来一键下架。
-                     接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。 -->
-                <button class="btn-scan-validity" id="scanValidityBtn">🔍 批量体检无效 ID</button>
               </div>
               <div class="panel-search-row">
                 <input type="text" class="panel-search" id="invalidRemovedSearch"
@@ -933,7 +939,8 @@
 
         <!-- ✏️ 信息出错管理（2026-10-07 站主要求新增，跟 D1歌曲管理 / 无效音乐ID管理并列）
              玩家在宝库页点「✏️ 信息出错」、把歌名/分类改好（或写一句说明）报上来的都在这里。
-             处理完点「🗑️ 删记录」就行（记录删掉后，他自己那份「📌 问题上报」里也没了）；
+             主操作是「✏️ 修改信息」（改好保存）；也可以「✅ 标记已审核」收工 ——
+             上报的人会在自己的「📌 我上报的」里看到「✅ 已审核」+ 处理时间（2026-10-17 起）；
              如果这个 ID 其实根本没声音，就用「🚫 确认无效并下架」。
              数据跟「🚫 无效音乐ID管理」同一个接口（/api/invalid/list），前端按 infoCount 分栏。 -->
         <div class="subpanel" id="card1-info">

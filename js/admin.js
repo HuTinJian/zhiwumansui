@@ -658,7 +658,8 @@ async function loadRobloxStats() {
                          （quarantine_admin 这张旧表沿用不改名，界面文案统一叫「已下架」）
      · 操作            → POST /api/invalid/handle { ids, action }
          remove          确认无效 → 从全站下架
-         delete-records  这条上报不作数 → **真删记录**（2026-10-07 取代原来的 ignore）
+         delete-records  这条上报不作数 → 标成**已审核**（2026-10-07 取代原来的 ignore；
+                          2026-10-17 从「真删行」改成软删 noted，好让上报者查得到审核结果）
          restore         撤销下架重新上架（已下架 → 🔓 恢复上架）
          （原来的 ignore / clear-ignored 已随「已忽略」那一段一起下线）
      · handle 返回的 changed 只是「受影响行数」（重复执行 remove 也还是 1），
@@ -819,8 +820,11 @@ function renderInvalidSegment() {
   else renderInvalidPending();
 }
 
-/* ① 待处理上报：勾选若干条 → 批量下架 / 批量删除记录
-   2026-10-07：每行还带一个「🗑️ 删除记录」（没问题的上报直接删掉，不是打标记）。
+/* ① 待处理上报：勾选若干条 → 批量下架 / 批量标记已审核
+   2026-10-07：每行还带一个「✅ 标记已审核」（没问题的上报直接处理掉，不是下架）。
+   2026-10-17：文案从「🗑️ 删除记录」改成「✅ 标记已审核」——行为也跟着变：
+   行留在库里、状态标 noted，上报者能查到审核结果（见 handle.js 的 delete-records）。
+   ⚠️ 元素 id 仍是 invalidBatchIgnore / btn-invalid-delete，只改文案，不动 id 与样式类。
    ⚠️ 这里只画**无效上报**（invalidCount > 0）；纯「信息出错」的去「✏️ 信息出错管理」那一栏，
       两个面板各管各的，站长不用在一堆混合数据里挑。 */
 function renderInvalidPending() {
@@ -873,7 +877,7 @@ function renderInvalidPending() {
       </div>
       <div class="actions">
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除记录</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">✅ 标记已审核</button>
       </div>
     `;
     container.appendChild(el);
@@ -900,12 +904,13 @@ function renderInvalidPending() {
 
 /* ② 已忽略：2026-10-07 站主要求整段删除（「没有问题的上报的 ID 直接删除后台记录就行」）——
    原来这里的 renderInvalidIgnored() 整块跟着那一段一起删掉；
-   现在「没问题」= 在待处理里点「🗑️ 删除记录」（handleInvalidAction 的 delete-records）。 */
+   现在「没问题」= 在待处理里点「✅ 标记已审核」（handleInvalidAction 的 delete-records）。 */
 
 /* ②.5 ✏️ 信息出错管理（2026-10-07 站主要求新增，跟「🚫 无效音乐ID管理」并列的第二个子面板）
    ------------------------------------------------------------
    数据来源跟待处理同一份缓存（invalidPendingCache），这里只画 infoCount > 0 的；
-   每行把**玩家改好的歌名 / 分类**和说明摆出来，站长照着改完点「🗑️ 删记录」就收工；
+   每行把**玩家改好的歌名 / 分类**和说明摆出来，站长照着改完点「✏️ 修改信息」保存就收工
+   （保存会顺带把这条标成已审核）；不想改信息、只想处理掉这条，就点「✅ 标记已审核」；
    要是这个 ID 根本没声音，就直接「🚫 确认无效并下架」。 */
 function renderInvalidInfo() {
   const container = document.getElementById('invalidInfoList');
@@ -967,7 +972,7 @@ function renderInvalidInfo() {
              所以这里补一颗「✏️ 修改信息」，它排在最前面（点击后能直接改歌名 / 分类并生效）。 -->
         <button class="btn-info-edit" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name || '')}" data-category="${escapeHtml(item.category || '')}" data-note="${escapeHtml(item.note || '')}">✏️ 修改信息</button>
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删记录（处理完）</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">✅ 标记已审核</button>
       </div>
     `;
     container.appendChild(el);
@@ -1153,7 +1158,7 @@ async function handleInfoEdit() {
     return;
   }
 
-  /* 保存成功 → 这条上报就处理完了：删记录（顺带通知上报者「站长看过了」） */
+  /* 保存成功 → 这条上报就处理完了：标成已审核（顺带通知上报者「站长看过了」） */
   try {
     await handleInvalidAction([id], 'delete-records');
   } catch (err) { /* handleInvalidAction 自己会提示失败；保存本身已经成功 */ }
@@ -1180,20 +1185,22 @@ async function confirmInvalidRemove(ids) {
   handleInvalidAction(list, 'remove');
 }
 
-/* 删除记录（单个 / 批量，2026-10-07 取代原来的「批量忽略」）：
-   站主原话「没有问题的上报的 ID 直接删除后台记录就行」——
-   删掉的是 invalid_reports 里那几条上报记录，歌本身不动（宝库照旧能搜到）。
-   删完之后上报者自己的「📌 问题上报」里也就没有这个 ID 了（同一张表）。 */
+/* 标记已审核（单个 / 批量，2026-10-07 取代原来的「批量忽略」；2026-10-17 从真删改成软删）：
+   站主原话「没有问题的上报的 ID 直接删除后台记录就行」——删掉的是它出现在「待处理」里的资格。
+   ⚠️ 2026-10-17 起**不再真删行**：状态标成 noted，上报者在「📌 我上报的」里能看到
+   「✅ 已审核」+ 处理时间（站主要求「自己反馈的 ID 想要看到有没有过审核」）。
+   歌本身不动（宝库照旧能搜到）。 */
 async function confirmInvalidDelete(ids) {
   const list = (ids || []).filter(Boolean);
-  if (list.length === 0) { showToast('请先勾选要删除记录的上报'); return; }
+  if (list.length === 0) { showToast('请先勾选要处理的上报'); return; }
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   const confirmed = await showConfirm(
-    '删除上报记录',
-    '确定把这 ' + list.length + ' 个 ID 的上报记录删掉吗？\n\n' +
+    '处理完这条上报',
+    '确定把这条（' + list.length + ' 个 ID）标成「已审核」吗？\n\n' +
     preview + '\n\n' +
-    '删除后：这些上报从「待处理」里消失，上报的人在他自己的「📌 问题上报」里也看不到它们了；\n' +
+    '处理完：它就从这个「待处理」里消失，上报的人在「📌 我上报的」里会看到\n' +
+    '「✅ 已审核」+ 处理时间（2026-10-17 起改的：原来是真删行，上报者就查不到结果了）；\n' +
     '歌**不会**被下架，宝库里照旧能搜到（想下架请点「✅ 确认无效并下架」）。'
   );
   if (!confirmed) return;
@@ -1470,7 +1477,8 @@ async function scanSongsValidity() {
 
 /* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID。
    成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。
-   2026-10-07：动作只剩 remove（下架）/ delete-records（删记录）/ restore（恢复上架）。 */
+   2026-10-07：动作只剩 remove（下架）/ delete-records（标记已审核）/ restore（恢复上架）。
+   2026-10-17：delete-records 的返回文案跟着软删一起改（不再说「删除」）。 */
 async function handleInvalidAction(ids, action) {
   const body = { action: action };
   body.ids = (ids || []).filter(Boolean);
@@ -1492,7 +1500,7 @@ async function handleInvalidAction(ids, action) {
 
     let tip;
     if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
-    else if (action === 'delete-records') tip = '🗑️ 已删除 ' + body.ids.length + ' 个 ID 的上报记录（歌保留）';
+    else if (action === 'delete-records') tip = '✅ 已标记 ' + body.ids.length + ' 条上报为「已审核」（歌保留）';
     else tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
     showToast(tip);
 
@@ -1572,7 +1580,8 @@ function bindInvalidPanel() {
   const batchRemove = document.getElementById('invalidBatchRemove');
   if (batchRemove) batchRemove.onclick = () => confirmInvalidRemove(pickedInvalidIds());
 
-  /* 2026-10-07：「🙈 批量忽略」改成「🗑️ 批量删除记录」（元素 id 没变，省得动样式） */
+  /* 2026-10-07：「🙈 批量忽略」改成批量处理（元素 id 没变，省得动样式）；
+     2026-10-17：文案再改成「✅ 批量标记已审核」，跟行为（软删 noted）对齐 */
   const batchDelete = document.getElementById('invalidBatchIgnore');
   if (batchDelete) batchDelete.onclick = () => confirmInvalidDelete(pickedInvalidIds());
 

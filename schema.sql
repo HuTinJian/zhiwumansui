@@ -28,15 +28,18 @@ CREATE TABLE IF NOT EXISTS feedback (
 -- 老库里那五张表请用 README 里的清理 SQL（或 d1-删除玩家社区.sql）手动 DROP。
 
 -- 无效音乐 ID 上报（2026-10-05 新增；替代旧「访客隔离区 + 反馈上传」那条链路）
--- 访客上报 → 管理员在后台确认（remove 写入 quarantine_admin / ignore 标记忽略），
--- status：pending 待处理 | ignored 已忽略 | removed 已下架
+-- 访客上报 → 管理员在后台确认（remove 写入 quarantine_admin / delete-records 标记已审核），
+-- status：pending 待处理 | ignored 已忽略（历史遗留） | removed 已下架
+--         | noted 已审核·无需处理（2026-10-17 新增：后台「🗑️ 删记录」不再是真删行，
+--           改成标这个状态，好让上报者能查到「我报的过没过审核」）
+-- ⚠️ noted 是纯 TEXT 取值，不需要改表结构、不需要跑迁移。
 CREATE TABLE IF NOT EXISTS invalid_reports (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   music_id TEXT NOT NULL,
   name TEXT,
   category TEXT,
   reporter TEXT NOT NULL DEFAULT '',      -- 匿名浏览器身份（前端 getClientId()），用于去重与撤销
-  status TEXT NOT NULL DEFAULT 'pending', -- pending | ignored | removed
+  status TEXT NOT NULL DEFAULT 'pending', -- pending | ignored | removed | noted
   created_at TEXT DEFAULT (datetime('now', 'localtime')),
   updated_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
