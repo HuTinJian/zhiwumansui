@@ -750,6 +750,7 @@ async function loadInvalid() {
           name: String((it && it.name) || '') || '未知歌名',
           category: normalizeSongCategory(it && it.category),
           count: Number(it && it.count) || 0,
+
           status: 'pending',
           /* 2026-10-07：一条 ID 可能既被报「无效」又被报「信息出错」，
              接口给了最近一条的类型与条数，这里带进渲染。 */
@@ -1804,6 +1805,7 @@ function renderSubmissionPage() {
           <span class="type-tag green">📥 玩家投稿${item.count > 1 ? ' ' + item.count + ' 次' : ''}</span>
         </span>
       </div>
+      ${item.note ? '<div class="message">💬 玩家说明：' + escapeHtml(item.note) + '</div>' : ''}
       <div class="meta">
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.lastAt ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}

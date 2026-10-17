@@ -1621,7 +1621,12 @@
         <label for="infoErrName">正确的歌名</label>
         <input type="text" id="infoErrName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
         <label for="infoErrCategory">正确的分类</label>
-        <input type="text" id="infoErrCategory" maxlength="30" placeholder="例如：中文流行（不确定可以留空）" autocomplete="off">
+        <!-- 2026-10-17 站主要求：「信息出错的分类也是选择，也没有其它（自己写的）」——
+             自由输入框改成下拉，只列固定分类，外加第一项「（不确定就留空）」。
+             选项由 fillInfoErrCategories() 在打开弹窗时填；预填值不在列表里会临时补一项。 -->
+        <select id="infoErrCategory">
+          <option value="">（不确定就留空）</option>
+        </select>
         <label for="infoErrNote">说明（选填）</label>
         <textarea id="infoErrNote" maxlength="300" rows="3"
                   placeholder="例如：这个 ID 放出来不是这首歌 / 歌名里有错别字 / 分类应该是摇滚"></textarea>
@@ -1645,6 +1650,11 @@
       <div class="info-err-form">
         <label for="submitSongName">歌名</label>
         <input type="text" id="submitSongName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
+        <!-- 2026-10-17 站主要求（终版）：「选择类型不能有其它」——
+             分类只能从固定列表里选（默认「🧩 玩家提供」+ 站内 14 个分类，打开弹窗时由
+             fillSubmitCategories() 填好）；「✍️ 其它（自己写）」连同手写框已经删掉。
+             【回退办法】要恢复「自己写」：select 末尾加 value="__custom__" 一项、
+             加回 <input id="submitSongCategoryCustom">、恢复 syncSubmitCategoryCustom()。 -->
         <label for="submitSongCategory">分类</label>
         <!-- 2026-10-17 站主要求「游客添加歌曲的类型可以继续选择，如『中文流行』」：
              原来这里是一个**只能手打**的输入框（写错字或不写就变「未分类」）；
@@ -1657,8 +1667,12 @@
         <select id="submitSongCategory">
           <option value="🧩 玩家提供">🧩 玩家提供（不确定就选这个）</option>
         </select>
-        <input type="text" id="submitSongCategoryCustom" maxlength="30"
-               placeholder="自己写一个分类名，例如：中文流行" autocomplete="off" hidden>
+        <label for="submitSongNote">说明（选填）</label>
+        <!-- 2026-10-17 新增：分类不让自己写了，但可以在这里用一句话描述（站主：「这 2 个功能都可以描述」）。
+             存进 D1 的 song_submissions.note（需执行 migrations.sql 第 5 组那句 ALTER；
+             没执行也不报错：投稿照常成功，只是这条描述落不了库）。 -->
+        <textarea id="submitSongNote" rows="3" maxlength="300"
+                  placeholder="想补充的话写在这里，例如：这是纯音乐版 / 歌名可能记得不准"></textarea>
         <label for="submitSongIds">歌曲 ID（一行一个，最多 20 个）</label>
         <textarea id="submitSongIds" rows="3" placeholder="例如：&#10;1876950732&#10;1441450732"></textarea>
       </div>
@@ -2680,7 +2694,9 @@
       const catInput = document.getElementById('infoErrCategory');
       const noteInput = document.getElementById('infoErrNote');
       if (nameInput) nameInput.value = name || '';
-      if (catInput) catInput.value = category || '';
+      /* 2026-10-17：分类变下拉了 —— 先按预填值把选项填好，再选中它 */
+      fillInfoErrCategories(category);
+      void catInput;
       if (noteInput) noteInput.value = note || '';
 
       const ref = document.getElementById('infoErrIds');
@@ -3575,8 +3591,8 @@
 
     /* 认不出分类时统一用的名字（英文提交服务端也用同一个字面量） */
     const CAT_PLAYER_PROVIDED = '🧩 玩家提供';
-    /* 下拉里「自己写一个」那一项的值（不是真分类，只用来切换出输入框） */
-    const CAT_CUSTOM_OPTION = '__custom__';
+    /* 2026-10-17：原来的 CAT_CUSTOM_OPTION（「✍️ 其它（自己写）」那一项的值）
+       和它的手写输入框一起删掉了 —— 站主要求「选择类型不能有其它」。 */
 
     /* 站内已有的分类（取自 data/roblox_music.json 的 category 去重结果）。
        为什么写死：宝库页的主数据是从 data/roblox_music.json 抽出来的，
@@ -3585,7 +3601,12 @@
     const CATEGORY_WHITELIST = [
       '中文流行', '英文热门', '电子舞曲', '古风国风', '搞笑音效', '剧情情绪',
       '游戏动漫', '舒缓治愈', '古典器乐', '恐怖紧张', '摇滚金属', '嘻哈说唱',
-      '音效素材', '影视节日'
+      '音效素材', '影视节日',
+      /* 2026-10-17：库里有 201 首归在「Phonk/DJ」，是站里一直在用的分类，补进来免得选不到。
+         站主明确「不要出现『英文歌』这种分类」→ 下拉**不再从 songDatabase 瞎搂分类**
+         （那会把临时叫法带进选项），只认这份白名单 + 「🧩 玩家提供」；
+         信息出错那边若预填值不在名单里，会临时补一项显示原值。 */
+      'Phonk/DJ'
     ];
 
     /* 打开弹窗时把下拉填好：
@@ -3607,7 +3628,7 @@
         known.push(c);
       };
       CATEGORY_WHITELIST.forEach(push);
-      (Array.isArray(songDatabase) ? songDatabase : []).forEach(s => push(s && s.category));
+      /* 2026-10-17：不再从 songDatabase 补分类（站主要求别出现「英文歌」这种临时叫法）。 */
 
       sel.innerHTML = '';
       const def = document.createElement('option');
@@ -3620,37 +3641,63 @@
         o.textContent = name;
         sel.appendChild(o);
       });
-      const own = document.createElement('option');
-      own.value = CAT_CUSTOM_OPTION;
-      own.textContent = '✍️ 其它（自己写）';
-      sel.appendChild(own);
-
+      /* 2026-10-17：原来这里会追加一项「✍️ 其它（自己写）」——站主要求去掉，整段删除。 */
       sel.value = CAT_PLAYER_PROVIDED;
-      syncSubmitCategoryCustom();
     }
 
-    /* 「✍️ 其它（自己写）」被选中 → 变出输入框；选回分类 → 收起并清空 */
-    function syncSubmitCategoryCustom() {
-      const sel = document.getElementById('submitSongCategory');
-      const custom = document.getElementById('submitSongCategoryCustom');
-      if (!sel || !custom) return;
-      const isCustom = sel.value === CAT_CUSTOM_OPTION;
-      custom.hidden = !isCustom;
-      if (!isCustom) custom.value = '';
-      else if (!custom.value) custom.focus();
+    /* 2026-10-17 新增：「✏️ 信息出错」弹窗的分类也做成下拉（同样没有「其它」）。
+       · 第一项「（不确定就留空）」值为空串（保持原来「不确定可以留空」的行为）；
+       · 后面是站内 14 个分类 + 数据里真实出现过的分类；
+       · 预填值不在列表里时临时补一项，免得 select 落回第一项、把原分类显示错。 */
+    function fillInfoErrCategories(prefill) {
+      const sel = document.getElementById('infoErrCategory');
+      if (!sel) return;
+
+      const names = [];
+      const seen = Object.create(null);
+      const push = (name) => {
+        const c = String(name || '').trim();
+        if (!c || seen[c]) return;
+        seen[c] = true;
+        names.push(c);
+      };
+      CATEGORY_WHITELIST.forEach(push);
+      /* 2026-10-17：不再从 songDatabase 补分类（站主要求别出现「英文歌」这种临时叫法）。 */
+
+      sel.innerHTML = '';
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = '（不确定就留空）';
+      sel.appendChild(blank);
+      names.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name;
+        o.textContent = name;
+        sel.appendChild(o);
+      });
+
+      const want = String(prefill || '').trim();
+      if (want && !names.includes(want)) {
+        const extra = document.createElement('option');
+        extra.value = want;
+        extra.textContent = want + '（原分类）';
+        sel.appendChild(extra);
+      }
+      sel.value = want || '';
     }
+
+    /* 2026-10-17：syncSubmitCategoryCustom() 随「✍️ 其它（自己写）」一起删除
+       —— 分类只能是固定项，不再需要「选到某项才变出输入框」那套逻辑。 */
 
     /* 最终要提交的分类：
        下拉选的是真分类 → 用它；选「其它」→ 用输入框里手写的；
        什么都不填 → 「🧩 玩家提供」（任务 2：认不出 = 玩家提供，不是「未完成」）。 */
     function resolveSubmitCategory() {
+      /* 2026-10-17：不再读手写输入框（已删）。下拉选什么就是什么；
+         什么都没选就兜底「🧩 玩家提供」（任务 2 的口径没变）。 */
       const sel = document.getElementById('submitSongCategory');
-      const custom = document.getElementById('submitSongCategoryCustom');
-      let value = sel ? String(sel.value || '').trim() : '';
-      if (value === CAT_CUSTOM_OPTION || !value) {
-        value = custom ? String(custom.value || '').trim() : '';
-      }
-      if (!value || value === CAT_CUSTOM_OPTION) return CAT_PLAYER_PROVIDED;
+      const value = sel ? String(sel.value || '').trim() : '';
+      if (!value) return CAT_PLAYER_PROVIDED;
       return value.slice(0, 30);
     }
 
@@ -3680,8 +3727,10 @@
     function openSubmitSong() {
       const nameEl = document.getElementById('submitSongName');
       const idsEl = document.getElementById('submitSongIds');
+      const noteEl = document.getElementById('submitSongNote');
       if (nameEl) nameEl.value = '';
       if (idsEl) idsEl.value = '';
+      if (noteEl) noteEl.value = '';
       fillSubmitCategories();
       openModal('submitSongModal');
     }
@@ -3689,6 +3738,8 @@
     async function submitSongIds() {
       const name = ((document.getElementById('submitSongName') || {}).value || '').trim();
       const category = resolveSubmitCategory();
+      /* 2026-10-17：分类不让写了，但玩家可以写一句说明（选填，最多 300 字） */
+      const note = ((document.getElementById('submitSongNote') || {}).value || '').trim().slice(0, 300);
       const rawIds = ((document.getElementById('submitSongIds') || {}).value || '')
         .split(/[\s,，、;；]+/)
         .map(s => s.trim())
@@ -3718,7 +3769,7 @@
       if (btn) btn.disabled = true;
 
       try {
-        const items = ids.map(id => ({ id: id, name: name, category: category }));
+        const items = ids.map(id => ({ id: id, name: name, category: category, note: note }));
         /* 服务端单次最多 20 条（见 functions/api/songs/submit.js），超出就分批 */
         for (let i = 0; i < items.length; i += 20) {
           const res = await zmPostJson('/api/songs/submit', {
@@ -3781,15 +3832,8 @@
       if (openSong) openSong.addEventListener('click', openSubmitSong);
       if (cancelSong) cancelSong.addEventListener('click', () => closeModal('submitSongModal'));
       if (confirmSong) confirmSong.addEventListener('click', submitSongIds);
-      /* 2026-10-17：分类下拉选「✍️ 其它（自己写）」时要变出手写输入框。
-         下拉本身每次打开都会被 fillSubmitCategories() 重建，所以这里监听**容器**的
-         change 事件（委托），重建后依然有效。 */
-      const songForm = document.querySelector('#submitSongModal .info-err-form');
-      if (songForm) {
-        songForm.addEventListener('change', e => {
-          if (e.target && e.target.id === 'submitSongCategory') syncSubmitCategoryCustom();
-        });
-      }
+      /* 2026-10-17：「✍️ 其它（自己写）」删掉后，这里原来那个 change 监听也没用了
+         （它只负责「选到自己写 → 变出输入框」），一并移除。 */
     }
 
     /* 2026-10-05：这里原来是隔离区弹窗的三段逻辑

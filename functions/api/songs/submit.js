@@ -72,6 +72,18 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too many items' }, 400);
     }
 
+    /* 2026-10-17：先探一下 song_submissions 有没有 note 列。
+       ⚠️ 为什么不能只靠 batch 的 try/catch：D1 在 **prepare()** 阶段就检查列，
+       列不存在时是 prepare 抛错，batch 那层根本轮不到（实测踩过）。
+       探不到就退回 4 列写法：投稿永远不许因为「迁移没跑」而失败。 */
+    let hasNote = false;
+    try {
+      await env.DB.prepare('SELECT note FROM song_submissions LIMIT 1').all();
+      hasNote = true;
+    } catch (err) {
+      hasNote = false;
+    }
+
     const stmts = [];
     for (const item of raw) {
       if (!item || typeof item !== 'object') continue;
@@ -80,6 +92,9 @@ export async function onRequestPost(context) {
       if (!ID_PATTERN.test(id)) continue;
 
       const name = String(item.name || '').trim().slice(0, 100);
+      /* 2026-10-17 站主要求「这 2 个功能都可以描述」→ 投稿可带一句说明（≤300 字）。
+         存 song_submissions.note；没这列（迁移没跑）时自动走 4 列写法。 */
+      const note = String(item.note || '').trim().slice(0, 300);
       /* 2026-10-17：分类只收 30 字以内；空 / 认不出 → 「🧩 玩家提供」 */
       const rawCategory = String(item.category || '').trim().slice(0, 30);
       const category = rawCategory && rawCategory !== '未分类' && rawCategory !== '未完成'
@@ -87,10 +102,15 @@ export async function onRequestPost(context) {
         : CATEGORY_PLAYER_PROVIDED;
 
       stmts.push(
-        env.DB.prepare(
-          `INSERT OR IGNORE INTO song_submissions (music_id, name, category, reporter)
-           VALUES (?, ?, ?, ?)`
-        ).bind(id, name || null, category, validReporter)
+        hasNote
+          ? env.DB.prepare(
+              `INSERT OR IGNORE INTO song_submissions (music_id, name, category, reporter, note)
+               VALUES (?, ?, ?, ?, ?)`
+            ).bind(id, name || null, category, validReporter, note || null)
+          : env.DB.prepare(
+              `INSERT OR IGNORE INTO song_submissions (music_id, name, category, reporter)
+               VALUES (?, ?, ?, ?)`
+            ).bind(id, name || null, category, validReporter)
       );
     }
 

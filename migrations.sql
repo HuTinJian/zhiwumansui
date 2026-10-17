@@ -123,3 +123,15 @@ CREATE TABLE IF NOT EXISTS report_notices (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notice_reporter ON report_notices(reporter, seen);
+
+
+-- ---------- 第 5 组：玩家投稿可以带一句「说明」（2026-10-17 新增） ----------
+-- 站主原话：「选择类型不能有其它……但是这 2 个功能都可以描述」——
+-- 「➕ 添加歌曲ID」的分类改成只能从固定列表选之后，玩家还可以写一句话补充
+-- （例如「这是纯音乐版」「歌名可能记得不准」），存这一列。
+-- ⚠️ 这句话只对老库有意义：没执行它，投稿**照常成功**（服务端会探测列、退回 4 列写法），
+--    只是玩家写的那句说明落不了库、后台也看不到。
+-- ⚠️ 重复执行会报 duplicate column name: note —— 那是正常的（说明已经加过了）。
+ALTER TABLE song_submissions ADD COLUMN note TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_song_sub_note ON song_submissions(note);

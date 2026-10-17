@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS quarantine_admin (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+-- 玩家投稿（「➕ 添加歌曲ID」→ 后台「📥 玩家投稿」审核）用的待审核表在 migrations.sql 第 3 组建；
+-- 2026-10-17 起它多一列 note（玩家写的「说明」），见 migrations.sql 第 5 组。
+
 -- 后台加的新歌
 CREATE TABLE IF NOT EXISTS songs_extra (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

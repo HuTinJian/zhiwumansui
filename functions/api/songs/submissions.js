@@ -57,7 +57,10 @@ export async function onRequestGet(context) {
               (SELECT s2.name FROM song_submissions s2
                 WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS latest_name,
               (SELECT s2.category FROM song_submissions s2
-                WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS latest_category
+                WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS latest_category,
+              (SELECT s2.note FROM song_submissions s2
+                WHERE s2.music_id = s1.music_id AND s2.note IS NOT NULL
+                ORDER BY s2.id DESC LIMIT 1) AS latest_note
          FROM song_submissions s1
         WHERE status = 'pending'
         GROUP BY music_id
@@ -70,7 +73,9 @@ export async function onRequestGet(context) {
       name: row.latest_name || '',
       category: row.latest_category || '',
       count: Number(row.submit_count) || 0,
-      lastAt: toUtcIso(row.last_at)
+      lastAt: toUtcIso(row.last_at),
+      /* 2026-10-17：玩家写的「说明」，后台投稿列表要显示（没这列时为空串） */
+      note: row.latest_note || ''
     }));
 
     return json({ ok: true, data, summary: { pendingSongs: data.length } });

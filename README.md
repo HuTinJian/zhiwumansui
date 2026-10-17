@@ -1279,7 +1279,34 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 删掉批量按钮、工具栏空档）**一律不写**——这是 `updates.json` 文件头里的硬规矩。
 `.verify/check-updates-20261017.mjs` 会把 BOM / 内层 JSON / 版本对齐 / 主题色 / 空行一起查（42 项）。
 
-**⑤【任务】花费数字更新**：站主给了 `¥206.60`（核对日期 `2026-10-17`）
+**⑤【任务】分类只能选、不能再写；两个弹窗都能写描述**（站主：「选择类型不能有其它，
+信息出错的分类也是选择，也没有其它（自己写的），但是这 2 个功能都可以描述」）
+
+- 「➕ 添加歌曲ID」：下拉里 **删掉「✍️ 其它（自己写）」** 与它那个手写输入框；
+  下拉来源改成**只认白名单**（14 个站内分类 + `Phonk/DJ` + `🧩 玩家提供`），
+  **不再从 `songDatabase` 里捞分类** —— 否则「英文歌」这种临时叫法会被带进选项。
+- 新增「说明（选填）」textarea（`#submitSongNote`，≤300 字）→ `POST /api/songs/submit` 带 `note`
+  → 存 `song_submissions.note` → 后台「📥 玩家投稿」每行显示「💬 玩家说明」。
+  ⚠️ **不跑迁移也不会坏**：`submit.js` 先 `SELECT note ... LIMIT 1` 探列，
+  没有就自动退回 4 列写法（D1 是 **prepare() 阶段**就报列不存在，靠 batch 的 try/catch 抓不到，实测踩过）。
+  真要让描述落库，去 D1 Console 执行 `migrations.sql` 第 5 组那一句 `ALTER TABLE song_submissions ADD COLUMN note TEXT;`
+  （重复执行报 `duplicate column name: note` 属正常）。
+- 「✏️ 信息出错」：`正确的分类` 从自由输入框改成 **下拉**（`fillInfoErrCategories()`），
+  同样没有「其它」；第一项是「（不确定就留空）」，预填值不在名单里会临时补一项显示原分类。
+  原有的「说明（选填）」保留 —— 这就是「两个功能都能描述」。
+
+**⑥【任务】数据合并（站主给的 5 份后台导出）+ 「英文歌」清零**
+
+- 宝库 `data/roblox_music.json`：**4799 → 4804**，只追加导出里仓库没有的 5 个 ID；
+- **未分类 → 🧩 玩家提供**（站主：「未分类的 ID 弄成玩家提供」）：老行 3 条 + 新行 4 条；
+- `streetcat 106089873864442` 的 `英文歌` → **英文热门**（站主：「不要出现『英文歌』这种分类」），
+  全库复查后**没有任何不在白名单里的分类**；
+- 已下架 `data/admin_quarantine.json`：**174 → 228**，只追加新 ID；
+- `sponsors` / `thanks` 的导出与仓库**逐项一致** → 不动；
+- `thanks-players`（💡 网站创新家：Тишина、臭老鸭）只在 D1（站主已在后台加好），
+  `data/thanks.json` 页面不读，无需同步。
+
+**⑦【任务】花费数字更新**：站主给了 `¥206.60`（核对日期 `2026-10-17`）
 改的还是那三处：`js/common.js` 的 `SITE_COST.amount` / `checkedAt`、
 `index.html` 里 `data-site-cost` 与 `data-site-cost-date` 的兜底、本 README 第 11 节的流水。
 这个数字**只有首页 hero 赞赏码右边那一处**显示，其它页面不写。
