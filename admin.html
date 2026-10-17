@@ -216,7 +216,12 @@
          原来 margin-right:auto + 体检那颗的 margin-left:auto = 两个 auto 平分空白，
          体检按钮被甩到最右、中间一大段空档（站主截图指出）。手机上本来就是这么排的。
          【回退办法】把下面这行改回 `margin-right: auto;`。 */
-      font-size: 0.82rem; color: var(--text-light); flex: 1 0 100%; margin-right: 0;
+      /* 2026-10-17 站主要求「已选 N 条和下面的几个按钮放到同一行，跟之前一样」→
+         恢复成原来的 `margin-right: auto`（它把按钮排推到右边，与以前完全一致）。
+         ⚠️ 关键：这句已经在吃 auto 了，**右边的按钮一律不许再写 margin-left: auto**
+         （两个 auto 会平分空白 → 凭空多出一大段空档，站主当天拿截图指出过）。
+         手机上仍由下面 @media 里的 flex: 1 0 100% 让它独占一行（那是早就有的适配）。 */
+      font-size: 0.82rem; color: var(--text-light); margin-right: auto;
     }
     .invalid-bar .invalid-bar-info strong { color: var(--primary); font-weight: 700; }
     .invalid-bar button {
