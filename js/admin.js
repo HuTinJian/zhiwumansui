@@ -878,7 +878,7 @@ function renderInvalidPending() {
       </div>
       <div class="actions">
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除记录</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}" title="这条上报不作数：ID 其实是对的，是用户瞎报">❌ 无效反馈</button>
       </div>
     `;
     container.appendChild(el);
@@ -973,7 +973,7 @@ function renderInvalidInfo() {
              所以这里补一颗「✏️ 修改信息」，它排在最前面（点击后能直接改歌名 / 分类并生效）。 -->
         <button class="btn-info-edit" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name || '')}" data-category="${escapeHtml(item.category || '')}" data-note="${escapeHtml(item.note || '')}">✏️ 修改信息</button>
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删记录（处理完）</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}" title="这条上报不作数：信息其实没问题，是用户瞎报">❌ 无效反馈</button>
       </div>
     `;
     container.appendChild(el);
@@ -1197,10 +1197,12 @@ async function confirmInvalidDelete(ids) {
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   const confirmed = await showConfirm(
-    '删除上报记录',
-    '确定把这 ' + list.length + ' 个 ID 的上报记录删掉吗？\n\n' +
+    '无效反馈（这条上报不作数）',
+    '确定把这 ' + list.length + ' 条上报标成「无效反馈」吗？\n\n' +
+    '含义：**这条反馈本身无效** —— ID / 信息其实是对的，是用户报错了；\n' +
+    '不是删歌、也不是下架（想下架请点「✅ 确认无效并下架」）。\n\n' +
     preview + '\n\n' +
-    '删除后：这些上报从「待处理」里消失，上报的人在「📌 我上报的」里\n' +
+    '标完之后：这些上报从「待处理」里消失，上报的人在「📌 我上报的」里\n' +
     '会看到「✅ 已审核」+ 处理时间（2026-10-17 为「让上报者能查到审核结果」特意留的痕迹）；\n' +
     '歌**不会**被下架，宝库里照旧能搜到（想下架请点「✅ 确认无效并下架」）。'
   );
@@ -1501,7 +1503,7 @@ async function handleInvalidAction(ids, action) {
 
     let tip;
     if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
-    else if (action === 'delete-records') tip = '🗑️ 已删除 ' + body.ids.length + ' 个 ID 的上报记录（歌保留）';
+    else if (action === 'delete-records') tip = '❌ 已标记 ' + body.ids.length + ' 条为「无效反馈」（ID 保留）';
     else tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
     showToast(tip);
 
