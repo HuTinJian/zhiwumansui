@@ -824,7 +824,8 @@ function renderInvalidSegment() {
    2026-10-07：每行还带一个「✅ 标记已审核」（没问题的上报直接处理掉，不是下架）。
    2026-10-17：文案从「🗑️ 删除记录」改成「✅ 标记已审核」——行为也跟着变：
    行留在库里、状态标 noted，上报者能查到审核结果（见 handle.js 的 delete-records）。
-   ⚠️ 元素 id 仍是 invalidBatchIgnore / btn-invalid-delete，只改文案，不动 id 与样式类。
+   ⚠️ 元素 id 一直是 invalidBatchIgnore / btn-invalid-delete。
+   （2026-10-17 备注：当天我一度把文案改成「✅ 标记已审核」，站主指出那是他没要求的改动 → 已还原。）
    ⚠️ 这里只画**无效上报**（invalidCount > 0）；纯「信息出错」的去「✏️ 信息出错管理」那一栏，
       两个面板各管各的，站长不用在一堆混合数据里挑。 */
 function renderInvalidPending() {
@@ -877,7 +878,7 @@ function renderInvalidPending() {
       </div>
       <div class="actions">
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">✅ 标记已审核</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删除记录</button>
       </div>
     `;
     container.appendChild(el);
@@ -972,7 +973,7 @@ function renderInvalidInfo() {
              所以这里补一颗「✏️ 修改信息」，它排在最前面（点击后能直接改歌名 / 分类并生效）。 -->
         <button class="btn-info-edit" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name || '')}" data-category="${escapeHtml(item.category || '')}" data-note="${escapeHtml(item.note || '')}">✏️ 修改信息</button>
         <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
-        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">✅ 标记已审核</button>
+        <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}">🗑️ 删记录（处理完）</button>
       </div>
     `;
     container.appendChild(el);
@@ -1192,15 +1193,15 @@ async function confirmInvalidRemove(ids) {
    歌本身不动（宝库照旧能搜到）。 */
 async function confirmInvalidDelete(ids) {
   const list = (ids || []).filter(Boolean);
-  if (list.length === 0) { showToast('请先勾选要处理的上报'); return; }
+  if (list.length === 0) { showToast('请先勾选要删除记录的上报'); return; }
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   const confirmed = await showConfirm(
-    '处理完这条上报',
-    '确定把这条（' + list.length + ' 个 ID）标成「已审核」吗？\n\n' +
+    '删除上报记录',
+    '确定把这 ' + list.length + ' 个 ID 的上报记录删掉吗？\n\n' +
     preview + '\n\n' +
-    '处理完：它就从这个「待处理」里消失，上报的人在「📌 我上报的」里会看到\n' +
-    '「✅ 已审核」+ 处理时间（2026-10-17 起改的：原来是真删行，上报者就查不到结果了）；\n' +
+    '删除后：这些上报从「待处理」里消失，上报的人在「📌 我上报的」里\n' +
+    '会看到「✅ 已审核」+ 处理时间（2026-10-17 为「让上报者能查到审核结果」特意留的痕迹）；\n' +
     '歌**不会**被下架，宝库里照旧能搜到（想下架请点「✅ 确认无效并下架」）。'
   );
   if (!confirmed) return;
@@ -1355,15 +1356,23 @@ async function handleManualRemove() {
    ------------------------------------------------------------
    站主原话（任务 3）：「无效ID太多了，如果点击试听后，页面显示404的话，
    我们就认为这个 ID 无效，请做出相关功能」。
-   宝库页那颗是「访客试听时单条体检」；这一颗是**站长在后台整库体检**：
-     · 取 D1 歌曲（songs_extra）+ 主数据 data/roblox_music.json 的所有 ID；
-     · 按 20 个一批丢给 /api/invalid/verify（服务端去问 Roblox 的资产详情接口）；
-     · 只把 Roblox **明确回 404** 的那些挑出来（'unknown' 一律不算，
-       因为「连不上 Roblox」绝不能当成「这首歌无效」）；
-     · 列出来让站长确认，确认后走已有的 handleInvalidAction(ids, 'remove') 一键下架。
-   ⚠️ 为什么只查 D1 + 主数据、且强制确认：每次体检最多消耗
-      上限 500 / 20 = 25 次 Functions 调用（免费额度 10 万/天，跑 40 次就到顶），
-      所以它必须是一次**人为触发**的动作，不做自动定时体检。
+   宝库页那颗是「访客试听时单条体检」；这一颗是**站长在后台批量体检 —— 对象就是
+   「🚫 待处理上报」这一栏里的那些上报**。
+
+   ⚠️ 范围（2026-10-17 站主当天纠正过一次，别再改宽）：
+      只体检 invalidPendingCache（=这一栏列表本身，后台刚拉过的那份）；
+      **不**去读 D1 歌曲、**不**读主数据 data/roblox_music.json、
+      **不**碰「已下架」名单、**不**碰「信息出错管理」那一栏。
+      理由是站主原话：「批量体检无效 ID，是让你检测待处理上报中的，与其它任何地方的都无关」。
+      （我第一版做成了「整库体检」，被站主指出做宽了。）
+
+   流程：把这一页（最多 VERIFY_MAX_IDS 个）ID 按 20 个一批丢给 /api/invalid/verify
+        （服务端去问 Roblox 的资产详情接口，见 functions/api/invalid/verify.js）→
+        只挑出 Roblox **明确回 404** 的那些（'unknown' 一律不算，因为「连不上 Roblox」
+        绝不能当成「这个 ID 无效」）→ 列出来让站长确认 → 走已有的
+        handleInvalidAction(ids, 'remove') 一键下架（下架的可在「✅ 已下架」里恢复）。
+   ⚠️ 为什么强制先确认、且必须人工触发：一次体检最坏 25 次 Functions 调用，
+      不做自动/定时体检。
    【回退办法】删掉本函数 + admin.html 里那颗 #scanValidityBtn 与
       bindInvalidPanel 里的绑定，即可完全移除批量体检。
    ============================================================ */
@@ -1381,45 +1390,37 @@ async function scanSongsValidity() {
     btn.disabled = !!disabled;
   };
 
-  setBtn('⏳ 收集 ID…', true);
-
-  /* ① D1 歌曲 */
-  const ids = [];
+  /* ① 只取「待处理上报」这一栏的 ID —— 就是列表里那份缓存，不再额外请求任何数据 */
+  /* 口径必须跟 renderInvalidPending() 完全一致：那一栏只画 `invalidCount > 0` 的行
+     （纯「信息出错」的上报在「✏️ 信息出错管理」子面板里，不在这儿）。
+     少了这个过滤就会去查站主在这一栏根本看不到的 ID —— 2026-10-17 端到端验收抓到过。
+     数据用手上这份 invalidPendingCache（后台已拉过），不再额外请求任何东西。 */
+  const pending = (invalidPendingCache || []).filter(it =>
+    it && it.id && (Number(it.invalidCount) > 0 || (!('invalidCount' in it) && Number(it.count) > 0))
+  );
+  const targets = [];
   const seen = Object.create(null);
-  const push = (v) => {
-    const id = String(v === undefined || v === null ? '' : v).trim();
-    if (!/^[A-Za-z0-9_-]{1,32}$/.test(id) || seen[id]) return;
+  for (const it of pending) {
+    const id = String(it.id).trim();
+    if (!id || seen[id]) continue;
     seen[id] = true;
-    ids.push(id);
-  };
-  (songCache || []).forEach(it => push(it && it.id));
-
-  /* ② 主数据（静态 JSON；拉不到就只体检 D1 那部分，不报错） */
-  setBtn('⏳ 读取主数据…', true);
-  try {
-    const res = await fetch('data/roblox_music.json?t=' + Date.now(), { cache: 'no-store' });
-    const raw = await res.json();
-    (Array.isArray(raw) ? raw : []).forEach(it => push(it && it.id));
-  } catch (err) { /* 主数据拿不到：只体检 D1 */ }
-
-  /* ③ 已经下架过的不用再查 */
-  const removed = new Set((invalidRemovedCache || []).map(it => String(it.id)));
-  const targets = ids.filter(id => !removed.has(id)).slice(0, VERIFY_MAX_IDS);
+    targets.push(id);
+    if (targets.length >= VERIFY_MAX_IDS) break;
+  }
 
   if (targets.length === 0) {
-    setBtn('🔍 批量体检无效 ID', false);
-    showToast('没有可体检的 ID（D1 和主数据都是空的？）');
+    showToast('「待处理上报」里没有可体检的 ID');
     return;
   }
 
   const ok = await showConfirm(
-    '批量体检无效 ID',
-    '将拿这 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」，' +
-    '只有**明确回 404（不存在）**的才会被列出来。\n\n' +
-    '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，几百个 ID 大约要等十几秒到一分钟。\n' +
-    '体检完会先列给你看，确认之后才下架 —— 不会自动动数据。'
+    '体检待处理上报里的 ID',
+    '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」。\n\n' +
+    '只有**明确回 404（不存在）**的才会被列出来，确认之后才下架 —— 不会自动动数据。\n' +
+    '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，大约要等十几秒。\n\n' +
+    '（只管这一栏的待处理上报，不动 D1 歌曲、不动主数据、不动已下架名单）'
   );
-  if (!ok) { setBtn('🔍 批量体检无效 ID', false); return; }
+  if (!ok) return;
 
   const invalid = [];
   const counts = { valid: 0, invalid: 0, unknown: 0 };
@@ -1450,7 +1451,7 @@ async function scanSongsValidity() {
   setBtn('🔍 批量体检无效 ID', false);
 
   if (invalid.length === 0) {
-    showToast('✅ 体检完了：' + total + ' 个 ID 里没有发现明确无效的' +
+    showToast('✅ 体检完了：待处理里这 ' + total + ' 个 ID 没发现明确无效的' +
       '（存在 ' + counts.valid + ' / 查不出 ' + counts.unknown +
       (failed ? ' / ' + failed + ' 批请求失败' : '') + '）');
     return;
@@ -1458,8 +1459,8 @@ async function scanSongsValidity() {
 
   const preview = invalid.slice(0, 10).join('、') + (invalid.length > 10 ? ' …' : '');
   const wantRemove = await showConfirm(
-    '体检结果：' + invalid.length + ' 个 ID 无效',
-    '共体检 ' + total + ' 个 ID：\n' +
+    '体检结果：待处理里有 ' + invalid.length + ' 个 ID 无效',
+    '「🚫 待处理上报」共体检 ' + total + ' 个 ID：\n' +
     '· 存在（正常）' + counts.valid + ' 个\n' +
     '· 不存在（404，**无效**）' + invalid.length + ' 个\n' +
     '· 查不出（连不上 Roblox / 被限速，没算无效）' + counts.unknown + ' 个' +
@@ -1500,7 +1501,7 @@ async function handleInvalidAction(ids, action) {
 
     let tip;
     if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
-    else if (action === 'delete-records') tip = '✅ 已标记 ' + body.ids.length + ' 条上报为「已审核」（歌保留）';
+    else if (action === 'delete-records') tip = '🗑️ 已删除 ' + body.ids.length + ' 个 ID 的上报记录（歌保留）';
     else tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
     showToast(tip);
 

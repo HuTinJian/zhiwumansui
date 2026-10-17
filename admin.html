@@ -212,7 +212,11 @@
     }
     /* 左边那句「已选 N 条」占满剩余宽度，把操作按钮推到右边 */
     .invalid-bar .invalid-bar-info {
-      font-size: 0.82rem; color: var(--text-light); margin-right: auto;
+      /* 2026-10-17：改成独占一整行（flex-basis 100%），按钮从第二行左端起紧凑排。
+         原来 margin-right:auto + 体检那颗的 margin-left:auto = 两个 auto 平分空白，
+         体检按钮被甩到最右、中间一大段空档（站主截图指出）。手机上本来就是这么排的。
+         【回退办法】把下面这行改回 `margin-right: auto;`。 */
+      font-size: 0.82rem; color: var(--text-light); flex: 1 0 100%; margin-right: 0;
     }
     .invalid-bar .invalid-bar-info strong { color: var(--primary); font-weight: 700; }
     .invalid-bar button {
@@ -268,7 +272,11 @@
        【回退办法】把两条 margin-left 换回原来的位置（体检那颗挪回 .btn-manual-remove 那栏）。 */
     .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
     .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
-    .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); margin-left: auto; }
+    /* 🔍 批量体检无效 ID（2026-10-17 新增，在「🚫 待处理上报」栏末尾）
+       ⚠️ 这里**绝对不能再写 margin-left:auto**：左边那句「已选 N 条」已经是 `margin-right: auto`，
+       两个 auto 会各分走一半空白，把体检那颗甩到最右、跟批量按钮拉出一大段空档
+       （站主 2026-10-17 拿截图指出过）。现在「已选 N 条」独占一整行，按钮从第二行左端起紧凑排。 */
+    .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
     .invalid-bar .btn-scan-validity:hover { background: var(--bg-tint); color: var(--primary); }
     .invalid-bar .btn-scan-validity:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -869,7 +877,7 @@
                  待处理→下架/忽略、导出=已下架、没人报就手动下架。
                  细节（字段格式、手动下架不占累计上报等）挪进代码注释与 README，界面上不再铺开。 -->
             <p class="panel-desc">
-              访客上报进「待处理」：确认无效就下架；没问题的直接「✅ 标记已审核」。<br>
+              访客上报进「待处理」：确认无效就下架；没问题的直接「🗑️ 删除记录」。<br>
               「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
             </p>
 
@@ -887,7 +895,7 @@
                 <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
                 <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
-                <button class="btn-batch-ignore" id="invalidBatchIgnore">✅ 批量标记已审核</button>
+                <button class="btn-batch-ignore" id="invalidBatchIgnore">🗑️ 批量删除记录</button>
                 <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：拿服务端去问 Roblox
                      「这些 ID 到底还在不在」，把 404 的挑出来，确认后一键下架。
                      接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。
@@ -911,7 +919,7 @@
 
             <!-- ② 已忽略：2026-10-07 站主要求整段删除（原话「『已忽略』其实没必要，
                  没有问题的上报的 ID 直接删除后台记录就行」）——
-                 现在没问题就在「待处理上报」里点「✅ 标记已审核」，它就从这个「待处理」消失。
+                 现在没问题就在「待处理上报」里点「🗑️ 删除记录」，它就从这个「待处理」消失。
                  ⚠️ 2026-10-17 起「标记已审核」不是真删行：状态标成 noted 留在库里，
                  上报的人在「📌 我上报的」里能看到「✅ 已审核」+ 处理时间
                  （站主要求「自己反馈的 ID 想要看到有没有过审核」），后台这边看到的效果跟以前一样。 -->
