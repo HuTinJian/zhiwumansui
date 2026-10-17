@@ -1583,8 +1583,14 @@ function bindInvalidPanel() {
 
   /* 2026-10-07：「🙈 批量忽略」改成批量处理（元素 id 没变，省得动样式）；
      2026-10-17：文案再改成「✅ 批量标记已审核」，跟行为（软删 noted）对齐 */
-  const batchDelete = document.getElementById('invalidBatchIgnore');
-  if (batchDelete) batchDelete.onclick = () => confirmInvalidDelete(pickedInvalidIds());
+  /* 2026-10-17 站主要求：那颗「批量删除记录」按钮**整颗不要了** —— DOM 与 CSS 都删了，
+     这里的绑定也一并移除（留着就是查不到元素的死代码）；单条处理仍走每行那颗「🗑️ 删除记录」。
+     为什么没顺手删 confirmInvalidDelete() / pickedInvalidIds()：前者还被「✏️ 信息出错管理」
+     每行的按钮用着，后者还被「全选本页 / 取消全选 / updateInvalidPickInfo」用着，都不是它专属。
+     【回退办法】admin.html 加回 <button class="btn-batch-ignore" id="invalidBatchIgnore">…</button>
+     并在这里补回一行 onclick = () => confirmInvalidDelete(pickedInvalidIds())。 */
+
+
 
   /* 2026-10-07：「🧹 清空已忽略」那颗按钮连同那一段一起删了 */
 

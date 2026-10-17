@@ -230,15 +230,6 @@
     .invalid-bar .btn-pick-all:hover { background: var(--primary); }
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
     .invalid-bar .btn-pick-none:hover { background: #e6c9cf; }
-    .invalid-bar .btn-batch-remove { background: var(--danger); color: #fff; }
-    .invalid-bar .btn-batch-remove:hover { background: #a93226; }
-    /* 「🗑️ 批量删除记录」（2026-10-07 由「🙈 批量忽略」改来）：中性描边款 ——
-       它删的只是上报记录（歌还在），跟左边那颗红色的「✅ 批量下架」区分开，
-       别再给它金色（金色在下架那段表示「手动下架」那种正向操作）。 */
-    .invalid-bar .btn-batch-ignore {
-      background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
-    }
-    .invalid-bar .btn-batch-ignore:hover { background: var(--bg-tint); color: var(--primary); }
     /* 「🧹 清空已忽略」那颗按钮 2026-10-07 随那一段一起删了，样式留着不碍事（下面那行只是记录） */
     .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
     .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
@@ -311,7 +302,6 @@
     .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-2px); }
     /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
        中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
-       真下架才是上面那颗红色的。原来的 .btn-invalid-ignore 样式留给批量那颗按钮复用。 */
     .list-item .actions .btn-invalid-ignore,
     .list-item .actions .btn-invalid-delete {
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
@@ -895,7 +885,12 @@
                 <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
                 <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
-                <button class="btn-batch-ignore" id="invalidBatchIgnore">🗑️ 批量删除记录</button>
+                <!-- 2026-10-17 站主要求：「🗑️ 批量删除记录」这颗按钮不要了，整颗删掉。
+                     单条处理仍然走每行那颗「🗑️ 删除记录」；
+                     （这一栏的 CSS 类 .btn-batch-ignore / .btn-invalid-ignore 也跟着一起删了，
+                       下面 js 里的绑定同步移除。）
+                     【回退办法】把这颗按钮加回来，并在 js/admin.js 的 bindInvalidPanel 里
+                       补回 `document.getElementById('invalidBatchIgnore').onclick = () => confirmInvalidDelete(pickedInvalidIds());`。 -->
                 <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：拿服务端去问 Roblox
                      「这些 ID 到底还在不在」，把 404 的挑出来，确认后一键下架。
                      接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。
