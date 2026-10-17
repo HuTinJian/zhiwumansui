@@ -1154,8 +1154,12 @@
              数据仍取自 /api/hot/list，只是后台不再展示排行榜。 -->
 
         <div class="stats-sub">
-          📢 访问渠道来源
-          <span class="sub-hint">访客在「告诉我们你从哪来」里填的答案</span>
+          <!-- 2026-10-17 站主要求：「你从哪里来」停用，改成收集玩家手机屏幕尺寸。
+               这里显示的是「视口宽x高@DPR」分布，例：407x886@3（小米 17 / 6.3"），
+               用来按真实尺寸定断点。
+               【回退办法】标题改回「📢 访问渠道来源」，sub-hint 改回原来的说明即可。 -->
+          📱 玩家屏幕尺寸
+          <span class="sub-hint">格式：视口宽x高@像素密度，例 407x886@3（小米 17 / 6.3"）</span>
         </div>
         <div id="sourceStats" class="source-list">
           <div class="loading">加载中...</div>

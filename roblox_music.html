@@ -162,7 +162,8 @@
     .btn-mine:active { transform: scale(0.93); }
 
     /* 「➕ 添加歌曲ID」（2026-10-07 站主要求）：金黄色，跟「问题上报」的粉色区分开，
-       也不跟蓝色的「📢 告诉我们你从哪来」撞色 —— 三个按钮都得一眼认出来。 */
+       也不跟旁边那颗蓝色的「📱 你的手机屏幕尺寸」撞色 —— 三个按钮都得一眼认出来。
+       （2026-10-17：那颗按钮原来叫「📢 告诉我们你从哪来」（收集渠道），站主已改成收集屏幕尺寸。） */
     .btn-submit-song {
       background: linear-gradient(135deg, #f0c674, #dfa63a);
       color: #4a3410;
@@ -1223,6 +1224,32 @@
       line-height: 1.6;
       text-align: center;
     }
+    /* 2026-10-17 新增：屏幕尺寸那块（原来这里是一排渠道按钮） */
+    .screen-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 4px 0 14px;
+    }
+    .screen-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.84rem;
+    }
+    .screen-row span { color: var(--text-muted); }
+    .screen-row b {
+      color: var(--text);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-weight: 700;
+      word-break: break-all;
+      text-align: right;
+    }
     #visitSourceModal .visit-current {
       display: block;
       margin-top: 8px;
@@ -1465,7 +1492,8 @@
                   站主要求用「无效处理」代替隔离区、批量隔离、每行的叉叉与后台反馈，弹窗整块删掉；
                ② 随后站主又说「把『无效批量处理』相关功能删除了」——
                   于是那颗「🚫 无效批量处理」按钮、批量条、行里的勾选框、批量模式一起删干净。
-               现在这一组只剩「📢 告诉我们你从哪来」；上报只有一种方式：
+               2026-10-17：这一组那颗按钮从「📢 告诉我们你从哪来」改成了「📱 你的手机屏幕尺寸」
+       （站主：渠道数据够了，改成收集屏幕尺寸做适配）。上报只有一种方式：
                每条 ID 上的「🚫 无效处理」（点错了点它变出来的「↩️ 撤销」回退）。 -->
           <!-- 2026-10-05 站主要求：加一颗「📋 我上报的」——打开上报表，
                能看到自己点过「无效处理」的歌，单条 / 全部恢复。 -->
@@ -1473,7 +1501,7 @@
                并在它旁边加一颗「➕ 添加歌曲ID」（玩家投稿，后台在 D1歌曲管理里审核）。 -->
           <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些问题，可以在这里撤回">📌 问题上报</button>
           <button class="btn btn-submit-song" id="openSubmitSongBtn" title="把你找到的歌曲 ID 投稿给站长">➕ 添加歌曲ID</button>
-          <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
+          <button class="btn btn-source" id="openSourceBtn" title="看看这台设备的屏幕尺寸，帮我们做适配">📱 你的手机屏幕尺寸</button>
           <!-- 2026-10-09：这里曾经加过一颗「⚖️ 法律」（指向 law.html），
                当天站主就要求删掉 ——「把 Roblox ID 宝库里面的『法律』按钮删除了」。
                ⚠️ 别再往这一页的工具栏加法律入口：这一页的入口只保留页脚那条
@@ -1749,49 +1777,53 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       2026-10-17 站主要求：这里原来是「🙏 帮助我们了解推广渠道」（让玩家选从哪知道本站），
+       渠道数据已经够了、功能停用，改成「📱 你的手机屏幕尺寸」：
+       自动测出这台设备的分辨率/视口/DPR/型号，玩家点一下就能帮我们收集一份，
+       之后按真实尺寸做适配（本站的基准是小米 17 6.3"，CSS 视口 407×886）。
+       【回退办法】把下面整块换回原来的渠道选择弹窗（那版在 git 历史里搜
+         「帮助我们了解推广渠道」即可找到），并把按钮文案改回「📢 告诉我们你从哪来」。
+       ============================================================ -->
   <div class="modal" id="visitSourceModal">
     <div class="modal-content">
-      <h2>🙏 帮助我们了解推广渠道</h2>
+      <h2>📱 你的手机屏幕尺寸</h2>
       <p class="visit-desc">
-        请告诉我们你是从哪知道这个网站的，<br>
-        这对我们改进内容很重要！
-        <span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
+        站长想按真实屏幕尺寸来调排版。<br>
+        下面是这台设备<b>自动测出来</b>的尺寸，点「✅ 上报给站长」帮我们收集一份。
+        <br><span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
       </p>
 
-      <div class="visit-source-list">
-        <button class="visit-source-btn" data-source="哔哩哔哩">
-          <span>📺 哔哩哔哩</span>
-          <span class="src-count">--</span>
-        </button>
-        <button class="visit-source-btn" data-source="抖音">
-          <span>🎵 抖音</span>
-          <span class="src-count">--</span>
-        </button>
-        <button class="visit-source-btn" data-source="快手">
-          <span>⚡ 快手</span>
-          <span class="src-count">--</span>
-        </button>
-        <button class="visit-source-btn" data-source="小红书">
-          <span>📕 小红书</span>
-          <span class="src-count">--</span>
-        </button>
-        <button class="visit-source-btn" data-source="__other__" id="visitSourceOther">
-          <span>💡 其它（可自定义）</span>
-          <span class="src-count">--</span>
-        </button>
-      </div>
-
-      <div class="visit-other-input" id="visitOtherInput" style="display:none;">
-        <input type="text" id="visitOtherText" placeholder="请输入平台名字（最多 20 字）" maxlength="20">
-        <div class="visit-other-actions">
-          <button type="button" class="btn-cancel-other" id="visitOtherCancel">返回</button>
-          <button type="button" class="btn-confirm-other" id="visitOtherConfirm">确认</button>
+      <div class="screen-box">
+        <div class="screen-row">
+          <span>屏幕尺寸（CSS 视口）</span>
+          <b id="screenViewport">—</b>
+        </div>
+        <div class="screen-row">
+          <span>物理分辨率</span>
+          <b id="screenPhysical">—</b>
+        </div>
+        <div class="screen-row">
+          <span>像素密度（DPR）</span>
+          <b id="screenDpr">—</b>
+        </div>
+        <div class="screen-row">
+          <span>设备型号</span>
+          <b id="screenModel">—</b>
+        </div>
+        <div class="screen-row">
+          <span>上报标识</span>
+          <b id="screenTag">—</b>
         </div>
       </div>
-      <!-- 2026-09-27：全站禁止「点空白处关闭弹窗」之后，这个弹窗必须自带关闭按钮，
-           否则只用鼠标的访客会被迫先回答（ESC 虽然还能用，但不能只靠键盘）。 -->
+
+      <p class="visit-desc" style="font-size:0.76rem;">
+        🔒 只记录屏幕尺寸这几项，不包含任何个人信息、也不含账号。
+      </p>
+
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="visitSourceClose">关闭</button>
+        <button type="button" class="btn btn-primary" id="screenReportBtn">✅ 上报给站长</button>
       </div>
     </div>
   </div>
@@ -4185,8 +4217,15 @@
   (function () {
     'use strict';
 
+    /* ============================================================
+       2026-10-17：这里原来是「你从哪里来」的渠道选择逻辑（PRESET 平台按钮、
+       自定义输入、按渠道统计人数）。站主说渠道数据够了、功能停用，
+       整体换成「手机屏幕尺寸」收集。下面这段全部重写。
+       【回退办法】整段换回 git 历史里带 PRESET = ['哔哩哔哩', ...] 的那一版即可。
+       ============================================================ */
+
     const USER_ID_KEY = 'visit_user_id';
-    const CHOICE_KEY = 'visit_source_choice';
+    const REPORTED_KEY = 'screen_size_reported';  /* 记住上次报过的尺寸，没变就不重复报 */
     const MODAL_ID = 'visitSourceModal';
 
     function getUserId() {
@@ -4198,141 +4237,118 @@
       return uid;
     }
 
+    /* 从 UA 里尽量捞一个设备名（纯展示，捞不到就留空） */
+    function detectModel() {
+      const ua = navigator.userAgent || '';
+      if (/iPhone/i.test(ua)) return 'iPhone';
+      if (/iPad/i.test(ua)) return 'iPad';
+      /* Android 的 UA 里通常是 "Android 14; 23127PN0CC Build/..." 或 "(K; 23127PN0CC)" */
+      const m = ua.match(/Android[^;)]*[;)]\s*([^;)]+?)(?:\s*Build|\s*;|\))/i);
+      if (m && m[1]) return m[1].trim().slice(0, 40);
+      if (/Windows/i.test(ua)) return 'Windows 电脑';
+      if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac';
+      return '';
+    }
+
+    /* 这台设备的屏幕信息。
+       · viewport：CSS 视口（做响应式适配真正要看的就是它）
+       · physical：物理分辨率（screen.width × DPR，横向）
+       · tag：上报用的紧凑标识 "407x886@3" */
+    function getScreenInfo() {
+      const dpr = window.devicePixelRatio || 1;
+      const vw = Math.round(window.innerWidth || 0);
+      const vh = Math.round(window.innerHeight || 0);
+      const sw = Math.round(screen.width || 0);
+      const sh = Math.round(screen.height || 0);
+      const dprText = String(Math.round(dpr * 100) / 100);
+      return {
+        vw: vw,
+        vh: vh,
+        dpr: dprText,
+        model: detectModel(),
+        viewport: vw + '×' + vh,
+        physical: Math.round(sw * dpr) + '×' + Math.round(sh * dpr),
+        tag: vw + 'x' + vh + '@' + dprText
+      };
+    }
+
     const openBtn = document.getElementById('openSourceBtn');
     const modal = document.getElementById(MODAL_ID);
     if (!openBtn || !modal) return;
 
-    const otherInput = document.getElementById('visitOtherInput');
-    const otherText = document.getElementById('visitOtherText');
-    const sourceList = modal.querySelector('.visit-source-list');
+    const elViewport = document.getElementById('screenViewport');
+    const elPhysical = document.getElementById('screenPhysical');
+    const elDpr = document.getElementById('screenDpr');
+    const elModel = document.getElementById('screenModel');
+    const elTag = document.getElementById('screenTag');
     const currentHint = document.getElementById('visitCurrentHint');
+    const reportBtn = document.getElementById('screenReportBtn');
 
-    const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书'];
-
-    function updateCurrentHint() {
-      const cur = localStorage.getItem(CHOICE_KEY);
-      if (cur && currentHint) {
-        currentHint.textContent = '当前已选择：' + cur + '（可重新选择）';
-        currentHint.style.display = 'block';
-      } else if (currentHint) {
-        currentHint.textContent = '你还没有回答过哦';
+    function paintScreenInfo() {
+      const info = getScreenInfo();
+      if (elViewport) elViewport.textContent = info.viewport;
+      if (elPhysical) elPhysical.textContent = info.physical;
+      if (elDpr) elDpr.textContent = info.dpr + 'x';
+      if (elModel) elModel.textContent = info.model || '识别不到（不影响）';
+      if (elTag) elTag.textContent = info.tag;
+      if (currentHint) {
+        const last = localStorage.getItem(REPORTED_KEY) || '';
+        currentHint.textContent = last
+          ? '上次已上报：' + last + '（尺寸没变就不用重复报）'
+          : '还没上报过';
         currentHint.style.display = 'block';
       }
+      return info;
     }
 
-    function markActiveChoice() {
-      const cur = localStorage.getItem(CHOICE_KEY) || '';
-      modal.querySelectorAll('.visit-source-btn').forEach(btn => {
-        const src = btn.dataset.source;
-        btn.classList.remove('active-choice');
-        if (src === cur) {
-          btn.classList.add('active-choice');
-        } else if (src === '__other__' && cur && !PRESET.includes(cur)) {
-          btn.classList.add('active-choice');
-        }
-      });
-    }
-
-    async function showModal() {
-      otherInput.style.display = 'none';
-      otherText.value = '';
-      sourceList.style.display = 'flex';
-
-      updateCurrentHint();
-      markActiveChoice();
-
-      openModal(MODAL_ID);
-      loadSourceCounts();
-    }
-
-    async function loadSourceCounts() {
-      try {
-        /* 2026-10-05 性能：这个接口服务端配了 `public, max-age=60`，
-           去掉 `?t=` 让它真的能命中缓存（渠道统计晚 60 秒完全没关系）。 */
-        const res = await fetch('/api/visit/stats');
-        const data = await res.json();
-        if (!data.ok || !Array.isArray(data.data)) return;
-
-        const counts = {};
-        PRESET.forEach(p => counts[p] = 0);
-        let otherTotal = 0;
-
-        data.data.forEach(item => {
-          if (PRESET.includes(item.source)) {
-            counts[item.source] = item.count;
-          } else {
-            otherTotal += item.count;
-          }
-        });
-        counts['__other__'] = otherTotal;
-
-        modal.querySelectorAll('.visit-source-btn').forEach(btn => {
-          const src = btn.dataset.source;
-          const el = btn.querySelector('.src-count');
-          if (el && counts[src] !== undefined) {
-            el.textContent = counts[src] + ' 人';
-          }
-        });
-      } catch (e) {}
-    }
-
-    async function submitSource(source) {
-      localStorage.setItem(CHOICE_KEY, source);
-      closeModal(MODAL_ID);
-
+    async function reportScreen(manual) {
+      const info = getScreenInfo();
       try {
         await zmPostJson('/api/visit/report', {
           userId: getUserId(),
-          source: source
+          source: info.tag
         }, 'visit');
-      } catch (e) {}
-
-      showToast('🎉 感谢反馈！你的答案已记录');
+        localStorage.setItem(REPORTED_KEY, info.tag);
+        if (manual) {
+          showToast('✅ 已上报：' + info.tag + '，谢谢！');
+          closeModal(MODAL_ID);
+        }
+      } catch (e) {
+        if (manual) showToast('⚠️ 上报失败，稍后再试');
+      }
     }
 
-    openBtn.addEventListener('click', showModal);
+    /* 静默自动上报：页面加载 2 秒后报一次；尺寸没变就跳过（同一 userId 只会覆盖同一条） */
+    function autoReportOnce() {
+      setTimeout(() => {
+        const info = getScreenInfo();
+        if (!info.vw || !info.vh) return;
+        if (localStorage.getItem(REPORTED_KEY) === info.tag) return;
+        reportScreen(false);
+      }, 2000);
+    }
 
-    /* 2026-09-27：点空白处关弹窗已全站禁用，这里补一个「关闭」按钮的绑定 */
-    const visitSourceClose = document.getElementById('visitSourceClose');
-    if (visitSourceClose) visitSourceClose.addEventListener('click', () => closeModal(MODAL_ID));
+    openBtn.addEventListener('click', () => {
+      paintScreenInfo();
+      openModal(MODAL_ID);
+    });
 
-    modal.querySelectorAll('.visit-source-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const src = btn.dataset.source;
-        if (src === '__other__') {
-          sourceList.style.display = 'none';
-          otherInput.style.display = 'block';
-          const cur = localStorage.getItem(CHOICE_KEY) || '';
-          if (cur && !PRESET.includes(cur)) {
-            otherText.value = cur;
-          } else {
-            otherText.value = '';
-          }
-          setTimeout(() => otherText.focus(), 80);
-          return;
-        }
-        submitSource(src);
+    const closeBtn = document.getElementById('visitSourceClose');
+    if (closeBtn) closeBtn.addEventListener('click', () => closeModal(MODAL_ID));
+
+    if (reportBtn) {
+      reportBtn.addEventListener('click', () => {
+        reportBtn.disabled = true;
+        reportScreen(true).finally(() => { reportBtn.disabled = false; });
       });
+    }
+
+    /* 转屏 / 改窗口大小时，弹窗里的数字跟着更新 */
+    window.addEventListener('resize', () => {
+      if (modal.classList.contains('show')) paintScreenInfo();
     });
 
-    document.getElementById('visitOtherConfirm').addEventListener('click', () => {
-      const val = otherText.value.trim();
-      if (!val) { otherText.focus(); return; }
-      submitSource(val.slice(0, 20));
-    });
-
-    document.getElementById('visitOtherCancel').addEventListener('click', () => {
-      otherInput.style.display = 'none';
-      otherText.value = '';
-      sourceList.style.display = 'flex';
-    });
-
-    otherText.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('visitOtherConfirm').click();
-      }
-    });
+    autoReportOnce();
   })();
   </script>
 

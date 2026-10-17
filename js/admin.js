@@ -2949,7 +2949,10 @@ async function loadHotSummary() {
   }
 }
 
-/* 访问渠道：/api/visit/stats 返回 [{source, count}] */
+/* 玩家屏幕尺寸：/api/visit/stats 返回 [{source, count}]
+   2026-10-17 站主要求：「你从哪里来」停用，source 字段现在存的是
+   `视口宽x高@DPR`（例 407x886@3）。表结构没变、接口没变，只是含义变了。
+   【回退办法】把这一行的注释与下面空状态的文案改回「访问渠道」即可。 */
 async function loadSourceStats() {
   const box = document.getElementById('sourceStats');
   if (!box) return;
@@ -2980,7 +2983,7 @@ async function loadSourceStats() {
     if (elVisitor) elVisitor.textContent = visitors.toLocaleString('en-US');
 
     if (list.length === 0) {
-      box.innerHTML = '<div class="empty-state">还没有人回答过来源。<br>访客在宝库页点「📢 告诉我们你从哪来」就会记录在这里。</div>';
+      box.innerHTML = '<div class="empty-state">还没有人上报过屏幕尺寸。<br>访客在宝库页点「📱 你的手机屏幕尺寸」、或页面自动上报后就会记录在这里。</div>';
       return;
     }
 
