@@ -1184,7 +1184,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-}/* 名字比较长（「DeepSeek-V4.1-Flash」字不少），窄屏上会折两行 ——
+}/* 名字比较长（「DeepSeek-V4.1-Flash-1017」字不少），窄屏上会折两行 ——
    把行高压紧一点，别把卡片撑得比旁边两张还高。 */
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
