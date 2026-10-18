@@ -2980,54 +2980,108 @@ async function loadSourceStats() {
       return;
     }
 
-    const list = data.data
-      .map(x => ({ source: String(x.source || '未填写'), count: Number(x.count) || 0 }))
-      .filter(x => x.count > 0)
-      .sort((a, b) => b.count - a.count);
+    /* ============================================================
+       2026-10-19 站主要求：尺寸数据要「看得清楚」，不能一行一个 407x886@3 堆几十行。
+       做法：**按宽度聚合**（宽度才是定断点要看的），高度和 DPR 只是附带信息。
+       格式约定：source = "宽x高@DPR"，例如 407x886@3。
+       【回退办法】整段换回原来「list.forEach 一行一个 source」的写法即可。 */
+    const rows = data.data
+      .map(x => ({ source: String(x.source || '').trim(), count: Number(x.count) || 0 }))
+      .filter(x => x.count > 0);
 
-    const visitors = list.reduce((sum, x) => sum + x.count, 0);
-    const elSrcCount = document.getElementById('statSourceCount');
-    const elVisitor = document.getElementById('statVisitorCount');
-    if (elSrcCount) elSrcCount.textContent = list.length.toLocaleString('en-US');
-    if (elVisitor) elVisitor.textContent = visitors.toLocaleString('en-US');
-
-    if (list.length === 0) {
+    if (rows.length === 0) {
       box.innerHTML = '<div class="empty-state">还没有人上报过屏幕尺寸。<br>访客在宝库页点「📱 你的手机屏幕尺寸」、或页面自动上报后就会记录在这里。</div>';
       return;
     }
 
-    const max = list[0].count || 1;
-    box.innerHTML = '';
-
-    const frag = document.createDocumentFragment();
-    list.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'source-row';
-
-      const top = document.createElement('div');
-      top.className = 'source-top';
-
-      const name = document.createElement('span');
-      name.className = 'source-name';
-      name.textContent = item.source;
-
-      const num = document.createElement('span');
-      num.className = 'source-num';
-      num.textContent = item.count + ' 人 · ' + Math.round((item.count / visitors) * 100) + '%';
-
-      top.append(name, num);
-
-      const bar = document.createElement('div');
-      bar.className = 'source-bar';
-      const fill = document.createElement('i');
-      fill.style.width = Math.max(3, Math.round((item.count / max) * 100)) + '%';
-      bar.appendChild(fill);
-
-      row.append(top, bar);
-      frag.appendChild(row);
+    /* 拆成 { width, height, dpr } —— 认不出的归到 unknown */
+    const parsed = rows.map(r => {
+      const m = r.source.match(/^(\d{2,5})x(\d{2,5})@(\d{1,2}(?:\.\d{1,2})?)$/);
+      return m
+        ? { width: Number(m[1]), height: Number(m[2]), dpr: Number(m[3]), count: r.count, raw: r.source }
+        : { width: 0, height: 0, dpr: 0, count: r.count, raw: r.source };
     });
 
-    box.appendChild(frag);
+    const unknownCount = parsed.filter(p => !p.width).reduce((s, p) => s + p.count, 0);
+    const known = parsed.filter(p => p.width > 0);
+
+    /* 按宽度聚合：同一个宽度合并，并记下出现过的 DPR */
+    const byWidth = new Map();
+    known.forEach(p => {
+      if (!byWidth.has(p.width)) byWidth.set(p.width, { width: p.width, count: 0, dprs: new Set() });
+      const g = byWidth.get(p.width);
+      g.count += p.count;
+      g.dprs.add(p.dpr);
+    });
+    const widths = [...byWidth.values()].sort((a, b) => b.count - a.count);
+    const bySize = [...byWidth.values()].sort((a, b) => a.width - b.width);
+
+    const totalKnown = known.reduce((s, p) => s + p.count, 0);
+    const phone = widths.filter(w => w.width < 500).reduce((s, w) => s + w.count, 0);
+    const tablet = widths.filter(w => w.width >= 500 && w.width < 900).reduce((s, w) => s + w.count, 0);
+    const desktop = widths.filter(w => w.width >= 900).reduce((s, w) => s + w.count, 0);
+    const total = totalKnown + unknownCount;
+    const narrowest = bySize.length ? bySize[0].width : 0;
+    const top1 = widths[0];
+
+    const pct = (n) => total ? Math.round((n / total) * 100) : 0;
+
+    const elSrcCount = document.getElementById('statSourceCount');
+    const elVisitor = document.getElementById('statVisitorCount');
+    if (elSrcCount) elSrcCount.textContent = widths.length.toLocaleString('en-US');
+    if (elVisitor) elVisitor.textContent = total.toLocaleString('en-US');
+
+    /* ---------- 顶部三张 KPI ---------- */
+    let html = '<div class="src-kpis">' +
+      '<div class="src-kpi"><b>' + total.toLocaleString('en-US') + '</b><span>总样本</span></div>' +
+      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;500）</span></div>' +
+      '<div class="src-kpi' + (narrowest && narrowest < 380 ? ' warn' : '') + '"><b>' + (narrowest || '—') + '</b><span>最窄宽度</span></div>' +
+      '</div>';
+
+    html += '<p class="src-tip">' +
+      '最常见宽度：<b>' + (top1 ? top1.width + 'px' : '—') + '</b>' +
+      (top1 ? '（' + top1.count + ' 个 · ' + pct(top1.count) + '%）' : '') +
+      ' ｜ 平板 ' + pct(tablet) + '% ｜ 电脑 ' + pct(desktop) + '%</p>';
+
+    if (narrowest && narrowest < 380) {
+      html += '<p class="src-tip warn">⚠️ 有 <b>' + narrowest + 'px</b> 宽的设备 —— 适配下限至少要覆盖到它，' +
+        '只按 407px（小米 17）设计会在这些机器上挤。</p>';
+    }
+
+    /* ---------- 按分组展示（每组最多 10 行） ---------- */
+    function groupHtml(title, list, maxCount) {
+      if (list.length === 0) return '';
+      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种宽度）</div>';
+      list.slice(0, 10).forEach(w => {
+        const dprText = [...w.dprs].sort((a, b) => a - b).join(' / ');
+        h += '<div class="source-row">' +
+          '<div class="source-top">' +
+            '<span class="source-name">' + w.width + ' 宽' + (dprText ? ' · ' + dprText + 'x' : '') + '</span>' +
+            '<span class="source-num">' + w.count + ' 个 · ' + pct(w.count) + '%</span>' +
+          '</div>' +
+          '<div class="source-bar"><i style="width:' + Math.max(3, Math.round((w.count / maxCount) * 100)) + '%"></i></div>' +
+        '</div>';
+      });
+      if (list.length > 10) {
+        h += '<div class="src-more">…另有 ' + (list.length - 10) + ' 种更少见的宽度</div>';
+      }
+      return h;
+    }
+
+    const maxCount = widths.length ? widths[0].count : 1;
+    const phoneW = widths.filter(w => w.width < 500);
+    const tabletW = widths.filter(w => w.width >= 500 && w.width < 900);
+    const desktopW = widths.filter(w => w.width >= 900);
+
+    html += groupHtml('📱 手机', phoneW, maxCount);
+    html += groupHtml('📲 平板', tabletW, maxCount);
+    html += groupHtml('💻 电脑', desktopW, maxCount);
+
+    if (unknownCount > 0) {
+      html += '<div class="src-more">另有 ' + unknownCount + ' 条识别不了格式的旧数据（不影响上面的统计）</div>';
+    }
+
+    box.innerHTML = html;
   } catch (err) {
     console.error('[stats] visit/stats', err);
     box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';

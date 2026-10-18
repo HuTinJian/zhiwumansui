@@ -43,8 +43,8 @@
       cursor: pointer; font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce), border-color 0.25s var(--ease-soft);
     }
-    .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-2px); }
-    .tab:active { transform: scale(0.95); }
+    .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
+    .tab:active { transform: scale(0.98); }
     .tab.active {
       background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1 */
       box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
@@ -64,7 +64,7 @@
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
     .subtab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
-    .subtab:active { transform: scale(0.95); }
+    .subtab:active { transform: scale(0.98); }
     .subtab.active {
       background: var(--primary); color: var(--text-on-accent);
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
@@ -124,7 +124,7 @@
       background: var(--bg-soft);
       transition: border-color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .list-item:hover { border-color: var(--primary-light); transform: translateY(-2px); }
+    .list-item:hover { border-color: var(--primary-light); transform: translateY(-1px); }
     .list-item .row1 {
       display: flex; justify-content: space-between; align-items: center;
       gap: 10px; flex-wrap: wrap; margin-bottom: 6px;
@@ -148,16 +148,16 @@
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
     .list-item .actions .btn-approve { background: var(--gold); color: #fff; }
-    .list-item .actions .btn-approve:hover { background: #b8894f; transform: translateY(-2px); }
+    .list-item .actions .btn-approve:hover { background: #b8894f; transform: translateY(-1px); }
     .list-item .actions .btn-delete { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-1px); }
     .list-item .actions .btn-expand { background: var(--primary); color: var(--text-on-accent); }
-    .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-1px); }
     /* 赞助者那一行的「✏️ 编辑」：中性描边款，别跟红色的「🗑️ 删除」抢眼 */
     .list-item .actions .btn-edit-sponsor {
       background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
     }
-    .list-item .actions .btn-edit-sponsor:hover { background: var(--bg-tint); transform: translateY(-2px); }
+    .list-item .actions .btn-edit-sponsor:hover { background: var(--bg-tint); transform: translateY(-1px); }
     /* 2026-10-01 补：同一批新按钮换过类名（底档行按「名字」删 / 鸣谢行的编辑 /
        恢复显示），漏写样式就会掉回浏览器默认的灰按钮 —— 站主一眼就看出来了。
        这里跟上面几款对齐：编辑 = 中性描边、删除 = 危险红、恢复 = 跟「受理」同款金色。 */
@@ -166,11 +166,11 @@
       background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
     }
     .list-item .actions .btn-edit-sponsor-name:hover,
-    .list-item .actions .btn-edit-thanks:hover { background: var(--bg-tint); transform: translateY(-2px); }
+    .list-item .actions .btn-edit-thanks:hover { background: var(--bg-tint); transform: translateY(-1px); }
     .list-item .actions .btn-delete-name { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-delete-name:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-delete-name:hover { background: #a93226; transform: translateY(-1px); }
     .list-item .actions .btn-restore-sponsor { background: var(--gold); color: #fff; }
-    .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-2px); }
+    .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-1px); }
 
     /* ========== ID 旁边那对小按钮：📋 复制 / 🔗 试听（2026-10-05 站主要求） ==========
        站主：「后台所有跟 ID 有关的，都要有复制和试听功能，这样更快的审核和判断」，
@@ -200,7 +200,7 @@
                   border-color 0.2s var(--ease-soft), transform 0.15s var(--ease-soft);
     }
     .id-act:hover { border-color: var(--primary-light); color: var(--primary); background: var(--bg-card); }
-    .id-act:active { transform: scale(0.94); }
+    .id-act:active { transform: scale(0.97); }
     /* 「🔗 试听」是跳去 Roblox 官方页，给一点区分色，别跟「复制」混在一起 */
     .id-act[data-admin-listen] { border-color: rgba(107, 182, 232, 0.5); color: #3f86b5; }
     .id-act[data-admin-listen]:hover { border-color: #6bb6e8; color: #1f6e9c; background: var(--bg-card); }
@@ -245,7 +245,7 @@
       font-family: var(--font);
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .invalid-bar button:active { transform: scale(0.94); }
+    .invalid-bar button:active { transform: scale(0.97); }
     .invalid-bar .btn-pick-all { background: var(--primary-light); color: #fff; }
     .invalid-bar .btn-pick-all:hover { background: var(--primary); }
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
@@ -321,7 +321,7 @@
        把歌名甩到行的正中间去（跟右边的分类 / 上报次数标签离得老远） */
     .invalid-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .list-item .actions .btn-invalid-remove { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-1px); }
     /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
        中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
        【2026-10-18 修 BUG】上面这行原来缺了收尾的注释符号，导致下面 .btn-invalid-ignore 与
@@ -334,19 +334,19 @@
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
     .list-item .actions .btn-invalid-ignore:hover,
-    .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-1px); }
     /* 📥 玩家投稿那一块的两个按钮（2026-10-07） */
     .list-item .actions .btn-submission-approve { background: var(--success-strong); color: #fff; }
-    .list-item .actions .btn-submission-approve:hover { background: var(--success-dark); transform: translateY(-2px); }
+    .list-item .actions .btn-submission-approve:hover { background: var(--success-dark); transform: translateY(-1px); }
     .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
-    .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-2px); }
+    .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-1px); }
     .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: #fff; }
-    .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-2px); }
+    .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-1px); }
     /* ✏️ 修改信息（2026-10-17 新增）：信息出错那一栏的主操作，
        用金黄色（跟「➕ 添加歌曲 / ✏️ 信息出错」同一族），一眼能看出是「改」不是「删 / 下架」。
        【回退办法】删掉这两行即可（按钮会退回默认外观，功能不受影响）。 */
     .list-item .actions .btn-info-edit { background: var(--gold, #dfa63a); color: #4a3410; font-weight: 700; }
-    .list-item .actions .btn-info-edit:hover { background: #f0c674; transform: translateY(-2px); }
+    .list-item .actions .btn-info-edit:hover { background: #f0c674; transform: translateY(-1px); }
 
     .stat-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
@@ -375,6 +375,27 @@
        榜单按用户要求从后台下线，这份样式一并删除；
        上面两张统计卡（有热度的曲目 / 总互动次数）继续保留。 */
 
+    /* ============================================================
+       2026-10-19 站主要求：尺寸数据要看得清楚（原来一行一个 407x886@3，几十行眼花）。
+       这里补 KPI 卡与分组的样式；渲染逻辑在 js/admin.js 的 loadSourceStats。
+       【回退办法】删掉 .src-* 这几条规则即可（渲染那边也会退回旧样子）。
+       ============================================================ */
+    .src-kpis { display: flex; gap: 10px; margin: 0 0 12px; flex-wrap: wrap; }
+    .src-kpi {
+      flex: 1 1 120px; min-width: 110px;
+      background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .src-kpi b { font-size: 1.35rem; color: var(--primary-ink); line-height: 1.2; }
+    .src-kpi span { font-size: 0.74rem; color: var(--text-muted); }
+    .src-kpi.warn b { color: var(--danger); }
+    .src-tip { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px; line-height: 1.7; }
+    .src-tip.warn { color: var(--danger); }
+    .src-group-title {
+      font-size: 0.78rem; font-weight: 800; color: var(--text-muted);
+      letter-spacing: 0.4px; margin: 14px 0 8px;
+    }
+    .src-more { font-size: 0.76rem; color: var(--text-light); padding: 6px 2px 0; }
     /* 访问渠道 */
     .source-list { display: flex; flex-direction: column; gap: 12px; }
     .source-row { display: flex; flex-direction: column; gap: 5px; }
@@ -661,7 +682,7 @@
     }
     .pager button:hover:not(:disabled) {
       background: var(--bg-tint); border-color: var(--primary-light);
-      color: var(--primary); transform: translateY(-2px);
+      color: var(--primary); transform: translateY(-1px);
     }
     .pager button:active:not(:disabled) { transform: scale(0.93); }
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -1183,7 +1204,7 @@
                用来按真实尺寸定断点。
                【回退办法】标题改回「📢 访问渠道来源」，sub-hint 改回原来的说明即可。 -->
           📱 玩家屏幕尺寸
-          <span class="sub-hint">格式：视口宽x高@像素密度，例 407x886@3（小米 17 / 6.3"）</span>
+          <span class="sub-hint">按“宽度”聚合（宽度才决定断点）；手机 &lt;500 / 平板 500-899 / 电脑 ≥900</span>
         </div>
         <div id="sourceStats" class="source-list">
           <div class="loading">加载中...</div>
