@@ -1815,6 +1815,8 @@ function renderSubmissionPage() {
         </span>
       </div>
       ${item.note ? '<div class="message">💬 玩家说明：' + escapeHtml(item.note) + '</div>' : ''}
+      <!-- 2026-10-18：玩家自己填的「歌曲类型」，审核时一起看；通过后会显示在宝库页歌名后面。 -->
+      ${item.genre ? '<div class="message">🎵 玩家说的类型：' + escapeHtml(item.genre) + '</div>' : ''}
       <div class="meta">
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.lastAt ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}

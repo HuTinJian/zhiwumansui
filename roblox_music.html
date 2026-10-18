@@ -134,14 +134,17 @@
        而收益只是「看起来在呼吸」。为了整体流畅度，改成静态按钮，
        靠颜色和阴影本身就已经够醒目了。 */
     .btn-source {
-      background: linear-gradient(135deg, #6bb6e8, #4a9dd8);
+      /* 2026-10-19 配色统一：原来这颗是蓝色渐变，在粉+雾青的体系里像"第三个主题"。
+         改成雾青后，全站就只剩两套色：粉 = 站内/官方，雾青 = 玩家/信息类。
+         【回退办法】改回 linear-gradient(135deg, #6bb6e8, #4a9dd8) 与 rgba(107,182,232,.35)。 */
+      background: linear-gradient(135deg, var(--accent-mist), #2f635e);
       color: #fff;
       border: none;
-      box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
+      box-shadow: 0 6px 18px var(--accent-mist-line);
       font-weight: 700;
     }
     .btn-source:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 8px 22px rgba(107, 182, 232, 0.6);
     }
     .btn-source:active {
@@ -162,7 +165,7 @@
       font-weight: 700;
     }
     .btn-mine:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 8px 22px rgba(220, 107, 130, 0.55);
     }
     .btn-mine:active { transform: scale(0.93); }
@@ -178,7 +181,7 @@
       font-weight: 800;
     }
     .btn-submit-song:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 8px 22px rgba(223, 166, 58, 0.55);
     }
     .btn-submit-song:active { transform: scale(0.93); }
@@ -231,10 +234,10 @@
       transition: transform 0.2s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft);
     }
     .btn-info-confirm:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 8px 20px rgba(223, 166, 58, 0.5);
     }
-    .btn-info-confirm:active { transform: scale(0.96); }
+    .btn-info-confirm:active { transform: scale(0.98); }
     .btn-info-confirm[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     /* 信息出错那一类的徽标（表格里「状态」旁边） */
@@ -370,7 +373,10 @@
     /* 2026-10-17：.ignored 那条规则随「已忽略」一起没有写作对象了，
        改给新状态 .noted（已审核·无需处理）用 —— 绿色系，跟「已下架」的灰色区分开，
        让人一眼看出「这条有人看过了」而不是「这条没了」。 */
-    .myrep-status.noted { background: rgba(114, 163, 146, 0.20); color: var(--success-dark); }
+    /* 2026-10-18 配色创新：「反馈成功」从绿改成雾青 —— 它跟「玩家说」是同一种「玩家参与」的语义，
+   用同一个辅助色，全站就有了一套「粉=官方 / 雾青=玩家」的隐性语言。
+   【回退办法】改回 background: rgba(114, 163, 146, 0.20); color: var(--success-dark); */
+    .myrep-status.noted { background: var(--accent-mist-soft); color: var(--accent-mist); }
     .myrep-status.removed { background: rgba(120, 120, 120, 0.16); color: var(--text-muted); }
     .myrep-status.local { background: rgba(107, 182, 232, 0.16); color: var(--text-light); }
     .myrep-btn {
@@ -394,7 +400,7 @@
       justify-content: center;
     }
     .myrep-btn:hover { background: var(--primary); color: var(--text-on-accent); border-color: var(--primary); }
-    .myrep-btn:active { transform: scale(0.94); }
+    .myrep-btn:active { transform: scale(0.97); }
     .myrep-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
     .myrep-btn[disabled]:hover { background: var(--bg-card); color: var(--primary); border-color: var(--primary-light); }
     .myrep-empty {
@@ -454,7 +460,7 @@
     .filter-tabs button:hover {
       border-color: var(--primary-light);
       color: var(--primary);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     .filter-tabs button:active {
       transform: scale(0.93);
@@ -476,7 +482,7 @@
     .btn-latest:hover {
       border-color: #56b08a;
       color: #2e7355;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(110, 198, 160, 0.3);
     }
     .btn-latest:active { transform: scale(0.93); }
@@ -496,7 +502,7 @@
     .btn-hot:hover {
       border-color: #e86450;
       color: #a03220;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
     }
     .btn-hot:active { transform: scale(0.93); }
@@ -527,7 +533,7 @@
     .filter-tabs .btn-multi:hover {
       border-color: var(--primary);
       color: var(--primary-dark);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
     }
     .filter-tabs .btn-multi:active { transform: scale(0.93); }
@@ -557,7 +563,7 @@
     .btn-fav-filter:hover {
       border-color: var(--gold-ink);
       color: var(--gold-ink);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
     }
     .btn-fav-filter:active { transform: scale(0.93); }
@@ -600,6 +606,24 @@
       justify-content: space-between;
       gap: 6px 12px;
       margin-bottom: 10px;
+    }
+    /* 2026-10-18 新增：歌名后面的「玩家说：xxx」小字（玩家投稿时自己填的歌曲类型）。
+       样式刻意做小做淡，不抢主歌名。【回退办法】删掉这条规则。 */
+    /* 2026-10-18 配色创新：这枚小字代表「玩家自己说的话」，用雾青和站内粉色区分开，
+       一眼能看出「这是投稿者补充的、不是官方分类」。
+       【回退办法】颜色改回 var(--text-muted) / var(--bg-soft) / var(--border)。 */
+    .genre-tip {
+      margin-left: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent-mist);
+      background: var(--accent-mist-soft);
+      border: 1px solid var(--accent-mist-line);
+      border-radius: var(--radius-pill);
+      padding: 1px 8px;
+      vertical-align: middle;
+      white-space: nowrap;
+      transition: background var(--dur-micro) var(--ease-soft), border-color var(--dur-micro) var(--ease-soft);
     }
     .group-name {
       font-size: 1.1rem;
@@ -754,7 +778,7 @@
       border-color: #c99a4c;
       background: rgba(232, 184, 102, 0.16);
     }
-    .group-actions .btn-info-error:active { transform: scale(0.94); }
+    .group-actions .btn-info-error:active { transform: scale(0.97); }
     .group-actions .btn-info-error.reported {
       color: #7d5716;
       border-color: #c99a4c;
@@ -840,7 +864,7 @@
       background: var(--bg-tint);
       border-color: var(--primary-light);
       color: var(--primary);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     .pager button:active:not(:disabled) { transform: scale(0.93); }
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -907,7 +931,7 @@
     .btn-random:hover {
       border-color: var(--primary-light);
       color: var(--primary);
-      transform: translateY(-2px) rotate(-3deg);
+      transform: translateY(-1px) rotate(-3deg);
     }
     .btn-random:active { transform: scale(0.93) rotate(3deg); }
 
@@ -1153,7 +1177,7 @@
     }
     #riskModal .btn-confirm:hover.active {
       background: #a93226;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     #riskModal .risk-body::-webkit-scrollbar { width: 6px; }
     #riskModal .risk-body::-webkit-scrollbar-track { background: transparent; }
@@ -1216,7 +1240,7 @@
       border-color: var(--primary-light);
       box-shadow: var(--shadow-hover);
     }
-    .back-home-fab:active { transform: translateY(0) scale(0.96); }
+    .back-home-fab:active { transform: translateY(0) scale(0.98); }
     @media (max-width: 480px) {
       .back-home-fab { padding: 9px 14px; font-size: 0.82rem; }
     }
@@ -1296,7 +1320,7 @@
       border-color: var(--primary-light);
       color: var(--primary);
       background: var(--bg-card);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(220, 107, 130, 0.12);
     }
     .visit-source-btn:active {
@@ -1777,9 +1801,19 @@
              【回退办法】把这一整段 <select> + <input> 换回原来的
              <input type="text" id="submitSongCategory" maxlength="30" placeholder="例如：中文流行">，
              再删掉 js 里的 fillSubmitCategories() / resolveSubmitCategory() 两个函数即可。 -->
-        <select id="submitSongCategory">
-          <option value="🧩 玩家提供">🧩 玩家提供（不确定就选这个）</option>
+        <!-- 2026-10-18 站主要求：「分类只显示『玩家提供』」——
+             游客投稿一律进「🧩 玩家提供」分栏，不再让他们挑站内分类。
+             disabled 只是禁止改选，value 仍能被 JS 读到（提交逻辑不用改）。
+             【回退办法】去掉 disabled、并恢复 fillSubmitCategories() 里的分类列表。 -->
+        <select id="submitSongCategory" disabled>
+          <option value="🧩 玩家提供">🧩 玩家提供（游客投稿统一进这里）</option>
         </select>
+        <label for="submitSongGenre">歌曲类型（选填，你自己判断）</label>
+        <!-- 2026-10-18 新增：玩家自己填「歌曲类型」（如 中文流行 / 纯音乐 / 电子）。
+             审核通过后会在宝库页歌名后面显示小字「玩家说：xxx」。
+             存 song_submissions.genre → songs_extra.genre。 -->
+        <input type="text" id="submitSongGenre" maxlength="40" autocomplete="off"
+               placeholder="例如：中文流行 / 纯音乐 / 电子舞曲">
         <label for="submitSongNote">说明（选填）</label>
         <!-- 2026-10-17 新增：分类不让自己写了，但可以在这里用一句话描述（站主：「这 2 个功能都可以描述」）。
              存进 D1 的 song_submissions.note（需执行 migrations.sql 第 5 组那句 ALTER；
@@ -2166,6 +2200,11 @@ const AUX_TIMEOUT = 700;
     let auxLateApplied = false;
 
     async function loadAuxLists() {
+      /* 2026-10-18：热门榜也在这里一起并行拉。原因：主列表要显示热度与排名，
+         但如果在首屏渲染后再单独拉、拉回来再重绘，会**重建整个列表 DOM**，
+         用户正在点的按钮会被换掉（实测「信息出错」弹窗点不开）。
+         放进这个 Promise.all 就只渲染一次，代价是首屏多等一个并行请求（有 0.7s 超时兜底）。
+         【回退办法】删掉下面这一行 loadHotList() 即可。 */
       const [staticQRes, qRes, extraRes] = await Promise.all([
         /* 已下架的静态快照：后台「📤 导出」出来写进 data/ 目录的那份。
            它是固定的静态文件，走 CDN 缓存（_headers 给 /data/*.json 配了 5 分钟），
@@ -2178,7 +2217,10 @@ const AUX_TIMEOUT = 700;
            所以这里继续带 `?t=`（URL 每次唯一，任何缓存都不可能命中），慢的那 600ms
            交给上面那句 1.5 秒超时兜底：超时先画主数据，回来了再补一次重绘。 */
         fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
-        fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
+        fetch('/api/songs/list?t=' + Date.now()).catch(() => null),
+        /* ⚠️ 2026-10-18 踩过的坑：必须放在**最后** —— 上面解构只取前 3 个，
+           放进前面会把 /api/songs/list 的结果挤掉，D1 里的歌就全没了。 */
+        loadHotList().catch(() => null)
       ]);
 
       /* 先收静态快照里的，再用接口结果补充 */
@@ -2236,6 +2278,8 @@ const AUX_TIMEOUT = 700;
           name: i.name || '未知歌名',
           category: i.category || '🧩 玩家提供',
           lineIndex: i.lineIndex || 100000,
+          /* 2026-10-18：玩家投稿时填的「歌曲类型」，审核通过后由 songs_extra.genre 带出来。 */
+          genre: i.genre || '',
           _fromD1: true
         });
       });
@@ -2271,6 +2315,7 @@ const AUX_TIMEOUT = 700;
 
         applyData(raw, aux || { adminQuarantine: [], extraSongs: [] });
 
+
         if (!aux) {
           /* 辅助数据超时了：后台补拉一次，回来了再悄悄重绘（只重绘，不打扰当前操作） */
           loadAuxLists().then(late => {
@@ -2304,8 +2349,24 @@ const AUX_TIMEOUT = 700;
       while (dom.filterTabs.children.length > 2) {
         dom.filterTabs.removeChild(dom.filterTabs.lastChild);
       }
-      const cats = [...new Set(songDatabase.map(i => i.category).filter(Boolean))];
-      cats.forEach(cat => {
+      /* 2026-10-19 修 BUG：数据里同时存在「玩家提供」和「🧩 玩家提供」两种写法，
+         原来按原样去重 → 分类栏会**出现两个「玩家提供」按钮**。
+         这里统一归一到一个规范值（带图标那个），并把空/未分类也并进去。
+         【回退办法】换回原来的单行 [...new Set(...)] 写法。 */
+      const catSet = new Set();
+      songDatabase.forEach(i => {
+        const c = String(i.category || '').trim();
+        if (!c) return;
+        catSet.add(c.includes('玩家提供') ? CAT_PLAYER_PROVIDED : c);
+      });
+      const cats = [...catSet];
+      /* 2026-10-18 站主要求：「🧩 玩家提供」固定放在「🔁 多 ID」后面（也就是分类里的第一个），
+         其余分类保持原来的出现顺序。这样游客投稿的歌永远有个固定、显眼的分栏。
+         【回退办法】把下面 two lines 删掉、把 cats 换回 categories 即可。 */
+      const playerCat = cats.filter(c => c === CAT_PLAYER_PROVIDED);
+      const otherCats = cats.filter(c => c !== CAT_PLAYER_PROVIDED);
+      const categories = playerCat.concat(otherCats);
+      categories.forEach(cat => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.dataset.cat = cat;
@@ -2315,7 +2376,8 @@ const AUX_TIMEOUT = 700;
 
       /* 若当前选中的分类已经不存在（例如该类别的歌全部被隔离），
          必须回退到「全部」，否则会出现“列表空白且没有任何按钮高亮”的死局。 */
-      if (currentCategory !== 'all' && !cats.includes(currentCategory)) {
+      /* 2026-10-18：同上，判断用排好序的 categories（内容与 cats 相同，只是顺序）。 */
+      if (currentCategory !== 'all' && !categories.includes(currentCategory)) {
         currentCategory = 'all';
       }
 
@@ -2410,7 +2472,11 @@ const AUX_TIMEOUT = 700;
         b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
       });
 
-      renderList(options);
+      /* 2026-10-18 修 BUG：这里原来写的是 renderList(options)，
+         但 clearAllFilters() 是没有参数的函数 —— options 未定义，点击「清除筛选」会直接
+         抛 ReferenceError（状态改了、列表不重绘，看起来就是『点了没用』）。改成 renderList()。
+         【回退办法】把这一行改回 renderList(options)（那是 BUG，别回退）。 */
+      renderList();
     }
 
     /* keepPage: 数据增删（收藏 / 隔离）后重绘时留在当前页，不要甩回第 1 页 */
@@ -2436,12 +2502,14 @@ const AUX_TIMEOUT = 700;
             ids: [],
             categories: new Set(),
             maxLineIndex: 0,
-            maxHot: 0
+            maxHot: 0,
+            genre: ''    /* 2026-10-18：这一组里第一个有「歌曲类型」的歌，用于显示小字 */
           });
         }
         const g = groupMap.get(key);
         g.ids.push(item.id);
         g.categories.add(item.category);
+        if (!g.genre && item.genre) g.genre = item.genre;   /* 2026-10-18：取第一个非空 */
         if ((item.lineIndex || 0) > g.maxLineIndex) {
           g.maxLineIndex = item.lineIndex || 0;
         }
@@ -2469,6 +2537,16 @@ const AUX_TIMEOUT = 700;
           .map(g => ({ ...g, ids: g.ids.filter(id => favorites.has(id)) }))
           .filter(g => g.ids.length > 0);
       }
+
+      /* ============================================================
+         2026-10-18 站主要求：给有热度的组算「排名」。
+         为什么放在这里：上面所有过滤（分类 / 关键词 / 多 ID / 收藏）都做完了，
+         此时 groups 就是要展示的那一批；按热度降序编号，热门视图里就是 #1..#100。
+         只在有热度的组上排序（通常几百个），不影响 4341 组的整体性能。
+         【回退办法】删掉下面这 5 行。 */
+      const hotRanked = groups.filter(g => (g.maxHot || 0) > 0);
+      hotRanked.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0) || compareName(a.name, b.name));
+      hotRanked.forEach((g, i) => { g.hotRank = i + 1; });
 
       currentGroups = groups;
       /* 筛选条件变了就回到第 1 页；只是数据增删（收藏 / 隔离）则留在原页 */
@@ -2673,8 +2751,14 @@ const AUX_TIMEOUT = 700;
 
       let nameHtml = safeName;
       if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
-      if (showHotOnly && group.maxHot > 0) {
-        nameHtml += ' <span class="badge-hot">🔥 ' + group.maxHot + '</span>';
+      /* 2026-10-18 站主要求：不再只在「🔥 热门推荐」里显示 ——
+         主列表（全部 / 各分类）搜到这首歌时也显示它的热度和排名。
+         没有热度（maxHot = 0）的不显示，免得满屏都是标签。
+         【回退办法】把条件改回 showHotOnly && group.maxHot > 0。 */
+      if (group.maxHot > 0) {
+        const rankText = group.hotRank ? '#' + group.hotRank + ' · ' : '';
+        nameHtml += ' <span class="badge-hot" title="热度排名 ' + (group.hotRank || '—') + '，共被复制/试听 ' + group.maxHot + ' 次">' +
+          rankText + '🔥 ' + group.maxHot + '</span>';
       }
 
       let rowsHtml = '';
@@ -2702,7 +2786,10 @@ const AUX_TIMEOUT = 700;
       el.dataset.name = group.name;
       el.innerHTML = `
           <div class="group-header">
-            <div class="group-name">${nameHtml}</div>
+            <div class="group-name">${nameHtml}${
+              /* 2026-10-18 站主要求：玩家提供并审核通过的歌，歌名后面显示小字「玩家说：xxx」 */
+              group.genre ? '<span class="genre-tip" title="这是投稿玩家自己写的歌曲类型">玩家说：' + escapeHtml(group.genre) + '</span>' : ''
+            }</div>
             <div class="group-actions">
               <button type="button" class="btn-info-error" title="这首歌的歌名 / 分类 / ID 哪里不对？点这里改一改再上报">✏️ 信息出错</button>
             </div>
@@ -3895,33 +3982,20 @@ const AUX_TIMEOUT = 700;
        ③ 数据里真实出现过、但不在白名单里的自定义分类追加在后面；
        ④ 最后永远是「✍️ 其它（自己写）」。
        每次都重建：数据是异步加载的，第一次打开时可能还没加载完，重建一次就补上了。 */
+    /* ============================================================
+       2026-10-18 站主要求：「分类只显示『玩家提供』」——
+       游客投稿一律进「🧩 玩家提供」分栏，不再给他们挑站内分类。
+       所以这里不再填 14 个分类，只保留唯一一项（下拉同时是 disabled）。
+       想让游客能选分类的话：把下面 reset 掉、恢复成按 CATEGORY_WHITELIST 循环即可。
+       ============================================================ */
     function fillSubmitCategories() {
       const sel = document.getElementById('submitSongCategory');
       if (!sel) return;
-
-      const known = [];
-      const seen = Object.create(null);
-      const push = (name) => {
-        const c = String(name || '').trim();
-        if (!c || seen[c]) return;
-        seen[c] = true;
-        known.push(c);
-      };
-      CATEGORY_WHITELIST.forEach(push);
-      /* 2026-10-17：不再从 songDatabase 补分类（站主要求别出现「英文歌」这种临时叫法）。 */
-
       sel.innerHTML = '';
-      const def = document.createElement('option');
-      def.value = CAT_PLAYER_PROVIDED;
-      def.textContent = CAT_PLAYER_PROVIDED + '（不确定就选这个）';
-      sel.appendChild(def);
-      known.forEach(name => {
-        const o = document.createElement('option');
-        o.value = name;
-        o.textContent = name;
-        sel.appendChild(o);
-      });
-      /* 2026-10-17：原来这里会追加一项「✍️ 其它（自己写）」——站主要求去掉，整段删除。 */
+      const only = document.createElement('option');
+      only.value = CAT_PLAYER_PROVIDED;
+      only.textContent = CAT_PLAYER_PROVIDED + '（游客投稿统一进这里）';
+      sel.appendChild(only);
       sel.value = CAT_PLAYER_PROVIDED;
     }
 
@@ -4018,6 +4092,8 @@ const AUX_TIMEOUT = 700;
     async function submitSongIds() {
       const name = ((document.getElementById('submitSongName') || {}).value || '').trim();
       const category = resolveSubmitCategory();
+      /* 2026-10-18：玩家自己填的「歌曲类型」（选填，最多 40 字） */
+      const genre = ((document.getElementById('submitSongGenre') || {}).value || '').trim().slice(0, 40);
       /* 2026-10-17：分类不让写了，但玩家可以写一句说明（选填，最多 300 字） */
       const note = ((document.getElementById('submitSongNote') || {}).value || '').trim().slice(0, 300);
       const rawIds = ((document.getElementById('submitSongIds') || {}).value || '')
@@ -4049,7 +4125,8 @@ const AUX_TIMEOUT = 700;
       if (btn) btn.disabled = true;
 
       try {
-        const items = ids.map(id => ({ id: id, name: name, category: category, note: note }));
+        /* 2026-10-18：payload 带 genre。 */
+        const items = ids.map(id => ({ id: id, name: name, category: category, note: note, genre: genre }));
         /* 服务端单次最多 20 条（见 functions/api/songs/submit.js），超出就分批 */
         for (let i = 0; i < items.length; i += 20) {
           const res = await zmPostJson('/api/songs/submit', {

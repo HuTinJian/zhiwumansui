@@ -68,9 +68,25 @@
   --header-grad-b: #f0c4cd;
 
   /* 阴影 */
-  --shadow-sm: 0 2px 8px rgba(220, 107, 130, 0.06);
-  --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
-  --shadow-hover: 0 12px 40px rgba(220, 107, 130, 0.15);
+  /* ============================================================
+     2026-10-19 高级感重做：阴影从「一层粉雾」改成「三层立体」。
+       第 1 层 贴边： rgba(120,60,75,.05) 1~3px  —— 让卡片和背景之间有定义线
+       第 2 层 扩散： 大范围低透明度       —— 决定卡片"悬空多高"
+       第 3 层 内高光：inset 0 1px 0 #fff  —— 模拟材质上缘受光，这一层是"贵"的来源
+     改的是令牌，所有引用 --shadow/--shadow-sm 的卡片会自动升级，不用逐个改。
+     【回退办法】把这三行改回原来的单层粉色阴影即可。 */
+  --shadow-sm:
+    0 1px 2px rgba(120, 60, 75, 0.05),
+    0 4px 12px rgba(120, 60, 75, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --shadow:
+    0 1px 3px rgba(120, 60, 75, 0.06),
+    0 10px 28px rgba(120, 60, 75, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --shadow-hover:
+    0 2px 6px rgba(120, 60, 75, 0.07),
+    0 18px 44px rgba(120, 60, 75, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   --shadow-modal: 0 20px 60px rgba(74, 63, 68, 0.25);
   --shadow-glow: 0 0 0 4px rgba(220, 107, 130, 0.14);
 
@@ -85,9 +101,21 @@
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 0.18s;
-  --dur: 0.3s;
-  --dur-slow: 0.55s;
+  /* 2026-10-18 动效重做：现代手感是「快进快出」，0.3s 偏慢会显得拖沓。
+     三档改成 0.14 / 0.22 / 0.42；另加一个 --dur-micro 给纯颜色过渡（更短更稳）。
+     【回退办法】改回 0.18 / 0.3 / 0.55，并删掉 --dur-micro。 */
+  --dur-fast: 0.14s;
+  --dur: 0.22s;
+  --dur-slow: 0.42s;
+  --dur-micro: 0.12s;
+
+  /* 2026-10-18 配色创新（克制版）：「织雾满穗」只有粉色会显得单薄。
+     加一个**雾青**当辅助色 —— 它只用于「玩家自己写的东西」和「成功状态」，
+     和粉色形成冷暖对比，但主色/交互色一律不动（不瞎创新）。
+     【回退办法】删掉这四个变量，并把下面用到的地方改回原来的颜色。 */
+  --accent-mist: #3f7d78;
+  --accent-mist-soft: rgba(63, 125, 120, 0.12);
+  --accent-mist-line: rgba(63, 125, 120, 0.28);
 
   /* 字体 */
   --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
@@ -143,13 +171,23 @@
   --text-light: #cdbcc5;
   --text-muted: #a4909a;
   --text-on-accent: #1a1218;
+
+  /* 2026-10-18：雾青在深色主题下要提亮，否则在暗底上看不清。 */
+  --accent-mist: #8ad8cd;
+  --accent-mist-soft: rgba(138, 216, 205, 0.14);
+  --accent-mist-line: rgba(138, 216, 205, 0.32);
   --border: #3a2c36;
   --border-strong: #4c3a46;
   /* 深色下标题栏比卡片底稍亮一点的暖紫，保住"粉色系"的辨识度 */
   --header-grad-a: #3a2733;
   --header-grad-b: #2e2029;
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  /* 2026-10-19：深色主题同样三层，但内高光只留 4% —— 太亮会显得"油"。
+     【回退办法】改回 0 2px 8px rgba(0, 0, 0, 0.3); */
+  --shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -185,7 +223,18 @@ html {
 
 body {
   font-family: var(--font);
-  background: var(--bg);
+  /* 2026-10-19 高级感：把「织雾满穗」的「雾」做成看得见的空气感。
+     左上一点粉、右上一点雾青，都极淡（10% 以内）——目的是让纯色底不再"死板"，
+     卡片看起来像浮在雾里。只用静态 background-image：
+       · 不写 background-attachment: fixed（iOS 上会抖）；
+       · 不用 backdrop-filter（低端手机会掉帧）。
+     【回退办法】删掉下面的 background-image 两行、把 background-color 改回 background 简写即可。 */
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1100px 520px at 8% -8%, rgba(220, 107, 130, 0.10), transparent 62%),
+    radial-gradient(820px 460px at 92% -4%, rgba(63, 125, 120, 0.09), transparent 66%);
+  background-repeat: no-repeat;
+  background-attachment: scroll;
   color: var(--text);
   line-height: 1.7;
   min-height: 100vh;
@@ -195,7 +244,43 @@ body {
   transition: background-color 0.4s var(--ease-soft), color 0.4s var(--ease-soft);
 }
 
+/* 2026-10-19：深色主题的雾要更淡、更冷（粉会发灰，雾青要提亮）。
+   【回退办法】删掉这条规则。 */
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(1100px 520px at 8% -8%, rgba(239, 142, 164, 0.10), transparent 62%),
+    radial-gradient(820px 460px at 92% -4%, rgba(138, 216, 205, 0.10), transparent 66%);
+}
+
 img { max-width: 100%; }
+
+/* ============================================================
+   2026-10-19 排版细节：大标题收紧字距、数字用等宽对齐。
+   字距是「高级感」最便宜的一招 —— 0.02em 的差别，观感差一个档次。
+   【回退办法】删掉这条规则。 */
+h1, .hero-title, .page-title {
+  letter-spacing: -0.02em;
+}
+/* 卡片入场：轻微上浮 + 淡入，前 8 组错开 28ms（只影响首屏观感，屏幕外的靠 content-visibility 跳过）。 */
+@keyframes zmGroupIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#songList .song-group {
+  animation: zmGroupIn var(--dur-slow) var(--ease-out) both;
+}
+#songList .song-group:nth-child(1) { animation-delay: 0ms; }
+#songList .song-group:nth-child(2) { animation-delay: 28ms; }
+#songList .song-group:nth-child(3) { animation-delay: 56ms; }
+#songList .song-group:nth-child(4) { animation-delay: 84ms; }
+#songList .song-group:nth-child(5) { animation-delay: 112ms; }
+#songList .song-group:nth-child(6) { animation-delay: 140ms; }
+#songList .song-group:nth-child(7) { animation-delay: 168ms; }
+#songList .song-group:nth-child(8) { animation-delay: 196ms; }
+/* 尊重「减少动态效果」：关掉入场动画（无障碍，也是省电） */
+@media (prefers-reduced-motion: reduce) {
+  #songList .song-group { animation: none; }
+}
 
 /* hidden 属性必须真正生效：组件里大量使用 display:flex/grid，会覆盖 UA 的 [hidden] */
 [hidden] { display: none !important; }
@@ -285,7 +370,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 @keyframes cardRise {
-  0%   { opacity: 0; transform: translateY(20px) scale(0.96); }
+  0%   { opacity: 0; transform: translateY(20px) scale(0.98); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -305,7 +390,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  from { opacity: 0; transform: scale(0.98) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -445,7 +530,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   /* 导航条本身已经是粉色了，这里改用白色"磨砂"高亮，比再叠一层粉更清楚 */
   background: rgba(255, 255, 255, 0.68);
   color: var(--primary-ink);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-1px) scale(1.05);
 }
 [data-theme="dark"] .navbar .nav-links a:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -527,7 +612,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: #fff;
   box-shadow: 0 6px 16px rgba(220, 107, 130, 0.25);
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(220, 107, 130, 0.36); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(220, 107, 130, 0.36); }
 
 /* 次按钮 */
 .btn-secondary {
@@ -547,7 +632,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: #fff;
   box-shadow: 0 6px 16px rgba(192, 57, 43, 0.25);
 }
-.btn-danger:hover { background: #a93226; transform: translateY(-2px); }
+.btn-danger:hover { background: #a93226; transform: translateY(-1px); }
 
 /* 成功按钮 */
 .btn-success {
@@ -555,7 +640,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: #fff;
   box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
 }
-.btn-success:hover { transform: translateY(-2px); filter: brightness(1.14); }
+.btn-success:hover { transform: translateY(-1px); filter: brightness(1.14); }
 
 /* 金色按钮 */
 .btn-gold {
@@ -563,7 +648,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: #fff;
   box-shadow: 0 6px 16px rgba(212, 160, 106, 0.25);
 }
-.btn-gold:hover { transform: translateY(-2px); }
+.btn-gold:hover { transform: translateY(-1px); }
 
 /* ---------- 「分享」按钮（2026-10-04 站主要求：颜色贴主题、还得护眼） ----------
    ⚠ 类名 2026-10-04 晚从 .btn-share 改成 .zb-invite：站主反馈「手机端有、电脑端没有」，
@@ -587,10 +672,10 @@ body.modal-open .particles i { animation-play-state: paused; }
 .zb-invite:hover {
   border-color: var(--gold);
   color: var(--gold-ink);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(212, 160, 106, 0.24);
 }
-.zb-invite:active { transform: translateY(0) scale(0.96); }
+.zb-invite:active { transform: translateY(0) scale(0.98); }
 .zb-invite:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .zb-invite .ripple { background: rgba(212, 160, 106, 0.35); }
 
@@ -1268,7 +1353,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
 }
 .seg-tab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
-.seg-tab:active { transform: scale(0.95); }
+.seg-tab:active { transform: scale(0.98); }
 .seg-tab.active {
   background: var(--primary); color: var(--text-on-accent);
   box-shadow: 0 2px 8px rgba(220, 107, 130, 0.22);
@@ -1543,7 +1628,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-radius: var(--radius-sm);
   transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
 }
-.site-notice-group:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.site-notice-group:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .site-notice-group img {
   display: block;
   width: 100%;

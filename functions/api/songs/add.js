@@ -23,6 +23,9 @@ export async function onRequestPost(context) {
        这里只是最后一道兜底 —— 空 / 「未分类」/「未完成」都归到「🧩 玩家提供」
        （跟 functions/api/songs/submit.js、submissions.js 保持同一个字面量）。
        【回退办法】把这一行换回 `String(body.category || '未分类').trim() || '未分类'`。 */
+    /* 2026-10-18：玩家自己填的「歌曲类型」（审核通过时从投稿带过来），可空。 */
+    const genre = String(body.genre || '').trim().slice(0, 40);
+
     const rawCategory = String(body.category || '').trim();
     const category = (!rawCategory || rawCategory === '未分类' || rawCategory === '未完成')
       ? '🧩 玩家提供'
@@ -36,13 +39,34 @@ export async function onRequestPost(context) {
     }
 
     /* line_index 在单条 INSERT 内用子查询计算，避免「先读后写」竞态 */
-    await env.DB.prepare(
-      `INSERT INTO songs_extra (music_id, name, category, line_index)
-       VALUES (?, ?, ?, (SELECT COALESCE(MAX(line_index), 99999) + 1 FROM songs_extra))
-       ON CONFLICT(music_id) DO UPDATE SET
-         name = excluded.name,
-         category = excluded.category`
-    ).bind(musicId, name, category).run();
+    /* 2026-10-18：带 genre 时一起写。genre 列不存在（迁移没跑）就退回不带它的写法，
+       保证「加歌」永远不会因为迁移失败。【回退办法】删掉 hasGenre 分支，只留原 INSERT。 */
+    let hasGenre = false;
+    try {
+      await env.DB.prepare('SELECT genre FROM songs_extra LIMIT 1').all();
+      hasGenre = true;
+    } catch (err) {
+      hasGenre = false;
+    }
+
+    if (hasGenre) {
+      await env.DB.prepare(
+        `INSERT INTO songs_extra (music_id, name, category, line_index, genre)
+         VALUES (?, ?, ?, (SELECT COALESCE(MAX(line_index), 99999) + 1 FROM songs_extra), ?)
+         ON CONFLICT(music_id) DO UPDATE SET
+           name = excluded.name,
+           category = excluded.category,
+           genre = COALESCE(excluded.genre, songs_extra.genre)`
+      ).bind(musicId, name, category, genre || null).run();
+    } else {
+      await env.DB.prepare(
+        `INSERT INTO songs_extra (music_id, name, category, line_index)
+         VALUES (?, ?, ?, (SELECT COALESCE(MAX(line_index), 99999) + 1 FROM songs_extra))
+         ON CONFLICT(music_id) DO UPDATE SET
+           name = excluded.name,
+           category = excluded.category`
+      ).bind(musicId, name, category).run();
+    }
 
     /* ============================================================
        2026-10-18 站主要求：加入的歌如果已经在「隔离区」里，要提示「该 ID 处在隔离区」。

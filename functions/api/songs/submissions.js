@@ -60,7 +60,11 @@ export async function onRequestGet(context) {
                 WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS latest_category,
               (SELECT s2.note FROM song_submissions s2
                 WHERE s2.music_id = s1.music_id AND s2.note IS NOT NULL
-                ORDER BY s2.id DESC LIMIT 1) AS latest_note
+                ORDER BY s2.id DESC LIMIT 1) AS latest_note,
+              /* 2026-10-18：玩家自己填的「歌曲类型」，审核时一起看。 */
+              (SELECT s3.genre FROM song_submissions s3
+                WHERE s3.music_id = s1.music_id AND s3.genre IS NOT NULL
+                ORDER BY s3.id DESC LIMIT 1) AS latest_genre
          FROM song_submissions s1
         WHERE status = 'pending'
         GROUP BY music_id
@@ -75,7 +79,8 @@ export async function onRequestGet(context) {
       count: Number(row.submit_count) || 0,
       lastAt: toUtcIso(row.last_at),
       /* 2026-10-17：玩家写的「说明」，后台投稿列表要显示（没这列时为空串） */
-      note: row.latest_note || ''
+      note: row.latest_note || '',
+      genre: row.latest_genre || ''
     }));
 
     return json({ ok: true, data, summary: { pendingSongs: data.length } });
@@ -120,7 +125,11 @@ export async function onRequestPost(context) {
                 (SELECT s2.name FROM song_submissions s2
                   WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS name,
                 (SELECT s2.category FROM song_submissions s2
-                  WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS category
+                  WHERE s2.music_id = s1.music_id ORDER BY s2.id DESC LIMIT 1) AS category,
+                  /* 2026-10-18：玩家自己填的「歌曲类型」，通过时一起搬进 songs_extra。 */
+                  (SELECT s2.genre FROM song_submissions s2
+                    WHERE s2.music_id = s1.music_id AND s2.genre IS NOT NULL
+                    ORDER BY s2.id DESC LIMIT 1) AS genre
            FROM song_submissions s1
           WHERE s1.music_id IN (SELECT value FROM json_each(?))
           GROUP BY s1.music_id`
@@ -131,15 +140,35 @@ export async function onRequestPost(context) {
       ).first();
       let next = Number(maxRow && maxRow.max_line) || 99999;
 
+      /* 2026-10-18：先探 songs_extra 有没有 genre 列（迁移没跑时不影响「通过」）。
+         【回退办法】删掉 hasGenre 分支，只留原来 4 列的 INSERT。 */
+      let hasGenre = false;
+      try {
+        await env.DB.prepare('SELECT genre FROM songs_extra LIMIT 1').all();
+        hasGenre = true;
+      } catch (err) {
+        hasGenre = false;
+      }
+
       const inserts = ((rows && rows.results) || []).map(r => {
         next += 1;
-        return env.DB.prepare(
-          `INSERT INTO songs_extra (music_id, name, category, line_index)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(music_id) DO UPDATE SET
-             name = excluded.name,
-             category = excluded.category`
-        ).bind(String(r.music_id), r.name || '', normalizeSubmissionCategory(r.category), next);
+        const g = String(r.genre || '').trim().slice(0, 40) || null;
+        return hasGenre
+          ? env.DB.prepare(
+              `INSERT INTO songs_extra (music_id, name, category, line_index, genre)
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(music_id) DO UPDATE SET
+                 name = excluded.name,
+                 category = excluded.category,
+                 genre = COALESCE(excluded.genre, songs_extra.genre)`
+            ).bind(String(r.music_id), r.name || '', normalizeSubmissionCategory(r.category), next, g)
+          : env.DB.prepare(
+              `INSERT INTO songs_extra (music_id, name, category, line_index)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(music_id) DO UPDATE SET
+                 name = excluded.name,
+                 category = excluded.category`
+            ).bind(String(r.music_id), r.name || '', normalizeSubmissionCategory(r.category), next);
       });
 
       await env.DB.batch([
