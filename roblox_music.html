@@ -2538,15 +2538,6 @@ const AUX_TIMEOUT = 700;
           .filter(g => g.ids.length > 0);
       }
 
-      /* ============================================================
-         2026-10-18 站主要求：给有热度的组算「排名」。
-         为什么放在这里：上面所有过滤（分类 / 关键词 / 多 ID / 收藏）都做完了，
-         此时 groups 就是要展示的那一批；按热度降序编号，热门视图里就是 #1..#100。
-         只在有热度的组上排序（通常几百个），不影响 4341 组的整体性能。
-         【回退办法】删掉下面这 5 行。 */
-      const hotRanked = groups.filter(g => (g.maxHot || 0) > 0);
-      hotRanked.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0) || compareName(a.name, b.name));
-      hotRanked.forEach((g, i) => { g.hotRank = i + 1; });
 
       currentGroups = groups;
       /* 筛选条件变了就回到第 1 页；只是数据增删（收藏 / 隔离）则留在原页 */
@@ -2751,14 +2742,13 @@ const AUX_TIMEOUT = 700;
 
       let nameHtml = safeName;
       if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
-      /* 2026-10-18 站主要求：不再只在「🔥 热门推荐」里显示 ——
-         主列表（全部 / 各分类）搜到这首歌时也显示它的热度和排名。
-         没有热度（maxHot = 0）的不显示，免得满屏都是标签。
-         【回退办法】把条件改回 showHotOnly && group.maxHot > 0。 */
+      /* 2026-10-19 站主要求：只显示热度，**去掉「#排名」** ——
+         因为排名是按「当前筛选后的结果」算的（搜索/切分类后编号会变），
+         在用户眼里就是「排名不准」，不如不显示。
+         现在：主列表与热门视图都只显示「🔥 热度」，没有热度就不显示标签。
+         【回退办法】把 rankText 那段加回来即可（但不准，不建议）。 */
       if (group.maxHot > 0) {
-        const rankText = group.hotRank ? '#' + group.hotRank + ' · ' : '';
-        nameHtml += ' <span class="badge-hot" title="热度排名 ' + (group.hotRank || '—') + '，共被复制/试听 ' + group.maxHot + ' 次">' +
-          rankText + '🔥 ' + group.maxHot + '</span>';
+        nameHtml += ' <span class="badge-hot" title="共被复制 / 试听 ' + group.maxHot + ' 次">🔥 ' + group.maxHot + '</span>';
       }
 
       let rowsHtml = '';
