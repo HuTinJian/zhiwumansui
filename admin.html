@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>后台管理 - 织雾满穗</title>
+  <!-- 2026-10-18：后台原来没有「渲染前定主题」脚本（其它 5 个页面都有），
+       用过深色的人每次进后台都会先闪一下浅色。这里补一份，逻辑与 index.html 相同。
+       【回退办法】删掉下面这段脚本标签与 meta theme-color 即可。 -->
+  <meta name="theme-color" content="#fdf2f5">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zm_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="css/style.css">
   <style>
     .admin-container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
@@ -234,7 +249,9 @@
     .invalid-bar .btn-pick-all { background: var(--primary-light); color: #fff; }
     .invalid-bar .btn-pick-all:hover { background: var(--primary); }
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
-    .invalid-bar .btn-pick-none:hover { background: #e6c9cf; }
+    /* 2026-10-18：原来写死 #e6c9cf（恰好是浅色 --border-strong），深色主题下字会看不见。
+   换成令牌后浅色取值完全相同、深色自动跟随。【回退办法】改回 #e6c9cf。 */
+    .invalid-bar .btn-pick-none:hover { background: var(--border-strong); }
     /* 「🧹 清空已忽略」那颗按钮 2026-10-07 随那一段一起删了，样式留着不碍事（下面那行只是记录） */
     .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
     .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
@@ -1177,7 +1194,7 @@
   </div>
 
   <footer class="footer">
-    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+    <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <!-- 法律定位 + 隐私说明 + 联系站长（2026-10-09 加，与前台三个页面保持一致；
          理由见 index.html 页脚同处注释：收通知的入口 + 法律定位 + 隐私告知）。 -->
     <p class="footer-legal">

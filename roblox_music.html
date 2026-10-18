@@ -933,11 +933,13 @@
       margin: 0 0 12px;
       min-height: 1.6em;
     }
-    .result-info strong { color: var(--primary); font-weight: 700; }
+    /* 2026-10-18 可访问性：12px 小字拿 --primary 当文字只有约 3:1，换 --primary-ink（5.2:1）。
+   --primary 继续只做填充/描边。【回退办法】改回 var(--primary)。 */
+    .result-info strong { color: var(--primary-ink); font-weight: 700; }
     .result-info .cleared {
       border: none;
       background: var(--bg-tint);
-      color: var(--primary);
+      color: var(--primary-ink);   /* 2026-10-18：0.76rem 小字对比度，原为 --primary */
       font-size: 0.76rem;
       font-weight: 600;
       padding: 3px 12px;
@@ -955,6 +957,8 @@
       flex-wrap: wrap;
       flex-shrink: 0;
     }
+    /* 2026-10-18 可访问性提示：按钮文字用 --primary 在 --bg-tint 上约 2.8:1，
+       这里换成 --primary-ink。若觉得按钮字太深，可单独改回 var(--primary)。 */
     .group-actions button {
       padding: 5px 13px;
       border: none;
@@ -1382,7 +1386,9 @@
       color: var(--text);
     }
     .visit-other-actions .btn-cancel-other:hover {
-      background: #e6c9cf;
+      /* 2026-10-18：同 admin，写死的浅粉在深色主题下会让文字消失 → 用令牌。
+         【回退办法】改回 #e6c9cf。 */
+      background: var(--border-strong);
     }
     .visit-other-actions .btn-confirm-other {
       background: var(--primary); color: var(--text-on-accent);
@@ -4218,7 +4224,19 @@ const AUX_TIMEOUT = 700;
         updatePager();
       }, 200));
 
-      dom.searchInput.addEventListener('input', debounce(() => {
+      /* 2026-10-18 性能：中文输入法拼音还没上屏时 input 会带着中间串触发，
+       防抖到点就整表重绘一次（4804 条 + 4341 组排序），表现为打字过程闪几次无关结果。
+       这里加组合态保护：拼音期间不搜，上屏（compositionend）后再搜一次。
+       【回退办法】删掉 composing 变量与两个 composition 监听，input 回调里去掉 composing 判断。 */
+    let searchComposing = false;
+    dom.searchInput.addEventListener('compositionstart', () => { searchComposing = true; });
+    dom.searchInput.addEventListener('compositionend', () => {
+      searchComposing = false;
+      dom.searchInput.dispatchEvent(new Event('input'));
+    });
+
+    dom.searchInput.addEventListener('input', debounce(() => {
+      if (searchComposing) return;
         currentKeyword = dom.searchInput.value;
         renderList();
       }, 220));

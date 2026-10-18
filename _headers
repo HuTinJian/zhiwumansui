@@ -7,7 +7,9 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000
   X-Frame-Options: DENY
-  Content-Security-Policy: frame-ancestors 'none'
+  # 2026-10-18：补三条零影响的指令（站内没有 form/base/object，加了不会白屏）。
+  # 注意没动 script-src —— 页面有大量内联脚本，硬上会全站白屏。
+  Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 
 # 2026-10-05 加固说明：
@@ -31,6 +33,20 @@
 # 歌曲主数据：5 分钟缓存。
 # 你改了 data/roblox_music.json 推上去之后，访客最多 5 分钟就能看到新版。
 # （想在电脑上立刻看到，按 Ctrl + F5 强制刷新即可）
+# 2026-10-18：给 data/ 兜底缓存（原来只配了 roblox_music.json，
+# admin_quarantine.json 每次都回源校验）；顺便给数据加 noai（只对守规矩的爬虫有效）。
+/data/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+  X-Robots-Tag: noai, noindex
+
+# 2026-10-18：开发文件虽然公开，但至少让搜索引擎别收录
+/README.md
+  X-Robots-Tag: noindex, nofollow
+/*.sql
+  X-Robots-Tag: noindex, nofollow
+/tools/*
+  X-Robots-Tag: noindex, nofollow
+
 /data/roblox_music.json
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 

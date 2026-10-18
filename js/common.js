@@ -1237,6 +1237,15 @@ function initShareTriggers() {
     bindModalA11y();
     injectAtmosphere();
     injectThemeToggle();
+
+  /* 2026-10-18：页脚年份统一兜底。
+     原来只有 index / thanks / roblox 三页会自己回填，law 与 admin 是写死的 2026，
+     到 2027 年就会出现「首页 2027、法律页 2026」。【回退办法】删掉这 4 行。 */
+  try {
+    document.querySelectorAll('#year, #footerYear').forEach(el => {
+      el.textContent = new Date().getFullYear();
+    });
+  } catch (e) {}
     initScrollUI();
     initRipple();
     initReveal();
@@ -1274,6 +1283,14 @@ function initShareTriggers() {
      改成仓库里的静态文件 data/updates.json（AI 完成改动后直接写这个文件）。
      文件读不到（旧缓存 / 还没部署上）就退回老接口 /api/updates，保证公告不会因此消失。 */
   async function loadPageUpdate(pageKey, controller) {
+  /* 2026-10-18 性能：原来每次导航都 fetch 一次 updates.json（还带 ?t= 时间戳，必不命中缓存）。
+     现在 60 秒内只查一次 —— 公告晚 60 秒对访客毫无影响（还要跟本地版本号比对才弹）。
+     【回退办法】删掉下面这段节流即可。 */
+  try {
+    const lastUpdAt = Number(sessionStorage.getItem('zm_upd_t')) || 0;
+    if (Date.now() - lastUpdAt < 60000) return null;
+    sessionStorage.setItem('zm_upd_t', String(Date.now()));
+  } catch (e) {}
     const signal = controller ? controller.signal : undefined;
 
     try {
