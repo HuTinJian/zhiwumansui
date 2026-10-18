@@ -41,7 +41,14 @@ export async function onRequest(context) {
     return jsonError('too_many_requests', 429, { wait: limit.wait });
   }
 
-  /* 2) 请求体上限：只看声明长度，不把 body 读进来（读进来就已经消耗内存了） */
+  /* 2) 请求体上限：只看声明长度，不把 body 读进来（读进来就已经消耗内存了）
+     ⚠️ 2026-10-18 安全修复：原来只信 Content-Length，
+        用 chunked 编码（不带这个头）就能整段绕过，几十 MB 的 body 会直接进 JSON.parse。
+        浏览器 fetch 一定会带 Content-Length，所以这里拒绝 transfer-encoding 不会误伤正常访客。
+        【回退办法】删掉下面 transfer-encoding 那个判断即可。 */
+  if (request.headers.get('transfer-encoding')) {
+    return jsonError('payload_too_large', 413);
+  }
   const declared = Number(request.headers.get('content-length') || 0);
   if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
     return jsonError('payload_too_large', 413);

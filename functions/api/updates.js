@@ -144,7 +144,10 @@ export async function onRequestPost(context) {
     return json({
       ok: false,
       error: 'server error',
-      message: String((err && err.message) || err)
+      /* 2026-10-18 安全修复：原来把 D1 的原始错误（会带表名 / SQL 片段）返回给前端。
+       详情继续留在上一行的 console.error 里，对外只给通用文案。
+       【回退办法】把下面这行改回 message: String((err && err.message) || err)。 */
+    message: 'server error'
     }, 500);
   }
 }

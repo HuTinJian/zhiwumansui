@@ -1216,6 +1216,8 @@ body.modal-open .particles i { animation-play-state: paused; }
   margin: 44px 0 18px;
   flex-wrap: wrap;
 }
+/* 2026-10-18：鸣谢页的标题从 h2 改成 h1（全站统一「一页一个 h1」），这里并列选择器兜住。 */
+.section-head h1,
 .section-head h2 {
   font-size: 1.3rem;
   font-weight: 800;
@@ -1268,8 +1270,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .seg-tab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
 .seg-tab:active { transform: scale(0.95); }
 .seg-tab.active {
-  background: var(--primary);
-  color: #fff;
+  background: var(--primary); color: var(--text-on-accent);
   box-shadow: 0 2px 8px rgba(220, 107, 130, 0.22);
 }
 /* 键盘 Tab 聚焦到切换器上时要看得见 —— 有色底上的默认光标环不够显眼 */

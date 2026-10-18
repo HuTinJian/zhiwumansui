@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-notice="off">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>后台管理 - 织雾满穗</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
@@ -31,7 +31,7 @@
     .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-2px); }
     .tab:active { transform: scale(0.95); }
     .tab.active {
-      background: var(--primary); border-color: var(--primary); color: #fff;
+      background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1 */
       box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
     }
 
@@ -51,7 +51,7 @@
     .subtab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
     .subtab:active { transform: scale(0.95); }
     .subtab.active {
-      background: var(--primary); color: #fff;
+      background: var(--primary); color: var(--text-on-accent);
       box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
     }
 
@@ -136,7 +136,7 @@
     .list-item .actions .btn-approve:hover { background: #b8894f; transform: translateY(-2px); }
     .list-item .actions .btn-delete { background: var(--danger); color: #fff; }
     .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-2px); }
-    .list-item .actions .btn-expand { background: var(--primary); color: #fff; }
+    .list-item .actions .btn-expand { background: var(--primary); color: var(--text-on-accent); }
     .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-2px); }
     /* 赞助者那一行的「✏️ 编辑」：中性描边款，别跟红色的「🗑️ 删除」抢眼 */
     .list-item .actions .btn-edit-sponsor {
@@ -307,6 +307,11 @@
     .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-2px); }
     /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
        中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
+       【2026-10-18 修 BUG】上面这行原来缺了收尾的注释符号，导致下面 .btn-invalid-ignore 与
+       .btn-invalid-delete 两条规则（含 hover）整块被当成注释吞掉 —— 后台「❌ 无效反馈」
+       按钮因此没有中性描边底色，hover 也没反应。这里已把注释正确闭合。
+       【回退办法】把下面这 4 行说明删掉，并在上一行末尾去掉注释收尾符号即可（但那是 BUG，别回退）。
+       */
     .list-item .actions .btn-invalid-ignore,
     .list-item .actions .btn-invalid-delete {
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
@@ -645,7 +650,7 @@
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
     .pager button.current {
       background: var(--primary); border-color: var(--primary);
-      color: #fff; opacity: 1; transform: none;
+      color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1 */ opacity: 1; transform: none;
     }
     .pager .pager-gap { color: var(--text-muted); font-size: 0.82rem; padding: 0 2px; user-select: none; }
     .pager .pager-info {
@@ -950,7 +955,8 @@
              玩家在宝库页点「✏️ 信息出错」、把歌名/分类改好（或写一句说明）报上来的都在这里。
              主操作是「✏️ 修改信息」（改好保存）；也可以「✅ 标记已审核」收工 ——
              上报的人会在自己的「📌 我上报的」里看到「✅ 已审核」+ 处理时间（2026-10-17 起）；
-             如果这个 ID 其实根本没声音，就用「🚫 确认无效并下架」。
+             ⚠️ 2026-10-18 站主要求：这一栏**不提供「确认无效并下架」**——
+             「ID 放不出声」属于「🚫 待处理上报」那一栏，两件事不能混。
              数据跟「🚫 无效音乐ID管理」同一个接口（/api/invalid/list），前端按 infoCount 分栏。 -->
         <div class="subpanel" id="card1-info">
           <div class="panel-card">
@@ -976,7 +982,8 @@
             </h2>
             <p class="panel-desc">
               玩家改好的歌名 / 分类和说明都在这儿：点「✏️ 修改信息」直接改好保存（这是主操作）；
-              这个 ID 要是根本没声音，再用「🚫 确认无效并下架」。
+              信息本来就是对的、是玩家报错了，就点「❌ 无效反馈」。
+              ⚠️ 这一栏**不提供「确认无效并下架」**——「ID 放不出声」请去「🚫 待处理上报」那一栏。
             </p>
             <div class="panel-search-row">
               <input type="text" class="panel-search" id="invalidInfoSearch"
@@ -2022,7 +2029,8 @@
             name: song.name,
             category: song.category
           });
-          if (r && r.ok === true) return { ok: true };
+          /* 2026-10-18：把「这个 ID 在隔离区」的标志带出去，供完成提示用。 */
+          if (r && r.ok === true) return { ok: true, quarantined: r.quarantined === true };
           return { ok: false, msg: (r && (r.message || r.error)) || '服务端返回失败' };
         } catch (e) {
           return { ok: false, msg: e.message || '调用 addSongToServer 异常' };
@@ -2049,7 +2057,8 @@
         if (!data || data.ok !== true) {
           return { ok: false, msg: (data && (data.message || data.error)) || '服务端返回失败' };
         }
-        return { ok: true };
+        /* 2026-10-18：同上，透传「在隔离区」标志。 */
+        return { ok: true, quarantined: data.quarantined === true };
       } catch (e) {
         return { ok: false, msg: e.message || '网络异常' };
       }
@@ -2196,25 +2205,36 @@
       let ok = 0;
       let fail = 0;
       const failMsgs = [];
+      /* 2026-10-18 站主要求：加进去但「在隔离区」的 ID 要单独提示，否则站长会以为加了没生效。 */
+      const quarantinedIds = [];
 
       for (let i = 0; i < unique.length; i++) {
         const item = unique[i];
         setStatus(`⏳ 正在添加 ${i + 1} / ${unique.length} ...\n（${item.name} · ${item.category}）`);
         const r = await addSongToD1(item);
-        if (r.ok) ok++;
-        else {
+        if (r.ok) {
+          ok++;
+          if (r.quarantined) quarantinedIds.push(item.id);
+        } else {
           fail++;
           if (failMsgs.length < 3) failMsgs.push(`${item.id}：${r.msg}`);
         }
       }
 
+      /* 2026-10-18：把「处在隔离区」的提示拼出来（最多列 5 个，避免刷屏） */
+      const qTip = quarantinedIds.length
+        ? ('\n\n⚠️ 其中 ' + quarantinedIds.length + ' 个 ID 处在隔离区（已被下架），宝库页不会显示：\n' +
+           quarantinedIds.slice(0, 5).join('、') + (quarantinedIds.length > 5 ? ' …' : '') +
+           '\n要恢复显示：去「✅ 已下架」那一栏点「🔓 恢复上架」。')
+        : '';
+
       if (fail === 0) {
-        setStatus(`✅ 添加完成，共 ${ok} 首`, 'ok');
+        setStatus(`✅ 添加完成，共 ${ok} 首` + qTip, quarantinedIds.length ? 'err' : 'ok');
         if (typeof window.loadSongs === 'function') window.loadSongs();
         if (typeof window.loadRobloxStats === 'function') window.loadRobloxStats();
       } else {
         setStatus(
-          `⚠️ 完成：成功 ${ok}，失败 ${fail}\n\n失败示例：\n` + failMsgs.join('\n'),
+          `⚠️ 完成：成功 ${ok}，失败 ${fail}\n\n失败示例：\n` + failMsgs.join('\n') + qTip,
           'err'
         );
       }

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Roblox ID 宝库 - 织雾满穗</title>
 
   <!-- 2026-10-10：下面两处数字原来写的是「2900+」，早就过时了（当天数据已是 4799 条）。
@@ -16,6 +16,26 @@
   <meta property="og:description" content="4799+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <!-- ============================================================
+       2026-10-18 性能修复：这段**必须**排在 <link rel="stylesheet"> 之前。
+       原来排在样式表后面 —— 按 HTML 规范，内联脚本标签执行前要先等它前面
+       尚未下载完的样式表，于是 591KB 的主数据 JSON 要等 style.css（gzip 约 19KB）
+       下完才发请求，跟旧注释写的「与 CSS 并行」正好相反。
+       挪到前面后，JSON 请求与样式表真正并行，冷启动首访能省一个 RTT。
+       这段只写 window.__zmMainData，不读任何样式，提前执行没有副作用；
+       页面底部 loadData() 仍然复用同一个 promise。
+       失败时返回 null（不产生未处理的 rejection），由 loadData 统一提示。
+       【回退办法】把这段整块挪回 <link> 之后即可（只影响快慢，不影响功能）。 -->
+  <script>
+    (function () {
+      try {
+        window.__zmMainData = fetch('data/roblox_music.json').catch(function () { return null; });
+      } catch (e) {
+        window.__zmMainData = null;
+      }
+    })();
+  </script>
+
   <link rel="stylesheet" href="css/style.css">
 
   <script>
@@ -27,20 +47,6 @@
         }
         document.documentElement.setAttribute('data-theme', t);
       } catch (e) {}
-    })();
-  </script>
-
-  <!-- 2026-10-05 性能：主数据（data/roblox_music.json，约 400KB）在这里就先发出去。
-       原来要等到页面最底下的脚本执行、再等 DOMContentLoaded 才开始下，
-       白白晚了几百毫秒；现在下载与 CSS/JS 并行，页面底部 loadData() 直接复用这个 promise。
-       失败时返回 null（不产生未处理的 rejection），由 loadData 统一提示。 -->
-  <script>
-    (function () {
-      try {
-        window.__zmMainData = fetch('data/roblox_music.json').catch(function () { return null; });
-      } catch (e) {
-        window.__zmMainData = null;
-      }
     })();
   </script>
 
@@ -387,7 +393,7 @@
       align-items: center;
       justify-content: center;
     }
-    .myrep-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .myrep-btn:hover { background: var(--primary); color: var(--text-on-accent); border-color: var(--primary); }
     .myrep-btn:active { transform: scale(0.94); }
     .myrep-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
     .myrep-btn[disabled]:hover { background: var(--bg-card); color: var(--primary); border-color: var(--primary-light); }
@@ -607,8 +613,11 @@
       gap: 8px;
     }
     .badge-multi {
+      /* 2026-10-18 可访问性：深色模式下 --primary 会变浅（#ef8ea4），压白字只有 2.3:1。
+         改用令牌 --text-on-accent（浅色=白，深色=#1a1218），深色下对比度升到约 8:1。
+         【回退办法】把 color 改回 #fff。 */
       background: var(--primary);
-      color: #fff;
+      color: var(--text-on-accent);
       font-size: 0.72rem;
       font-weight: 600;
       padding: 2px 10px;
@@ -692,8 +701,7 @@
     .id-actions .btn-fav:active { transform: scale(0.85); }
     .id-actions .btn-fav.active { color: var(--gold-ink); }
     .id-actions .btn-copy {
-      background: var(--primary);
-      color: #fff;
+      background: var(--primary); color: var(--text-on-accent);
     }
     .id-actions .btn-copy:hover {
       background: var(--primary-dark);
@@ -938,7 +946,7 @@
       font-family: var(--font);
       transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
     }
-    .result-info .cleared:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
+    .result-info .cleared:hover { background: var(--primary); color: var(--text-on-accent); transform: translateY(-1px); }
 
     /* ========== 分组头部的操作 ========== */
     .group-actions {
@@ -960,7 +968,7 @@
       transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
       white-space: nowrap;
     }
-    .group-actions button:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
+    .group-actions button:hover { background: var(--primary); color: var(--text-on-accent); transform: translateY(-1px); }
     .group-actions button:active { transform: scale(0.92); }
     .group-actions button.copied { background: var(--success-strong); color: #fff; }
 
@@ -1377,8 +1385,7 @@
       background: #e6c9cf;
     }
     .visit-other-actions .btn-confirm-other {
-      background: var(--primary);
-      color: #fff;
+      background: var(--primary); color: var(--text-on-accent);
     }
     .visit-other-actions .btn-confirm-other:hover {
       background: var(--primary-dark);
@@ -1708,8 +1715,14 @@
     <div class="modal-content">
       <h2>✏️ 信息出错</h2>
       <p class="myrep-note">
-        这首歌的信息哪里不对？直接改成正确的，或者写一句说明，点「确定上报」就会送到后台。<br>
+        这首歌的<b>信息</b>哪里不对（歌名 / 分类写错了）？改成正确的，或写一句说明，点「确定上报」送到后台。<br>
         涉及的 ID：<b id="infoErrIds">—</b>
+      </p>
+      <!-- 2026-10-18 站主反馈：有用户把「这个 ID 用不了」也写到这里 —— 那是「无效处理」的活。
+           这里先讲清楚分工；真的写错了通道，提交时会弹窗拦住并给一键改道的出口。 -->
+      <p class="myrep-note" style="color:var(--primary-ink);font-weight:600;">
+        「这个 ID 放不出声 / 已经失效 / 打开是 404」<b>不是这里</b> ——
+        请用宝库里每首歌旁边的「🚫 无效处理」上报。
       </p>
       <div class="info-err-form">
         <label for="infoErrName">正确的歌名</label>
@@ -1723,7 +1736,7 @@
         </select>
         <label for="infoErrNote">说明（选填）</label>
         <textarea id="infoErrNote" maxlength="300" rows="3"
-                  placeholder="例如：这个 ID 放出来不是这首歌 / 歌名里有错别字 / 分类应该是摇滚"></textarea>
+                  placeholder="只写「信息哪里错了」，例如：歌名里有错别字 / 分类应该是摇滚 / 放出来不是这首歌"></textarea>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="cancelInfoError">取消</button>
@@ -2140,7 +2153,10 @@
        等它们真的回来了再补一次重绘（keepPage，不会把用户甩回第 1 页）。
        主数据用 <head> 里就发出去的那个 fetch（window.__zmMainData），早下早画。
        ------------------------------------------------------------ */
-    const AUX_TIMEOUT = 1500;
+    /* 2026-10-18 性能：1500 → 700ms。首屏被两个 D1 接口卡住的上限从 1.5 秒降到 0.7 秒；
+   超时后仍走「辅助数据迟到再补画一次」的现有分支，功能不变，只是首屏更快。
+   【回退办法】改回 1500。 */
+const AUX_TIMEOUT = 700;
     let auxLateApplied = false;
 
     async function loadAuxLists() {
@@ -2227,6 +2243,7 @@
       songDatabase = [...mergedMap.values()]
         .filter(i => !adminIds.has(i.id))
         .map(i => ({ ...i, name: cleanName(i.name) }));
+
     }
 
     async function loadData() {
@@ -2801,7 +2818,13 @@
       if (ref) ref.textContent = list.join('、');
 
       const modal = document.getElementById('infoErrorModal');
-      if (modal) modal.dataset.ids = JSON.stringify(list);
+      if (modal) {
+        modal.dataset.ids = JSON.stringify(list);
+        /* 2026-10-18：把这首歌**原本的**歌名 / 分类记下来 ——
+           万一玩家其实是想报「无效」，转成无效上报时要用原值，不能用他在这个框里改的值。 */
+        modal.dataset.origName = String(name || '');
+        modal.dataset.origCategory = String(category || '');
+      }
       openModal('infoErrorModal');
     }
 
@@ -2820,6 +2843,50 @@
       if (!String(name).trim() && !String(category).trim() && !String(note).trim()) {
         showToast('至少改一样、或者写一句说明，再点「确定上报」');
         return;
+      }
+
+      /* ============================================================
+         2026-10-18 站主要求：有人把「这个 ID 用不了 / 404」写进「信息出错」。
+         那属于「无效处理」通道，这里要像「输入 1234 那种捣乱 ID」一样弹窗拦住，
+         并直接给一个「改成无效上报」的出口（省得他自己回去找按钮）。
+         ⚠️ 只查「说明」那一栏：歌名里出现「无效」很可能是正常歌名（如《无效恋爱》）。
+         【回退办法】把下面这一段（到「if (looksInvalid) {...}」结束）整块删掉即可。
+         ============================================================ */
+      const INVALID_WORDS = [
+        '无效', '失效', '没用', '不能用', '用不了', '放不了', '放不出', '播放不了',
+        '播不了', '没声音', '没有声音', '听不了', '听不到', '挂了', '废了', '打不开',
+        '404', '找不到', '不存在', '下架', '删了吧', '死链'
+      ];
+      const noteLower = String(note).toLowerCase();
+      const looksInvalid = INVALID_WORDS.some(w => noteLower.indexOf(w.toLowerCase()) !== -1);
+
+      if (looksInvalid) {
+        const goInvalid = await showConfirm(
+          '⚠️ 这里不是报「用不了」的地方',
+          '你写的内容看起来是在说「这个 ID 用不了 / 已经失效 / 打开是 404」。\n\n' +
+          '「✏️ 信息出错」只用来改**歌名 / 分类**这种「信息写错了」的问题；\n' +
+          '「ID 放不出来」要用宝库页每首歌旁边的「🚫 无效处理」上报 —— 那才是对应通道。\n\n' +
+          '要现在就把这一组 ID 直接改成「无效上报」吗？',
+          { okText: '✅ 改成无效上报', cancelText: '继续报信息出错' }
+        );
+
+        if (goInvalid) {
+          const origName = String(modal.dataset.origName || '').trim();
+          const origCategory = String(modal.dataset.origCategory || '').trim();
+          const res = await sendInvalidReport([{
+            id: ids[0],
+            name: origName,
+            category: origCategory
+          }]);
+          if (!res.ok) return;
+          invalidReported.add(String(ids[0]));
+          saveInvalidReported();
+          paintInvalidRow(String(ids[0]));
+          closeModal('infoErrorModal');
+          showToast('🚫 已改成「无效上报」，站长会在后台的无效音乐ID管理里看到');
+          return;
+        }
+        /* 他坚持要报「信息出错」，那就照他的意思走下面的正常流程 */
       }
 
       const okBtn = document.getElementById('confirmInfoError');
@@ -3057,9 +3124,29 @@
     }
 
     /* 名单里的这首歌（取歌名 / 分类，用来预填上报弹窗；取不到也没关系） */
+    /* ============================================================
+       2026-10-18 性能：按 ID 找歌原来是 .find 线性扫 4804 条，而「问题上报」
+       会对每条本地记录各调一次。这里改成**懒建 Map 索引**：
+         · 第一次调用时建一次，之后 O(1)；
+         · 用「数组引用是否变化」判断要不要重建（applyData 每次都新建数组），
+           所以不需要在任何地方手动清理缓存，也不会出现「函数还没定义就被调用」的问题。
+       【回退办法】把函数体换回单行 .find 写法即可（下面注释里保留了原句）。
+       原句：const hit = (Array.isArray(songDatabase) ? songDatabase : []).find(s => String(s.id) === sid);
+       ============================================================ */
+    let _songMetaCacheRef = null;
+    let _songMetaCache = null;
+
     function songMetaById(id) {
       const sid = String(id || '');
-      const hit = (Array.isArray(songDatabase) ? songDatabase : []).find(s => String(s.id) === sid);
+      const db = Array.isArray(songDatabase) ? songDatabase : [];
+      if (_songMetaCacheRef !== db) {
+        _songMetaCacheRef = db;
+        _songMetaCache = new Map();
+        for (const s of db) {
+          if (s && s.id != null) _songMetaCache.set(String(s.id), s);
+        }
+      }
+      const hit = _songMetaCache.get(sid);
       return {
         name: (hit && hit.name) ? String(hit.name) : '',
         category: (hit && hit.category) ? String(hit.category) : ''

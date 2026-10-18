@@ -40,7 +40,9 @@ const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
    这个字面量必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED 一致。 */
 const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
 
-const MAX_ITEMS = 20;
+/* 2026-10-18 安全修复：单次从 20 降到 10，配合「限速键改 IP」把放大倍数压下去。
+   正常投稿一人一次顶多几首，10 条完全够。【回退办法】改回 20。 */
+const MAX_ITEMS = 10;
 
 /* 同一浏览器身份 10 分钟最多 30 次投稿（正常玩家一次就够） */
 const limiter = createRateLimiter(30, 10 * 60 * 1000);
@@ -57,7 +59,10 @@ export async function onRequestPost(context) {
   const reporter = String(body.reporter || '').trim().toLowerCase();
   const validReporter = REPORTER_PATTERN.test(reporter) ? reporter : '';
 
-  const limit = limiter.check(validReporter || clientIp(request));
+  /* 2026-10-18 安全修复：限速键必须是 IP，不能是请求体里的 reporter
+     （reporter 可任意伪造，换一个就等于换一个全新限速桶）。
+     【回退办法】改回 limiter.check(validReporter || clientIp(request))（那是真漏洞，别回退）。 */
+  const limit = limiter.check(clientIp(request));
   if (!limit.ok) {
     return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
   }

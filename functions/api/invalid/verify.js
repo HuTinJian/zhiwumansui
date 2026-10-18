@@ -43,7 +43,7 @@
    删掉后不影响任何现有功能（试听、上报、下架都照旧）。
    ============================================================ */
 
-import { json, clientIp, createRateLimiter, requireSameOrigin } from '../_utils.js';
+import { json, clientIp, createRateLimiter, requireSameOrigin, checkAuth } from '../_utils.js';
 
 /* 音乐 ID 形态：1~32 位字母 / 数字 / 下划线 / 连字符（跟其它接口同一口径） */
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
@@ -107,8 +107,11 @@ const CONCURRENCY = 5;
 /* 撞上 429（问太快）时等这么久再试一次；还是 429 就按 unknown 收工。 */
 const RETRY_DELAY_MS = 700;
 
-/* 同一 IP 10 分钟 120 次（宝库页一次试听 = 1 次；后台整库体检 100 组 = 5 次） */
-const limiter = createRateLimiter(120, 10 * 60 * 1000);
+/* 同一 IP 10 分钟 30 次（宝库页一次试听 = 1 次；后台整库体检 100 组 = 5 次） */
+/* 2026-10-18 安全修复：额度从 120 收紧到 30（单 IP / 10 分钟）。
+   前台访客一次试听只查 1 条，30 次够翻一圈了；后台整库体检是管理员手动触发、分批跑。
+   【回退办法】改回 120。 */
+const limiter = createRateLimiter(30, 10 * 60 * 1000);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -227,8 +230,24 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'bad request' }, 400);
   }
 
-  /* 两种写法都收：?id=xxx 或 ?ids=a,b,c（逗号 / 空白分隔） */
-  const raw = url.searchParams.get('ids') !== null
+  /* 两种写法都收：?id=xxx 或 ?ids=a,b,c（逗号 / 空白分隔）
+     ⚠️ 2026-10-18 安全修复（真漏洞）：
+       原来这里两个写法都无条件放行，而 requireSameOrigin 对 GET 直接 return true
+       （见 _utils.js 的注释），于是任何脚本都能拿它当「免费的 Roblox 批量查询代理」：
+       一次 20 个 ID × 每个最多 2 次上游请求，把 Workers 免费额度打光。
+       现在规则：
+         · ?id=（单条，前台试听用）→ 公开，正常访客不受影响；
+         · ?ids=（批量，只有后台整库体检会用）→ **必须管理员登录**。
+       【回退办法】删掉下面这段 checkAuth 分支即可（但那等于把代理重新敞开）。 */
+  const wantsBatch = url.searchParams.get('ids') !== null;
+  if (wantsBatch) {
+    const signedIn = await checkAuth(request, context.env);
+    if (!signedIn) {
+      return json({ ok: false, error: 'unauthorized' }, 401);
+    }
+  }
+
+  const raw = wantsBatch
     ? String(url.searchParams.get('ids'))
     : String(url.searchParams.get('id') || '');
 

@@ -44,7 +44,22 @@ export async function onRequestPost(context) {
          category = excluded.category`
     ).bind(musicId, name, category).run();
 
-    return json({ ok: true });
+    /* ============================================================
+       2026-10-18 站主要求：加入的歌如果已经在「隔离区」里，要提示「该 ID 处在隔离区」。
+       隔离区 = 全站下架，写进 songs_extra 也不会在宝库页显示；不提示的话站长会以为没生效。
+       【回退办法】删掉下面这段查询，把 return 改回 json({ ok: true })。 */
+    let quarantined = false;
+    try {
+      const hit = await env.DB.prepare(
+        'SELECT 1 AS hit FROM quarantine_admin WHERE music_id = ? LIMIT 1'
+      ).bind(musicId).first();
+      quarantined = !!(hit && hit.hit);
+    } catch (err) {
+      /* 查不到就当没命中：提示是锦上添花，不能因为它让「添加」失败 */
+      console.error('[songs/add] quarantine check', err);
+    }
+
+    return json({ ok: true, quarantined });
   } catch (err) {
     console.error('[songs/add]', err);
     return json({ ok: false, error: 'server error' }, 500);

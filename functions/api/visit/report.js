@@ -22,10 +22,19 @@ import {
 } from '../_utils.js';
 
 /* 单 IP 10 分钟最多 20 次上报（同一用户只会选一次渠道） */
-const limiter = createRateLimiter(20, 10 * 60 * 1000);
+/* 2026-10-18 安全修复：额度 20 → 10（正常访客一次会话只报一次尺寸）。
+   【回退办法】改回 20。 */
+const limiter = createRateLimiter(10, 10 * 60 * 1000);
 
-/* userId 形如 u_<base36>_<base36>，与 hot/report 的 id 用同一约束 */
-const ID_PATTERN = /^[A-Za-z0-9_-]{1,30}$/;
+/* 2026-10-18 安全修复：原来只要求 1~30 位字母数字，传 "a" 也能过，
+   攻击者每次换一个 userId 就能凭空造出无数「新访客」，把屏幕尺寸统计刷歪。
+   收紧成前端真实生成的形状：u_<base36>_<base36>（见 common.js 的 getClientId）。
+   【回退办法】改回 /^[A-Za-z0-9_-]{1,30}$/。 */
+const ID_PATTERN = /^u_[a-z0-9]{6,}_[a-z0-9]{6,}$/;
+
+/* 屏幕尺寸标识必须是「宽x高@DPR」，例如 407x886@3 —— 这是本接口唯一合法的 source 形态。
+   以前任意 30 字文本都收，等于给了一个公开的任意写入点。 */
+const SIZE_PATTERN = /^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -54,6 +63,12 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'invalid userId' }, 400);
     }
     if (!source) {
+      return json({ ok: false, error: 'invalid source' }, 400);
+    }
+
+    /* 2026-10-18 安全修复：只收「宽x高@DPR」这一种形态。
+       【回退办法】删掉下面这个 SIZE_PATTERN 判断即可。 */
+    if (!SIZE_PATTERN.test(source)) {
       return json({ ok: false, error: 'invalid source' }, 400);
     }
 

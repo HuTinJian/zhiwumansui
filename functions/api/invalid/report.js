@@ -19,8 +19,9 @@ const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 /* 浏览器匿名身份（前端 getClientId()）：小写字母数字 8~64 位 */
 const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
 
-/* 一次最多 200 条，和前端的批量上限对齐 */
-const MAX_ITEMS = 200;
+/* 一次最多 20 条（2026-10-18 安全修复：原来 200，配合「限速键可伪造」等于单请求写 200 行）。
+   前端也会分批发送，改小不影响功能。【回退办法】把下面的 20 改回 200。 */
+const MAX_ITEMS = 20;
 
 /* 2026-10-07：上报类型 —— invalid = 🚫 无效ID（默认）；info = ✏️ 信息出错（歌名/分类不对） */
 const REPORT_TYPES = ['invalid', 'info'];
@@ -44,7 +45,12 @@ export async function onRequestPost(context) {
      所以前端尽量带上 getClientId() */
   const validReporter = REPORTER_PATTERN.test(reporter) ? reporter : '';
 
-  const limit = limiter.check(validReporter || clientIp(request));
+  /* 2026-10-18 安全修复：**绝不能用 reporter 当限速键**。
+       reporter 是请求体里客户端自己给的字符串，攻击者每请求换一个随机值，
+       就等于拥有无限个限速桶（实测可写爆 D1 日额度）。必须是 IP。
+       【回退办法】改回 limiter.check(validReporter || clientIp(request))
+       ——但那是真漏洞，别回退。 */
+    const limit = limiter.check(clientIp(request));
   if (!limit.ok) {
     return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
   }
@@ -102,10 +108,14 @@ export async function onRequestPost(context) {
       /* 非法 ID 直接丢，不打断整批（批量里混进坏数据是常事） */
       if (!ID_PATTERN.test(id)) continue;
 
-      const name = String(item.name || '').trim().slice(0, 100);
-      const category = String(item.category || '').trim().slice(0, 30);
+      /* 2026-10-18 安全修复：入库前剔除尖括号。
+       这些字段最终会经 /api/quarantine/list 公开、并在后台 innerHTML 里渲染；
+       现在所有出口都做了 escapeHtml，但「不可信输入原样落库」是纵深防御的缺口，
+       源头清一次的成本最低。【回退办法】删掉 .replace(/[<>]/g, '') 即可。 */
+    const name = String(item.name || '').replace(/[<>]/g, '').trim().slice(0, 100);
+      const category = String(item.category || '').replace(/[<>]/g, '').trim().slice(0, 30);
       const type = REPORT_TYPES.includes(String(item.type || '').trim()) ? String(item.type).trim() : 'invalid';
-      const note = String(item.note || '').trim().slice(0, 300);
+      const note = String(item.note || '').replace(/[<>]/g, '').trim().slice(0, 300);
 
       if (type === 'info' && existingTypes[id]) { blocked++; continue; }
 

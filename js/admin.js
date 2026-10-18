@@ -878,7 +878,7 @@ function renderInvalidPending() {
         ${item.firstAt ? ' · <span title="北京时间">首次 ' + escapeHtml(adminTime(item.firstAt)) + '</span>' : ''}
       </div>
       <div class="actions">
-        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">✅ 确认无效并下架</button>
+        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
         <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}" title="这条上报不作数：ID 其实是对的，是用户瞎报">❌ 无效反馈</button>
       </div>
     `;
@@ -973,7 +973,10 @@ function renderInvalidInfo() {
              玩家报的是「歌名 / 分类不对」，后台该给的提示是**修改信息**，不是加入隔离区。
              所以这里补一颗「✏️ 修改信息」，它排在最前面（点击后能直接改歌名 / 分类并生效）。 -->
         <button class="btn-info-edit" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name || '')}" data-category="${escapeHtml(item.category || '')}" data-note="${escapeHtml(item.note || '')}">✏️ 修改信息</button>
-        <button class="btn-invalid-remove" data-id="${escapeHtml(item.id)}">🚫 确认无效并下架</button>
+        <!-- 2026-10-18 站主要求：这一栏不该有「🚫 确认无效并下架」——
+             「信息出错」只管「歌名/分类写错了」，「ID 放不出声」去「🚫 待处理上报」那一栏。
+             【回退办法】在「❌ 无效反馈」那行前面补回一颗 btn-invalid-remove 按钮，
+             并在 renderInvalidInfo 末尾补回 .btn-invalid-remove 的 click 绑定。 -->
         <button class="btn-invalid-delete" data-id="${escapeHtml(item.id)}" title="这条上报不作数：信息其实没问题，是用户瞎报">❌ 无效反馈</button>
       </div>
     `;
@@ -988,9 +991,8 @@ function renderInvalidInfo() {
       note: btn.dataset.note || ''
     }));
   });
-  container.querySelectorAll('.btn-invalid-remove').forEach(btn => {
-    btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
-  });
+  /* 2026-10-18：这里原来还有 .btn-invalid-remove 的绑定（确认无效并下架），
+     随那颗按钮一起删了 —— 这一栏不再提供下架操作。 */
   container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
     btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id]));
   });
@@ -1166,7 +1168,12 @@ async function handleInfoEdit() {
   } catch (err) { /* handleInvalidAction 自己会提示失败；保存本身已经成功 */ }
 
   closeModal('infoEditModal');
-  showToast('✅ 已保存：' + name + '（' + category + '）');
+  /* 2026-10-18 站主要求：这个 ID 如果在隔离区，保存了也不会在宝库页显示，得说一声。 */
+  if (saved.quarantined) {
+    showToast('✅ 已保存，但该 ID 处在隔离区（已被下架），宝库页不会显示；要恢复请去「✅ 已下架」点「🔓 恢复上架」');
+  } else {
+    showToast('✅ 已保存：' + name + '（' + category + '）');
+  }
   /* D1 歌曲列表和统计都变了，一起刷新 */
   loadSongs();
 }
