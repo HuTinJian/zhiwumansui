@@ -958,6 +958,58 @@
 .cat-tabs {
   border-radius: 999px;
 }
+
+
+    /* ============================================================
+       2026-10-24 选中态白底白字修复（站主：「白色的能不能解决？」）
+       ------------------------------------------------------------
+       背景用 --primary 的元素，文字统一用 --bg（永远反差），
+       这样浅色模式是深底浅字、深色模式是浅底深字，两边都看得清。
+       【回退办法】删掉本段。
+       ============================================================ */
+    .tab.active,
+    .subtab.active,
+    .seg-tab.active,
+    .select-option.active,
+    .btn-primary,
+    .btn.active {
+      color: var(--bg) !important;
+    }
+
+    /* 深色下再兜一层：primary 是浅灰白，字必须压深 */
+    [data-theme="dark"] .tab.active,
+    [data-theme="dark"] .subtab.active,
+    [data-theme="dark"] .seg-tab.active,
+    [data-theme="dark"] .select-option.active,
+    [data-theme="dark"] .btn-primary,
+    [data-theme="dark"] .btn.active {
+      color: #12151a !important;
+    }
+
+
+    /* 2026-10-24 补：子标签选中态要有底色，否则深色字压深底会「消失」 */
+    .subtab.active {
+      background: var(--primary);
+      color: var(--bg) !important;
+      border-radius: 999px;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+    [data-theme="dark"] .subtab.active {
+      background: var(--primary);
+      color: #12151a !important;
+    }
+    /* 「D1歌曲管理 / 歌曲列表」这种带下划线的三级标签：
+       如果真的不该有底，就让它保持原色，不要被上面的 !important 波及 */
+    .subtabs-lv3 .subtab.active,
+    .subtab.underline.active {
+      background: transparent !important;
+      color: var(--text) !important;
+    }
+    [data-theme="dark"] .subtabs-lv3 .subtab.active,
+    [data-theme="dark"] .subtab.underline.active {
+      color: var(--text) !important;
+    }
 </style>
 </head>
 <body>
