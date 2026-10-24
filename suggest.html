@@ -18,7 +18,7 @@
     ③ 若只是不想要某个入口：本页只在导航与 feedback.html 的互链里出现，
        删掉对应链接即可，不必动其它文件。
   ============================================================ -->
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -26,27 +26,33 @@
 
   <meta name="description" content="向织雾满穗提交任何想法：新功能、页面体验、内容选题、合作建议都可以。">
   <meta name="theme-color" content="#05060e">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
 
   <!-- ============================================================
-       渲染前定主题（照 index.html 的「主题引导」习惯，在样式生效前写 data-theme）
-       ------------------------------------------------------------
-       差异说明：本页是固定深色科幻皮肤，不读取 zm_theme、也不提供明暗切换 ——
-       霓虹青紫在浅底上对比度不够，强做浅色版会失去这套设计的意义。
-       所以这里直接把 data-theme 钉成 dark，避免浏览器首帧闪白。
-       【回退办法】删掉下面这段主题脚本即可；<html> 上已有 data-theme="dark"
-         作为兜底，删掉后页面仍是深色，不会白屏。
+       2026-10-24 站主要求「浅色和深色都要搞」：
+       原来这里把 data-theme 钉死成 dark（作者怕霓虹青紫在浅底上看不清）；
+       换成中式配色（宣纸 + 朱砂 + 暗金）后浅底完全成立，所以改成：
+         localStorage 的 zm_theme 优先 → 没有就跟系统 prefers-color-scheme
+       【回退办法】把下面这段换回「setAttribute('data-theme','dark')」即可。
        ============================================================ -->
   <script>
     (function () {
       'use strict';
+      var t = null;
+      try { t = localStorage.getItem('zm_theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        try {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } catch (e) { t = 'light'; }
+      }
       try {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.style.colorScheme = 'dark';
-      } catch (e) { /* 极老浏览器不支持也不影响：html 标签上已经写了 data-theme */ }
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) {}
     })();
   </script>
+
 
   <style>
     /* ============================================================
@@ -61,26 +67,46 @@
        ============================================================ */
 
     :root {
-      --bg: #05060e;
-      --bg-soft: #080c18;
-      --panel: rgba(10, 16, 34, 0.78);
-      --panel-solid: #0a1022;
-      --line: rgba(120, 170, 255, 0.16);
-      --line-strong: rgba(120, 210, 255, 0.38);
-      --cyan: #4de8ff;
-      --cyan-soft: rgba(77, 232, 255, 0.10);
-      --violet: #a06bff;
-      --violet-soft: rgba(160, 107, 255, 0.12);
-      --text: #e6efff;
-      --text-soft: #a9bbe0;
-      --text-dim: #7286ab;
-      --ok: #55f0b0;
-      --danger: #ff6b8a;
-      --warn: #ffd166;
+      --bg: #f7f8f9;
+      --bg-soft: #f2f4f6;
+      --panel: rgba(255, 253, 247, 0.88);
+      --panel-solid: #ffffff;
+      --line: rgba(120, 140, 158, 0.22);
+      --line-strong: rgba(120, 140, 158, 0.42);
+      --cyan: #b8860b;
+      --cyan-soft: rgba(120, 140, 158, 0.10);
+      --violet: #a8322a;
+      --violet-soft: rgba(168, 50, 42, 0.10);
+      --text: #2b2520;
+      --text-soft: #4a4038;
+      --text-dim: #7a6d5e;
+      --ok: #6b8e7f;
+      --danger: #a8322a;
+      --warn: #b8860b;
+    }
+
+    /* 深色 · 墨夜（原配色，2026-10-24 保留为可切换项） */
+    [data-theme="dark"] {--bg: #1a1714;
+      --bg-soft: #221d18;
+      --panel: rgba(38, 32, 25, 0.80);
+      --panel-solid: #262019;
+      --line: rgba(212, 169, 74, 0.20);
+      --line-strong: rgba(212, 169, 74, 0.45);
+      --cyan: #d4a94a;
+      --cyan-soft: rgba(212, 169, 74, 0.12);
+      --violet: #c9553f;
+      --violet-soft: rgba(201, 85, 63, 0.14);
+      --text: #e9dfcc;
+      --text-soft: #c4b8a3;
+      --text-dim: #9a8d78;
+      --ok: #7fa89a;
+      --danger: #d9604a;
+      --warn: #d4a94a;
       --radius: 16px;
       --sans: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, sans-serif;
       --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", "Courier New", monospace;
     }
+
 
     *,
     *::before,
@@ -895,6 +921,9 @@
     }
     .group-item figcaption { font-size: 0.78rem; margin-top: 6px; opacity: 0.75; }
     .group-note { font-size: 0.78rem; margin: 10px 0 0; opacity: 0.6; }
+
+    /* 2026-10-24 中式：标题走宋体（书卷气） */
+    h1, h2, .page-title, .hero-title { font-family: "Songti SC", "Noto Serif SC", "SimSun", serif; letter-spacing: 0.02em; }
 </style>
 </head>
 <body>

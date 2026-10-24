@@ -158,15 +158,15 @@
        访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
        可以单条撤回 / 全部撤回。数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
     .btn-mine {
-      background: linear-gradient(135deg, #f0a5b8, #dc6b82);
+      background: linear-gradient(135deg, #96a5b2, #2b333c);
       color: #fff;
       border: none;
-      box-shadow: 0 6px 18px rgba(220, 107, 130, 0.35);
+      box-shadow: 0 6px 18px rgba(43, 51, 60, 0.35);
       font-weight: 700;
     }
     .btn-mine:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(220, 107, 130, 0.55);
+      box-shadow: 0 8px 22px rgba(43, 51, 60, 0.55);
     }
     .btn-mine:active { transform: scale(0.93); }
 
@@ -369,7 +369,7 @@
       font-weight: 700;
       white-space: nowrap;
     }
-    .myrep-status.pending { background: rgba(220, 107, 130, 0.14); color: var(--primary-ink); }
+    .myrep-status.pending { background: rgba(43, 51, 60, 0.14); color: var(--primary-ink); }
     /* 2026-10-17：.ignored 那条规则随「已忽略」一起没有写作对象了，
        改给新状态 .noted（已审核·无需处理）用 —— 绿色系，跟「已下架」的灰色区分开，
        让人一眼看出「这条有人看过了」而不是「这条没了」。 */
@@ -439,7 +439,7 @@
     }
     .search-row input[type="text"]:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 4px rgba(43, 51, 60, 0.12);
     }
     .filter-tabs {
       display: flex;
@@ -469,7 +469,7 @@
       background: var(--primary);
       border-color: var(--primary);
       color: #fff;
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+      box-shadow: 0 4px 12px rgba(43, 51, 60, 0.3);
     }
 
     .btn-latest {
@@ -496,19 +496,19 @@
     .btn-hot {
       border: 2px solid #f5a89a;
       background: linear-gradient(135deg, rgba(245, 138, 120, 0.15), rgba(232, 100, 80, 0.12));
-      color: #c04a35;
+      color: #a8352a;
       box-shadow: 0 2px 8px rgba(245, 138, 120, 0.15);
     }
     .btn-hot:hover {
-      border-color: #e86450;
+      border-color: #a8352a;
       color: #a03220;
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
     }
     .btn-hot:active { transform: scale(0.93); }
     .btn-hot.active {
-      background: linear-gradient(135deg, #f58a78, #e86450);
-      border-color: #e86450;
+      background: linear-gradient(135deg, #c4635a, #a8352a);
+      border-color: #a8352a;
       color: #fff;
       box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
     }
@@ -582,7 +582,7 @@
       background: var(--bg-card);
       border-radius: var(--radius);
       border: 2px solid transparent;
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.06);
+      box-shadow: 0 2px 8px rgba(43, 51, 60, 0.06);
       margin-bottom: 10px;
       padding: 14px 18px;
       transition: transform 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
@@ -595,8 +595,8 @@
       contain-intrinsic-size: auto 110px;
     }
     .song-group:hover {
-      border-color: rgba(220, 107, 130, 0.3);
-      box-shadow: 0 6px 18px rgba(220, 107, 130, 0.1);
+      border-color: rgba(43, 51, 60, 0.3);
+      box-shadow: 0 6px 18px rgba(43, 51, 60, 0.1);
       transform: translateX(4px);
     }
     .group-header {
@@ -637,8 +637,8 @@
       gap: 8px;
     }
     .badge-multi {
-      /* 2026-10-18 可访问性：深色模式下 --primary 会变浅（#ef8ea4），压白字只有 2.3:1。
-         改用令牌 --text-on-accent（浅色=白，深色=#1a1218），深色下对比度升到约 8:1。
+      /* 2026-10-18 可访问性：深色模式下 --primary 会变浅（#96a5b2），压白字只有 2.3:1。
+         改用令牌 --text-on-accent（浅色=白，深色=#12151a），深色下对比度升到约 8:1。
          【回退办法】把 color 改回 #fff。 */
       background: var(--primary);
       color: var(--text-on-accent);
@@ -649,7 +649,7 @@
       white-space: nowrap;
     }
     .badge-hot {
-      background: linear-gradient(135deg, #f58a78, #e86450);
+      background: linear-gradient(135deg, #c4635a, #a8352a);
       color: #fff;
       font-size: 0.72rem;
       font-weight: 600;
@@ -937,9 +937,9 @@
 
     /* 随机跳转的目标高亮 */
     @keyframes targetFlash {
-      0%   { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0.55); background: rgba(253, 232, 239, 0.9); }
-      70%  { box-shadow: 0 0 0 14px rgba(220, 107, 130, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(220, 107, 130, 0); background: transparent; }
+      0%   { box-shadow: 0 0 0 0 rgba(43, 51, 60, 0.55); background: rgba(253, 232, 239, 0.9); }
+      70%  { box-shadow: 0 0 0 14px rgba(43, 51, 60, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(43, 51, 60, 0); background: transparent; }
     }
     .song-group.flash-target {
       animation: targetFlash 1.6s var(--ease-soft) 2;
@@ -1028,7 +1028,7 @@
     [data-theme="dark"] .id-row:hover { background: rgba(255, 255, 255, 0.07); }
     [data-theme="dark"] .visit-source-btn { background: var(--bg-soft); }
     [data-theme="dark"] .visit-source-btn:hover { background: var(--bg-card); }
-    [data-theme="dark"] .visit-source-btn.active-choice { background: rgba(239, 142, 164, 0.14); }
+    [data-theme="dark"] .visit-source-btn.active-choice { background: rgba(150, 165, 178, 0.14); }
     [data-theme="dark"] .visit-source-btn.active-choice .src-count { background: var(--bg-card); }
     [data-theme="dark"] .visit-other-input { background: var(--bg-soft); }
     [data-theme="dark"] .visit-other-input input { background: var(--bg-card); }
@@ -1042,11 +1042,11 @@
       animation-name: targetFlashDark;
     }
     @keyframes targetFlashDark {
-      0%   { box-shadow: 0 0 0 0 rgba(239, 142, 164, 0.6); background: rgba(239, 142, 164, 0.14); }
-      70%  { box-shadow: 0 0 0 14px rgba(239, 142, 164, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 142, 164, 0); background: transparent; }
+      0%   { box-shadow: 0 0 0 0 rgba(150, 165, 178, 0.6); background: rgba(150, 165, 178, 0.14); }
+      70%  { box-shadow: 0 0 0 14px rgba(150, 165, 178, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(150, 165, 178, 0); background: transparent; }
     }
-    [data-theme="dark"] .group-actions button { background: rgba(239, 142, 164, 0.16); }
+    [data-theme="dark"] .group-actions button { background: rgba(150, 165, 178, 0.16); }
 
     /* 2026-10-09：两个风险弹窗（#riskModal 告知 / #riskConfirmModal 二次确认）现在共用同一套
        「元素」—— h2 + .sub-warning 小胶囊 + .redirect-notice 提示条 + .risk-body + .section-title。
@@ -1182,13 +1182,13 @@
     #riskModal .risk-body::-webkit-scrollbar { width: 6px; }
     #riskModal .risk-body::-webkit-scrollbar-track { background: transparent; }
     #riskModal .risk-body::-webkit-scrollbar-thumb {
-      background: rgba(220, 107, 130, 0.25);
+      background: rgba(43, 51, 60, 0.25);
       border-radius: 10px;
     }
     #riskModal .risk-body,
     #riskConfirmModal .risk-body {
       scrollbar-width: thin;
-      scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
+      scrollbar-color: rgba(43, 51, 60, 0.25) transparent;
     }
 
     /* 2026-10-09：二次确认弹窗（#riskConfirmModal）原来单独写了一套 .modal-content / .risk-body /
@@ -1321,7 +1321,7 @@
       color: var(--primary);
       background: var(--bg-card);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 6px 16px rgba(43, 51, 60, 0.12);
     }
     .visit-source-btn:active {
       transform: scale(0.97);
@@ -1344,7 +1344,7 @@
       border-color: var(--primary);
       background: var(--bg-tint);
       color: var(--primary);
-      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.22);
+      box-shadow: 0 4px 14px rgba(43, 51, 60, 0.22);
       position: relative;
     }
     .visit-source-btn.active-choice::before {
@@ -1388,7 +1388,7 @@
     }
     .visit-other-input input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 4px rgba(43, 51, 60, 0.12);
     }
     .visit-other-actions {
       display: flex;
@@ -1411,7 +1411,7 @@
     }
     .visit-other-actions .btn-cancel-other:hover {
       /* 2026-10-18：同 admin，写死的浅粉在深色主题下会让文字消失 → 用令牌。
-         【回退办法】改回 #e6c9cf。 */
+         【回退办法】改回 #e2e6ea。 */
       background: var(--border-strong);
     }
     .visit-other-actions .btn-confirm-other {
