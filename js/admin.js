@@ -1196,13 +1196,9 @@ async function confirmInvalidRemove(ids) {
   if (list.length === 0) { showToast('请先勾选要下架的 ID'); return; }
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
-  const confirmed = await showConfirm(
-    '确认无效并下架',
-    '确定把这 ' + list.length + ' 个 ID 从全站下架吗？\n\n' +
-    preview + '\n\n' +
-    '下架后宝库页不再显示它们；想反悔可以在「✅ 已下架」那一栏点「🔓 恢复上架」。'
-  );
-  if (!confirmed) return;
+  /* 2026-10-24 站主要求：后台不做无谓确认。下架是**可恢复**的（「✅ 已下架」里能恢复上架），
+     所以直接执行，用 toast 把「可以反悔」告诉站长就够。
+     【回退办法】把上面那段 showConfirm 加回来。 */
   handleInvalidAction(list, 'remove');
 }
 
@@ -1216,17 +1212,7 @@ async function confirmInvalidDelete(ids) {
   if (list.length === 0) { showToast('请先勾选要删除记录的上报'); return; }
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
-  const confirmed = await showConfirm(
-    '无效反馈（这条上报不作数）',
-    '确定把这 ' + list.length + ' 条上报标成「无效反馈」吗？\n\n' +
-    '含义：**这条反馈本身无效** —— ID / 信息其实是对的，是用户报错了；\n' +
-    '不是删歌、也不是下架（想下架请点「✅ 确认无效并下架」）。\n\n' +
-    preview + '\n\n' +
-    '标完之后：这些上报从「待处理」里消失，上报的人在「📌 我上报的」里\n' +
-    '会看到「✅ 已审核」+ 处理时间（2026-10-17 为「让上报者能查到审核结果」特意留的痕迹）；\n' +
-    '歌**不会**被下架，宝库里照旧能搜到（想下架请点「✅ 确认无效并下架」）。'
-  );
-  if (!confirmed) return;
+  /* 2026-10-24：无效反馈只是「标记」，不改歌、可改回，所以不弹确认。 */
   handleInvalidAction(list, 'delete-records');
 }
 
@@ -1328,12 +1314,11 @@ async function handleManualRemove() {
     ? '\n\n（第 ' + badLines.slice(0, 10).join('、') + (badLines.length > 10 ? ' …' : '') + ' 行没认出 ID，会被跳过）'
     : '';
 
-  const confirmed = await showConfirm(
-    '手动下架',
-    '确定把这 ' + items.length + ' 个 ID 从全站下架吗？\n\n' +
-    '下架后宝库页不再显示；想反悔可以在「✅ 已下架」里点「🔓 恢复上架」。' + badTip
-  );
-  if (!confirmed) return;
+  /* 2026-10-24：手动下架同样可恢复，不弹确认（badTip 里的「哪几行没认出 ID」
+     放到最后的 toast 里说，避免信息丢失）。 */
+
+  /* 2026-10-24：没认出 ID 的行不能悄悄跳过，先告诉站长一声（原来在确认框里说）。 */
+  if (badTip) showToast('⚠️ 有 ' + badLines.length + ' 行没认出 ID，已跳过');
 
   const okBtn = document.getElementById('confirmManualRemove');
   if (okBtn) { okBtn.disabled = true; okBtn.textContent = '下架中...'; }
@@ -1435,15 +1420,9 @@ async function scanSongsValidity() {
     return;
   }
 
-  const ok = await showConfirm(
-    '体检待处理上报里的 ID',
-    '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」。\n\n' +
-    '只有**在 Roblox 那边确实取不到音频**的才会被列出来（已下架 / 不存在），' +
-    '确认之后才下架 —— 不会自动动数据。\n' +
-    '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，大约要等十几秒。\n\n' +
-    '（只管这一栏的待处理上报，不动 D1 歌曲、不动主数据、不动已下架名单）'
-  );
-  if (!ok) return;
+  /* 2026-10-24：体检只是去问 Roblox「还在不在」，**一个字节的数据都不改**，
+     这种事再弹确认纯属打扰。直接跑，结果用 toast 说。 */
+  showToast('🔍 正在体检 ' + targets.length + ' 个 ID，大约十几秒…');
 
   const invalid = [];
   const counts = { valid: 0, invalid: 0, unknown: 0 };
@@ -1481,21 +1460,16 @@ async function scanSongsValidity() {
   }
 
   const preview = invalid.slice(0, 10).join('、') + (invalid.length > 10 ? ' …' : '');
-  const wantRemove = await showConfirm(
-    '体检结果：待处理里有 ' + invalid.length + ' 个 ID 无效',
-    '「🚫 待处理上报」共体检 ' + total + ' 个 ID：\n' +
-    '· 存在（正常）' + counts.valid + ' 个\n' +
-    /* 2026-10-17 判据改了：现在是「取不到音频」= 下架(403) 或 不存在(404)，不再是单一 404 */
-    '· 取不到音频（已下架 / 不存在，**无效**）' + invalid.length + ' 个\n' +
-    '· 查不出（连不上 Roblox / 被限速，没算无效）' + counts.unknown + ' 个' +
-    (failed ? '\n· ' + failed + ' 批请求失败（重试一次会更准）' : '') + '\n\n' +
-    '无效的那几个：\n' + preview + '\n\n' +
-    '现在就把这 ' + invalid.length + ' 个 ID 下架吗？（在「✅ 已下架」里随时能恢复）'
-  );
-  if (!wantRemove) {
-    showToast('已取消：体检结果没有改动任何数据');
+  /* 2026-10-24 站主要求：不弹确认。但**体检统计不能丢** —— 用 toast 把结果说清楚，
+     然后直接把「无效」那几个下架（下架可恢复，风险低）。 */
+  const summary = '共 ' + total + ' 个：存在 ' + counts.valid +
+    ' / 取不到音频 ' + invalid.length + ' / 查不出 ' + counts.unknown +
+    (failed ? '（' + failed + ' 批失败，重试会更准）' : '');
+  if (invalid.length === 0) {
+    showToast('体检完成：' + summary + '，没有要下架的');
     return;
   }
+  showToast('体检完成：' + summary + ' → 自动下架那 ' + invalid.length + ' 个（可恢复）');
 
   await handleInvalidAction(invalid, 'remove');
 }
