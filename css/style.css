@@ -2307,22 +2307,24 @@ body::before {
 
 /* ① 页脚朱砂印章 */
 .footer::after {
-  content: '织雾';
+  /* 2026-10-24 站主要求：竖幅「织雾」→ 横幅「织雾满穗 · ZhiMist」 */
+  content: '织雾满穗 · ZhiMist';
   display: block;
   width: fit-content;
   margin: 22px auto 0;
-  padding: 7px 5px;
-  writing-mode: vertical-rl;
+  padding: 6px 18px;
+  writing-mode: horizontal-tb;
   font-family: "Songti SC", "Noto Serif SC", "SimSun", serif;
-  font-size: 0.72rem;
-  line-height: 1.15;
-  letter-spacing: 0.26em;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
   color: #fff8ec;
   background: var(--accent);
-  border-radius: 2px;
+  border-radius: 999px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20);
-  opacity: 0.88;
+  opacity: 0.9;
   user-select: none;
+  white-space: nowrap;
 }
 
 /* ② 大标题下双线（覆盖掉之前那条单线） */
