@@ -1287,9 +1287,12 @@ function initShareTriggers() {
      现在 60 秒内只查一次 —— 公告晚 60 秒对访客毫无影响（还要跟本地版本号比对才弹）。
      【回退办法】删掉下面这段节流即可。 */
   try {
-    const lastUpdAt = Number(sessionStorage.getItem('zm_upd_t')) || 0;
+    /* 2026-10-24 修：原来是全站共用一个 zm_upd_t，导致「首页弹过之后，
+       60 秒内其它页面全被跳过」。现在按页面分开记。 */
+    const throttleKey = 'zm_upd_t_' + pageKey;
+    const lastUpdAt = Number(sessionStorage.getItem(throttleKey)) || 0;
     if (Date.now() - lastUpdAt < 60000) return null;
-    sessionStorage.setItem('zm_upd_t', String(Date.now()));
+    sessionStorage.setItem(throttleKey, String(Date.now()));
   } catch (e) {}
     const signal = controller ? controller.signal : undefined;
 
@@ -1966,6 +1969,8 @@ function initShareTriggers() {
   var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!fine || calm) return;
+  /* 2026-10-24 性能：指针光晕已经关掉（CSS display:none），这里也没必要每帧写变量。 */
+  return;
 
   var root = document.documentElement;
   var body = document.body;
@@ -1988,15 +1993,17 @@ function initShareTriggers() {
   }, { passive: true });
 
   /* 点击涟漪：在指针处炸开一圈光，600ms 后自己删掉（不留 DOM）。 */
+  /* 2026-10-24 性能：点击涟漪每次点击都建一个 DOM + 跑动画，长期用会越来越卡，
+     这里关掉（站主要求优化性能）。想恢复就取消下面的注释。 */
+  /*
   document.addEventListener('pointerdown', function (e) {
     var r = document.createElement('span');
     r.className = 'zm-ripple';
     r.style.left = e.clientX + 'px';
     r.style.top = e.clientY + 'px';
     document.body.appendChild(r);
-    window.setTimeout(function () {
-      if (r && r.parentNode) r.parentNode.removeChild(r);
-    }, 650);
+    window.setTimeout(function () { if (r && r.parentNode) r.parentNode.removeChild(r); }, 650);
   }, { passive: true });
+  */
 })();
 

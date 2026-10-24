@@ -2151,7 +2151,8 @@ body {
   background-image:
     radial-gradient(circle at 18% 8%, rgba(120, 140, 158, 0.05), transparent 42%),
     radial-gradient(circle at 82% 78%, rgba(168, 53, 42, 0.035), transparent 46%);
-  background-attachment: fixed;
+  /* 2026-10-24 性能：fixed 滚动时每帧重绘整页，去掉 */
+  background-attachment: scroll;
 }
 [data-theme="dark"] body {
   background-image:
@@ -2248,7 +2249,7 @@ body {
   50%      { opacity: 1; }
 }
 body::before {
-  animation: zmPaperBreathe 9s ease-in-out infinite;
+  /* 2026-10-24 性能：全屏呼吸动画去掉，改为静态 */
 }
 
 /* ③ 金线流光：导航栏金线上一道光缓慢流过 */
@@ -2387,7 +2388,7 @@ body::before {
     transparent 1px 3px
   ) !important;
   opacity: 0.5 !important;
-  animation: zmPaperBreathe 11s ease-in-out infinite !important;
+  /* 2026-10-24 性能：全屏呼吸动画去掉，改为静态 */
 }
 
 /* ③ 粒子光点 → 纸屑（哑光、不再发光） */
@@ -2395,7 +2396,7 @@ body::before {
   border-radius: 1px !important;
   box-shadow: none !important;
   opacity: 0.28 !important;
-  animation-name: zmDustFall !important;
+  animation: none !important; /* 2026-10-24 性能：多个粒子同时动太耗，关掉 */
   animation-duration: 26s !important;
   animation-timing-function: linear !important;
 }
