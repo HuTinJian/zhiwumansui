@@ -2981,104 +2981,102 @@ async function loadSourceStats() {
     }
 
     /* ============================================================
-       2026-10-19 站主要求：尺寸数据要「看得清楚」，不能一行一个 407x886@3 堆几十行。
-       做法：**按宽度聚合**（宽度才是定断点要看的），高度和 DPR 只是附带信息。
-       格式约定：source = "宽x高@DPR"，例如 407x886@3。
-       【回退办法】整段换回原来「list.forEach 一行一个 source」的写法即可。 */
+       2026-10-24 站主要求：尺寸收集改成「只收手机/平板的型号 + 英寸」，
+       所以这个面板跟着改 —— 不再按「宽度」聚合，改成按「型号」聚合。
+       数据形态：
+         · 新： 「Xiaomi 17@6.3」 （型号@英寸）
+         · 旧： 「407x886@3」     （早期按宽高收的，单独归到「旧数据」不混进新统计）
+       【回退办法】git checkout js/admin.js
+       ============================================================ */
     const rows = data.data
       .map(x => ({ source: String(x.source || '').trim(), count: Number(x.count) || 0 }))
       .filter(x => x.count > 0);
 
     if (rows.length === 0) {
-      box.innerHTML = '<div class="empty-state">还没有人上报过屏幕尺寸。<br>访客在宝库页点「📱 你的手机屏幕尺寸」、或页面自动上报后就会记录在这里。</div>';
+      box.innerHTML = '<div class="empty-state">还没有人上报过设备信息。<br>访客用📱手机 / 📲平板打开宝库页、点「📱 你的手机屏幕尺寸」就会记录在这里（电脑不收集）。</div>';
       return;
     }
 
-    /* 拆成 { width, height, dpr } —— 认不出的归到 unknown */
+    /* 解析两种格式 */
     const parsed = rows.map(r => {
-      const m = r.source.match(/^(\d{2,5})x(\d{2,5})@(\d{1,2}(?:\.\d{1,2})?)$/);
-      return m
-        ? { width: Number(m[1]), height: Number(m[2]), dpr: Number(m[3]), count: r.count, raw: r.source }
-        : { width: 0, height: 0, dpr: 0, count: r.count, raw: r.source };
+      const n = r.source.match(/^([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
+      if (n) return { model: n[1], inches: Number(n[2]), count: r.count, kind: 'new' };
+      const o = r.source.match(/^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/);
+      if (o) return { model: '', inches: 0, count: r.count, kind: 'legacy', raw: r.source };
+      return { model: r.source || '无法识别', inches: 0, count: r.count, kind: 'unknown' };
     });
 
-    const unknownCount = parsed.filter(p => !p.width).reduce((s, p) => s + p.count, 0);
-    const known = parsed.filter(p => p.width > 0);
+    const isNew = parsed.filter(p => p.kind === 'new');
+    const legacy = parsed.filter(p => p.kind !== 'new');
+    const legacyCount = legacy.reduce((s, p) => s + p.count, 0);
 
-    /* 按宽度聚合：同一个宽度合并，并记下出现过的 DPR */
-    const byWidth = new Map();
-    known.forEach(p => {
-      if (!byWidth.has(p.width)) byWidth.set(p.width, { width: p.width, count: 0, dprs: new Set() });
-      const g = byWidth.get(p.width);
+    /* 按型号聚合（新数据） */
+    const byModel = new Map();
+    isNew.forEach(p => {
+      const key = p.model;
+      if (!byModel.has(key)) byModel.set(key, { model: key, count: 0, inches: new Set() });
+      const g = byModel.get(key);
       g.count += p.count;
-      g.dprs.add(p.dpr);
+      if (p.inches) g.inches.add(p.inches);
     });
-    const widths = [...byWidth.values()].sort((a, b) => b.count - a.count);
-    const bySize = [...byWidth.values()].sort((a, b) => a.width - b.width);
+    const models = [...byModel.values()].sort((a, b) => b.count - a.count);
 
-    const totalKnown = known.reduce((s, p) => s + p.count, 0);
-    const phone = widths.filter(w => w.width < 500).reduce((s, w) => s + w.count, 0);
-    const tablet = widths.filter(w => w.width >= 500 && w.width < 900).reduce((s, w) => s + w.count, 0);
-    const desktop = widths.filter(w => w.width >= 900).reduce((s, w) => s + w.count, 0);
-    const total = totalKnown + unknownCount;
-    const narrowest = bySize.length ? bySize[0].width : 0;
-    const top1 = widths[0];
-
+    const totalNew = isNew.reduce((s, p) => s + p.count, 0);
+    const total = totalNew + legacyCount;
+    const phone = isNew.filter(p => p.inches > 0 && p.inches < 7.5).reduce((s, p) => s + p.count, 0);
+    const tablet = isNew.filter(p => p.inches >= 7.5).reduce((s, p) => s + p.count, 0);
+    const top1 = models[0] || null;
     const pct = (n) => total ? Math.round((n / total) * 100) : 0;
 
     const elSrcCount = document.getElementById('statSourceCount');
     const elVisitor = document.getElementById('statVisitorCount');
-    if (elSrcCount) elSrcCount.textContent = widths.length.toLocaleString('en-US');
+    if (elSrcCount) elSrcCount.textContent = models.length.toLocaleString('en-US');
     if (elVisitor) elVisitor.textContent = total.toLocaleString('en-US');
 
-    /* ---------- 顶部三张 KPI ---------- */
+    /* ---------- 顶部 KPI ---------- */
     let html = '<div class="src-kpis">' +
       '<div class="src-kpi"><b>' + total.toLocaleString('en-US') + '</b><span>总样本</span></div>' +
-      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;500）</span></div>' +
-      '<div class="src-kpi' + (narrowest && narrowest < 380 ? ' warn' : '') + '"><b>' + (narrowest || '—') + '</b><span>最窄宽度</span></div>' +
+      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;7.5"）</span></div>' +
+      '<div class="src-kpi"><b>' + (top1 ? top1.count : '—') + '</b><span>' + (top1 ? escapeHtml(top1.model) : '最常见机型') + '</span></div>' +
       '</div>';
 
-    html += '<p class="src-tip">' +
-      '最常见宽度：<b>' + (top1 ? top1.width + 'px' : '—') + '</b>' +
-      (top1 ? '（' + top1.count + ' 个 · ' + pct(top1.count) + '%）' : '') +
-      ' ｜ 平板 ' + pct(tablet) + '% ｜ 电脑 ' + pct(desktop) + '%</p>';
+    html += '<p class="src-tip">平板 ' + pct(tablet) + '% ｜ 共 ' + models.length + ' 种机型' +
+      (legacyCount ? ' ｜ 旧格式数据 ' + legacyCount + ' 条（早期按宽高收的，单独统计）' : '') +
+      '</p>';
 
-    if (narrowest && narrowest < 380) {
-      html += '<p class="src-tip warn">⚠️ 有 <b>' + narrowest + 'px</b> 宽的设备 —— 适配下限至少要覆盖到它，' +
-        '只按 407px（小米 17）设计会在这些机器上挤。</p>';
-    }
-
-    /* ---------- 按分组展示（每组最多 10 行） ---------- */
+    /* ---------- 分组展示（手机 / 平板，各最多 12 行） ---------- */
     function groupHtml(title, list, maxCount) {
       if (list.length === 0) return '';
-      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种宽度）</div>';
-      list.slice(0, 10).forEach(w => {
-        const dprText = [...w.dprs].sort((a, b) => a - b).join(' / ');
+      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种机型）</div>';
+      list.slice(0, 12).forEach(w => {
+        const inches = [...w.inches].sort((a, b) => a - b).join(' / ');
         h += '<div class="source-row">' +
           '<div class="source-top">' +
-            '<span class="source-name">' + w.width + ' 宽' + (dprText ? ' · ' + dprText + 'x' : '') + '</span>' +
+            '<span class="source-name">' + escapeHtml(w.model || '（无型号）') + (inches ? ' · ' + inches + '"' : '') + '</span>' +
             '<span class="source-num">' + w.count + ' 个 · ' + pct(w.count) + '%</span>' +
           '</div>' +
           '<div class="source-bar"><i style="width:' + Math.max(3, Math.round((w.count / maxCount) * 100)) + '%"></i></div>' +
         '</div>';
       });
-      if (list.length > 10) {
-        h += '<div class="src-more">…另有 ' + (list.length - 10) + ' 种更少见的宽度</div>';
-      }
+      if (list.length > 12) h += '<div class="src-more">…另有 ' + (list.length - 12) + ' 种更少见的机型</div>';
       return h;
     }
 
-    const maxCount = widths.length ? widths[0].count : 1;
-    const phoneW = widths.filter(w => w.width < 500);
-    const tabletW = widths.filter(w => w.width >= 500 && w.width < 900);
-    const desktopW = widths.filter(w => w.width >= 900);
+    const maxCount = models.length ? models[0].count : 1;
+    const phoneModels = models.filter(m => {
+      const any = [...m.inches][0];
+      return !any || any < 7.5;
+    });
+    const tabletModels = models.filter(m => {
+      const any = [...m.inches][0];
+      return any && any >= 7.5;
+    });
 
-    html += groupHtml('📱 手机', phoneW, maxCount);
-    html += groupHtml('📲 平板', tabletW, maxCount);
-    html += groupHtml('💻 电脑', desktopW, maxCount);
+    html += groupHtml('📱 手机', phoneModels, maxCount);
+    html += groupHtml('📲 平板', tabletModels, maxCount);
 
-    if (unknownCount > 0) {
-      html += '<div class="src-more">另有 ' + unknownCount + ' 条识别不了格式的旧数据（不影响上面的统计）</div>';
+    if (legacyCount > 0) {
+      html += '<div class="src-more">另有 ' + legacyCount + ' 条旧格式数据（早期按「宽x高@DPR」收的，不影响上面的机型统计）</div>';
     }
 
     box.innerHTML = html;

@@ -110,3 +110,48 @@ CREATE INDEX IF NOT EXISTS idx_songs_line ON songs_extra(line_index);
 -- 2026-10-05：无效上报的唯一键（同一浏览器对同一个 ID 只算一条）+ 按状态取列表
 CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id, reporter);
 CREATE INDEX IF NOT EXISTS idx_invalid_status ON invalid_reports(status, music_id);
+
+-- ============================================================
+-- 2026-10-24 · 访客「💡 建议」与「🐞 反馈」两张表
+-- ------------------------------------------------------------
+-- 对应接口：
+--   POST /api/suggest/submit   → suggestions
+--   POST /api/feedback/submit  → site_feedback
+-- 字段口径两张表完全一致：
+--   nickname   昵称（选填，接口限制 ≤20 字）
+--   content    正文（必填，接口限制 ≤1000 字；入库前剔除 < > 字符）
+--   contact    联系方式（选填，接口限制 ≤60 字，微信/QQ/邮箱都行）
+--   client_id  浏览器本地随机身份（前端 getClientId()），用于后续排查，不做账号
+--   created_at 写入时间（本地时间字符串，和站内其它表保持同一口径）
+--   status     处理状态，默认 'new'（new 待看 | read 已看 | done 已处理 | spam 垃圾）
+-- ⚠️ 这里只提供建表语句，不执行；部署前由站主在 D1 控制台跑一遍（IF NOT EXISTS 可重复执行）。
+-- 【回退办法】
+--   ① 代码回退：删掉本文件末尾从「2026-10-24 · 访客」这一行到 site_feedback 的 ); 为止的整段，
+--      并删除两个 submit.js 与两个 HTML 页面即可；
+--   ② 数据回退：已经建过表又确定不要数据时，才执行
+--        DROP TABLE IF EXISTS suggestions;
+--        DROP TABLE IF EXISTS site_feedback;
+--      （会连同已收集内容一起删除，执行前先导出；不执行也不影响旧功能）
+-- ============================================================
+
+-- 「💡 建议」收集表
+CREATE TABLE IF NOT EXISTS suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT,
+  content TEXT NOT NULL,
+  contact TEXT,
+  client_id TEXT NOT NULL DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  status TEXT DEFAULT 'new'
+);
+
+-- 「🐞 反馈」收集表（字段与 suggestions 完全一致）
+CREATE TABLE IF NOT EXISTS site_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT,
+  content TEXT NOT NULL,
+  contact TEXT,
+  client_id TEXT NOT NULL DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  status TEXT DEFAULT 'new'
+);

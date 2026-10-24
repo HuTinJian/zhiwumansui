@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<!-- ============================================================
+  suggest.html —— 「💡 建议」访客页（2026-10-24 新增）
+  ------------------------------------------------------------
+  作用：收集访客的任何想法（新功能 / 页面体验 / 内容选题 / 合作想法……），
+        提交到 POST /api/suggest/submit，落库 D1 表 suggestions。
+  设计：独立深色科幻皮肤（深空信号台）——深色底 + 霓虹青紫 + 细网格 + 发光按钮；
+        不复用 css/style.css 的粉色主题，避免两套变量互相覆盖。
+        导航栏 / 页脚结构、skip-link、品牌图与 index.html 保持同一套习惯。
+  依赖：页面本身只引用站内 images/favicon.svg 与既有的 js/turnstile.js，没有引入框架；
+        js/turnstile.js 在当前 SITE_KEY 为空时不会加载任何外部脚本（人机验证未启用）。
+
+  【回退办法】
+    ① 删除本文件 suggest.html 即可，/suggest.html 会回到 404；
+       其它页面不引用本文件，删掉不会影响首页 / 宝库 / 鸣谢 / 法律。
+    ② 同批新增的 functions/api/suggest/submit.js 与 schema.sql 末尾的
+       suggestions 表可按各自文件里的【回退办法】处理。
+    ③ 若只是不想要某个入口：本页只在导航与 feedback.html 的互链里出现，
+       删掉对应链接即可，不必动其它文件。
+  ============================================================ -->
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>💡 建议 · 织雾满穗</title>
+
+  <meta name="description" content="向织雾满穗提交任何想法：新功能、页面体验、内容选题、合作建议都可以。">
+  <meta name="theme-color" content="#05060e">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+
+  <!-- ============================================================
+       渲染前定主题（照 index.html 的「主题引导」习惯，在样式生效前写 data-theme）
+       ------------------------------------------------------------
+       差异说明：本页是固定深色科幻皮肤，不读取 zm_theme、也不提供明暗切换 ——
+       霓虹青紫在浅底上对比度不够，强做浅色版会失去这套设计的意义。
+       所以这里直接把 data-theme 钉成 dark，避免浏览器首帧闪白。
+       【回退办法】删掉下面这段主题脚本即可；<html> 上已有 data-theme="dark"
+         作为兜底，删掉后页面仍是深色，不会白屏。
+       ============================================================ -->
+  <script>
+    (function () {
+      'use strict';
+      try {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.style.colorScheme = 'dark';
+      } catch (e) { /* 极老浏览器不支持也不影响：html 标签上已经写了 data-theme */ }
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       深空信号台 · 页面皮肤
+       ------------------------------------------------------------
+       全部样式内联在本页，刻意不加载 css/style.css：
+         · 那边是粉色主题，变量名相同但色值冲突；
+         · 本页要保证无论系统明暗模式如何，都是深色霓虹观感。
+       结构顺序：变量 → 基础 → 背景 → 导航 → 主内容 → 表单 → 侧栏 → 页脚。
+       【回退办法】整段 <style> 删除后本页会退化成无样式纯表单（功能仍可用）；
+         删除后不影响任何其它页面，因为本页没有改动全局 CSS 文件。
+       ============================================================ */
+
+    :root {
+      --bg: #05060e;
+      --bg-soft: #080c18;
+      --panel: rgba(10, 16, 34, 0.78);
+      --panel-solid: #0a1022;
+      --line: rgba(120, 170, 255, 0.16);
+      --line-strong: rgba(120, 210, 255, 0.38);
+      --cyan: #4de8ff;
+      --cyan-soft: rgba(77, 232, 255, 0.10);
+      --violet: #a06bff;
+      --violet-soft: rgba(160, 107, 255, 0.12);
+      --text: #e6efff;
+      --text-soft: #a9bbe0;
+      --text-dim: #7286ab;
+      --ok: #55f0b0;
+      --danger: #ff6b8a;
+      --warn: #ffd166;
+      --radius: 16px;
+      --sans: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *,
+    *::before,
+    *::after { box-sizing: border-box; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.65;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 320px 窄屏也不能出现横向滚动条：长单词、长链接一律允许断行 */
+    a, p, li, h1, h2, h3, label, span { overflow-wrap: break-word; }
+
+    a { color: #9fd8ff; }
+
+    button,
+    input,
+    textarea { font: inherit; }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.92em;
+      color: #b9e9ff;
+      background: rgba(77, 232, 255, 0.08);
+      border: 1px solid rgba(77, 232, 255, 0.16);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
+
+    ::selection {
+      background: rgba(77, 232, 255, 0.30);
+      color: #ffffff;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    /* 键盘用户跳过导航时才会出现的链接（复制 index.html 的 skip-link 习惯） */
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -100px;
+      z-index: 300;
+      padding: 10px 16px;
+      border-radius: 0 0 10px 10px;
+      background: var(--cyan);
+      color: #031018;
+      font-weight: 800;
+      text-decoration: none;
+      transition: top 0.16s ease;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* 只给读屏软件看的文字 */
+    .sr-only {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ---------- 固定背景：网格 / 星点 / 青紫光晕 / 扫描线 ---------- */
+    .space-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .space-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(77, 232, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(77, 232, 255, 0.07) 1px, transparent 1px);
+      background-size: 42px 42px;
+      -webkit-mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
+      mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
+      opacity: 0.85;
+    }
+
+    .space-stars {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1.2px 1.2px at 18% 24%, rgba(225, 245, 255, 0.9), transparent 55%),
+        radial-gradient(1px 1px at 72% 12%, rgba(190, 220, 255, 0.75), transparent 55%),
+        radial-gradient(1.4px 1.4px at 43% 61%, rgba(255, 255, 255, 0.65), transparent 55%),
+        radial-gradient(1px 1px at 86% 72%, rgba(190, 220, 255, 0.6), transparent 55%),
+        radial-gradient(1px 1px at 9% 83%, rgba(225, 245, 255, 0.55), transparent 55%);
+      background-size: 340px 300px;
+      opacity: 0.55;
+    }
+
+    .space-glow {
+      position: absolute;
+      width: min(680px, 78vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.24;
+    }
+    .space-glow-a {
+      top: -240px;
+      left: -180px;
+      background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0) 68%);
+    }
+    .space-glow-b {
+      right: -220px;
+      bottom: -260px;
+      background: radial-gradient(circle, #7c3aed 0%, rgba(124, 58, 237, 0) 68%);
+    }
+
+    .space-scan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(77, 232, 255, 0.55), transparent);
+      box-shadow: 0 0 16px rgba(77, 232, 255, 0.65);
+      animation: scanMove 10s linear infinite;
+    }
+    @keyframes scanMove {
+      from { transform: translateY(-4vh); }
+      to   { transform: translateY(104vh); }
+    }
+
+    /* ---------- 导航栏：沿用 .navbar 结构，换成深色玻璃 + 青线 ---------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px 18px;
+      flex-wrap: wrap;
+      padding: 10px clamp(12px, 3vw, 32px);
+      background: rgba(5, 6, 14, 0.86);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0;
+      color: var(--text);
+      text-decoration: none;
+      line-height: 1.15;
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 7px rgba(77, 232, 255, 0.45));
+    }
+    .brand-text {
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .brand-sub {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px;
+      margin: 0 0 0 auto;
+      padding: 0;
+      list-style: none;
+      min-width: 0;
+    }
+    .nav-links a {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      color: var(--text-soft);
+      font-size: 0.82rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(77, 232, 255, 0.08);
+      border-color: rgba(77, 232, 255, 0.22);
+    }
+    .nav-links a.active {
+      color: #041018;
+      background: linear-gradient(120deg, var(--cyan), #8fc9ff 60%, var(--violet));
+      border-color: transparent;
+      font-weight: 800;
+      box-shadow: 0 0 18px rgba(77, 232, 255, 0.22);
+    }
+
+    .hud-clock {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    /* ---------- 主内容容器 ---------- */
+    .shell {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 clamp(14px, 4vw, 32px) 24px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 18px;
+      flex-wrap: wrap;
+      padding-top: 18px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(8, 14, 30, 0.62);
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+    .back-link:hover {
+      color: var(--cyan);
+      border-color: rgba(77, 232, 255, 0.48);
+      box-shadow: 0 0 20px rgba(77, 232, 255, 0.12);
+    }
+
+    .signal-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .signal-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+      animation: signalPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes signalPulse {
+      0%, 100% { opacity: 0.55; transform: scale(0.9); }
+      50%      { opacity: 1;    transform: scale(1.1); }
+    }
+
+    /* ---------- 标题区 ---------- */
+    .hero {
+      padding: clamp(26px, 5vw, 54px) 0 clamp(22px, 4vw, 36px);
+      max-width: 840px;
+    }
+    .hero-code {
+      margin: 0 0 12px;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2rem, 6.4vw, 3.4rem);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+      text-wrap: balance;
+    }
+    .grad {
+      background: linear-gradient(100deg, var(--cyan) 0%, #9ad8ff 38%, var(--violet) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      margin: 0;
+      max-width: 660px;
+      color: var(--text-soft);
+      font-size: clamp(0.9rem, 2.4vw, 1.02rem);
+      line-height: 1.85;
+    }
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .hero-tags li {
+      padding: 3px 9px;
+      border: 1px solid rgba(77, 232, 255, 0.24);
+      border-radius: 999px;
+      background: rgba(77, 232, 255, 0.06);
+      color: #9fd8ff;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ---------- 两栏布局（窄屏自动变单栏） ---------- */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.9fr);
+      gap: clamp(16px, 3vw, 28px);
+      align-items: start;
+    }
+
+    .panel {
+      position: relative;
+      min-width: 0;
+      background: linear-gradient(160deg, rgba(13, 22, 45, 0.90), rgba(7, 10, 24, 0.94));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow:
+        0 18px 60px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    /* HUD 直角括号：只做两个角，轻但足够有科幻味 */
+    .panel::before,
+    .panel::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+    .panel::before {
+      top: -1px;
+      left: -1px;
+      border-top: 1px solid var(--cyan);
+      border-left: 1px solid var(--cyan);
+      border-top-left-radius: 7px;
+    }
+    .panel::after {
+      right: -1px;
+      bottom: -1px;
+      border-right: 1px solid var(--violet);
+      border-bottom: 1px solid var(--violet);
+      border-bottom-right-radius: 7px;
+    }
+
+    .form-panel { padding: clamp(18px, 4vw, 32px); }
+
+    .form-head {
+      padding-bottom: 16px;
+      margin-bottom: 22px;
+      border-bottom: 1px dashed rgba(120, 170, 255, 0.20);
+    }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 6px;
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+    .panel-title::before {
+      content: "";
+      width: 6px;
+      height: 18px;
+      flex-shrink: 0;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--cyan), var(--violet));
+      box-shadow: 0 0 12px rgba(77, 232, 255, 0.5);
+    }
+    .panel-sub {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      line-height: 1.7;
+    }
+
+    /* ---------- 表单 ---------- */
+    .field { margin-bottom: 20px; }
+    .field:last-of-type { margin-bottom: 0; }
+
+    .label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .label-row label {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .req {
+      color: var(--cyan);
+      font-weight: 800;
+      margin-left: 2px;
+    }
+    .opt {
+      display: inline-block;
+      margin-left: 5px;
+      padding: 1px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text-dim);
+      font-size: 0.66rem;
+      font-weight: 500;
+      vertical-align: 1px;
+    }
+    .counter {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .counter.is-near { color: var(--warn); }
+    .counter.is-max  { color: var(--danger); }
+
+    .control {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      padding: 12px 14px;
+      color: var(--text);
+      background: rgba(4, 8, 20, 0.72);
+      border: 1px solid rgba(120, 170, 255, 0.22);
+      border-radius: 10px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+    .control::placeholder {
+      color: #5c6d90;
+      opacity: 1;
+    }
+    .control:hover { border-color: rgba(120, 170, 255, 0.36); }
+    .control:focus {
+      outline: none;
+      border-color: var(--cyan);
+      background: rgba(6, 12, 28, 0.92);
+      box-shadow:
+        0 0 0 3px rgba(77, 232, 255, 0.10),
+        0 0 24px rgba(77, 232, 255, 0.10);
+    }
+    .control:focus-visible {
+      outline: 2px solid rgba(77, 232, 255, 0.65);
+      outline-offset: 2px;
+    }
+    textarea.control {
+      min-height: 168px;
+      resize: vertical;
+    }
+
+    .field.is-invalid .control {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(255, 107, 138, 0.12);
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      line-height: 1.65;
+    }
+
+    .form-foot { margin-top: 22px; }
+
+    .btn-submit {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 52px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(105deg, #47e6ff 0%, #6bb8ff 46%, #a06bff 100%);
+      background-size: 160% 100%;
+      color: #03121c;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow:
+        0 0 0 1px rgba(125, 232, 255, 0.38),
+        0 12px 34px rgba(77, 232, 255, 0.18),
+        0 0 40px rgba(160, 107, 255, 0.12);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background-position 0.35s ease, opacity 0.18s ease;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      background-position: 100% 0;
+      box-shadow:
+        0 0 0 1px rgba(125, 232, 255, 0.52),
+        0 16px 42px rgba(77, 232, 255, 0.26),
+        0 0 52px rgba(160, 107, 255, 0.20);
+    }
+    .btn-submit:active { transform: translateY(0) scale(0.995); }
+    .btn-submit:disabled {
+      cursor: progress;
+      opacity: 0.66;
+      transform: none;
+      box-shadow: 0 0 0 1px rgba(125, 232, 255, 0.22);
+    }
+    .btn-submit:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 3px;
+    }
+
+    .consent {
+      margin: 12px 0 0;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      line-height: 1.75;
+    }
+    .consent a { color: #9fd8ff; }
+
+    /* 提交结果提示：成功 / 失败 / 进行中三种状态，只改 class 不拼 HTML */
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 0.84rem;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+    .status.is-visible { display: block; }
+    .status.is-info {
+      color: #a9d8ff;
+      border-color: rgba(120, 190, 255, 0.32);
+      background: rgba(77, 160, 255, 0.08);
+    }
+    .status.is-ok {
+      color: #9affd6;
+      border-color: rgba(85, 240, 176, 0.38);
+      background: rgba(85, 240, 176, 0.08);
+    }
+    .status.is-error {
+      color: #ffb3c0;
+      border-color: rgba(255, 107, 138, 0.42);
+      background: rgba(255, 107, 138, 0.08);
+    }
+    .status:focus { outline: 2px solid rgba(77, 232, 255, 0.55); outline-offset: 2px; }
+
+    .noscript {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 209, 102, 0.36);
+      border-radius: 10px;
+      background: rgba(255, 209, 102, 0.08);
+      color: #ffe6a8;
+      font-size: 0.8rem;
+      line-height: 1.7;
+    }
+
+    /* ---------- 右侧说明卡 ---------- */
+    .side {
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+    }
+    .side-card { padding: 20px 20px 18px; }
+
+    .side-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 14px;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+    .side-index {
+      flex-shrink: 0;
+      padding: 2px 6px;
+      border: 1px solid rgba(77, 232, 255, 0.35);
+      border-radius: 6px;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 1.2em;
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      line-height: 1.75;
+    }
+    .steps li + li { margin-top: 8px; }
+    .steps b { color: var(--text); font-weight: 700; }
+
+    .side-text {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      line-height: 1.8;
+    }
+    .side-text + .side-text { margin-top: 10px; }
+    .side-text b { color: var(--text); }
+
+    .inline-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      text-decoration: none;
+      transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+    .inline-link:hover {
+      color: var(--text);
+      border-color: rgba(77, 232, 255, 0.40);
+      background: rgba(77, 232, 255, 0.06);
+    }
+    .inline-link .arrow { flex-shrink: 0; color: var(--cyan); }
+
+    /* ---------- 页脚：结构与 index.html 一致，只做低调深色版 ---------- */
+    .footer {
+      position: relative;
+      z-index: 2;
+      margin-top: 44px;
+      padding: 26px clamp(14px, 4vw, 32px) calc(30px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(120, 170, 255, 0.14);
+      background: rgba(3, 5, 12, 0.55);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.76rem;
+    }
+    .footer p { margin: 0; }
+    .footer-legal {
+      max-width: 860px;
+      margin: 10px auto 0 !important;
+      font-size: 0.7rem;
+      line-height: 1.9;
+      color: var(--text-dim);
+      overflow-wrap: anywhere;
+    }
+    .footer a {
+      color: #9fd8ff;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(159, 216, 255, 0.4);
+    }
+    .footer a:hover { color: #d2efff; }
+
+    /* ---------- 窄屏：单栏、导航换行、输入框 16px 防 iOS 自动放大 ---------- */
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    @media (max-width: 720px) {
+      .hud-clock { display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .navbar { padding: 9px 12px; gap: 8px; }
+      .brand-sub { display: none; }
+      .nav-links {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+      }
+      .nav-links a { padding: 6px 8px; font-size: 0.78rem; }
+      .shell { padding-left: 14px; padding-right: 14px; }
+      .hero h1 { font-size: clamp(1.8rem, 8.4vw, 2.5rem); }
+      .hero-desc { font-size: 0.9rem; }
+      .form-panel { padding: 18px 16px; }
+      .side-card { padding: 18px 16px 16px; }
+      .control { font-size: 16px; }
+      .footer { margin-top: 34px; }
+    }
+
+    @media (max-width: 360px) {
+      .nav-links a { font-size: 0.72rem; padding: 6px 6px; }
+      .hero-code { font-size: 0.58rem; letter-spacing: 0.12em; }
+      .hero-tags { gap: 6px; }
+      .hero-tags li { padding: 3px 8px; font-size: 0.64rem; }
+      .signal-pill { letter-spacing: 0.08em; }
+      .footer-legal { font-size: 0.66rem; }
+    }
+
+    /* 系统要求减少动效时，关闭扫描线、脉冲与平滑滚动 */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    /* 高对比度 / 强制颜色模式下放弃渐变文字和背景装饰，保证可读 */
+    @media (forced-colors: active) {
+      .space-bg { display: none; }
+      .grad {
+        background: none;
+        color: inherit;
+        -webkit-text-fill-color: currentColor;
+      }
+      .panel,
+      .control,
+      .btn-submit,
+      .status { border: 1px solid ButtonText; }
+    }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- 纯装饰背景，读屏软件跳过；不需要时整块删掉也不影响布局 -->
+  <div class="space-bg" aria-hidden="true">
+    <span class="space-grid"></span>
+    <span class="space-stars"></span>
+    <span class="space-glow space-glow-a"></span>
+    <span class="space-glow space-glow-b"></span>
+    <span class="space-scan"></span>
+  </div>
+
+  <!-- ==================== 顶部导航栏（与 index.html 同一套结构） ==================== -->
+  <nav class="navbar" aria-label="站点导航">
+    <a class="nav-brand" href="index.html">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span>
+        <span class="brand-text">织雾满穗</span>
+        <span class="brand-sub">DEEP SPACE RELAY</span>
+      </span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 首页</a></li>
+      <li><a href="suggest.html" class="active" aria-current="page">💡 建议</a></li>
+      <li><a href="feedback.html">🐞 反馈</a></li>
+      <li><a href="thanks.html">❤️ 鸣谢</a></li>
+      <li><a href="law.html">⚖️ 法律</a></li>
+    </ul>
+    <span class="hud-clock" id="hudClock" aria-hidden="true">--:--:--</span>
+  </nav>
+
+  <!-- ==================== 主内容 ==================== -->
+  <main class="shell" id="main">
+
+    <div class="topline">
+      <a class="back-link" href="index.html">← 返回首页</a>
+      <span class="signal-pill"><span class="signal-dot" aria-hidden="true"></span>UPLINK ONLINE</span>
+    </div>
+
+    <header class="hero">
+      <p class="hero-code" aria-hidden="true">CHANNEL 01 // IDEA TRANSMISSION</p>
+      <h1>天马行空，<span class="grad">尽管说</span></h1>
+      <p class="hero-desc">
+        想加什么功能、想看什么内容、觉得哪里还能更好……任何点子都欢迎。
+        守法前提下，脑洞越大越好；不用先想「能不能做」，那是站长的事。
+      </p>
+      <ul class="hero-tags" aria-label="建议接收范围">
+        <li>新功能</li>
+        <li>页面体验</li>
+        <li>内容选题</li>
+        <li>合作想法</li>
+      </ul>
+    </header>
+
+    <div class="layout">
+
+      <!-- ==================== 表单卡 ==================== -->
+      <section class="panel form-panel" aria-labelledby="formTitle">
+        <div class="form-head">
+          <h2 class="panel-title" id="formTitle">发送你的想法</h2>
+          <p class="panel-sub">带 <b class="req" aria-hidden="true">*</b><span class="sr-only">星号</span> 的是必填项；内容最多 1000 字。</p>
+        </div>
+
+        <form id="suggestForm" class="form" novalidate
+              data-api="/api/suggest/submit"
+              data-action="suggest"
+              data-success="✅ 建议已收到，谢谢你的脑洞！"
+              data-missing="内容不能为空，先写点想法再发送。">
+
+          <!-- 昵称：选填，≤20 字 -->
+          <div class="field">
+            <div class="label-row">
+              <label for="nickname">昵称 <span class="opt">选填</span></label>
+              <span class="counter" id="nicknameCount" aria-hidden="true">0 / 20</span>
+            </div>
+            <input class="control" id="nickname" name="nickname" type="text"
+                   maxlength="20" autocomplete="nickname"
+                   placeholder="怎么称呼你？"
+                   aria-describedby="nicknameHint">
+            <p class="hint" id="nicknameHint">不超过 20 字；不填也可以，站长不会追问。</p>
+          </div>
+
+          <!-- 建议内容：必填，≤1000 字 -->
+          <div class="field">
+            <div class="label-row">
+              <label for="content">建议内容 <b class="req" aria-hidden="true">*</b><span class="sr-only">（必填）</span></label>
+              <span class="counter" id="contentCount" aria-hidden="true">0 / 1000</span>
+            </div>
+            <textarea class="control" id="content" name="content" rows="8"
+                      maxlength="1000" required
+                      placeholder="比如：希望加一个……／现在某个页面……／如果……就更好了"
+                      aria-describedby="contentHint"></textarea>
+            <p class="hint" id="contentHint">说清楚「想要什么」和「为什么」就很好；最多 1000 字。</p>
+          </div>
+
+          <!-- 联系方式：选填，≤60 字 -->
+          <div class="field">
+            <div class="label-row">
+              <label for="contact">联系方式 <span class="opt">选填</span></label>
+              <span class="counter" id="contactCount" aria-hidden="true">0 / 60</span>
+            </div>
+            <input class="control" id="contact" name="contact" type="text"
+                   maxlength="60" autocomplete="off"
+                   placeholder="微信 / QQ / 邮箱，任选一种"
+                   aria-describedby="contactHint">
+            <p class="hint" id="contactHint">只用来回复你，不会公开展示；不超过 60 字。</p>
+          </div>
+
+          <div class="form-foot">
+            <button class="btn-submit" id="submitBtn" type="submit" aria-busy="false">
+              <span aria-hidden="true">🚀</span><span id="submitLabel">发送建议</span>
+            </button>
+            <p class="consent">
+              提交即表示同意本站按 <a href="law.html">隐私说明</a> 保存以上内容；
+              入库前会剔除 <code>&lt;</code> <code>&gt;</code> 字符。请勿填写身份证号、住址等敏感信息。
+            </p>
+          </div>
+
+          <div class="status" id="formStatus" role="status" aria-live="polite" tabindex="-1"></div>
+
+          <noscript>
+            <p class="noscript">你的浏览器没有开启 JavaScript，表单暂时发不出去。可以直接发邮件到
+              <a href="mailto:2560803486@qq.com">2560803486@qq.com</a>，把想法写进来。</p>
+          </noscript>
+        </form>
+      </section>
+
+      <!-- ==================== 右侧说明 ==================== -->
+      <aside class="side" aria-label="关于建议的说明">
+        <section class="panel side-card">
+          <h2 class="side-title"><span class="side-index">01</span> 提交之后</h2>
+          <ol class="steps">
+            <li><b>先看</b>：站长会逐条读，不用怕写得太长。</li>
+            <li><b>再排</b>：可行、划算的点子会进待办；暂时不做的也会记下来。</li>
+            <li><b>回你</b>：留了联系方式，才方便追问细节或告知结果。</li>
+          </ol>
+        </section>
+
+        <section class="panel side-card">
+          <h2 class="side-title"><span class="side-index">02</span> 小提示</h2>
+          <p class="side-text">
+            这里收的是<b>「希望网站变成什么样」</b>。如果某个页面打不开、按钮没反应、排版错位，
+            请走下面的反馈通道，那边会按问题排查。
+          </p>
+          <p class="side-text">
+            不喜欢留联系方式也没关系，建议照样会看到；只是没法回复你。
+          </p>
+          <a class="inline-link" href="feedback.html">
+            <span>遇到站点问题？</span><span>🐞 去反馈 <span class="arrow" aria-hidden="true">→</span></span>
+          </a>
+        </section>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ==================== 页脚（结构与 index.html 一致） ==================== -->
+  <footer class="footer">
+    <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <p class="footer-legal">
+      隐私说明：你填写的昵称、建议内容与联系方式会保存到本站数据库，只用于改进站点和回复你；联系方式不会公开展示。<br>
+      服务端不保存 IP（IP 只在内存里用于限速），内容入库前会剔除 &lt; &gt; 字符。完整说明见 <a href="law.html">⚖️ 法律与风险提示</a>。<br>
+      联系站长：<a href="mailto:2560803486@qq.com">2560803486@qq.com</a> · QQ：2560803486
+    </p>
+  </footer>
+
+  <!-- ============================================================
+       站点现成的 Turnstile 小工具（站内文件，不是外部依赖）
+       ------------------------------------------------------------
+       作用：配了 Site Key 时自动取一张人机验证通行证；没配时什么都不做，
+       页面照常提交。它内部的重试逻辑只处理「strict 模式 403」这一种情况。
+       【回退办法】删掉下面这行对 js/turnstile.js 的引用即可；
+         本页内联脚本会检测 window.ZMTurnstile 是否存在，不存在就直接 fetch，
+         功能不受影响（strict 模式下会更容易被拦，soft/off 模式完全无差别）。
+       ============================================================ -->
+  <script src="js/turnstile.js"></script>
+
+  <script>
+    /* ============================================================
+       建议页交互：字数统计 / 前端校验 / 提交 / 成功清空 / 错误提示
+       ------------------------------------------------------------
+       约定：
+         · 提示文字只用 textContent 写入，不拼 innerHTML（服务端错误码也不可信）；
+         · 提交中禁用按钮，防止连点写出多条；
+         · 失败时保留用户已填内容，成功才 form.reset()。
+       【回退办法】删掉本段脚本即可 —— 表单会退回「无法提交」的纯静态状态，
+         其它页面不受影响。若只想停用接口，见 functions/api/suggest/submit.js 的回退说明。
+       ============================================================ */
+    (function () {
+      'use strict';
+
+      var form = document.getElementById('suggestForm');
+      if (!form) return;
+
+      var nicknameEl = document.getElementById('nickname');
+      var contentEl = document.getElementById('content');
+      var contactEl = document.getElementById('contact');
+      var submitBtn = document.getElementById('submitBtn');
+      var submitLabel = document.getElementById('submitLabel');
+      var statusEl = document.getElementById('formStatus');
+
+      var API = form.getAttribute('data-api') || '/api/suggest/submit';
+      var ACTION = form.getAttribute('data-action') || 'suggest';
+      var SUCCESS_TEXT = form.getAttribute('data-success') || '✅ 提交成功，谢谢！';
+      var MISSING_TEXT = form.getAttribute('data-missing') || '内容不能为空，请先写点东西。';
+      var defaultLabel = submitLabel ? submitLabel.textContent : '发送建议';
+      var busy = false;
+
+      /* 三个字段的上限必须与 HTML 的 maxlength、后端的 MAX_* 保持一致 */
+      var fields = [
+        { el: nicknameEl, max: 20 },
+        { el: contentEl, max: 1000 },
+        { el: contactEl, max: 60 }
+      ];
+
+      /* ---------- 字数统计 ---------- */
+      function updateCounter(field) {
+        if (!field.el) return;
+        var counter = document.getElementById(field.el.id + 'Count');
+        if (!counter) return;
+        var len = field.el.value.length;
+        counter.textContent = len + ' / ' + field.max;
+        counter.className = 'counter';
+        if (len >= field.max) counter.classList.add('is-max');
+        else if (len >= field.max * 0.9) counter.classList.add('is-near');
+      }
+
+      function updateAllCounters() {
+        fields.forEach(updateCounter);
+      }
+
+      /* ---------- 错误定位 ---------- */
+      function clearInvalid() {
+        fields.forEach(function (field) {
+          if (!field.el) return;
+          field.el.removeAttribute('aria-invalid');
+          var wrap = field.el.closest('.field');
+          if (wrap) wrap.classList.remove('is-invalid');
+        });
+      }
+
+      function markInvalid(el) {
+        if (!el) return;
+        el.setAttribute('aria-invalid', 'true');
+        var wrap = el.closest('.field');
+        if (wrap) wrap.classList.add('is-invalid');
+        try { el.focus({ preventScroll: false }); } catch (e) { el.focus(); }
+      }
+
+      /* ---------- 状态提示 ---------- */
+      function showStatus(kind, text) {
+        if (!statusEl) return;
+        statusEl.textContent = text;
+        statusEl.className = 'status is-visible is-' + kind;
+        /* 提示区在按钮下方；成功/失败后把焦点移过去，读屏软件会读出内容。
+           preventScroll 避免手机端页面突然跳一下。 */
+        try { statusEl.focus({ preventScroll: true }); } catch (e) { statusEl.focus(); }
+      }
+
+      /* ---------- 按钮忙碌态 ---------- */
+      function setBusy(next) {
+        busy = next;
+        if (!submitBtn) return;
+        submitBtn.disabled = next;
+        submitBtn.classList.toggle('is-busy', next);
+        submitBtn.setAttribute('aria-busy', next ? 'true' : 'false');
+        if (submitLabel) submitLabel.textContent = next ? '发送中…' : defaultLabel;
+      }
+
+      /* ---------- 浏览器匿名身份 ----------
+         与 js/common.js 的 getClientId() 用同一个 localStorage 键和同一种形态，
+         这样同一个人在本页与宝库页拿到的是同一个随机 ID（不是账号，不含个人信息）。
+         独立实现是为了不整包加载 common.js（那边会做导航、弹窗等本页不需要的事）。 */
+      function getClientId() {
+        var KEY = 'zm_client_id';
+        var id = null;
+        try { id = localStorage.getItem(KEY); } catch (e) {}
+        if (id && /^[a-z0-9]{16,40}$/.test(id)) return id;
+
+        var next = '';
+        try {
+          var buf = new Uint8Array(16);
+          (window.crypto || window.msCrypto).getRandomValues(buf);
+          next = Array.prototype.map.call(buf, function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+          }).join('');
+        } catch (e2) {
+          next = '';
+          for (var i = 0; i < 32; i++) next += Math.floor(Math.random() * 16).toString(16);
+        }
+        try { localStorage.setItem(KEY, next); } catch (e3) {}
+        return next;
+      }
+
+      /* ---------- 前端校验：只做「明显不对」的拦截，最终以后端为准 ---------- */
+      function invalid(el, message) {
+        showStatus('error', message);
+        markInvalid(el);
+        return null;
+      }
+
+      function validate() {
+        clearInvalid();
+        var nickname = nicknameEl ? nicknameEl.value.trim() : '';
+        var content = contentEl ? contentEl.value.trim() : '';
+        var contact = contactEl ? contactEl.value.trim() : '';
+
+        if (nickname.length > 20) return invalid(nicknameEl, '昵称太长了，最多 20 字。');
+        if (!content) return invalid(contentEl, MISSING_TEXT);
+        if (content.length > 1000) return invalid(contentEl, '内容超过 1000 字了，请精简一下。');
+        if (contact.length > 60) return invalid(contactEl, '联系方式太长了，最多 60 字。');
+
+        return {
+          nickname: nickname,
+          content: content,
+          contact: contact,
+          clientId: getClientId()
+        };
+      }
+
+      /* ---------- 发送：优先走站点 Turnstile 小工具，缺了就退回原生 fetch ---------- */
+      function send(payload) {
+        if (window.ZMTurnstile && typeof window.ZMTurnstile.postJson === 'function') {
+          return window.ZMTurnstile.postJson(API, payload, ACTION);
+        }
+        return fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      /* ---------- 把服务端错误码翻译成人话 ---------- */
+      function errorText(data, res) {
+        var code = data && data.error ? String(data.error) : '';
+
+        if (code === 'too many requests') {
+          var wait = data && data.wait ? String(data.wait) : '一会儿';
+          return '提交太频繁了，请等 ' + wait + ' 秒再试。';
+        }
+        if (code.indexOf('turnstile') === 0) return '人机验证没通过，请刷新页面后再试一次。';
+        if (code === 'bad origin') return '来源校验没通过，请从本站页面直接提交。';
+        if (code === 'storage not ready') return '服务端还没准备好接收内容（数据表未初始化），请稍后再试。';
+        if (code === 'missing content') return MISSING_TEXT;
+        if (code === 'nickname too long') return '昵称太长了，最多 20 字。';
+        if (code === 'content too long') return '内容超过 1000 字了，请精简一下。';
+        if (code === 'contact too long') return '联系方式太长了，最多 60 字。';
+        if (code === 'server error') return '服务器开小差了，请稍后再试。';
+        if (res && res.status === 429) return '提交太频繁了，请稍后再试。';
+        if (res && res.status === 413) return '提交内容太长，请精简一下。';
+        if (res && res.status >= 500) return '服务器开小差了，请稍后再试。';
+        return '提交失败（HTTP ' + (res ? res.status : '?') + '），请稍后再试。';
+      }
+
+      /* ---------- 提交主流程 ---------- */
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (busy) return;
+
+        var payload = validate();
+        if (!payload) return;
+
+        setBusy(true);
+        showStatus('info', '正在把你的想法送上信号塔…');
+
+        var request;
+        try {
+          request = send(payload);
+        } catch (e) {
+          setBusy(false);
+          showStatus('error', '浏览器没能发起请求，请刷新页面后再试。');
+          return;
+        }
+
+        request
+          .then(function (res) {
+            return res.json().catch(function () { return null; }).then(function (data) {
+              return { res: res, data: data };
+            });
+          })
+          .then(function (out) {
+            if (out.res.ok && out.data && out.data.ok === true) {
+              /* 成功才清空；失败保留用户写的内容，避免白写一遍 */
+              form.reset();
+              clearInvalid();
+              updateAllCounters();
+              showStatus('ok', SUCCESS_TEXT);
+              return;
+            }
+            showStatus('error', errorText(out.data, out.res));
+          })
+          .catch(function () {
+            showStatus('error', '网络好像断了，请检查连接后再试。如果一直被拦，可以直接发邮件到 2560803486@qq.com。');
+          })
+          .then(function () {
+            setBusy(false);
+          });
+      });
+
+      /* ---------- 输入时更新字数并清掉红色错误态 ---------- */
+      fields.forEach(function (field) {
+        if (!field.el) return;
+        field.el.addEventListener('input', function () {
+          updateCounter(field);
+          field.el.removeAttribute('aria-invalid');
+          var wrap = field.el.closest('.field');
+          if (wrap) wrap.classList.remove('is-invalid');
+        });
+        updateCounter(field);
+      });
+
+      /* ---------- 页头小钟与页脚年份（纯装饰，失败也不影响表单） ---------- */
+      var clock = document.getElementById('hudClock');
+      if (clock) {
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        var tick = function () {
+          var d = new Date();
+          clock.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' CST';
+        };
+        tick();
+        setInterval(tick, 1000);
+      }
+
+      var yearEl = document.getElementById('year');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>

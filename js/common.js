@@ -1947,3 +1947,51 @@ function initShareTriggers() {
     formatBeijingTime   // 库里/接口的时间 → 北京时间文本（'short' / 'full' / 'date' / 默认）
   });
 })();
+/* ============================================================
+   2026-10-24 · 指针光晕 + 点击涟漪（科幻交互层的前端部分）
+   ------------------------------------------------------------
+   只在「有精确指针 + 没开减少动效」的环境下运行：
+     · 手机 / 触屏：直接 return，不占一点 CPU；
+     · rAF 节流：指针移动一帧最多写一次 CSS 变量。
+   光晕本体在 css/style.css 的「科幻交互层」里，这里只负责喂坐标。
+   【回退办法】删掉本 IIFE（从 /* ===== 到最后的 })();）即可。
+   ============================================================ */
+(function () {
+  if (!window.matchMedia) return;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!fine || calm) return;
+
+  var root = document.documentElement;
+  var body = document.body;
+  var raf = 0;
+  var px = 0, py = 0;
+
+  function paint() {
+    raf = 0;
+    root.style.setProperty('--zm-px', px + 'px');
+    root.style.setProperty('--zm-py', py + 'px');
+  }
+
+  document.addEventListener('pointermove', function (e) {
+    px = e.clientX;
+    py = e.clientY;
+    if (!raf) raf = window.requestAnimationFrame(paint);
+    if (!body.classList.contains('zm-pointer-active')) {
+      body.classList.add('zm-pointer-active');
+    }
+  }, { passive: true });
+
+  /* 点击涟漪：在指针处炸开一圈光，600ms 后自己删掉（不留 DOM）。 */
+  document.addEventListener('pointerdown', function (e) {
+    var r = document.createElement('span');
+    r.className = 'zm-ripple';
+    r.style.left = e.clientX + 'px';
+    r.style.top = e.clientY + 'px';
+    document.body.appendChild(r);
+    window.setTimeout(function () {
+      if (r && r.parentNode) r.parentNode.removeChild(r);
+    }, 650);
+  }, { passive: true });
+})();
+

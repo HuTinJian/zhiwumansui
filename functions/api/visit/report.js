@@ -32,9 +32,20 @@ const limiter = createRateLimiter(10, 10 * 60 * 1000);
    【回退办法】改回 /^[A-Za-z0-9_-]{1,30}$/。 */
 const ID_PATTERN = /^u_[a-z0-9]{6,}_[a-z0-9]{6,}$/;
 
-/* 屏幕尺寸标识必须是「宽x高@DPR」，例如 407x886@3 —— 这是本接口唯一合法的 source 形态。
-   以前任意 30 字文本都收，等于给了一个公开的任意写入点。 */
-const SIZE_PATTERN = /^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/;
+/* ============================================================
+   2026-10-24 站主要求改版：只收集「手机 / 平板的设备型号 + 屏幕尺寸」。
+   所以 source 的形态从「407x886@3」改成「型号@英寸」，例如：
+     Xiaomi 17@6.3
+     SM-S9280@6.8
+     未知机型@6.1
+   旧格式（宽x高@DPR）继续接受 —— 历史数据还要能查、后台还要能读；
+   但**新数据不会再产生这种格式**（前端只对 phone/tablet 报型号+英寸）。
+   ⚠️ 型号可能含空格/中文，所以放宽成「≤40 字符 + @ + 数字」，
+      仍然排除换行与尖括号（入库前还会再剔一次）。
+   【回退办法】把这两个常量换回原来的单条 SIZE_PATTERN 即可。
+   ============================================================ */
+const SIZE_PATTERN = /^[^@\r\n<>]{1,40}@\d{1,2}(?:\.\d{1,2})?$/;
+const LEGACY_PATTERN = /^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -68,7 +79,7 @@ export async function onRequestPost(context) {
 
     /* 2026-10-18 安全修复：只收「宽x高@DPR」这一种形态。
        【回退办法】删掉下面这个 SIZE_PATTERN 判断即可。 */
-    if (!SIZE_PATTERN.test(source)) {
+    if (!SIZE_PATTERN.test(source) && !LEGACY_PATTERN.test(source)) {
       return json({ ok: false, error: 'invalid source' }, 400);
     }
 

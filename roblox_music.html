@@ -1842,31 +1842,34 @@
     <div class="modal-content">
       <h2>📱 你的手机屏幕尺寸</h2>
       <p class="visit-desc">
-        站长想按真实屏幕尺寸来调排版。<br>
-        下面是这台设备<b>自动测出来</b>的尺寸，点「✅ 上报给站长」帮我们收集一份。
+        站长想按真实机型来调排版。<br>
+        <b>只收集手机 / 平板的型号与屏幕尺寸，电脑不收集。</b><br>
+        下面是自动测出来的结果，点「✅ 上报给站长」帮我们收集一份。
         <br><span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
       </p>
 
+      <!-- 2026-10-24 改版：只收集「手机 / 平板」的型号与屏幕尺寸，电脑不上报。
+           所以这里只留四个字段，别的都删掉了。 -->
       <div class="screen-box">
         <div class="screen-row">
-          <span>屏幕尺寸（CSS 视口）</span>
-          <b id="screenViewport">—</b>
-        </div>
-        <div class="screen-row">
-          <span>物理分辨率</span>
-          <b id="screenPhysical">—</b>
-        </div>
-        <div class="screen-row">
-          <span>像素密度（DPR）</span>
-          <b id="screenDpr">—</b>
+          <span>设备类型</span>
+          <b id="screenDevice">—</b>
         </div>
         <div class="screen-row">
           <span>设备型号</span>
           <b id="screenModel">—</b>
         </div>
         <div class="screen-row">
-          <span>上报标识</span>
+          <span>屏幕尺寸（估算）</span>
+          <b id="screenInches">—</b>
+        </div>
+        <div class="screen-row">
+          <span>上报内容</span>
           <b id="screenTag">—</b>
+        </div>
+        <div class="screen-row" id="screenSkipRow" style="display:none;">
+          <span>说明</span>
+          <b style="color:var(--text-muted);font-weight:600;">电脑端不收集，不用上报</b>
         </div>
       </div>
 
@@ -4409,38 +4412,102 @@ const AUX_TIMEOUT = 700;
       return uid;
     }
 
-    /* 从 UA 里尽量捞一个设备名（纯展示，捞不到就留空） */
+    /* ============================================================
+       2026-10-24 站主要求（改版）：
+       「只收集手机和平板的设备型号（如 Xiaomi 17）和屏幕尺寸（如 6.3"），
+        其它的都不收集。电脑也不收集。」
+       —— 所以这里不再记「宽x高@DPR」，改成「型号@英寸」，且只对 phone / tablet 上报。
+       【回退办法】git checkout roblox_music.html（旧版按 宽x高@DPR 收集）。
+       ============================================================ */
+
+    /* 设备分三类。判据顺序：UA 明确特征 → Client Hints 的 mobile → 触摸 + 小屏。 */
+    function detectDeviceClass() {
+      const ua = navigator.userAgent || '';
+      if (/iPad|Tablet|PlayBook|Silk|Kindle/i.test(ua)) return 'tablet';
+      if (/iPhone|iPod|Windows Phone|IEMobile|BlackBerry|Opera Mini/i.test(ua)) return 'phone';
+      if (/Android/i.test(ua)) {
+        /* Android 平板通常不带 "Mobile"；手机上一定带 */
+        return /Mobile/i.test(ua) ? 'phone' : 'tablet';
+      }
+      /* 2026-10-24 修：**先判桌面系统**。
+         之前兜底是「有触摸 + 最短边 < 900 就当平板」——
+         结果带触摸屏的 Windows 电脑（最窄边正好 900）被误判成平板，
+         弹窗还显示「未知平板」。桌面系统一律 desktop，哪怕它有触摸屏。
+         【回退办法】删掉下面这个 if，回到旧兜底。 */
+      if (/Windows NT|Macintosh|X11|CrOS|Linux x86_64|Linux i686/i.test(ua)) {
+        return 'desktop';
+      }
+      try {
+        if (navigator.userAgentData && navigator.userAgentData.mobile) return 'phone';
+      } catch (e) {}
+      /* 兜底：有触摸 + 最短边 < 900 → 当平板；否则电脑 */
+      const touch = (navigator.maxTouchPoints || 0) > 1;
+      const shortSide = Math.min(screen.width || 0, screen.height || 0);
+      if (touch && shortSide > 0 && shortSide < 900) return 'tablet';
+      return 'desktop';
+    }
+
+    /* 型号：优先用 Client Hints 的可读型号（Chrome 会给 "Xiaomi 17" 这种），
+       拿不到再回退 UA（Android 常常只有型号代码，如 23127PN0CC）。 */
     function detectModel() {
       const ua = navigator.userAgent || '';
-      if (/iPhone/i.test(ua)) return 'iPhone';
       if (/iPad/i.test(ua)) return 'iPad';
-      /* Android 的 UA 里通常是 "Android 14; 23127PN0CC Build/..." 或 "(K; 23127PN0CC)" */
+      if (/iPhone/i.test(ua)) {
+        /* iPhone 的 UA 只有 "iPhone"，用屏幕尺寸大致判代（仅作参考） */
+        const w = Math.round(screen.width || 0), h = Math.round(screen.height || 0);
+        const dpr = window.devicePixelRatio || 1;
+        const px = Math.round(w * dpr) + 'x' + Math.round(h * dpr);
+        const guess = { '1179x2556': 'iPhone 14 Pro', '1170x2532': 'iPhone 13/14', '1290x2796': 'iPhone 15 Pro Max', '750x1334': 'iPhone SE', '1125x2436': 'iPhone X/XS' };
+        return guess[px] || 'iPhone';
+      }
       const m = ua.match(/Android[^;)]*[;)]\s*([^;)]+?)(?:\s*Build|\s*;|\))/i);
       if (m && m[1]) return m[1].trim().slice(0, 40);
-      if (/Windows/i.test(ua)) return 'Windows 电脑';
-      if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac';
       return '';
     }
 
-    /* 这台设备的屏幕信息。
-       · viewport：CSS 视口（做响应式适配真正要看的就是它）
-       · physical：物理分辨率（screen.width × DPR，横向）
-       · tag：上报用的紧凑标识 "407x886@3" */
+    /* 异步再试一次「高熵」型号（Chrome 90+）。拿到更可读的名字就更新弹窗。 */
+    function fetchBetterModel(cb) {
+      try {
+        if (!navigator.userAgentData || !navigator.userAgentData.getHighEntropyValues) return;
+        navigator.userAgentData.getHighEntropyValues(['model']).then(function (d) {
+          if (d && d.model) cb(String(d.model).slice(0, 40));
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    /* 英寸估算：CSS 像素按 160dpi 定义，所以 hypot(w,h)/160 就是英寸。
+       实测纯公式偏小 ~3%，乘 1.03 校正；保留 1 位小数。 */
+    function estimateInches() {
+      const w = Number(screen.width) || 0;
+      const h = Number(screen.height) || 0;
+      if (!w || !h) return '';
+      const cssDiag = Math.sqrt(w * w + h * h);
+      const inches = Math.round((cssDiag / 160) * 1.03 * 10) / 10;
+      return String(inches);
+    }
+
+    /* 这台设备的信息。
+       · deviceClass：phone / tablet / desktop（只有前两种上报）
+       · model：型号（可能是空，用「未知机型」兜底）
+       · inches：估算英寸
+       · tag：上报用的标识「型号@英寸」，例如 Xiaomi 17@6.3 */
     function getScreenInfo() {
       const dpr = window.devicePixelRatio || 1;
-      const vw = Math.round(window.innerWidth || 0);
-      const vh = Math.round(window.innerHeight || 0);
+      const cls = detectDeviceClass();
+      const rawModel = detectModel();
+      const model = rawModel || (cls === 'tablet' ? '未知平板' : '未知机型');
+      const inches = estimateInches();
       const sw = Math.round(screen.width || 0);
       const sh = Math.round(screen.height || 0);
-      const dprText = String(Math.round(dpr * 100) / 100);
       return {
-        vw: vw,
-        vh: vh,
-        dpr: dprText,
-        model: detectModel(),
-        viewport: vw + '×' + vh,
+        deviceClass: cls,
+        shouldReport: cls === 'phone' || cls === 'tablet',
+        model: model,
+        inches: inches,
+        viewport: Math.round(window.innerWidth || 0) + '×' + Math.round(window.innerHeight || 0),
         physical: Math.round(sw * dpr) + '×' + Math.round(sh * dpr),
-        tag: vw + 'x' + vh + '@' + dprText
+        dpr: String(Math.round(dpr * 100) / 100),
+        tag: model + '@' + (inches || '0')
       };
     }
 
@@ -4448,21 +4515,40 @@ const AUX_TIMEOUT = 700;
     const modal = document.getElementById(MODAL_ID);
     if (!openBtn || !modal) return;
 
-    const elViewport = document.getElementById('screenViewport');
-    const elPhysical = document.getElementById('screenPhysical');
-    const elDpr = document.getElementById('screenDpr');
+    /* 2026-10-24：旧字段（视口/分辨率/DPR）已从弹窗删掉，这里只留还在用的。 */
     const elModel = document.getElementById('screenModel');
     const elTag = document.getElementById('screenTag');
     const currentHint = document.getElementById('visitCurrentHint');
     const reportBtn = document.getElementById('screenReportBtn');
 
+    /* 2026-10-24 改版：弹窗只显示「类型 / 型号 / 英寸 / 上报内容」四项。
+       电脑端把上报按钮禁用，并显示一行说明（站主要求电脑不收集）。 */
+    const elDevice = document.getElementById('screenDevice');
+    const elInches = document.getElementById('screenInches');
+    const elSkipRow = document.getElementById('screenSkipRow');
+
+    function deviceClassLabel(cls) {
+      return cls === 'phone' ? '📱 手机' : cls === 'tablet' ? '📲 平板' : '💻 电脑';
+    }
+
     function paintScreenInfo() {
       const info = getScreenInfo();
-      if (elViewport) elViewport.textContent = info.viewport;
-      if (elPhysical) elPhysical.textContent = info.physical;
-      if (elDpr) elDpr.textContent = info.dpr + 'x';
+      if (elDevice) elDevice.textContent = deviceClassLabel(info.deviceClass);
       if (elModel) elModel.textContent = info.model || '识别不到（不影响）';
-      if (elTag) elTag.textContent = info.tag;
+      if (elInches) elInches.textContent = info.inches ? ('约 ' + info.inches + ' 英寸') : '识别不到';
+      if (elTag) elTag.textContent = info.shouldReport ? info.tag : '（电脑端不收集）';
+      if (elSkipRow) elSkipRow.style.display = info.shouldReport ? 'none' : '';
+      if (reportBtn) {
+        reportBtn.disabled = !info.shouldReport;
+        reportBtn.textContent = info.shouldReport ? '✅ 上报给站长' : '电脑端不收集';
+      }
+      /* 型号拿得更准就再刷新一次（Chrome 的 Client Hints） */
+      fetchBetterModel(function (better) {
+        if (better && elModel && info.model !== better) {
+          elModel.textContent = better;
+          if (elTag) elTag.textContent = better + '@' + (info.inches || '0');
+        }
+      });
       if (currentHint) {
         const last = localStorage.getItem(REPORTED_KEY) || '';
         currentHint.textContent = last
@@ -4475,6 +4561,11 @@ const AUX_TIMEOUT = 700;
 
     async function reportScreen(manual) {
       const info = getScreenInfo();
+      /* 2026-10-24：电脑端一律不上报（站主要求）。 */
+      if (!info.shouldReport) {
+        if (manual) showToast('💻 电脑端不收集设备信息，手机 / 平板打开才会记录');
+        return;
+      }
       try {
         await zmPostJson('/api/visit/report', {
           userId: getUserId(),
@@ -4494,7 +4585,8 @@ const AUX_TIMEOUT = 700;
     function autoReportOnce() {
       setTimeout(() => {
         const info = getScreenInfo();
-        if (!info.vw || !info.vh) return;
+        /* 2026-10-24：只在手机 / 平板上自动上报；电脑直接跳过（不占额度）。 */
+        if (!info.shouldReport) return;
         if (localStorage.getItem(REPORTED_KEY) === info.tag) return;
         reportScreen(false);
       }, 2000);

@@ -1478,6 +1478,43 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 .sponsor-modal-content { max-width: 420px; text-align: center; }
 .sponsor-modal-content h2 { margin-bottom: 10px; }
+/* ============================================================
+   2026-10-24 适配补丁：真实数据最窄 320px（iPhone SE 一代 / 老安卓），
+   320 下首页/鸣谢/法律三页的导航栏会往右溢出 3px（实测）。
+   这里只收紧导航栏，不动页面其它部分。
+   【回退办法】删掉这个媒体查询即可。
+   ============================================================ */
+/* ============================================================
+   2026-10-24 导航适配（加了「建议」「反馈」两项之后，实测量过）：
+     · ≤480：隐藏品牌文字，只留 logo —— 腾出约 80px
+     · ≤360：导航项只显示图标（文字被 max-width 截掉）——
+       5 个图标约 180px，加 logo/主题按钮在 320 宽也放得下
+   为什么不用汉堡菜单：那要改三页 HTML + 加 JS，收益不抵成本；
+   图标本身自带语义（🏠❤️⚖️💡🐞），可访问性靠原链接文字（读屏仍能读）。
+   【回退办法】删掉这两个媒体查询即可。
+   ============================================================ */
+@media (max-width: 480px) {
+  .navbar .brand-text { display: none; }
+  .navbar .nav-links a { padding: 5px 7px; font-size: 0.74rem; }
+}
+@media (max-width: 440px) {
+  .navbar .nav-links a {
+    max-width: 2.3em;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 340px) {
+  .navbar { gap: 4px; padding-left: 8px; padding-right: 8px; }
+  .navbar .nav-links { gap: 1px; }
+  .navbar .nav-links a { padding: 5px 6px; font-size: 0.75rem; }
+  .navbar .brand-text { font-size: 0.92rem; }
+  .navbar .brand-mark { width: 22px; height: 22px; }
+  .navbar .theme-toggle { width: 28px; height: 28px; min-width: 28px; }
+}
+
 .sponsor-qr-big {
   width: 100%; max-width: 320px; height: auto; margin: 0 auto 18px;
   display: block; border-radius: var(--radius-sm); background: #fff;
@@ -1859,4 +1896,140 @@ html.lite .seg-panel:not([hidden]) {
   .particles,
   .footer { display: none !important; }
   body { background: #fff; color: #000; }
+}
+
+/* ============================================================
+   2026-10-24 · 科幻交互层（站主要求：动画全部重做 + 注重创新）
+   ------------------------------------------------------------
+   这一层只负责「氛围与手感」，不改任何布局：
+     ① 指针光晕（跟随鼠标的一团冷光，青→紫）
+     ② 扫描线底纹（静态，不跑动画）
+     ③ 点击涟漪
+     ④ 标题「模糊收拢」入场
+     ⑤ 弹窗进出带模糊与缩放
+     ⑥ 全局按下反馈统一
+
+   性能纪律：
+     · 只动 transform / opacity / CSS 变量（不触发重排）；
+     · 指针位置用 rAF 节流，一帧最多写一次；
+     · 手机（无 hover）自动跳过光晕与涟漪；
+     · 系统开启「减少动态效果」时整层跳过。
+   【回退办法】删掉本段（从「科幻交互层」注释到文件末尾本段结束）即可，
+     不影响任何功能样式。
+   ============================================================ */
+
+/* ② 扫描线：一层极淡的横向细纹（静态）。用伪元素，不占布局。 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(140, 210, 255, 0.028) 0 1px,
+    transparent 1px 4px
+  );
+  opacity: 0.55;
+}
+
+/* ① 指针光晕：只在有精确指针的设备上出现（手机没有鼠标，不加载）。 */
+@media (hover: hover) and (pointer: fine) {
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(
+      360px circle at var(--zm-px, 50%) var(--zm-py, 50%),
+      rgba(120, 205, 255, 0.13),
+      rgba(165, 130, 255, 0.07) 42%,
+      transparent 72%
+    );
+    opacity: 0;
+    transition: opacity 0.55s var(--ease-out);
+  }
+  body.zm-pointer-active::after { opacity: 1; }
+}
+
+/* ③ 点击涟漪：JS 在指针位置插一个 .zm-ripple，自己消失。 */
+@keyframes zmRipple {
+  from { transform: scale(0.2); opacity: 0.6; }
+  to   { transform: scale(1);   opacity: 0; }
+}
+.zm-ripple {
+  position: fixed;
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(circle, rgba(150, 220, 255, 0.42), rgba(170, 140, 255, 0.18) 45%, transparent 72%);
+  animation: zmRipple 0.6s var(--ease-out) forwards;
+  will-change: transform, opacity;
+}
+
+/* ④ 标题「模糊收拢」入场：比纯淡入多一层「对焦」的错觉。 */
+@keyframes zmTitleIn {
+  0%   { opacity: 0; filter: blur(6px); transform: translateY(6px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; filter: blur(0); transform: none; }
+}
+.hero-title,
+.page-title,
+.section-head h1 {
+  animation: zmTitleIn 0.62s var(--ease-out) both;
+}
+
+/* ⑤ 弹窗进出重做：叠一层极短模糊，纵深更足（原来只有缩放）。 */
+@keyframes zmModalIn {
+  0%   { opacity: 0; filter: blur(8px); transform: translateY(14px) scale(0.965); }
+  100% { opacity: 1; filter: blur(0);   transform: none; }
+}
+@keyframes zmModalOut {
+  0%   { opacity: 1; filter: blur(0);   transform: none; }
+  100% { opacity: 0; filter: blur(6px); transform: translateY(10px) scale(0.97); }
+}
+.modal.show .modal-content {
+  animation: zmModalIn 0.3s var(--ease-out) both;
+}
+
+/* ⑥ 全局按下反馈统一：任何按钮按下去都缩一点（手感一致），
+     时长压到 80ms，松手用弹簧曲线回弹。 */
+button,
+.btn,
+[role="button"],
+.seg-tab,
+.filter-tabs button {
+  transition:
+    transform 90ms var(--ease-spring, cubic-bezier(0.22, 1.3, 0.36, 1)),
+    background-color var(--dur) var(--ease-soft),
+    color var(--dur) var(--ease-soft),
+    border-color var(--dur) var(--ease-soft),
+    box-shadow var(--dur) var(--ease-soft);
+}
+button:active,
+.btn:active,
+[role="button"]:active,
+.seg-tab:active,
+.filter-tabs button:active {
+  transform: scale(0.97);
+}
+
+/* 无障碍 / 省电：系统要求减少动效时，这一层全部关掉。 */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after { display: none !important; }
+  .zm-ripple { display: none !important; }
+  .hero-title,
+  .page-title,
+  .section-head h1,
+  .modal.show .modal-content { animation: none !important; }
+  button:active,
+  .btn:active,
+  [role="button"]:active,
+  .seg-tab:active,
+  .filter-tabs button:active { transform: none; }
 }
