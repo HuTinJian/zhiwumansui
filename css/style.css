@@ -27,7 +27,7 @@
   --primary: #2b333c;          /* 用于填充、渐变、装饰 */
   --primary-ink: #1f262e;      /* 用于浅底上的文字（对比度 ≈5.6:1） */
   --primary-dark: #1f262e;
-  --primary-light: #5a6570;
+  --primary-light: #8a95a3;
   --secondary: #e6ebef;
   --accent: #a8352a;
   --primary-btn-a: #8c2620;    /* 白字按钮渐变起点 */
@@ -140,8 +140,8 @@
 [data-theme="dark"] {
   --primary: #d8e0e8;
   --primary-ink: #ffffff;
-  --primary-dark: #2b333c;
-  --primary-light: #5a6570;
+  --primary-dark: #e8ecef;
+  --primary-light: #8a95a3;
   --secondary: #2b323a;
   --accent: #c9543f;
   --primary-btn-a: #3a444f;
@@ -2068,7 +2068,7 @@ button:active,
   --primary: #2b333c;
   --primary-ink: #1f262e;
   --primary-dark: #1f262e;
-  --primary-light: #5a6570;
+  --primary-light: #8a95a3;
   --primary-btn-a: #2b333c;
   --primary-btn-b: #1f262e;
   --secondary: #e6ebef;
@@ -2109,8 +2109,8 @@ button:active,
 
   --primary: #d8e0e8;
   --primary-ink: #ffffff;
-  --primary-dark: #2b333c;
-  --primary-light: #5a6570;
+  --primary-dark: #e8ecef;
+  --primary-light: #8a95a3;
   --primary-btn-a: #3a444f;
   --primary-btn-b: #2b333c;
   --secondary: #2b323a;
@@ -2529,4 +2529,53 @@ a.btn:active,
 /* 已上报/已失效的行保持灰色删线，但删线颜色跟朱砂统一 */
 .id-row.reported .id-number {
   text-decoration-color: rgba(168, 53, 42, 0.6);
+}
+
+
+/* ============================================================
+   2026-10-24 胶囊化（站主：按钮全改成胶囊，包括「反馈」「建议」）
+   ------------------------------------------------------------
+   ① 所有按钮 → 胶囊（999px）
+   ② 导航项 → 胶囊（hover/active 时给一层浅底，才看得出是「按的」）
+   ③ 分类/筛选标签本来就是胶囊，这里只统一一下内边距比例
+   【回退办法】删掉本段。
+   ============================================================ */
+
+.btn,
+button:not(.theme-toggle):not(.back-to-top):not(.modal-close),
+input[type="submit"],
+input[type="button"],
+a.btn,
+[role="button"] {
+  border-radius: 999px !important;
+}
+
+/* 导航项做成胶囊：默认透明，hover/当前页给浅底 */
+.navbar .nav-links a {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  padding-left: 12px;
+  padding-right: 12px;
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+.navbar .nav-links a:hover {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+.navbar .nav-links a.active {
+  background: var(--primary);
+  color: var(--text-on-accent);
+}
+[data-theme="dark"] .navbar .nav-links a.active {
+  background: var(--primary);
+  color: #12151a;
+}
+
+/* 建议/反馈页的主题按钮也保持圆（本来就是圆形） */
+.zm-theme-btn { border-radius: 999px !important; }
+
+/* 小圆点/徽标之类不要被撑成胶囊 */
+.badge,
+.type-tag,
+.myrep-status {
+  border-radius: 999px;
 }
