@@ -755,8 +755,8 @@
        ============================================================ */
 
     /* ① 主题变量：深空底 + 霓虹青/紫 */
-    body,
-    body[data-theme="light"] {
+    :root,
+    [data-theme="light"] {
       --bg: #f7f8f9;
       --bg-soft: #f2f4f6;
       --bg-card: #ffffff;
@@ -766,15 +766,15 @@
       --text: #2b2520;
       --text-light: #4a4038;
       --text-muted: #7a6d5e;
-      --primary: #a8322a;
-      --primary-light: #c96a5c;
-      --primary-dark: #8c2620;
-      --primary-ink: #8c2620;
-      --primary-btn-a: #a8322a;
-      --primary-btn-b: #8c2620;
+      --primary: #2b333c;
+      --primary-light: #5a6570;
+      --primary-dark: #1f262e;
+      --primary-ink: #1f262e;
+      --primary-btn-a: #2b333c;
+      --primary-btn-b: #1f262e;
       --text-on-accent: #fffaf0;
-      --accent: #b8860b;
-      --danger: #a8322a;
+      --accent: #a8352a;
+      --danger: #a8352a;
       --success-strong: #45685a;
       --success-dark: #557a6b;
       --gold: #b8860b;
@@ -796,11 +796,11 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
-    body[data-theme="dark"] {
-      --bg: #1a1714;
-      --bg-soft: #221d18;
-      --bg-card: #1e232a;
-      --bg-tint: #2c251e;
+    [data-theme="dark"] {
+      --bg: #0f1114;
+      --bg-soft: #14171b;
+      --bg-card: #191d22;
+      --bg-tint: #1e2329;
 
       --border: rgba(212, 169, 74, 0.18);
       --border-strong: rgba(212, 169, 74, 0.34);
@@ -809,14 +809,14 @@
       --text-light: #c4b8a3;
       --text-muted: #9a8d78;
 
-      --primary: #c9553f;
-      --primary-light: #a8322a;
-      --primary-dark: #e07a63;
-      --primary-ink: #e07a63;
-      --primary-btn-a: #b8452f;
-      --primary-btn-b: #a8322a;
+      --primary: #dfe4e8;
+      --primary-light: #7a8592;
+      --primary-dark: #ffffff;
+      --primary-ink: #ffffff;
+      --primary-btn-a: #3a444f;
+      --primary-btn-b: #2b333c;
       --text-on-accent: #fffaf0;
-      --accent: #d4a94a;
+      --accent: #e8846c;
 
       --danger: #d9604a;
       --success-strong: #45685a;
@@ -849,7 +849,7 @@
         linear-gradient(90deg, rgba(120, 140, 158, 0.05) 1px, transparent 1px) !important;
       background-size: 44px 44px, 44px 44px !important;
     }
-    body[data-theme="dark"] {
+    [data-theme="dark"] {
       background-image:
         linear-gradient(rgba(150, 165, 178, 0.035) 1px, transparent 1px),
         linear-gradient(90deg, rgba(212, 169, 74, 0.035) 1px, transparent 1px) !important;

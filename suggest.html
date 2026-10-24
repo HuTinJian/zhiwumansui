@@ -25,7 +25,7 @@
   <title>💡 建议 · 织雾满穗</title>
 
   <meta name="description" content="向织雾满穗提交任何想法：新功能、页面体验、内容选题、合作建议都可以。">
-  <meta name="theme-color" content="#05060e">
+  <meta name="theme-color" content="#12151a">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
 
@@ -86,10 +86,10 @@
     }
 
     /* 深色 · 墨夜（原配色，2026-10-24 保留为可切换项） */
-    [data-theme="dark"] {--bg: #1a1714;
-      --bg-soft: #221d18;
-      --panel: rgba(38, 32, 25, 0.80);
-      --panel-solid: #262019;
+    [data-theme="dark"] {--bg: #0f1114;
+      --bg-soft: #14171b;
+      --panel: rgba(25, 29, 34, 0.82);
+      --panel-solid: #191d22;
       --line: rgba(212, 169, 74, 0.20);
       --line-strong: rgba(212, 169, 74, 0.45);
       --cyan: #d4a94a;
@@ -144,14 +144,14 @@
       font-family: var(--mono);
       font-size: 0.92em;
       color: #b9e9ff;
-      background: rgba(77, 232, 255, 0.08);
-      border: 1px solid rgba(77, 232, 255, 0.16);
+      background: rgba(120, 140, 158, 0.10);
+      border: 1px solid rgba(120, 140, 158, 0.16);
       border-radius: 4px;
       padding: 0 4px;
     }
 
     ::selection {
-      background: rgba(77, 232, 255, 0.30);
+      background: rgba(120, 140, 158, 0.30);
       color: #ffffff;
     }
 
@@ -203,8 +203,8 @@
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(to right, rgba(77, 232, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(77, 232, 255, 0.07) 1px, transparent 1px);
+        linear-gradient(to right, rgba(120, 140, 158, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(120, 140, 158, 0.07) 1px, transparent 1px);
       background-size: 42px 42px;
       -webkit-mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
       mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
@@ -230,7 +230,7 @@
       aspect-ratio: 1;
       border-radius: 50%;
       filter: blur(80px);
-      opacity: 0.24;
+      opacity: 0.10;
     }
     .space-glow-a {
       top: -240px;
@@ -249,8 +249,8 @@
       right: 0;
       top: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(77, 232, 255, 0.55), transparent);
-      box-shadow: 0 0 16px rgba(77, 232, 255, 0.65);
+      background: linear-gradient(90deg, transparent, rgba(120, 140, 158, 0.55), transparent);
+      box-shadow: 0 0 16px rgba(120, 140, 158, 0.65);
       animation: scanMove 10s linear infinite;
     }
     @keyframes scanMove {
@@ -287,7 +287,7 @@
       width: 26px;
       height: 26px;
       flex-shrink: 0;
-      filter: drop-shadow(0 0 7px rgba(77, 232, 255, 0.45));
+      filter: drop-shadow(0 0 7px rgba(120, 140, 158, 0.45));
     }
     .brand-text {
       font-size: 0.92rem;
@@ -316,7 +316,7 @@
     .nav-links a {
       display: inline-block;
       padding: 6px 10px;
-      border-radius: 8px;
+      border-radius: 999px;
       border: 1px solid transparent;
       color: var(--text-soft);
       font-size: 0.82rem;
@@ -326,15 +326,17 @@
     }
     .nav-links a:hover {
       color: var(--text);
-      background: rgba(77, 232, 255, 0.08);
-      border-color: rgba(77, 232, 255, 0.22);
+      background: rgba(120, 140, 158, 0.10);
+      border-color: rgba(120, 140, 158, 0.24);
     }
     .nav-links a.active {
-      color: #041018;
-      background: linear-gradient(120deg, var(--cyan), #8fc9ff 60%, var(--violet));
+      /* 2026-10-24 站主要求：选中态要胶囊 + 中式。改成朱砂实心 + 米白字（钤印感）。 */
+      color: #fff8ec;
+      background: var(--violet);
       border-color: transparent;
+      border-radius: 999px;
       font-weight: 800;
-      box-shadow: 0 0 18px rgba(77, 232, 255, 0.22);
+      box-shadow: 0 0 18px rgba(120, 140, 158, 0.24);
     }
 
     .hud-clock {
@@ -432,9 +434,9 @@
     }
     .hero-tags li {
       padding: 3px 9px;
-      border: 1px solid rgba(77, 232, 255, 0.24);
+      border: 1px solid rgba(120, 140, 158, 0.24);
       border-radius: 999px;
-      background: rgba(77, 232, 255, 0.06);
+      background: rgba(120, 140, 158, 0.06);
       color: #9fd8ff;
       font-family: var(--mono);
       font-size: 0.66rem;
@@ -505,7 +507,7 @@
       flex-shrink: 0;
       border-radius: 2px;
       background: linear-gradient(180deg, var(--cyan), var(--violet));
-      box-shadow: 0 0 12px rgba(77, 232, 255, 0.5);
+      box-shadow: 0 0 12px rgba(120, 140, 158, 0.5);
     }
     .panel-sub {
       margin: 0;
@@ -580,11 +582,11 @@
       border-color: var(--cyan);
       background: rgba(6, 12, 28, 0.92);
       box-shadow:
-        0 0 0 3px rgba(77, 232, 255, 0.10),
-        0 0 24px rgba(77, 232, 255, 0.10);
+        0 0 0 3px rgba(120, 140, 158, 0.10),
+        0 0 24px rgba(120, 140, 158, 0.10);
     }
     .control:focus-visible {
-      outline: 2px solid rgba(77, 232, 255, 0.65);
+      outline: 2px solid rgba(120, 140, 158, 0.65);
       outline-offset: 2px;
     }
     textarea.control {
@@ -617,7 +619,7 @@
       padding: 14px 18px;
       border: 0;
       border-radius: 12px;
-      background: linear-gradient(105deg, #47e6ff 0%, #6bb8ff 46%, #a06bff 100%);
+      background: linear-gradient(105deg, #47e6ff 0%, #6bb8ff 46%, #c9543f 100%);
       background-size: 160% 100%;
       color: #03121c;
       font-size: 1rem;
@@ -625,25 +627,25 @@
       letter-spacing: 0.04em;
       cursor: pointer;
       box-shadow:
-        0 0 0 1px rgba(125, 232, 255, 0.38),
-        0 12px 34px rgba(77, 232, 255, 0.18),
-        0 0 40px rgba(160, 107, 255, 0.12);
+        0 0 0 1px rgba(120, 140, 158, 0.45),
+        0 12px 34px rgba(120, 140, 158, 0.18),
+        0 0 40px rgba(168, 53, 42, 0.12);
       transition: transform 0.18s ease, box-shadow 0.18s ease, background-position 0.35s ease, opacity 0.18s ease;
     }
     .btn-submit:hover {
       transform: translateY(-2px);
       background-position: 100% 0;
       box-shadow:
-        0 0 0 1px rgba(125, 232, 255, 0.52),
-        0 16px 42px rgba(77, 232, 255, 0.26),
-        0 0 52px rgba(160, 107, 255, 0.20);
+        0 0 0 1px rgba(120, 140, 158, 0.60),
+        0 16px 42px rgba(120, 140, 158, 0.26),
+        0 0 52px rgba(168, 53, 42, 0.20);
     }
     .btn-submit:active { transform: translateY(0) scale(0.995); }
     .btn-submit:disabled {
       cursor: progress;
       opacity: 0.66;
       transform: none;
-      box-shadow: 0 0 0 1px rgba(125, 232, 255, 0.22);
+      box-shadow: 0 0 0 1px rgba(120, 140, 158, 0.28);
     }
     .btn-submit:focus-visible {
       outline: 2px solid #ffffff;
@@ -685,7 +687,7 @@
       border-color: rgba(255, 107, 138, 0.42);
       background: rgba(255, 107, 138, 0.08);
     }
-    .status:focus { outline: 2px solid rgba(77, 232, 255, 0.55); outline-offset: 2px; }
+    .status:focus { outline: 2px solid rgba(120, 140, 158, 0.55); outline-offset: 2px; }
 
     .noscript {
       margin: 14px 0 0;
@@ -717,7 +719,7 @@
     .side-index {
       flex-shrink: 0;
       padding: 2px 6px;
-      border: 1px solid rgba(77, 232, 255, 0.35);
+      border: 1px solid rgba(120, 140, 158, 0.35);
       border-radius: 6px;
       color: var(--cyan);
       font-family: var(--mono);
@@ -761,8 +763,8 @@
     }
     .inline-link:hover {
       color: var(--text);
-      border-color: rgba(77, 232, 255, 0.40);
-      background: rgba(77, 232, 255, 0.06);
+      border-color: rgba(120, 140, 158, 0.40);
+      background: rgba(120, 140, 158, 0.06);
     }
     .inline-link .arrow { flex-shrink: 0; color: var(--cyan); }
 
@@ -895,7 +897,7 @@
       width: 100%;
       max-width: 180px;
       height: auto;
-      border-radius: 8px;
+      border-radius: 999px;
       background: #fff;
       padding: 6px;
       display: block;
@@ -969,7 +971,7 @@
     </div>
 
     <header class="hero">
-      <p class="hero-code" aria-hidden="true">CHANNEL 01 // IDEA TRANSMISSION</p>
+      <p class="hero-code" aria-hidden="true">卷 一 · 陈 情</p>
       <h1>天马行空，<span class="grad">尽管说</span></h1>
       <p class="hero-desc">
         想加什么功能、想看什么内容、觉得哪里还能更好……任何点子都欢迎。
