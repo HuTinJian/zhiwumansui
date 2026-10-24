@@ -54,6 +54,7 @@
   </script>
 
 
+  <link rel="stylesheet" href="css/style.css">
   <style>
     /* ============================================================
        深空信号台 · 页面皮肤
@@ -928,6 +929,134 @@
     }
     .zm-theme-btn:hover { border-color: var(--line-strong); }
     .zm-theme-btn:active { transform: scale(0.94); }
+
+
+    /* ============================================================
+       2026-10-24 对齐「主页 / 鸣谢 / 法律」（站主：这两页要模仿那三页）
+       ------------------------------------------------------------
+       那三页共用 css/style.css；本页原本是独立深色皮肤。
+       这里把底色、字体、导航、页脚、按钮全部拉回 style.css 的体系，
+       内部表单布局保持原样（那些是 .shell/.panel/.field，不影响观感统一）。
+       【回退办法】删掉本段 + <link rel="stylesheet" href="css/style.css">。
+       ============================================================ */
+
+    body {
+      background-color: var(--bg) !important;
+      background-image: none !important;
+      color: var(--text) !important;
+      font-family: var(--font) !important;
+    }
+
+    /* 导航：跟 index/thanks/law 完全一致 */
+    .navbar {
+      background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-soft) 100%) !important;
+      border-bottom: 1px solid var(--border) !important;
+      box-shadow: 0 2px 12px rgba(43, 51, 60, 0.06) !important;
+      backdrop-filter: none !important;
+    }
+    .nav-brand .brand-text { color: var(--text) !important; }
+    .nav-links a {
+      color: var(--text-light) !important;
+      background: transparent !important;
+      border-radius: 999px !important;
+      border: none !important;
+    }
+    .nav-links a:hover { background: color-mix(in srgb, var(--text) 7%, transparent) !important; }
+    .nav-links a.active {
+      background: var(--primary) !important;
+      color: var(--text-on-accent) !important;
+    }
+    [data-theme="dark"] .nav-links a.active { color: #12151a !important; }
+
+    /* 页脚：跟 index 一致 */
+    .footer {
+      background: transparent !important;
+      border-top: 1px solid var(--border) !important;
+      color: var(--text-muted) !important;
+    }
+    .footer a { color: var(--primary-ink) !important; }
+    .footer a:hover { color: var(--primary) !important; }
+    .footer-legal { color: var(--text-muted) !important; }
+
+    /* 卡片/面板也走 style.css 的卡片体系 */
+    .panel, .side-card {
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+
+    /* 标题字重/颜色统一 */
+    h1, h2, .hero-title, .section-title { color: var(--text) !important; }
+
+
+    /* 2026-10-24 续覆盖：输入框 / 标签 / 标题渐变，全拉回 style.css 体系 */
+    input.control,
+    textarea.control,
+    select.control {
+      background: var(--bg-card) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-sm) !important;
+    }
+    input.control::placeholder,
+    textarea.control::placeholder {
+      color: var(--text-muted) !important;
+    }
+    input.control:focus,
+    textarea.control:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent) !important;
+    }
+
+    /* 分类/标签类小药丸：淡蓝 → 水墨灰 */
+    .tag,
+    .chip,
+    .pill,
+    .idea-tag,
+    .cat-tag,
+    [class*="tag"]:not(.type-tag) {
+      background: color-mix(in srgb, var(--text) 6%, transparent) !important;
+      color: var(--text-light) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 999px !important;
+    }
+
+    /* 大标题的渐变文字 → 纯墨（去掉 background-clip） */
+    h1, .hero-title {
+      background: none !important;
+      -webkit-background-clip: border-box !important;
+      background-clip: border-box !important;
+      -webkit-text-fill-color: currentColor !important;
+      color: var(--text) !important;
+    }
+    /* 标题里那个强调色的 span 保留朱砂 */
+    h1 em, h1 b, .hero-title em, .hero-title b {
+      color: var(--accent) !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+
+    /* 2026-10-24 收尾：标题渐变字 + hero 小药丸 */
+    .grad {
+      background: none !important;
+      -webkit-background-clip: border-box !important;
+      background-clip: border-box !important;
+      -webkit-text-fill-color: currentColor !important;
+      color: var(--accent) !important;
+    }
+    /* hero 区那种「新功能 / 页面体验」小药丸：淡蓝 → 水墨灰 */
+    .hero-tags span,
+    .hero-tags a,
+    .hero-tags li,
+    .ideatags span,
+    .channel-tags span,
+    .kicker span {
+      background: color-mix(in srgb, var(--text) 6%, transparent) !important;
+      color: var(--text-light) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 999px !important;
+    }
 </style>
 </head>
 <body>
