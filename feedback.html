@@ -848,7 +848,54 @@
       .btn-submit,
       .status { border: 1px solid ButtonText; }
     }
-  </style>
+  
+    /* 2026-10-24：QQ 群二维码区块（建议 / 反馈页共用这套样式）
+       颜色刻意用 rgba 写死，不依赖各页的 CSS 变量（两页变量名不完全一样）。
+       【回退办法】删掉本段即可。 */
+    .group-card {
+      border: 1px solid rgba(120, 200, 255, 0.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(14, 22, 32, 0.55);
+    }
+    .group-card > summary {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      list-style: none;
+    }
+    .group-card > summary::-webkit-details-marker { display: none; }
+    .group-card > summary::after {
+      content: '▾';
+      opacity: 0.6;
+      transition: transform 0.2s ease;
+    }
+    .group-card[open] > summary::after { transform: rotate(180deg); }
+    .group-sum { font-size: 0.78rem; font-weight: 400; opacity: 0.65; white-space: nowrap; }
+    .group-qrs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .group-item { margin: 0; text-align: center; }
+    .group-item a { display: inline-block; }
+    .group-item img {
+      width: 100%;
+      max-width: 180px;
+      height: auto;
+      border-radius: 8px;
+      background: #fff;
+      padding: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+    .group-item figcaption { font-size: 0.78rem; margin-top: 6px; opacity: 0.75; }
+    .group-note { font-size: 0.78rem; margin: 10px 0 0; opacity: 0.6; }
+</style>
 </head>
 <body>
 
@@ -959,6 +1006,34 @@
             <p class="hint" id="contactHint">只用来回复你，不会公开展示；不超过 60 字。</p>
           </div>
 
+          <!-- 2026-10-24 站主要求：把 QQ 群二维码作为联系站长的方式加进来。
+               默认折叠 —— 两张图共 158KB，不展开不加载，省手机流量。
+               【回退办法】删掉这个 <details> 整块即可。 -->
+          <div class="field">
+            <details class="group-card">
+              <summary>
+                <span>💬 也可以直接进 QQ 群找我</span>
+                <span class="group-sum">两个群 · 点开看二维码</span>
+              </summary>
+              <div class="group-qrs">
+                <figure class="group-item">
+                  <a href="images/qq-group-zmist.jpg" target="_blank" rel="noopener noreferrer">
+                    <img src="images/qq-group-zmist.jpg" loading="lazy" width="180" height="180"
+                         alt="织雾满穗 QQ 群二维码，群号 1125311966">
+                  </a>
+                  <figcaption>织雾满穗<br>群号 <b>1125311966</b></figcaption>
+                </figure>
+                <figure class="group-item">
+                  <a href="images/qq-group-maple.jpg" target="_blank" rel="noopener noreferrer">
+                    <img src="images/qq-group-maple.jpg" loading="lazy" width="180" height="180"
+                         alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312">
+                  </a>
+                  <figcaption>Roblox 枫叶医院<br>群号 <b>1076510312</b></figcaption>
+                </figure>
+              </div>
+              <p class="group-note">群里也能直接说，比表单快；二维码点开是大图，方便长按保存。</p>
+            </details>
+          </div>
           <div class="form-foot">
             <button class="btn-submit" id="submitBtn" type="submit" aria-busy="false">
               <span aria-hidden="true">🚀</span><span id="submitLabel">发送反馈</span>
