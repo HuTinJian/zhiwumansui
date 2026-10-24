@@ -799,7 +799,7 @@
     body[data-theme="dark"] {
       --bg: #1a1714;
       --bg-soft: #221d18;
-      --bg-card: #262019;
+      --bg-card: #1e232a;
       --bg-tint: #2c251e;
 
       --border: rgba(212, 169, 74, 0.18);
@@ -851,7 +851,7 @@
     }
     body[data-theme="dark"] {
       background-image:
-        linear-gradient(rgba(212, 169, 74, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(150, 165, 178, 0.035) 1px, transparent 1px),
         linear-gradient(90deg, rgba(212, 169, 74, 0.035) 1px, transparent 1px) !important;
     }
 
@@ -860,7 +860,9 @@
     .stat-card,
     .list-item,
     .modal-content {
-      background: linear-gradient(180deg, rgba(38, 32, 25, 0.92), rgba(26, 23, 20, 0.96));
+      /* 2026-10-24 修：原来这里写死了深色渐变，导致浅色模式下卡片是黑的、
+         深色文字压在深色卡上完全看不见。改走变量，浅/深自动切换。 */
+      background: var(--bg-card);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
       backdrop-filter: none;
