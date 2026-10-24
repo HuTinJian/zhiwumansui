@@ -1087,7 +1087,6 @@
       <li><a href="law.html">⚖️ 法律</a></li>
       <li><a href="suggest.html">💡 建议</a></li>
       <li><a href="feedback.html" class="active" aria-current="page">🐞 反馈</a></li>
-      <li><button class="zm-theme-btn" type="button"></button></li>
     </ul>
     <span class="hud-clock" id="hudClock" aria-hidden="true">--:--:--</span>
   </nav>
@@ -1535,6 +1534,12 @@
         paint(next);
       });
     })();
+  </script>
+  <!-- 2026-10-24：加载 common.js，本页才有更新弹窗与主题按钮。
+       【回退办法】删掉这两段 script。 -->
+  <script src="js/common.js"></script>
+  <script>
+    try { if (typeof checkPageUpdate === 'function') checkPageUpdate('feedback'); } catch (e) {}
   </script>
 </body>
 </html>
