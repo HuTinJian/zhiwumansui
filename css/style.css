@@ -1898,7 +1898,7 @@ body::before {
   pointer-events: none;
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(140, 210, 255, 0.028) 0 1px,
+    rgba(184, 134, 11, 0.030) 0 1px,
     transparent 1px 4px
   );
   opacity: 0.55;
@@ -1914,8 +1914,8 @@ body::before {
     pointer-events: none;
     background: radial-gradient(
       360px circle at var(--zm-px, 50%) var(--zm-py, 50%),
-      rgba(120, 205, 255, 0.13),
-      rgba(165, 130, 255, 0.07) 42%,
+      rgba(212, 169, 74, 0.13),
+      rgba(168, 50, 42, 0.07) 42%,
       transparent 72%
     );
     opacity: 0;
@@ -1937,7 +1937,7 @@ body::before {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  background: radial-gradient(circle, rgba(150, 220, 255, 0.42), rgba(170, 140, 255, 0.18) 45%, transparent 72%);
+  background: radial-gradient(circle, rgba(212, 169, 74, 0.40), rgba(168, 50, 42, 0.16) 45%, transparent 72%);
   animation: zmRipple 0.6s var(--ease-out) forwards;
   will-change: transform, opacity;
 }
@@ -2030,4 +2030,138 @@ button:active,
     white-space: nowrap;
     padding: 6px 8px;
   }
+}
+/* ============================================================
+   2026-10-24 站主要求：「整个网站都显示中式文化风格！要艺术，改掉！」
+   ------------------------------------------------------------
+   这层**只覆盖 CSS 变量 + 字体 + 底纹**，不动任何结构/选择器。
+   前台 6 页共用 css/style.css，所以改这里 = 全站换装。
+
+   配色按传统五色定（不是随手调）：
+     宣纸 #faf6ee ｜ 墨 #2b2520 ｜ 朱砂 #a8322a ｜ 青瓷 #6b8e7f ｜ 暗金 #b8860b
+   深色对应「墨夜」：深褐底 + 宣纸白字 + 提亮朱砂。
+
+   艺术感靠三件小事，不靠花哨：
+     ① 标题换宋体（中文的书卷气主要来自衬线）
+     ② 底纹换成极淡的宣纸晕染（暖金 + 朱砂两团，静态）
+     ③ 圆角收小、分隔线换细金线（去掉糖果感）
+
+   【回退办法】删掉文件末尾这一整段即可，配色立刻回到粉色原版。
+   ============================================================ */
+
+:root {
+  --bg: #faf6ee;
+  --bg-soft: #f5efe2;
+  --bg-tint: #ebe2d1;
+  --bg-card: #fffdf7;
+  --bg-glass: rgba(255, 253, 247, 0.78);
+  --bg-glass-strong: rgba(255, 253, 247, 0.94);
+
+  --text: #2b2520;
+  --text-light: #4a4038;
+  --text-muted: #7a6d5e;
+  --text-on-accent: #fffaf0;
+
+  --border: #e0d4bd;
+  --border-strong: #cdbd9f;
+
+  --primary: #a8322a;
+  --primary-ink: #8c2620;
+  --primary-dark: #8c2620;
+  --primary-light: #c96a5c;
+  --primary-btn-a: #a8322a;
+  --primary-btn-b: #8c2620;
+  --secondary: #f0d9d2;
+  --accent: #b8574a;
+
+  --gold: #b8860b;
+  --gold-light: #d4a94a;
+  --gold-strong: #8a6508;
+  --gold-ink: #8a6508;
+  --gold-bg: #faf3e2;
+
+  --success: #6b8e7f;
+  --success-dark: #557a6b;
+  --success-strong: #45685a;
+  --info-bg: #e8f0ec;
+  --info-ink: #45685a;
+
+  --danger: #a8322a;
+  --danger-light: #c96a5c;
+  --danger-bg: #f8ece8;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1714;
+  --bg-soft: #221d18;
+  --bg-tint: #2c251e;
+  --bg-card: #262019;
+  --bg-glass: rgba(38, 32, 25, 0.78);
+  --bg-glass-strong: rgba(38, 32, 25, 0.94);
+
+  --text: #e9dfcc;
+  --text-light: #c4b8a3;
+  --text-muted: #9a8d78;
+  --text-on-accent: #1a1714;
+
+  --border: #3a3127;
+  --border-strong: #4d4234;
+
+  --primary: #c9553f;
+  --primary-ink: #e07a63;
+  --primary-dark: #a8322a;
+  --primary-light: #e07a63;
+  --primary-btn-a: #b8452f;
+  --primary-btn-b: #a8322a;
+  --secondary: #3a2b26;
+  --accent: #c9553f;
+
+  --gold: #d4a94a;
+  --gold-light: #e8c878;
+  --gold-strong: #d4a94a;
+  --gold-ink: #e8c878;
+  --gold-bg: #2c2418;
+
+  --success: #7fa89a;
+  --success-dark: #6b8e7f;
+  --success-strong: #7fa89a;
+  --info-bg: #22302a;
+  --info-ink: #9ec4b4;
+
+  --danger: #d9604a;
+  --danger-light: #e5816c;
+  --danger-bg: #2e1e1a;
+}
+
+/* 标题走宋体；正文仍用无衬线（可读性优先） */
+.hero-title,
+.page-title,
+h1,
+h2,
+.brand-text,
+.section-head h1 {
+  font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "SimSun", "STSong", serif;
+  letter-spacing: 0.02em;
+}
+
+body { letter-spacing: 0.005em; }
+
+/* 宣纸晕染底纹（静态，不跑动画） */
+body {
+  background-image:
+    radial-gradient(circle at 18% 8%, rgba(184, 134, 11, 0.055), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(168, 50, 42, 0.045), transparent 46%);
+  background-attachment: fixed;
+}
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(circle at 18% 8%, rgba(212, 169, 74, 0.05), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(201, 85, 63, 0.05), transparent 46%);
+}
+
+/* 圆角收小：中式偏方正，不要糖果感 */
+.song-group,
+.credits-card,
+.side-card {
+  border-radius: 6px;
 }

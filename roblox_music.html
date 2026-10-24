@@ -4625,7 +4625,10 @@ const AUX_TIMEOUT = 700;
         viewport: Math.round(window.innerWidth || 0) + '×' + Math.round(window.innerHeight || 0),
         physical: Math.round(sw * dpr) + '×' + Math.round(sh * dpr),
         dpr: String(Math.round(dpr * 100) / 100),
-        tag: model + '@' + (inches || '0')
+        /* 2026-10-24 站主纠正：收集的目的是「适配所有设备」，所以**宽度必须带上**，
+           格式变成 `407|Xiaomi 14@6.3`（宽度|型号@英寸）。
+           后台面板按宽度聚合排断点，型号只是附注。 */
+        tag: (Math.round(window.innerWidth || 0) || 0) + '|' + model + '@' + (inches || '0')
       };
     }
 

@@ -44,7 +44,12 @@ const ID_PATTERN = /^u_[a-z0-9]{6,}_[a-z0-9]{6,}$/;
       仍然排除换行与尖括号（入库前还会再剔一次）。
    【回退办法】把这两个常量换回原来的单条 SIZE_PATTERN 即可。
    ============================================================ */
-const SIZE_PATTERN = /^[^@\r\n<>]{1,40}@\d{1,2}(?:\.\d{1,2})?$/;
+/* 2026-10-24 站主纠正「目的是适配所有设备」→ 新格式带上视口宽度：
+     407|Xiaomi 14@6.3
+   【回退办法】换回下面第二行（不带宽度的旧新格式）。 */
+const SIZE_PATTERN = /^\d{2,4}\|[^@\r\n<>]{1,40}@\d{1,2}(?:\.\d{1,2})?$/;
+/* 兼容上一版「型号@英寸」（还可能有零散请求） */
+const NO_WIDTH_PATTERN = /^[^@\r\n<>]{1,40}@\d{1,2}(?:\.\d{1,2})?$/;
 const LEGACY_PATTERN = /^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/;
 
 export async function onRequestPost(context) {
@@ -79,7 +84,7 @@ export async function onRequestPost(context) {
 
     /* 2026-10-18 安全修复：只收「宽x高@DPR」这一种形态。
        【回退办法】删掉下面这个 SIZE_PATTERN 判断即可。 */
-    if (!SIZE_PATTERN.test(source) && !LEGACY_PATTERN.test(source)) {
+    if (!SIZE_PATTERN.test(source) && !NO_WIDTH_PATTERN.test(source) && !LEGACY_PATTERN.test(source)) {
       return json({ ok: false, error: 'invalid source' }, 400);
     }
 

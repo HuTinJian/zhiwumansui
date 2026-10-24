@@ -2987,89 +2987,112 @@ async function loadSourceStats() {
       return;
     }
 
-    /* 解析两种格式 */
+    /* ============================================================
+       2026-10-24 站主纠正：这个面板的目的是「适配所有设备」，
+       所以**按视口宽度聚合**才有意义（型号只是附注）。
+       三种格式都认：
+         · 407|Xiaomi 14@6.3   ← 当前格式（宽度|型号@英寸）
+         · Xiaomi 14@6.3        ← 上一版（只有型号+英寸，没宽度）
+         · 407x886@3            ← 最早那版（宽x高@DPR）
+       【回退办法】git checkout js/admin.js
+       ============================================================ */
     const parsed = rows.map(r => {
-      const n = r.source.match(/^([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
-      if (n) return { model: n[1], inches: Number(n[2]), count: r.count, kind: 'new' };
-      const o = r.source.match(/^\d{2,5}x\d{2,5}@\d{1,2}(?:\.\d{1,2})?$/);
-      if (o) return { model: '', inches: 0, count: r.count, kind: 'legacy', raw: r.source };
-      return { model: r.source || '无法识别', inches: 0, count: r.count, kind: 'unknown' };
+      const n = r.source.match(/^(\d{2,4})\|([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
+      if (n) return { width: Number(n[1]), model: n[2], inches: Number(n[3]), count: r.count, kind: 'new' };
+      const m2 = r.source.match(/^([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
+      if (m2) return { width: 0, model: m2[1], inches: Number(m2[2]), count: r.count, kind: 'nowidth' };
+      const o = r.source.match(/^(\d{2,5})x(\d{2,5})@(\d{1,2}(?:\.\d{1,2})?)$/);
+      if (o) return { width: Number(o[1]), model: '', inches: 0, count: r.count, kind: 'legacy' };
+      return { width: 0, model: r.source || '无法识别', inches: 0, count: r.count, kind: 'unknown' };
     });
 
     const isNew = parsed.filter(p => p.kind === 'new');
     const legacy = parsed.filter(p => p.kind !== 'new');
     const legacyCount = legacy.reduce((s, p) => s + p.count, 0);
 
-    /* 按型号聚合（新数据） */
-    const byModel = new Map();
+    /* 2026-10-24：改成**按宽度聚合** —— 适配真正要看的就是宽度分布。
+       宽度为 0 的（上一版只存了型号）单独归一堆，不混进宽度统计。 */
+    const byWidth = new Map();
     isNew.forEach(p => {
-      const key = p.model;
-      if (!byModel.has(key)) byModel.set(key, { model: key, count: 0, inches: new Set() });
-      const g = byModel.get(key);
+      if (!p.width) return;
+      if (!byWidth.has(p.width)) byWidth.set(p.width, { width: p.width, count: 0, models: new Set() });
+      const g = byWidth.get(p.width);
       g.count += p.count;
-      if (p.inches) g.inches.add(p.inches);
+      if (p.model) g.models.add(p.model);
     });
-    const models = [...byModel.values()].sort((a, b) => b.count - a.count);
+    const widths = [...byWidth.values()].sort((a, b) => a.width - b.width);
+    const models = widths;   /* 复用下面的统计代码 */
 
     const totalNew = isNew.reduce((s, p) => s + p.count, 0);
     const total = totalNew + legacyCount;
-    const phone = isNew.filter(p => p.inches > 0 && p.inches < 7.5).reduce((s, p) => s + p.count, 0);
-    const tablet = isNew.filter(p => p.inches >= 7.5).reduce((s, p) => s + p.count, 0);
-    const top1 = models[0] || null;
+
+    /* 2026-10-24：按宽度分三类（跟 CSS 断点对齐：768 / 1024） */
+    const sum = (arr) => arr.reduce((s, w) => s + w.count, 0);
+    const phoneList = widths.filter(w => w.width < 768);
+    const tabletList = widths.filter(w => w.width >= 768 && w.width < 1024);
+    const desktopList = widths.filter(w => w.width >= 1024);
+    const phone = sum(phoneList);
+    const tablet = sum(tabletList);
+    const desktop = sum(desktopList);
+
+    /* 最常见宽度（不是最常见机型 —— 适配看宽度） */
+    const top1 = widths.length ? widths.reduce((a, b) => (b.count > a.count ? b : a)) : null;
+    const narrowest = widths.length ? widths[0].width : 0;
+    const widest = widths.length ? widths[widths.length - 1].width : 0;
     const pct = (n) => total ? Math.round((n / total) * 100) : 0;
 
     const elSrcCount = document.getElementById('statSourceCount');
     const elVisitor = document.getElementById('statVisitorCount');
-    if (elSrcCount) elSrcCount.textContent = models.length.toLocaleString('en-US');
+    if (elSrcCount) elSrcCount.textContent = widths.length.toLocaleString('en-US');
     if (elVisitor) elVisitor.textContent = total.toLocaleString('en-US');
 
     /* ---------- 顶部 KPI ---------- */
     let html = '<div class="src-kpis">' +
       '<div class="src-kpi"><b>' + total.toLocaleString('en-US') + '</b><span>总样本</span></div>' +
-      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;7.5"）</span></div>' +
-      '<div class="src-kpi"><b>' + (top1 ? top1.count : '—') + '</b><span>' + (top1 ? escapeHtml(top1.model) : '最常见机型') + '</span></div>' +
+      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;768）</span></div>' +
+      '<div class="src-kpi"><b>' + (top1 ? top1.width + 'px' : '—') + '</b><span>最常见宽度' +
+        (top1 ? ' · ' + top1.count + ' 个' : '') + '</span></div>' +
       '</div>';
 
-    html += '<p class="src-tip">平板 ' + pct(tablet) + '% ｜ 共 ' + models.length + ' 种机型' +
-      (legacyCount ? ' ｜ 旧格式数据 ' + legacyCount + ' 条（早期按宽高收的，单独统计）' : '') +
+    html += '<p class="src-tip">平板 ' + pct(tablet) + '% ｜ 电脑 ' + pct(desktop) + '% ｜ 共 ' +
+      widths.length + ' 种宽度' +
+      (narrowest ? ' ｜ 范围 ' + narrowest + '~' + widest + 'px' : '') +
+      (legacyCount ? ' ｜ 旧格式 ' + legacyCount + ' 条（单独统计）' : '') +
       '</p>';
 
-    /* ---------- 分组展示（手机 / 平板，各最多 12 行） ---------- */
+    /* ---------- 分组展示（按宽度升序，每组最多 15 行） ---------- */
     function groupHtml(title, list, maxCount) {
       if (list.length === 0) return '';
-      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种机型）</div>';
-      list.slice(0, 12).forEach(w => {
-        const inches = [...w.inches].sort((a, b) => a - b).join(' / ');
+      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种宽度）</div>';
+      list.slice(0, 15).forEach(w => {
+        const models = [...w.models].sort().slice(0, 2).join(' / ');
         h += '<div class="source-row">' +
           '<div class="source-top">' +
-            '<span class="source-name">' + escapeHtml(w.model || '（无型号）') + (inches ? ' · ' + inches + '"' : '') + '</span>' +
+            '<span class="source-name">' + w.width + 'px' +
+              (models ? ' <span style="opacity:.6;font-size:.85em">· ' + escapeHtml(models) + '</span>' : '') +
+            '</span>' +
             '<span class="source-num">' + w.count + ' 个 · ' + pct(w.count) + '%</span>' +
           '</div>' +
           '<div class="source-bar"><i style="width:' + Math.max(3, Math.round((w.count / maxCount) * 100)) + '%"></i></div>' +
         '</div>';
       });
-      if (list.length > 12) h += '<div class="src-more">…另有 ' + (list.length - 12) + ' 种更少见的机型</div>';
+      if (list.length > 15) h += '<div class="src-more">…另有 ' + (list.length - 15) + ' 种更少见的宽度</div>';
       return h;
     }
 
-    const maxCount = models.length ? models[0].count : 1;
-    const phoneModels = models.filter(m => {
-      const any = [...m.inches][0];
-      return !any || any < 7.5;
-    });
-    const tabletModels = models.filter(m => {
-      const any = [...m.inches][0];
-      return any && any >= 7.5;
-    });
+    const maxCount = widths.length ? Math.max.apply(null, widths.map(w => w.count)) : 1;
 
-    html += groupHtml('📱 手机', phoneModels, maxCount);
-    html += groupHtml('📲 平板', tabletModels, maxCount);
+    html += groupHtml('📱 手机', phoneList, maxCount);
+    html += groupHtml('📲 平板', tabletList, maxCount);
+    html += groupHtml('💻 电脑', desktopList, maxCount);
 
-    if (legacyCount > 0) {
-      html += '<div class="src-more">另有 ' + legacyCount + ' 条旧格式数据（早期按「宽x高@DPR」收的，不影响上面的机型统计）</div>';
+    if (legacyCount > 0 || parsed.some(p => p.kind === 'nowidth')) {
+      const nw = parsed.filter(p => p.kind === 'nowidth').reduce((s, p) => s + p.count, 0);
+      html += '<div class="src-more">另有 ' + (legacyCount + nw) +
+        ' 条早期数据（只有型号或只有宽高，没有视口宽度，不影响上面的宽度统计）</div>';
     }
 
-    box.innerHTML = html;
+        box.innerHTML = html;
   } catch (err) {
     console.error('[stats] visit/stats', err);
     box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
