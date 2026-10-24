@@ -1420,9 +1420,18 @@ async function scanSongsValidity() {
     return;
   }
 
-  /* 2026-10-24：体检只是去问 Roblox「还在不在」，**一个字节的数据都不改**，
-     这种事再弹确认纯属打扰。直接跑，结果用 toast 说。 */
-  showToast('🔍 正在体检 ' + targets.length + ' 个 ID，大约十几秒…');
+  /* 2026-10-24 站主要求：把「批量体检」的确认弹窗弄回来。
+     体检本身不改数据，但要发十几个请求、等十几秒 ——
+     先说清楚「拿哪些 ID、大概多久、不会动数据」，比闷头跑好。 */
+  const ok = await showConfirm(
+    '体检待处理上报里的 ID',
+    '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」。\n\n' +
+    '只有**在 Roblox 那边确实取不到音频**的才会被列出来（已下架 / 不存在），' +
+    '确认之后才下架 —— 不会自动动数据。\n' +
+    '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，大约要等十几秒。\n\n' +
+    '（只管这一栏的待处理上报，不动 D1 歌曲、不动主数据、不动已下架名单）'
+  );
+  if (!ok) return;
 
   const invalid = [];
   const counts = { valid: 0, invalid: 0, unknown: 0 };
