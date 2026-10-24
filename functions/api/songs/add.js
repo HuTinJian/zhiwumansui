@@ -38,6 +38,29 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too long' }, 400);
     }
 
+    /* ============================================================
+       2026-10-24 站主要求：加 ID 时如果这个 ID 在隔离区（已被下架），
+       **直接跳过添加**，不要写进 songs_extra（写进去也不会显示，白占行）。
+       注意：必须在 INSERT **之前**判断，否则已经写进去了再返回"跳过"就没意义。
+       【回退办法】删掉下面这段，回到「先写库、再查隔离区并提示」的旧逻辑。 */
+    try {
+      const q = await env.DB.prepare(
+        'SELECT 1 AS hit FROM quarantine_admin WHERE music_id = ? LIMIT 1'
+      ).bind(musicId).first();
+      if (q && q.hit) {
+        return json({
+          ok: false,
+          skipped: true,
+          reason: 'quarantined',
+          message: '该 ID 处在隔离区（已被下架），已跳过添加',
+          quarantined: true
+        }, 200);
+      }
+    } catch (err) {
+      /* 查不到隔离区就照常添加：这个检查是保险，不能因为它让添加失败 */
+      console.error('[songs/add] quarantine precheck', err);
+    }
+
     /* line_index 在单条 INSERT 内用子查询计算，避免「先读后写」竞态 */
     /* 2026-10-18：带 genre 时一起写。genre 列不存在（迁移没跑）就退回不带它的写法，
        保证「加歌」永远不会因为迁移失败。【回退办法】删掉 hasGenre 分支，只留原 INSERT。 */

@@ -1728,6 +1728,14 @@
         <button type="button" class="seg-tab active" data-rtype="invalid" role="tab" aria-selected="true">🚫 无效ID</button>
         <button type="button" class="seg-tab" data-rtype="info" role="tab" aria-selected="false">✏️ 信息出错</button>
       </div>
+      <!-- 2026-10-24 站主要求：两类上报之下再分「待审核 / 成功 / 拒绝」三态。
+           这里是二级筛选，只切显示、不发请求。 -->
+      <div class="seg-tabs myrep-tabs myrep-status-tabs" id="myRepStatusTabs" role="tablist" aria-label="审核状态">
+        <button type="button" class="seg-tab active" data-rstatus="all" role="tab" aria-selected="true">全部</button>
+        <button type="button" class="seg-tab" data-rstatus="pending" role="tab" aria-selected="false">⏳ 待审核</button>
+        <button type="button" class="seg-tab" data-rstatus="noted" role="tab" aria-selected="false">✅ 成功</button>
+        <button type="button" class="seg-tab" data-rstatus="removed" role="tab" aria-selected="false">❌ 拒绝</button>
+      </div>
       <div class="myrep-wrap" id="myRepWrap" aria-live="polite">
         <div class="myrep-empty">加载中…</div>
       </div>
@@ -2938,10 +2946,18 @@ const AUX_TIMEOUT = 700;
          ⚠️ 只查「说明」那一栏：歌名里出现「无效」很可能是正常歌名（如《无效恋爱》）。
          【回退办法】把下面这一段（到「if (looksInvalid) {...}」结束）整块删掉即可。
          ============================================================ */
+      /* 2026-10-24 站主反馈：有玩家把系统预填的那句
+         「试听时在 Roblox 那边取不到音频（下架或不存在）：这个 ID 是无效的」
+         原样留在说明里就提交了 —— 这类"报用不了"的话要拦下来。
+         所以把这批口语化的说法全部补进来。
+         【回退办法】删掉新加的那几行即可。 */
       const INVALID_WORDS = [
         '无效', '失效', '没用', '不能用', '用不了', '放不了', '放不出', '播放不了',
         '播不了', '没声音', '没有声音', '听不了', '听不到', '挂了', '废了', '打不开',
-        '404', '找不到', '不存在', '下架', '删了吧', '死链'
+        '404', '找不到', '不存在', '下架', '删了吧', '死链',
+        /* 2026-10-24 新增 */
+        '取不到', '取不到音频', '放出来', '没声', '没音', '听不出', '播放失败',
+        '打不开声', '空的', '假的', '不好使', '不能用', '报废', '失效了', '听不成'
       ];
       const noteLower = String(note).toLowerCase();
       const looksInvalid = INVALID_WORDS.some(w => noteLower.indexOf(w.toLowerCase()) !== -1);
@@ -3568,15 +3584,38 @@ const AUX_TIMEOUT = 700;
          · 后台点「确认无效并下架」→ 「审核失败」（这个 ID 审核没通过）
          · 后台点「无效反馈」     → 「反馈成功」，并且这条会从列表里消失（见 mergeMyRepRows）
        【回退办法】把下面四条 text 改回原来的「⏳ 后台待处理 / 🚫 已审核·已下架 / ✅ 已审核」。 */
+    /* 2026-10-24：二级状态筛选（all / pending / noted / removed） */
+    let myRepStatusFilter = 'all';
+
+    /* 「删除反馈记录」= 只在本机隐藏，后台记录不动（站长还要靠它做统计）。
+       键名 myrep_hidden，存的是 ID 数组。想让它们重新出现：清掉这个键即可。 */
+    const MYREP_HIDDEN_KEY = 'myrep_hidden';
+    let myRepHidden = [];
+    try {
+      const raw = localStorage.getItem(MYREP_HIDDEN_KEY);
+      myRepHidden = raw ? (JSON.parse(raw) || []) : [];
+      if (!Array.isArray(myRepHidden)) myRepHidden = [];
+    } catch (e) { myRepHidden = []; }
+    function hideMyRep(id) {
+      const sid = String(id);
+      if (myRepHidden.indexOf(sid) === -1) myRepHidden.push(sid);
+      try { localStorage.setItem(MYREP_HIDDEN_KEY, JSON.stringify(myRepHidden)); } catch (e) {}
+    }
+    function isMyRepHidden(id) {
+      return myRepHidden.indexOf(String(id)) !== -1;
+    }
+
     const MY_REP_STATUS = {
-      pending: { text: '⏳ 反馈进行中', cls: 'pending', canRestore: true, tip: '后台还没处理，可以自己撤回' },
+      /* 2026-10-24 站主要求：三态统一叫「待审核 / 成功 / 拒绝」。
+         【回退办法】改回「反馈进行中 / 反馈失败 / 反馈成功」。 */
+      pending: { text: '⏳ 待审核', cls: 'pending', canRestore: true, tip: '管理员还没看，可以自己撤回' },
       /* 2026-10-17 站主反馈：「自己反馈的 ID 想要看到有没有过审核」——
          凡是后台动过的上报，状态里都带「已审核」四个字，并显示审核时间（见 auditStatusText()）。 */
-      removed: { text: '❌ 反馈失败', cls: 'removed', canRestore: false, tip: '管理员确认这个 ID 无效，已从宝库下架（这条会永久保留，随时能查）' },
+      removed: { text: '❌ 拒绝', cls: 'removed', canRestore: false, tip: '管理员核实后拒绝了这条反馈（例如这个 ID 其实是对的）' },
       /* noted = 2026-10-17 新增：后台「🗑️ 删记录（处理完）」标的态（软删） */
       /* 「反馈成功」= 管理员核实这个 ID 没问题（是你报错了）。站主要求：这种情况直接消失，
          所以 mergeMyRepRows 里不渲染它；用户会先收到一条「反馈成功」的弹窗提示。 */
-      noted: { text: '✅ 反馈成功', cls: 'noted', canRestore: false, tip: '管理员核实这个 ID 没问题。这条会在你第一次看到它之后 30 分钟自动消失' },
+      noted: { text: '✅ 成功', cls: 'noted', canRestore: false, tip: '管理员采纳了这条反馈。这条会在你第一次看到它之后 30 分钟自动消失' },
       local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
     };
     /* 2026-10-07：「已忽略」这个状态随后台那一段一起下线（没问题的上报后台直接删记录）。
@@ -3802,7 +3841,27 @@ const AUX_TIMEOUT = 700;
         });
       }
 
-      const list = myRepRows.filter(r => r.type === myRepType);
+      /* 2026-10-24：三类过滤 —— 类型 → 状态 → 本机隐藏的。 */
+      const list = myRepRows.filter(r =>
+        r.type === myRepType &&
+        (myRepStatusFilter === 'all' || r.status === myRepStatusFilter) &&
+        !isMyRepHidden(r.id)
+      );
+
+      /* 二级状态筛选的条数 + 高亮（跟一级标签同样的做法） */
+      const statusBox = document.getElementById('myRepStatusTabs');
+      if (statusBox) {
+        const typed = myRepRows.filter(r => r.type === myRepType && !isMyRepHidden(r.id));
+        statusBox.querySelectorAll('[data-rstatus]').forEach(btn => {
+          const s = btn.dataset.rstatus;
+          const n = s === 'all' ? typed.length : typed.filter(r => r.status === s).length;
+          const base = btn.dataset.baseLabel || (btn.dataset.baseLabel = btn.textContent.replace(/（\d+）$/, ''));
+          btn.textContent = base + '（' + n + '）';
+          const on = s === myRepStatusFilter;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+      }
       const restorable = list.filter(r => r.canRestore && r.status === 'pending').length;
       if (allBtn) {
         allBtn.disabled = restorable === 0;
@@ -3836,10 +3895,13 @@ const AUX_TIMEOUT = 700;
         html += '<span class="myrep-time" title="' + escAttr(row.timeTitle || '北京时间') + '">' +
         esc(row.time) + '</span>';
         if (row.canRestore) {
+          /* 待审核 / 仅本地记录 → 可以撤回 */
           html += '<button type="button" class="myrep-btn" data-restore="' + escAttr(row.id) + '" data-index="' + index + '">' +
             (row.status === 'local' ? '🧹 清除' : '↩️ 撤回') + '</button>';
         } else {
-          html += '<button type="button" class="myrep-btn" disabled title="' + escAttr(row.tip) + '">—</button>';
+          /* 2026-10-24 站主要求：成功 / 拒绝的可以「删除反馈记录」。
+             只在本机隐藏（后台记录不动），所以按钮文案写「删除记录」。 */
+          html += '<button type="button" class="myrep-btn myrep-btn-del" data-del-rep="' + escAttr(row.id) + '" title="只从这台设备的列表里隐藏，后台记录保留">🗑️ 删除记录</button>';
         }
         html += '</div>';
         /* 第三行：说明（有才显示） */
@@ -4154,6 +4216,14 @@ const AUX_TIMEOUT = 700;
       if (allBtn) allBtn.addEventListener('click', restoreAllMyReports);
       if (wrap) {
         wrap.addEventListener('click', e => {
+          /* 2026-10-24：先看是不是「🗑️ 删除记录」（成功/拒绝那些行的操作） */
+          const delBtn = e.target.closest ? e.target.closest('button[data-del-rep]') : null;
+          if (delBtn && wrap.contains(delBtn)) {
+            hideMyRep(delBtn.dataset.delRep);
+            paintMyRepTable(false);
+            showToast('🗑️ 已从这台设备的列表里删除（后台记录还在）');
+            return;
+          }
           const btn = e.target.closest ? e.target.closest('button[data-restore]') : null;
           if (!btn || !wrap.contains(btn)) return;
           restoreMyReport(btn.dataset.restore, Number(btn.dataset.index));
@@ -4165,6 +4235,16 @@ const AUX_TIMEOUT = 700;
           const btn = e.target.closest ? e.target.closest('[data-rtype]') : null;
           if (!btn || !tabsBox.contains(btn)) return;
           myRepType = btn.dataset.rtype === 'info' ? 'info' : 'invalid';
+          paintMyRepTable(false);
+        });
+      }
+      /* 2026-10-24：二级「待审核 / 成功 / 拒绝」筛选，同样只切显示 */
+      const statusTabs = document.getElementById('myRepStatusTabs');
+      if (statusTabs) {
+        statusTabs.addEventListener('click', e => {
+          const btn = e.target.closest ? e.target.closest('[data-rstatus]') : null;
+          if (!btn || !statusTabs.contains(btn)) return;
+          myRepStatusFilter = btn.dataset.rstatus || 'all';
           paintMyRepTable(false);
         });
       }

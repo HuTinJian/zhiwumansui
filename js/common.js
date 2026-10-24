@@ -1915,7 +1915,12 @@ function initShareTriggers() {
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       if (!data || data.ok !== true || !Array.isArray(data.items)) return;
-      if (data.items.length > 0) showReportNotices(data.items);
+      /* 2026-10-24 站主要求：反馈结果的弹窗**放到 ID 宝库那里**。
+         所以这里只在宝库页弹（宝库页独有 #songList）；其它页面静默。
+         【回退办法】去掉 && document.getElementById('songList') 这个条件即可。 */
+      if (data.items.length > 0 && document.getElementById('songList')) {
+        showReportNotices(data.items);
+      }
     } catch (e) {
       /* 静态托管 / 断网 → 静默跳过 */
     }

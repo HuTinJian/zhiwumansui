@@ -1591,6 +1591,10 @@ function bindInvalidPanel() {
   };
 
   const batchRemove = document.getElementById('invalidBatchRemove');
+  /* 2026-10-24 站主要求：「❌ 批量拒绝」= 批量把上报标记为无效反馈（ID 本身没问题）。
+     【回退办法】删掉这两行。 */
+  const batchReject = document.getElementById('invalidBatchReject');
+  if (batchReject) batchReject.onclick = () => confirmInvalidDelete(pickedInvalidIds());
   if (batchRemove) batchRemove.onclick = () => confirmInvalidRemove(pickedInvalidIds());
 
   /* 2026-10-07：「🙈 批量忽略」改成批量处理（元素 id 没变，省得动样式）；
