@@ -903,6 +903,7 @@
     .group-sum { font-size: 0.78rem; font-weight: 400; opacity: 0.65; white-space: nowrap; }
     .group-qrs {
       display: grid;
+      grid-template-columns: 1fr;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 14px;
       margin-top: 14px;
@@ -924,6 +925,26 @@
 
     /* 2026-10-24 中式：标题走宋体（书卷气） */
     h1, h2, .page-title, .hero-title { font-family: "Songti SC", "Noto Serif SC", "SimSun", serif; letter-spacing: 0.02em; }
+
+    /* 2026-10-24 主题切换按钮（本页独立实现，不依赖 common.js）
+       【回退办法】删掉这条规则 + 下面的按钮与脚本。 */
+    .zm-theme-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(120, 140, 158, 0.28);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.22s ease, border-color 0.22s ease, transform 90ms ease;
+    }
+    .zm-theme-btn:hover { border-color: var(--line-strong); }
+    .zm-theme-btn:active { transform: scale(0.94); }
 </style>
 </head>
 <body>
@@ -954,6 +975,7 @@
       <li><a href="law.html">⚖️ 法律</a></li>
       <li><a href="suggest.html">💡 建议</a></li>
       <li><a href="feedback.html" class="active" aria-current="page">🐞 反馈</a></li>
+      <li><button class="zm-theme-btn" type="button"></button></li>
     </ul>
     <span class="hud-clock" id="hudClock" aria-hidden="true">--:--:--</span>
   </nav>
@@ -962,8 +984,7 @@
   <main class="shell" id="main">
 
     <div class="topline">
-      <a class="back-link" href="index.html">← 返回首页</a>
-      <span class="signal-pill"><span class="signal-dot" aria-hidden="true"></span>UPLINK ONLINE</span>
+      <span class="signal-pill"><span class="signal-dot" aria-hidden="true"></span>落笔为记</span>
     </div>
 
     <header class="hero">
@@ -1042,7 +1063,7 @@
             <details class="group-card">
               <summary>
                 <span>💬 也可以直接进 QQ 群找我</span>
-                <span class="group-sum">两个群 · 点开看二维码</span>
+                <span class="group-sum">点开看二维码</span>
               </summary>
               <div class="group-qrs">
                 <figure class="group-item">
@@ -1051,13 +1072,6 @@
                          alt="织雾满穗 QQ 群二维码，群号 1125311966">
                   </a>
                   <figcaption>织雾满穗<br>群号 <b>1125311966</b></figcaption>
-                </figure>
-                <figure class="group-item">
-                  <a href="images/qq-group-maple.jpg" target="_blank" rel="noopener noreferrer">
-                    <img src="images/qq-group-maple.jpg" loading="lazy" width="180" height="180"
-                         alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312">
-                  </a>
-                  <figcaption>Roblox 枫叶医院<br>群号 <b>1076510312</b></figcaption>
                 </figure>
               </div>
               <p class="group-note">群里也能直接说，比表单快；二维码点开是大图，方便长按保存。</p>
@@ -1381,6 +1395,33 @@
 
       var yearEl = document.getElementById('year');
       if (yearEl) yearEl.textContent = new Date().getFullYear();
+    })();
+  </script>
+
+  <!-- 2026-10-24 主题切换（本页独立实现，不加载 common.js）
+       【回退办法】删掉这段 script 与上面的 .zm-theme-btn 按钮即可。 -->
+  <script>
+    (function () {
+      'use strict';
+      var btn = document.querySelector('.zm-theme-btn');
+      if (!btn) return;
+      function cur() {
+        return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      }
+      function paint(t) {
+        var dark = t === 'dark';
+        btn.textContent = dark ? '☀️' : '🌙';
+        btn.setAttribute('aria-label', dark ? '切换到浅色模式' : '切换到深色模式');
+        btn.setAttribute('title', dark ? '切换到浅色模式' : '切换到深色模式');
+      }
+      paint(cur());
+      btn.addEventListener('click', function () {
+        var next = cur() === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.documentElement.style.colorScheme = next;
+        try { localStorage.setItem('zm_theme', next); } catch (e) {}
+        paint(next);
+      });
     })();
   </script>
 </body>

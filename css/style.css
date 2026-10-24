@@ -2357,3 +2357,176 @@ body::before {
 [data-theme="dark"] .song-group::before {
   opacity: 0.45;
 }
+
+
+/* ============================================================
+   2026-10-24 文化质感层（站主：要体现文化，而不是科技）
+   ------------------------------------------------------------
+   把「科技四件套」全部换掉：
+     ① 指针光晕 → 关闭（这是最典型的科技交互）
+     ② 扫描线   → 宣纸纤维（竖向 1px 极细纹，像纸的帘纹）
+     ③ 粒子     → 纸屑（哑光灰点，缓慢飘落，不再发光）
+     ④ 流光     → 静态金线（一道细线，不跑光）
+   纪律：所有纹理不透明度 ≤ 0.06；只留「呼吸」和「墨晕」两种动效。
+   【回退办法】删掉本段即可恢复。
+   ============================================================ */
+
+/* ① 关掉指针光晕（科技感最强的一项） */
+@media (hover: hover) and (pointer: fine) {
+  body::after { display: none !important; opacity: 0 !important; }
+}
+body.zm-pointer-active::after { opacity: 0 !important; }
+
+/* ② 扫描线 → 宣纸纤维（竖向帘纹） */
+body::before {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(90, 100, 112, 0.05) 0 1px,
+    transparent 1px 3px
+  ) !important;
+  opacity: 0.5 !important;
+  animation: zmPaperBreathe 11s ease-in-out infinite !important;
+}
+
+/* ③ 粒子光点 → 纸屑（哑光、不再发光） */
+.particles i {
+  border-radius: 1px !important;
+  box-shadow: none !important;
+  opacity: 0.28 !important;
+  animation-name: zmDustFall !important;
+  animation-duration: 26s !important;
+  animation-timing-function: linear !important;
+}
+@keyframes zmDustFall {
+  0%   { transform: translate3d(0, -12px, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.28; }
+  90%  { opacity: 0.28; }
+  100% { transform: translate3d(14px, 26px, 0) rotate(18deg); opacity: 0; }
+}
+
+/* ④ 金线流光 → 静态金线 */
+.navbar::after {
+  animation: none !important;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent) !important;
+  opacity: 0.35 !important;
+}
+
+/* ⑤ 后台的科技网格 → 宣纸纤维 */
+body[data-theme] {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(90, 100, 112, 0.045) 0 1px, transparent 1px 3px) !important;
+  background-size: auto !important;
+}
+
+/* 剩下的「活」只有两种：呼吸 + 墨晕（都是文化感的，不是光效） */
+
+
+/* ============================================================
+   2026-10-24 按钮统一层（站主：按钮效果要统一）
+   ------------------------------------------------------------
+   只统一「形」与「动」，不动配色语义。
+   【回退办法】删掉本段。
+   ============================================================ */
+
+.btn,
+button:not(.theme-toggle):not(.back-to-top):not(.modal-close),
+input[type="submit"],
+input[type="button"],
+a.btn,
+[role="button"] {
+  border-radius: 4px;
+  font-weight: 600;
+  transition:
+    transform 90ms cubic-bezier(0.22, 1.3, 0.36, 1),
+    background-color 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+@media (hover: hover) {
+  .btn:hover,
+  button:not(.theme-toggle):not(.back-to-top):not(.modal-close):hover,
+  input[type="submit"]:hover,
+  input[type="button"]:hover,
+  a.btn:hover,
+  [role="button"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(43, 51, 60, 0.16);
+  }
+}
+
+.btn:active,
+button:not(.theme-toggle):not(.back-to-top):not(.modal-close):active,
+input[type="submit"]:active,
+input[type="button"]:active,
+a.btn:active,
+[role="button"]:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* 圆角胶囊那几个（分类标签/筛选）保持胶囊，但动效一致 */
+.seg-tab,
+.filter-tabs button,
+.cat-tab,
+.badge,
+.type-tag {
+  transition:
+    transform 90ms cubic-bezier(0.22, 1.3, 0.36, 1),
+    background-color 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease;
+}
+.seg-tab:active,
+.filter-tabs button:active,
+.cat-tab:active {
+  transform: scale(0.97);
+}
+
+/* 省电 / 无障碍 */
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover,
+  button:hover,
+  a.btn:hover,
+  [role="button"]:hover,
+  .btn:active,
+  button:active,
+  a.btn:active,
+  [role="button"]:active {
+    transform: none;
+  }
+}
+
+
+/* ============================================================
+   2026-10-24 ID 可读性（站主：看不见 / 注意适配）
+   ------------------------------------------------------------
+   ① 颜色：用朱砂红（原粉色的角色），深色下提亮
+   ② 适配：长 ID 允许任意断行，320 宽也撑不破
+   【回退办法】删掉本段。
+   ============================================================ */
+
+.id-number {
+  color: #a8352a;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+[data-theme="dark"] .id-number {
+  color: #e8846c;
+}
+
+/* hover 时再亮一点（提示「这串能点/能复制」） */
+.id-number:hover {
+  color: #c9543f;
+}
+[data-theme="dark"] .id-number:hover {
+  color: #f0a08c;
+}
+
+/* 已上报/已失效的行保持灰色删线，但删线颜色跟朱砂统一 */
+.id-row.reported .id-number {
+  text-decoration-color: rgba(168, 53, 42, 0.6);
+}
