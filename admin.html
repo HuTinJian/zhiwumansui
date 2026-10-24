@@ -746,7 +746,129 @@
       #batchImportModal textarea { min-height: 170px; }
       #batchImportModal .import-preview { max-height: 42vh; }
     }
-  </style>
+  
+    /* ============================================================
+       2026-10-24 · 后台科幻主题（只在 admin.html 生效，前台不受影响）
+       ------------------------------------------------------------
+       只覆盖 CSS 变量 + 加两层底纹，**不改任何选择器/布局/id**。
+       【回退办法】删掉本段即可恢复原样。
+       ============================================================ */
+
+    /* ① 主题变量：深空底 + 霓虹青/紫 */
+    body,
+    body[data-theme="light"],
+    body[data-theme="dark"] {
+      --bg: #070b11;
+      --bg-soft: #0d141c;
+      --bg-card: #111a24;
+      --bg-tint: #16222e;
+
+      --border: rgba(120, 200, 255, 0.13);
+      --border-strong: rgba(120, 200, 255, 0.26);
+
+      --text: #dce9f5;
+      --text-light: #a6bccf;
+      --text-muted: #6a8099;
+
+      --primary: #35d0e0;
+      --primary-light: #1d7f8c;
+      --primary-dark: #7ef0ff;
+      --primary-ink: #7ef0ff;
+      --primary-btn-a: #12626d;
+      --primary-btn-b: #0d4a53;
+      --text-on-accent: #04141a;
+      --accent: #a06cff;
+
+      --danger: #ff5c7a;
+      --success-strong: #1f9e7a;
+      --success-dark: #3ddc97;
+      --gold: #ffc966;
+      --gold-ink: #ffd98a;
+      --gold-bg: rgba(255, 201, 102, 0.12);
+      --info-bg: rgba(53, 208, 224, 0.12);
+      --info-ink: #7ef0ff;
+
+      --shadow-sm:
+        0 1px 2px rgba(0, 0, 0, 0.45),
+        0 4px 12px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(120, 200, 255, 0.06);
+      --shadow:
+        0 1px 3px rgba(0, 0, 0, 0.5),
+        0 10px 28px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(120, 200, 255, 0.07);
+      --shadow-hover:
+        0 2px 8px rgba(0, 0, 0, 0.55),
+        0 18px 44px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(120, 200, 255, 0.10);
+    }
+
+    /* ② 底纹：细网格（一层静态 CSS 渐变，不跑动画，省电） */
+    body {
+      background-color: var(--bg) !important;
+      background-image:
+        linear-gradient(rgba(53, 208, 224, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(53, 208, 224, 0.035) 1px, transparent 1px) !important;
+      background-size: 44px 44px, 44px 44px !important;
+    }
+
+    /* ③ 卡片：冷色描边 + 内高光，像显示面板 */
+    .panel-card,
+    .stat-card,
+    .list-item,
+    .modal-content {
+      background: linear-gradient(180deg, rgba(20, 32, 44, 0.92), rgba(13, 20, 28, 0.96));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: none;
+    }
+
+    /* ④ 顶部标签：选中时霓虹下划线 */
+    .tab.active,
+    .subtab.active {
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(53, 208, 224, 0.4), 0 0 18px rgba(53, 208, 224, 0.22);
+    }
+
+    /* ⑤ 列表行 hover：冷色高亮（原来只有背景微变，在深色底上看不出来） */
+    .list-item:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 0 0 1px rgba(53, 208, 224, 0.18), 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ⑥ 数字/ID 用等宽 + 青色，像终端输出 */
+    .invalid-id,
+    .source-num,
+    .stat-card .value {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+    .invalid-id {
+      color: var(--primary-ink);
+      text-shadow: 0 0 12px rgba(53, 208, 224, 0.25);
+    }
+
+    /* ⑦ 输入框：深底 + 青色聚焦环 */
+    .panel-search:focus,
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px rgba(53, 208, 224, 0.18) !important;
+    }
+
+    /* ⑧ 顶部那条品牌条：霓虹渐变线 */
+    .admin-topbar {
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 rgba(53, 208, 224, 0.15), 0 8px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ⑨ 空状态/提示文字在深底上要够亮 */
+    .empty-state,
+    .loading {
+      color: var(--text-light);
+    }
+</style>
 </head>
 <body>
 

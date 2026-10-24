@@ -8,7 +8,8 @@
 > 无构建步骤、无 npm 依赖；`functions/` 里的代码只使用 Web 标准 API（`fetch`、`crypto.subtle`、`Response`）。
 
 > 🌐 线上地址：**https://zhiwumansui.pages.dev**
-> 🔑 后台入口：首页 **「织雾满穗」标题 2 秒内连点 3 次** → 输密码
+> 🔑 后台入口：**不在仓库里写**（入口机制与密码见站主的私人笔记）。
+> 这样做的原因：README 在 Pages 上是公开可访问的，写清入口等于给扫描器指路。
 
 ---
 
