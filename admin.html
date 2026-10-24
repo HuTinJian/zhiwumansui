@@ -896,6 +896,10 @@
            公告改成仓库里的静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📈 数据统计</button>
+      <!-- 2026-10-24 新增：「💡 建议 / 🐞 反馈」收件箱。
+           背景：这两个页面做完后数据进得了 D1，后台却看不到，等于单行道。
+           【回退办法】删掉这颗标签 + 下面的 panel-inbox 面板 + admin.js 里的 loadInbox 调用。 -->
+      <button class="tab" data-panel="panel-inbox">📬 建议/反馈 <span class="tab-badge" id="inboxBadge" hidden>0</span></button>
     </div>
 
     <!-- 卡片管理 -->
@@ -1341,6 +1345,30 @@
         <div id="sourceStats" class="source-list">
           <div class="loading">加载中...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- 2026-10-24 新增：建议 / 反馈收件箱面板。
+         读 D1 的 suggestions / site_feedback 两张表（接口 functions/api/inbox/list.js）。
+         【回退办法】删掉从这行到 panel-inbox 结束的整块即可。 -->
+    <div class="panel" id="panel-inbox">
+      <div class="panel-card">
+        <h2>
+          📬 建议 / 反馈收件箱
+          <span class="head-actions">
+            <button class="btn btn-secondary" id="refreshInboxBtn">🔄 刷新</button>
+          </span>
+        </h2>
+        <p class="panel-desc">
+          「💡 建议」收玩家的任何想法；「🐞 反馈」收整站问题。
+          数据存在 D1 的 <b>suggestions</b> / <b>site_feedback</b> 两张表里；
+          点「已读」只是标记，点「删除」才是真删。
+        </p>
+        <div class="subtabs" id="inboxTabs" data-tabs-group="inbox">
+          <button class="subtab active" data-inbox="suggestion">💡 建议（<span id="inboxCountS">0</span>）</button>
+          <button class="subtab" data-inbox="feedback">🐞 反馈（<span id="inboxCountF">0</span>）</button>
+        </div>
+        <div id="inboxList"><div class="loading">加载中...</div></div>
       </div>
     </div>
 
