@@ -1355,7 +1355,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .seg-tab:hover { color: var(--primary); background: rgba(43, 51, 60, 0.1); }
 .seg-tab:active { transform: scale(0.98); }
 .seg-tab.active {
-  background: var(--primary); color: var(--text-on-accent);
+  background: var(--primary); color: var(--bg);
   box-shadow: 0 2px 8px rgba(43, 51, 60, 0.22);
 }
 /* 键盘 Tab 聚焦到切换器上时要看得见 —— 有色底上的默认光标环不够显眼 */
@@ -2562,8 +2562,7 @@ a.btn,
   background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .navbar .nav-links a.active {
-  background: var(--primary);
-  color: var(--text-on-accent);
+  background: var(--primary); color: var(--bg);
 }
 [data-theme="dark"] .navbar .nav-links a.active {
   background: var(--primary);
@@ -2577,5 +2576,46 @@ a.btn,
 .badge,
 .type-tag,
 .myrep-status {
+  border-radius: 999px;
+}
+
+
+/* ============================================================
+   2026-10-24 选中态胶囊化（站主：选择的效果也要是胶囊的）
+   ------------------------------------------------------------
+   把全站所有 .active 选中态（分类标签、分段、筛选、后台标签）统一成胶囊。
+   容器本身保持原形（可能是圆角矩形），只让「选中的那一块」是胶囊。
+   【回退办法】删掉本段。
+   ============================================================ */
+
+.cat-tab.active,
+.cat-tab.is-active,
+.seg-tab.active,
+.filter-tabs button.active,
+.visit-source-btn.active,
+.btn-multi.active,
+.btn-confirm.active,
+.btn-fav-filter.active,
+.btn-fav.active,
+.btn-hot.active,
+.btn-latest.active,
+.btn-latest-max.active,
+.tag.active,
+.chip.active,
+.pill.active,
+.option.active,
+.tab.active,
+.subtab.active,
+.select-option.active,
+.pager button.active,
+.page-btn.active {
+  border-radius: 999px !important;
+}
+
+/* 分类栏本身如果是圆角矩形，也一起圆润一点，跟里面的胶囊协调 */
+.filter-tabs,
+.seg-tabs,
+.subtabs,
+.cat-tabs {
   border-radius: 999px;
 }

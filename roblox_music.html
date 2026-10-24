@@ -399,7 +399,7 @@
       align-items: center;
       justify-content: center;
     }
-    .myrep-btn:hover { background: var(--primary); color: var(--text-on-accent); border-color: var(--primary); }
+    .myrep-btn:hover { background: var(--primary); color: var(--bg); border-color: var(--primary); }
     .myrep-btn:active { transform: scale(0.97); }
     .myrep-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
     .myrep-btn[disabled]:hover { background: var(--bg-card); color: var(--primary); border-color: var(--primary-light); }
@@ -640,8 +640,7 @@
       /* 2026-10-18 可访问性：深色模式下 --primary 会变浅（#96a5b2），压白字只有 2.3:1。
          改用令牌 --text-on-accent（浅色=白，深色=#12151a），深色下对比度升到约 8:1。
          【回退办法】把 color 改回 #fff。 */
-      background: var(--primary);
-      color: var(--text-on-accent);
+      background: var(--primary); color: var(--bg);
       font-size: 0.72rem;
       font-weight: 600;
       padding: 2px 10px;
@@ -725,7 +724,8 @@
     .id-actions .btn-fav:active { transform: scale(0.85); }
     .id-actions .btn-fav.active { color: var(--gold-ink); }
     .id-actions .btn-copy {
-      background: var(--primary); color: var(--text-on-accent);
+      /* 2026-10-24 修：文字用 --bg（永远跟 --primary 反差），深色下不再白压白 */
+      background: var(--primary); color: var(--bg);
     }
     .id-actions .btn-copy:hover {
       background: var(--primary-dark);
@@ -972,7 +972,7 @@
       font-family: var(--font);
       transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
     }
-    .result-info .cleared:hover { background: var(--primary); color: var(--text-on-accent); transform: translateY(-1px); }
+    .result-info .cleared:hover { background: var(--primary); color: var(--bg); transform: translateY(-1px); }
 
     /* ========== 分组头部的操作 ========== */
     .group-actions {
@@ -996,7 +996,7 @@
       transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
       white-space: nowrap;
     }
-    .group-actions button:hover { background: var(--primary); color: var(--text-on-accent); transform: translateY(-1px); }
+    .group-actions button:hover { background: var(--primary); color: var(--bg); transform: translateY(-1px); }
     .group-actions button:active { transform: scale(0.92); }
     .group-actions button.copied { background: var(--success-strong); color: #fff; }
 
@@ -1415,7 +1415,7 @@
       background: var(--border-strong);
     }
     .visit-other-actions .btn-confirm-other {
-      background: var(--primary); color: var(--text-on-accent);
+      background: var(--primary); color: var(--bg);
     }
     .visit-other-actions .btn-confirm-other:hover {
       background: var(--primary-dark);
