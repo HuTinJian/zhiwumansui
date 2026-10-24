@@ -1493,35 +1493,6 @@ body.modal-open .particles i { animation-play-state: paused; }
    图标本身自带语义（🏠❤️⚖️💡🐞），可访问性靠原链接文字（读屏仍能读）。
    【回退办法】删掉这两个媒体查询即可。
    ============================================================ */
-@media (max-width: 480px) {
-  .navbar .brand-text { display: none; }
-  .navbar .nav-links a { padding: 5px 7px; font-size: 0.74rem; }
-}
-@media (max-width: 440px) {
-  .navbar .nav-links a {
-    max-width: 2.3em;
-    overflow: hidden;
-    white-space: nowrap;
-    padding: 6px 8px;
-  }
-}
-
-@media (max-width: 340px) {
-  .navbar { gap: 4px; padding-left: 8px; padding-right: 8px; }
-  .navbar .nav-links { gap: 1px; }
-  .navbar .nav-links a { padding: 5px 6px; font-size: 0.75rem; }
-  .navbar .brand-text { font-size: 0.92rem; }
-  .navbar .brand-mark { width: 22px; height: 22px; }
-  .navbar .theme-toggle { width: 28px; height: 28px; min-width: 28px; }
-}
-
-.sponsor-qr-big {
-  width: 100%; max-width: 320px; height: auto; margin: 0 auto 18px;
-  display: block; border-radius: var(--radius-sm); background: #fff;
-  border: 1px solid var(--border);
-}
-.sponsor-modal-content .modal-actions { justify-content: center; }
-
 /* ============================================================
    12.5 预览版告知弹窗
    ============================================================ */
@@ -2032,4 +2003,31 @@ button:active,
   [role="button"]:active,
   .seg-tab:active,
   .filter-tabs button:active { transform: none; }
+}
+
+/* ============================================================
+   2026-10-24 导航适配（放在**文件最末尾**，确保压过前面 768/480 两档的旧规则）
+   ------------------------------------------------------------
+   坑：前面 @media(max-width:768) 写了 .navbar .nav-links a{padding:6px 12px;font-size:.85rem}，
+        @media(max-width:480) 又写了 {padding:6px 10px} —— 它们是后出现的，
+        所以我放在 1500 多行的收紧规则全被覆盖了，实测 360~430 全部溢出 44~115px。
+   现在改到文件最后，同选择器后者胜，才真正生效。
+   两级：
+     · ≤480：隐藏品牌文字 + 收紧要缩小 → 5 个入口的文字在 360~480 放得下
+     · ≤340：才退成「只显示图标」（320 那种极窄屏）
+   【回退办法】删掉文件末尾这一段即可。
+   ============================================================ */
+@media (max-width: 480px) {
+  .navbar { gap: 4px; padding-left: 10px; padding-right: 10px; }
+  .navbar .brand-text { display: none; }
+  .navbar .nav-links { gap: 1px; }
+  .navbar .nav-links a { padding: 5px 5px; font-size: 0.7rem; letter-spacing: -0.01em; }
+}
+@media (max-width: 340px) {
+  .navbar .nav-links a {
+    max-width: 2.35em;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 8px;
+  }
 }

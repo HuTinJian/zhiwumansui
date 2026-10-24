@@ -4527,6 +4527,43 @@ const AUX_TIMEOUT = 700;
       return 'desktop';
     }
 
+    /* ============================================================
+       2026-10-24 · 型号对照表（站主要「Xiaomi 17 Pro」这种营销名）
+       ------------------------------------------------------------
+       浏览器读不到营销名，只读得到型号代码；所以拿 data/device-models.json 翻译。
+       · 只拉一次，force-cache
+       · 表里没有的**原样返回代码**（不猜、不编）
+       · 加载失败也照常工作（空表 → 显示代码）
+       【回退办法】删掉这段即可。
+       ============================================================ */
+    let _modelMap = null;
+    let _modelMapLoading = false;
+    const _modelMapWaiters = [];
+
+    function loadModelMap(cb) {
+      if (_modelMap) { if (cb) cb(_modelMap); return; }
+      if (cb) _modelMapWaiters.push(cb);
+      if (_modelMapLoading) return;
+      _modelMapLoading = true;
+      fetch('data/device-models.json', { cache: 'force-cache' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { _modelMap = (j && j.models) || {}; })
+        .catch(function () { _modelMap = {}; })
+        .finally(function () {
+          _modelMapLoading = false;
+          const ws = _modelMapWaiters.splice(0);
+          ws.forEach(function (fn) { try { fn(_modelMap); } catch (e) {} });
+        });
+    }
+
+    /* 代码 → 营销名。查不到就原样返回（这是纪律：宁可显示代码，也不猜）。 */
+    function prettyModel(code) {
+      if (!code) return code;
+      if (!_modelMap) return code;          /* 表还没加载 → 先给代码，加载完会刷新 */
+      const hit = _modelMap[String(code).toUpperCase()];
+      return hit || code;
+    }
+
     /* 型号：优先用 Client Hints 的可读型号（Chrome 会给 "Xiaomi 17" 这种），
        拿不到再回退 UA（Android 常常只有型号代码，如 23127PN0CC）。 */
     function detectModel() {
@@ -4575,7 +4612,8 @@ const AUX_TIMEOUT = 700;
       const dpr = window.devicePixelRatio || 1;
       const cls = detectDeviceClass();
       const rawModel = detectModel();
-      const model = rawModel || (cls === 'tablet' ? '未知平板' : '未知机型');
+      /* 2026-10-24：原始型号先过对照表翻译（表里没有就还是代码）。 */
+      const model = prettyModel(rawModel) || (cls === 'tablet' ? '未知平板' : '未知机型');
       const inches = estimateInches();
       const sw = Math.round(screen.width || 0);
       const sh = Math.round(screen.height || 0);
@@ -4607,6 +4645,14 @@ const AUX_TIMEOUT = 700;
     const elInches = document.getElementById('screenInches');
     const elSkipRow = document.getElementById('screenSkipRow');
 
+    /* 2026-10-24：只刷新「型号 / 上报内容」这两行，不触发 getScreenInfo 的重活，
+       专供异步对照表加载完后回填。 */
+    function paintScreenInfoLight() {
+      const info = getScreenInfo();
+      if (elModel) elModel.textContent = info.model || '识别不到（不影响）';
+      if (elTag) elTag.textContent = info.shouldReport ? info.tag : '（电脑端不收集）';
+    }
+
     function deviceClassLabel(cls) {
       return cls === 'phone' ? '📱 手机' : cls === 'tablet' ? '📲 平板' : '💻 电脑';
     }
@@ -4622,6 +4668,9 @@ const AUX_TIMEOUT = 700;
         reportBtn.disabled = !info.shouldReport;
         reportBtn.textContent = info.shouldReport ? '✅ 上报给站长' : '电脑端不收集';
       }
+      /* 2026-10-24：对照表是异步拉的，拉完再刷一次显示（否则先看到的是代码） */
+      loadModelMap(function () { paintScreenInfoLight(); });
+
       /* 型号拿得更准就再刷新一次（Chrome 的 Client Hints） */
       fetchBetterModel(function (better) {
         if (better && elModel && info.model !== better) {
@@ -4640,6 +4689,10 @@ const AUX_TIMEOUT = 700;
     }
 
     async function reportScreen(manual) {
+      /* 2026-10-24：先把对照表等出来，否则会把原始代码报进 D1。 */
+      if (!_modelMap) {
+        await new Promise(function (resolve) { loadModelMap(function () { resolve(); }); });
+      }
       const info = getScreenInfo();
       /* 2026-10-24：电脑端一律不上报（站主要求）。 */
       if (!info.shouldReport) {
