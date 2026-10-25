@@ -8,7 +8,7 @@
   <meta name="description" content="织雾满穗的法律与风险提示：本站只提供跳转 Roblox 官方页面的链接，不存储、不传播任何音频文件；本页附《著作权法》《信息网络传播权保护条例》《民法典》《刑法》等与音频使用相关的条文原文，供使用者和权利人查阅。">
   <meta name="keywords" content="织雾满穗,Roblox ID 宝库,法律,著作权法,信息网络传播权,版权投诉">
   <meta name="author" content="HuTinJian">
-  <meta name="theme-color" content="#fdf2f5">
+  <meta name="theme-color" content="#F5F0E6">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="⚖️ 法律与风险提示 · 织雾满穗">
@@ -72,13 +72,17 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
     }
+    /* hero 右上角柔光：原来写死 rgba(255,255,255,.6) 的白色高光，
+       放到新的暖色底上会发灰、显脏。改成金的低透明光（金 = 荣誉/装饰），
+       深浅主题都自动跟随全局 --gold-rgb。
+       【回退办法】改回 radial-gradient(circle, rgba(255,255,255,.6), rgba(255,255,255,0) 70%)。 */
     .law-hero::after {
       content: '';
       position: absolute;
       right: -70px; top: -80px;
       width: 240px; height: 240px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 70%);
+      background: radial-gradient(circle, rgba(var(--gold-rgb), 0.22), rgba(var(--gold-rgb), 0) 70%);
       pointer-events: none;
     }
     .law-hero h1 {

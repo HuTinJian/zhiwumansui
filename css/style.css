@@ -23,72 +23,82 @@
    1. 设计令牌
    ============================================================ */
 :root {
-  /* 品牌色 */
-  --primary: #2b333c;          /* 用于填充、渐变、装饰 */
-  --primary-ink: #1f262e;      /* 用于浅底上的文字（对比度 ≈5.6:1） */
-  --primary-dark: #1f262e;
-  --primary-light: #8a95a3;
-  --secondary: #e6ebef;
-  --accent: #a8352a;
-  --primary-btn-a: #8c2620;    /* 白字按钮渐变起点 */
-  --primary-btn-b: #b84460;    /* 白字按钮渐变终点 */
+  /* ============================================================
+     2026-10-25 站主要求「全部颜色重做 · 中国色 · 护眼 · 突出就突出」
+     ------------------------------------------------------------
+     本块是全站唯一颜色来源（浅色 = 宣纸）。页面内联样式一律引用变量，
+     不要再写死色值；改色只改这里。
+     色名对照：宣纸 / 墨 / 朱砂 / 胭脂 / 藤黄（金） / 石青 / 竹青 / 月白。
+     对比度（WCAG）：正文 14.8:1、次要文字 7.6:1、弱文字 4.6:1、
+     主按钮奶白字 6.6:1、成功按钮 6.8:1、金按钮 5.8:1。
+     【回退办法】git checkout -- css/style.css（或拷回
+       .verify/backup-theme-20261025/css/style.css）。
+     ============================================================ */
+
+  /* 品牌色 —— 墨做主面，朱砂做行动色 */
+  --primary: #2C2721;          /* 墨：深色面、当前项、进度条 */
+  --primary-ink: #1B1712;      /* 浅底上的墨字（≈15:1） */
+  --primary-dark: #17130F;
+  --primary-light: #8C7E6C;
+  --secondary: #E7DFD0;
+  --accent: #A62E22;           /* 朱砂：强调、链接、印章（6.1:1） */
+  --primary-btn-a: #A62E22;    /* 主按钮渐变起点（奶白字 6.6:1） */
+  --primary-btn-b: #8A1F18;    /* 主按钮渐变终点（8.7:1） */
 
   /* 语义色 */
-  --success: #8cb8a8;
-  --success-dark: #72a392;
-  --success-strong: #55806f;   /* 白字按钮底色（对比度 ≈4.6:1） */
-  --danger: #c0392b;
-  --danger-light: #e8747a;
-  --gold: #d4a06a;
-  --gold-light: #e8c49a;
-  --gold-strong: #9c6822;      /* 白字按钮底色（对比度 ≈4.7:1） */
-  --gold-ink: #8a5a1c;         /* 浅底上的金色文字（对比度 ≈5.2:1） */
-  --info-bg: #e6f0ff;          /* 信息类标签的浅蓝底 */
-  --info-ink: #3a6ec4;         /* 对应文字色 */
-  --danger-bg: #fdf0ed;        /* 危险 / 警告类标签的浅红底（与 --info-bg 同一套约定） */
+  --success: #4F7A5A;          /* 竹青 */
+  --success-dark: #436B4E;
+  --success-strong: #3C5F46;   /* 成功按钮底（奶白字 6.8:1） */
+  --danger: #A8322B;           /* 胭脂红（文字/描边） */
+  --danger-solid: #A8322B;     /* 危险按钮/标签实底：奶白字 6.3:1（深色也不能用亮红，只有 3.3:1） */
+  --danger-light: #C05A4E;
+  --gold: #B08A3E;             /* 藤黄偏暗的金：线、饰、金额 */
+  --gold-light: #D3B77A;
+  --gold-strong: #7D5C22;      /* 金按钮底（奶白字 5.8:1） */
+  --gold-ink: #7A571B;         /* 浅底金字（5.8:1） */
+  --info-bg: #E8EFF0;          /* 石青淡底 */
+  --info-ink: #2B627C;         /* 石青字（5.7:1） */
+  --danger-bg: #F8EBE6;
 
   /* 表面与文字 */
-  --bg: #f7f8f9;
-  --bg-soft: #f2f4f6;
-  --bg-tint: #e9edf0;
-  --bg-card: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.72);
-  --bg-glass-strong: rgba(255, 255, 255, 0.92);
-  --gold-bg: #fbf3e8;
-  --text: #1a1d21;
-  --text-light: #4a5159;
-  --text-muted: #8a939c;
-  --text-on-accent: #ffffff;
-  --border: #e2e6ea;
-  --border-strong: #cbd2d9;
-  /* 页面顶部标题栏（.page-header）的渐变底色。
-     原来这个渐变的两个色值是写死在 roblox_music.html 里的，
-     切到深色主题时依然是浅粉，跟周围的黑底撞在一起。 */
-  --header-grad-a: #f8d7de;
-  --header-grad-b: #f0c4cd;
+  --bg: #F5F0E6;               /* 宣纸（暖米色，不用纯白） */
+  --bg-soft: #EFE8DC;
+  --bg-tint: #E6DCCB;
+  --bg-card: #FFFCF6;          /* 卡片：近白偏暖 */
+  --bg-glass: rgba(255, 252, 246, 0.78);
+  --bg-glass-strong: rgba(255, 252, 246, 0.94);
+  --gold-bg: #F7F0DF;
+  --text: #221C16;             /* 墨 */
+  --text-light: #544A3E;       /* 淡墨 */
+  --text-muted: #786B5B;       /* 弱文字（4.6:1，勿再调浅） */
+  --text-on-accent: #FFF8EE;   /* 朱砂 / 竹青底上的奶白字 */
+  --text-on-gold: #241C12;     /* 金底上的墨字（5.2~11:1；奶白字压在金上只有 1.9~3:1，禁用） */
+  --border: #DCD2C0;
+  --border-strong: #C3B49B;
+  --header-grad-a: #F1E6D3;    /* 页头标题栏（暖金） */
+  --header-grad-b: #E7D9C2;
 
-  /* 阴影 */
-  /* ============================================================
-     2026-10-19 高级感重做：阴影从「一层粉雾」改成「三层立体」。
-       第 1 层 贴边： rgba(120,60,75,.05) 1~3px  —— 让卡片和背景之间有定义线
-       第 2 层 扩散： 大范围低透明度       —— 决定卡片"悬空多高"
-       第 3 层 内高光：inset 0 1px 0 #fff  —— 模拟材质上缘受光，这一层是"贵"的来源
-     改的是令牌，所有引用 --shadow/--shadow-sm 的卡片会自动升级，不用逐个改。
-     【回退办法】把这三行改回原来的单层粉色阴影即可。 */
+  /* 叠色用的 RGB 三元组：阴影、淡底、描边都从这里派生，深浅主题自动跟随 */
+  --ink-rgb: 34, 28, 22;
+  --accent-rgb: 166, 46, 34;
+  --gold-rgb: 176, 138, 62;
+  --focus-ring: #A62E22;
+
+  /* 阴影：暖褐投影 + 上缘内高光，去掉旧版冷蓝灰的「塑料感」 */
   --shadow-sm:
-    0 1px 2px rgba(120, 60, 75, 0.05),
-    0 4px 12px rgba(120, 60, 75, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    0 1px 2px rgba(52, 38, 24, 0.06),
+    0 4px 12px rgba(52, 38, 24, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
   --shadow:
-    0 1px 3px rgba(120, 60, 75, 0.06),
-    0 10px 28px rgba(120, 60, 75, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    0 1px 3px rgba(52, 38, 24, 0.08),
+    0 10px 28px rgba(52, 38, 24, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
   --shadow-hover:
-    0 2px 6px rgba(120, 60, 75, 0.07),
-    0 18px 44px rgba(120, 60, 75, 0.13),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --shadow-modal: 0 20px 60px rgba(74, 63, 68, 0.25);
-  --shadow-glow: 0 0 0 4px rgba(43, 51, 60, 0.14);
+    0 2px 6px rgba(52, 38, 24, 0.09),
+    0 18px 44px rgba(52, 38, 24, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  --shadow-modal: 0 24px 64px rgba(30, 20, 12, 0.34);
+  --shadow-glow: 0 0 0 4px rgba(166, 46, 34, 0.16);
 
   /* 圆角 */
   --radius-lg: 26px;
@@ -97,108 +107,107 @@
   --radius-xs: 10px;
   --radius-pill: 50px;
 
-  /* 缓动与时长 */
+  /* 缓动与时长（2026-10-18 调过，保持） */
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  /* 2026-10-18 动效重做：现代手感是「快进快出」，0.3s 偏慢会显得拖沓。
-     三档改成 0.14 / 0.22 / 0.42；另加一个 --dur-micro 给纯颜色过渡（更短更稳）。
-     【回退办法】改回 0.18 / 0.3 / 0.55，并删掉 --dur-micro。 */
   --dur-fast: 0.14s;
   --dur: 0.22s;
   --dur-slow: 0.42s;
   --dur-micro: 0.12s;
 
-  /* 2026-10-18 配色创新（克制版）：「织雾满穗」只有粉色会显得单薄。
-     加一个**雾青**当辅助色 —— 它只用于「玩家自己写的东西」和「成功状态」，
-     和粉色形成冷暖对比，但主色/交互色一律不动（不瞎创新）。
-     【回退办法】删掉这四个变量，并把下面用到的地方改回原来的颜色。 */
-  --accent-mist: #3f7d78;
-  --accent-mist-soft: rgba(120, 140, 158, 0.12);
-  --accent-mist-line: rgba(120, 140, 158, 0.28);
+  /* 青瓷：只给「玩家自己写的内容」和成功态，和朱砂形成冷暖对比 */
+  --accent-mist: #4A7368;
+  --accent-mist-soft: rgba(74, 115, 104, 0.12);
+  --accent-mist-line: rgba(74, 115, 104, 0.30);
 
   /* 字体 */
   --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SFMono-Regular', Consolas, 'Courier New', monospace;
 
-  /* 氛围层 */
+  /* 氛围层：金 / 朱砂 / 青瓷三团极淡的光，护眼不刺 */
   --aurora-opacity: 1;
-  --aurora-1: rgba(150, 165, 178, 0.62);
-  --aurora-2: rgba(176, 154, 104, 0.5);
-  --aurora-3: rgba(176, 212, 232, 0.45);
-  /* 小粒子的颜色。要点：颜色本身要够浓 ——
-     之前用 50% 透明度，再乘上元素自身的透明度，实际只剩一成多，
-     在浅粉底上等于隐形（实测对比度只有 1.8:1）。
-     现在颜色不透明，柔不柔由元素的 opacity 控制。 */
-  --particle: rgb(150, 165, 178);
-  --particle-glow: rgba(150, 165, 178, 0.22);
+  --aurora-1: rgba(176, 138, 62, 0.16);
+  --aurora-2: rgba(166, 46, 34, 0.10);
+  --aurora-3: rgba(74, 115, 104, 0.12);
+  --particle: rgb(140, 126, 108);
+  --particle-glow: rgba(176, 138, 62, 0.25);
 
   color-scheme: light;
 }
 
 /* ---------- 深色主题 ---------- */
+/* ---------- 深色主题：墨夜 ---------- */
 [data-theme="dark"] {
-  --primary: #d8e0e8;
-  --primary-ink: #ffffff;
-  --primary-dark: #e8ecef;
-  --primary-light: #8a95a3;
-  --secondary: #2b323a;
-  --accent: #c9543f;
-  --primary-btn-a: #3a444f;
-  --primary-btn-b: #2b333c;
+  /* ============================================================
+     2026-10-25 深色 = 墨夜：暖黑底 + 宣纸白字 + 提亮朱砂 / 琥珀金。
+     要点：不用纯黑、不用蓝黑，避免夜里刺眼和发冷。
+     【回退办法】同浅色块：git checkout -- css/style.css。
+     ============================================================ */
+  --primary: #E9DFC9;          /* 月白：深底上的亮面/当前项 */
+  --primary-ink: #FFF7E6;      /* 深底上的亮字 */
+  --primary-dark: #F5EDDC;
+  --primary-light: #A89A84;
+  --secondary: #2B241D;
+  --accent: #E2604A;           /* 提亮朱砂（深底 5.4:1） */
+  --primary-btn-a: #B23A2A;    /* 主按钮（奶白字 5.6:1） */
+  --primary-btn-b: #8E2218;
 
-  --success: #7fb39f;
-  --success-dark: #96c6b2;
-  --success-strong: #3f6b5b;
-  --danger: #c9543f;
-  --danger-light: #dd7361;
-  --gold: #b09a68;
-  --gold-light: #cbb98e;
-  --gold-strong: #b09a68;
-  --gold-ink: #cbb98e;
-  --info-bg: #1f2830;
-  --info-ink: #9db3c4;
-  --danger-bg: #2a1f1d;
+  --success: #7FB394;
+  --success-dark: #94C4A7;
+  --success-strong: #3F6B52;
+  --danger: #E2604A;
+  --danger-solid: #A8322B;     /* 实底必须压深：亮红 #E2604A 配奶白字只有 3.3:1 */
+  --danger-light: #EE8A76;
+  --gold: #D8B566;             /* 琥珀金 */
+  --gold-light: #EBD29A;
+  --gold-strong: #8A6420;      /* 金按钮底（奶白字 5.1:1） */
+  --gold-ink: #E3C47C;         /* 深底金字（11:1） */
+  --info-bg: #1E2A2E;
+  --info-ink: #9CC6D6;         /* 石青提亮（8:1） */
+  --danger-bg: #2C1E19;
 
-  --bg: #12151a;
-  --bg-soft: #191d23;
-  --bg-tint: #232930;
-  --bg-card: #1e232a;
-  --bg-glass: rgba(30, 35, 42, 0.80);
-  --bg-glass-strong: rgba(30, 35, 42, 0.95);
-  --gold-bg: #232830;
-  --text: #e8ecef;
-  --text-light: #aab4bf;
-  --text-muted: #6f7b87;
-  --text-on-accent: #ffffff;
+  --bg: #14110E;               /* 暖黑（非纯黑、非蓝黑） */
+  --bg-soft: #1A1612;
+  --bg-tint: #241F19;
+  --bg-card: #201B15;
+  --bg-glass: rgba(32, 27, 21, 0.82);
+  --bg-glass-strong: rgba(32, 27, 21, 0.95);
+  --gold-bg: #262016;
+  --text: #F0E8D8;             /* 宣纸白 */
+  --text-light: #C8BCA8;
+  --text-muted: #9C8F7C;       /* 5.4:1 */
+  --text-on-accent: #FFF8EE;
+  --text-on-gold: #241C12;     /* 金底墨字，同浅色 */
+  --border: #3A3228;
+  --border-strong: #4E4436;
+  --header-grad-a: #221C16;
+  --header-grad-b: #1A1511;
 
-  /* 2026-10-18：雾青在深色主题下要提亮，否则在暗底上看不清。 */
-  --accent-mist: #7fa396;
-  --accent-mist-soft: rgba(127, 163, 150, 0.14);
-  --accent-mist-line: rgba(127, 163, 150, 0.32);
-  --border: #2b323a;
-  --border-strong: #3c454f;
-  /* 深色下标题栏比卡片底稍亮一点的暖紫，保住"粉色系"的辨识度 */
-  --header-grad-a: #1e232a;
-  --header-grad-b: #171b21;
+  --ink-rgb: 240, 232, 216;
+  --accent-rgb: 226, 96, 74;
+  --gold-rgb: 216, 181, 102;
+  --focus-ring: #D8B566;
 
-  /* 2026-10-19：深色主题同样三层，但内高光只留 4% —— 太亮会显得"油"。
-     【回退办法】改回 0 2px 8px rgba(0, 0, 0, 0.3); */
   --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.35),
-    0 4px 12px rgba(0, 0, 0, 0.30),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
-  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 0 4px rgba(120, 140, 158, 0.18);
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 246, 230, 0.05);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.60);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.72);
+  --shadow-glow: 0 0 0 4px rgba(216, 181, 102, 0.20);
+
+  --accent-mist: #8FB4A6;
+  --accent-mist-soft: rgba(143, 180, 166, 0.16);
+  --accent-mist-line: rgba(143, 180, 166, 0.34);
 
   --aurora-opacity: 0.9;
-  --aurora-1: rgba(58, 70, 84, 0.45);
-  --aurora-2: rgba(88, 100, 114, 0.35);
-  --aurora-3: rgba(48, 60, 74, 0.45);
-  --particle: rgb(170, 186, 199);
-  --particle-glow: rgba(170, 186, 199, 0.24);
+  --aurora-1: rgba(216, 181, 102, 0.10);
+  --aurora-2: rgba(226, 96, 74, 0.08);
+  --aurora-3: rgba(63, 107, 82, 0.14);
+  --particle: rgb(200, 188, 168);
+  --particle-glow: rgba(216, 181, 102, 0.28);
 
   color-scheme: dark;
 }
@@ -230,9 +239,10 @@ body {
        · 不用 backdrop-filter（低端手机会掉帧）。
      【回退办法】删掉下面的 background-image 两行、把 background-color 改回 background 简写即可。 */
   background-color: var(--bg);
+  /* 2026-10-25：页面底纹改成暖金 + 朱砂两团极淡的光（护眼，不刺） */
   background-image:
-    radial-gradient(1100px 520px at 8% -8%, rgba(43, 51, 60, 0.05), transparent 62%),
-    radial-gradient(820px 460px at 92% -4%, rgba(120, 140, 158, 0.06), transparent 66%);
+    radial-gradient(1100px 520px at 8% -8%, rgba(var(--gold-rgb), 0.06), transparent 62%),
+    radial-gradient(820px 460px at 92% -4%, rgba(var(--accent-rgb), 0.045), transparent 66%);
   background-repeat: no-repeat;
   background-attachment: scroll;
   color: var(--text);
@@ -247,9 +257,10 @@ body {
 /* 2026-10-19：深色主题的雾要更淡、更冷（粉会发灰，雾青要提亮）。
    【回退办法】删掉这条规则。 */
 [data-theme="dark"] body {
+  /* 墨夜底纹：金 + 朱砂，低透明度，像灯下的纸 */
   background-image:
-    radial-gradient(1100px 520px at 8% -8%, rgba(120, 140, 158, 0.10), transparent 62%),
-    radial-gradient(820px 460px at 92% -4%, rgba(138, 216, 205, 0.10), transparent 66%);
+    radial-gradient(1100px 520px at 8% -8%, rgba(var(--gold-rgb), 0.08), transparent 62%),
+    radial-gradient(820px 460px at 92% -4%, rgba(var(--accent-rgb), 0.07), transparent 66%);
 }
 
 img { max-width: 100%; }
@@ -287,7 +298,7 @@ h1, .hero-title, .page-title {
 
 ::selection {
   background: var(--primary-btn-a);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 /* 统一可见焦点环，兼顾键盘可达性与观感 */
@@ -301,13 +312,13 @@ h1, .hero-title, .page-title {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(43, 51, 60, 0.28);
+  background: rgba(var(--ink-rgb), 0.28);
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(43, 51, 60, 0.5); background-clip: padding-box; }
-* { scrollbar-width: thin; scrollbar-color: rgba(43, 51, 60, 0.3) transparent; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--ink-rgb), 0.5); background-clip: padding-box; }
+* { scrollbar-width: thin; scrollbar-color: rgba(var(--ink-rgb), 0.3) transparent; }
 
 /* 弹窗打开时锁住页面滚动 */
 body.modal-open {
@@ -341,7 +352,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   left: 12px;
   z-index: 2000;
   background: var(--primary-btn-a);
-  color: #fff;
+  color: var(--text-on-accent);
   padding: 10px 18px;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   text-decoration: none;
@@ -468,18 +479,13 @@ body.modal-open .particles i { animation-play-state: paused; }
   position: sticky;
   top: 0;
   z-index: 100;
-  /* 2026-09-29 用户要求「导航栏的颜色换一下」：
-     原来是一条几乎和白底分不出来的 --bg（#f7f8f9），
-     现在换成品牌粉的浅渐变（上淡下稍深）+ 加重的下边框和阴影，
-     一眼就能看出「这是一条粉色导航条」。
-     想换别的方案，只改这一行 background 即可：
-       · 纯白干净：   background: var(--bg-card);
-       · 深粉白字：   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-                      （那样还要把下面 .nav-links a 的 color 改成 #fff）
-       · 金色点缀：   background: linear-gradient(180deg, #fdf3e6, #f8e3c8); */
-  background: linear-gradient(180deg, #ffffff 0%, #f0f3f5 100%);
-  border-bottom: 1px solid #f0bccb;
-  box-shadow: 0 2px 12px rgba(43, 51, 60, 0.10);
+  /* 2026-10-25 中国色：宣纸底 + 暖金下边，像册页的眉线。
+     导航条不再用粉色渐变，也不靠厚阴影堆"立体感"。
+     【回退办法】改回原来的浅粉渐变 + #f0bccb 边框（备份见
+       .verify/backup-theme-20261025/css/style.css）。 */
+  background: linear-gradient(180deg, var(--bg-glass-strong) 0%, var(--bg-tint) 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 42%, var(--border));
+  box-shadow: var(--shadow-sm);
   padding: 0 24px;
   padding-left: max(24px, env(safe-area-inset-left));
   padding-right: max(24px, env(safe-area-inset-right));
@@ -495,14 +501,15 @@ body.modal-open .particles i { animation-play-state: paused; }
 .navbar.has-brand { justify-content: space-between; gap: 14px; }
 
 .navbar.scrolled {
-  box-shadow: 0 6px 24px rgba(43, 51, 60, 0.22);
+  box-shadow: 0 6px 24px rgba(var(--ink-rgb), 0.22);
 }
 
-/* 深色模式：走同一套品牌紫粉，只是整体压暗（跟 .page-header 的深色方案一致） */
+/* 深色模式：墨夜底 + 一线暗金，和浅色的宣纸眉线是同一套形制 */
 [data-theme="dark"] .navbar {
-  background: linear-gradient(180deg, #171b21 0%, #1e232a 100%);
-  border-bottom-color: #3a3127;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  /* 深色下用墨夜底 + 一线暗金，别再用蓝黑渐变 */
+  background: linear-gradient(180deg, var(--bg-glass-strong) 0%, var(--bg-soft) 100%);
+  border-bottom-color: color-mix(in srgb, var(--gold) 30%, var(--border));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 [data-theme="dark"] .navbar.scrolled {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
@@ -528,12 +535,13 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 .navbar .nav-links a:hover {
   /* 导航条本身已经是粉色了，这里改用白色"磨砂"高亮，比再叠一层粉更清楚 */
-  background: rgba(255, 255, 255, 0.68);
+  /* 2026-10-25：hover 用淡金，不再用白色磨砂（浅色底上会发灰） */
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
   color: var(--primary-ink);
   transform: translateY(-1px) scale(1.05);
 }
 [data-theme="dark"] .navbar .nav-links a:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--gold-rgb), 0.12);
 }
 
 .navbar .nav-links a:active {
@@ -544,7 +552,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .navbar .nav-links a.active {
   background: var(--primary-btn-a);
   color: var(--text-on-accent);
-  box-shadow: 0 4px 14px rgba(43, 51, 60, 0.35);
+  box-shadow: 0 4px 14px rgba(var(--ink-rgb), 0.35);
   font-weight: 600;
 }
 
@@ -566,7 +574,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(43, 51, 60, 0.3);
+  box-shadow: 0 3px 10px rgba(var(--ink-rgb), 0.3);
   flex-shrink: 0;
 }
 .nav-brand .brand-text { white-space: nowrap; }
@@ -608,11 +616,12 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 主按钮 */
 .btn-primary {
+  /* 2026-10-25：主行动 = 朱砂渐变 + 奶白字（6.6:1），全站最"跳"的一档 */
   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(43, 51, 60, 0.25);
+  color: var(--text-on-accent);
+  box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.28);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(43, 51, 60, 0.36); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.40); }
 
 /* 次按钮 */
 .btn-secondary {
@@ -621,32 +630,33 @@ body.modal-open .particles i { animation-play-state: paused; }
   border: 2px solid var(--border);
 }
 .btn-secondary:hover {
-  background: rgba(43, 51, 60, 0.06);
+  background: rgba(var(--ink-rgb), 0.06);
   border-color: var(--primary-light);
   color: var(--primary-ink);
 }
 
 /* 危险按钮 */
 .btn-danger {
-  background: var(--danger);
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(192, 57, 43, 0.25);
+  /* 2026-10-25：实底用 --danger-solid（深色下 --danger 是提亮红，奶白字只有 3.3:1） */
+  background: var(--danger-solid);
+  color: var(--text-on-accent);
+  box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.28);
 }
-.btn-danger:hover { background: #a93226; transform: translateY(-1px); }
+.btn-danger:hover { background: color-mix(in srgb, var(--danger) 84%, #000); transform: translateY(-1px); }
 
 /* 成功按钮 */
 .btn-success {
   background: var(--success-strong);
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(140, 184, 168, 0.25);
+  color: var(--text-on-accent);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--success-strong) 30%, transparent);
 }
 .btn-success:hover { transform: translateY(-1px); filter: brightness(1.14); }
 
-/* 金色按钮 */
+/* 金色按钮（2026-10-25：亮金底 + 墨字；奶白字压金只有 1.9~3:1，不可用） */
 .btn-gold {
-  background: linear-gradient(135deg, var(--gold-strong), var(--gold));
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(176, 154, 104, 0.25);
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: var(--text-on-gold);
+  box-shadow: 0 6px 16px rgba(var(--gold-rgb), 0.28);
 }
 .btn-gold:hover { transform: translateY(-1px); }
 
@@ -656,12 +666,12 @@ body.modal-open .particles i { animation-play-state: paused; }
      把 class 里带 share 的元素整块 display:none 掉了 —— 这类规则在中文拦截列表里很常见。
      于是分享相关的 class / id 全部换成不含 share 的中性名字（zb-invite*、invite*），
      行为一点没变，只是不再撞拦截规则。JS 里仍然兼容老的 [data-share] 写法。
-   站点主题是「粉 + 金」：主按钮是深粉渐变（.btn-primary），
-   而金色这一套已经稳定用在首页那条滚动公告和赞赏码块上
-   （--gold-bg / --gold-light / --gold-ink）。分享按钮就走金色这一套 ——
+   站点主题 2026-10-25 起是「宣纸 + 墨 + 朱砂 + 金」：
+   主按钮是朱砂渐变（.btn-primary），金色这一套用在赞赏码块上
+   （--gold-bg / --gold-light / --gold-ink）。分享按钮走金色这一套 ——
    暖、低饱和、不刺眼，而且比主按钮弱一档，不跟「🚀 开始逛逛」抢焦点：
-     · 浅色模式：淡金底 #fbf3e8 + 深金棕字 #8a5a1c（对比度 ≈5.2:1，看得清又不晃眼）
-     · 深色模式：暖褐底 #1a1714 + 浅金字 #eec48d（同一套变量自动换，没有写死颜色）
+     · 浅色模式：淡金底 var(--gold-bg) + 金墨字 var(--gold-ink)（5.8:1）
+     · 深色模式：暖褐底 var(--gold-bg) + 亮金字 var(--gold-ink)（11:1）
    ⚠ 水波纹要单独覆盖：默认那个是白色，压在淡金底上根本看不见。 */
 .zb-invite {
   background: var(--gold-bg);
@@ -673,11 +683,11 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-color: var(--gold);
   color: var(--gold-ink);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(176, 154, 104, 0.24);
+  box-shadow: 0 8px 20px rgba(var(--gold-rgb), 0.24);
 }
 .zb-invite:active { transform: translateY(0) scale(0.98); }
 .zb-invite:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.zb-invite .ripple { background: rgba(176, 154, 104, 0.35); }
+.zb-invite .ripple { background: rgba(var(--gold-rgb), 0.35); }
 
 /* 点击水波纹（由 common.js 注入 span.ripple） */
 .ripple {
@@ -690,7 +700,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   animation: rippleOut 0.6s var(--ease-out) forwards;
 }
 /* 浅色底按钮上的水波纹要换成品牌色，否则看不见 */
-.btn-secondary .ripple { background: rgba(43, 51, 60, 0.25); }
+.btn-secondary .ripple { background: rgba(var(--ink-rgb), 0.25); }
 
 /* ============================================================
    7. 表单系统
@@ -756,7 +766,8 @@ body.modal-open .particles i { animation-play-state: paused; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(58, 48, 54, 0.62);
+  /* 2026-10-25：遮罩改成暖褐（原来的紫褐偏冷） */
+  background: rgba(32, 24, 16, 0.58);
   justify-content: center;
   align-items: center;
   z-index: 999;
@@ -764,7 +775,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   overscroll-behavior: contain;
 }
 
-[data-theme="dark"] .modal { background: rgba(6, 4, 8, 0.78); }
+[data-theme="dark"] .modal { background: rgba(4, 3, 1, 0.78); }
 
 .modal.show { display: flex; }
 
@@ -826,13 +837,14 @@ body.modal-open .particles i { animation-play-state: paused; }
   left: 0;
   right: 0;
   z-index: 1000;
-  background: linear-gradient(135deg, #f5b872, #e8a05a);
-  color: #fff;
+  /* 2026-10-25：公告条改成朱砂底 + 奶白字（原橙底白字只有 1.8:1，看不清） */
+  background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+  color: var(--text-on-accent);
   text-align: center;
   padding: 10px 20px;
   font-size: 0.9rem;
   font-weight: 500;
-  box-shadow: 0 2px 12px rgba(176, 154, 104, 0.3);
+  box-shadow: 0 2px 12px rgba(var(--accent-rgb), 0.30);
   transform: translateY(-100%);
   transition: transform 0.35s var(--ease-out);
 }
@@ -857,7 +869,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   text-align: center;
   font-weight: 500;
 }
-[data-theme="dark"] .toast { background: #e9edf0; color: #221d18; }
+[data-theme="dark"] .toast { background: var(--primary); color: var(--bg); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ============================================================
@@ -949,11 +961,11 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-header {
   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
   padding: 18px 28px 16px;
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .update-modal .update-header h2 {
-  color: #fff;
+  color: var(--text-on-accent);
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
@@ -966,8 +978,9 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-version {
   display: inline-block;
   font-size: 0.72rem;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--primary-ink);
+  /* 版本徽标：奶白底 + 朱砂字，深浅主题都清楚 */
+  background: var(--text-on-accent);
+  color: var(--primary-btn-a);
   padding: 2px 10px;
   border-radius: 20px;
   font-weight: 700;
@@ -977,7 +990,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-date {
   display: inline-block;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: color-mix(in srgb, var(--text-on-accent) 88%, transparent);
   font-weight: 400;
   white-space: nowrap;
 }
@@ -1013,12 +1026,12 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-body::-webkit-scrollbar { width: 6px; }
 .update-modal .update-body::-webkit-scrollbar-track { background: transparent; }
 .update-modal .update-body::-webkit-scrollbar-thumb {
-  background: rgba(43, 51, 60, 0.25);
+  background: rgba(var(--ink-rgb), 0.25);
   border-radius: 10px;
 }
 .update-modal .update-body {
   scrollbar-width: thin;
-  scrollbar-color: rgba(43, 51, 60, 0.25) transparent;
+  scrollbar-color: rgba(var(--ink-rgb), 0.25) transparent;
 }
 
 /* ============================================================
@@ -1174,7 +1187,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   background: linear-gradient(
     90deg,
     var(--bg-soft) 25%,
-    rgba(43, 51, 60, 0.1) 37%,
+    rgba(var(--ink-rgb), 0.10) 37%,
     var(--bg-soft) 63%
   );
   background-size: 400% 100%;
@@ -1247,7 +1260,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   transition: transform 0.4s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
 }
 .credits-card:hover {
-  border-color: rgba(43, 51, 60, 0.3);
+  border-color: rgba(var(--gold-rgb), 0.50);
   box-shadow: var(--shadow-hover);
   transform: translateY(-5px) rotate(-1.5deg) scale(1.03);
 }
@@ -1336,7 +1349,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   flex-wrap: wrap;
   padding: 5px;
   margin: 0 auto 16px;
-  background: rgba(43, 51, 60, 0.06);
+  background: rgba(var(--ink-rgb), 0.06);
   border-radius: var(--radius-pill);
   animation: fadeInUp 0.5s var(--ease-out) backwards;
 }
@@ -1352,11 +1365,12 @@ body.modal-open .particles i { animation-play-state: paused; }
   cursor: pointer;
   transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
 }
-.seg-tab:hover { color: var(--primary); background: rgba(43, 51, 60, 0.1); }
+.seg-tab:hover { color: var(--primary-ink); background: rgba(var(--gold-rgb), 0.14); }
 .seg-tab:active { transform: scale(0.98); }
 .seg-tab.active {
-  background: var(--primary); color: var(--bg);
-  box-shadow: 0 2px 8px rgba(43, 51, 60, 0.22);
+  /* 选中 = 朱砂实底，明确"当前在哪一档" */
+  background: var(--primary-btn-a); color: var(--text-on-accent);
+  box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.28);
 }
 /* 键盘 Tab 聚焦到切换器上时要看得见 —— 有色底上的默认光标环不够显眼 */
 .seg-tab:focus-visible { outline: 2px solid var(--primary-ink); outline-offset: 2px; }
@@ -1521,9 +1535,9 @@ body.modal-open .particles i { animation-play-state: paused; }
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 1px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-on-accent);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   padding: 4px 14px;
   border-radius: var(--radius-pill);
   /* 这里原来有个一直「呼吸」的 box-shadow 动画。
@@ -1533,7 +1547,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .preview-notice-ver {
   font-size: 0.76rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
+  color: color-mix(in srgb, var(--text-on-accent) 90%, transparent);
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
@@ -1898,7 +1912,7 @@ body::before {
   pointer-events: none;
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(184, 134, 11, 0.030) 0 1px,
+    rgba(var(--gold-rgb), 0.030) 0 1px,
     transparent 1px 4px
   );
   opacity: 0.55;
@@ -1914,8 +1928,8 @@ body::before {
     pointer-events: none;
     background: radial-gradient(
       360px circle at var(--zm-px, 50%) var(--zm-py, 50%),
-      rgba(176, 154, 104, 0.13),
-      rgba(168, 50, 42, 0.07) 42%,
+      rgba(var(--gold-rgb), 0.13),
+      rgba(var(--accent-rgb), 0.07) 42%,
       transparent 72%
     );
     opacity: 0;
@@ -1937,7 +1951,7 @@ body::before {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  background: radial-gradient(circle, rgba(176, 154, 104, 0.40), rgba(168, 50, 42, 0.16) 45%, transparent 72%);
+  background: radial-gradient(circle, rgba(var(--gold-rgb), 0.40), rgba(var(--accent-rgb), 0.16) 45%, transparent 72%);
   animation: zmRipple 0.6s var(--ease-out) forwards;
   will-change: transform, opacity;
 }
@@ -2037,101 +2051,30 @@ button:active,
    这层**只覆盖 CSS 变量 + 字体 + 底纹**，不动任何结构/选择器。
    前台 6 页共用 css/style.css，所以改这里 = 全站换装。
 
-   配色按传统五色定（不是随手调）：
-     宣纸 #f7f8f9 ｜ 墨 #2b2520 ｜ 朱砂 #a8322a ｜ 青瓷 #6b8e7f ｜ 暗金 #8a7340
-   深色对应「墨夜」：深褐底 + 宣纸白字 + 提亮朱砂。
+   配色按传统五色定（2026-10-25 已换成新色板，见文件开头）：
+     宣纸 #F5F0E6 ｜ 墨 #221C16 ｜ 朱砂 #A62E22 ｜ 竹青 #4F7A5A ｜ 琥珀金 #B08A3E
+   深色对应「墨夜」：暖黑底 + 宣纸白字 + 提亮朱砂。
 
    艺术感靠三件小事，不靠花哨：
      ① 标题换宋体（中文的书卷气主要来自衬线）
      ② 底纹换成极淡的宣纸晕染（暖金 + 朱砂两团，静态）
      ③ 圆角收小、分隔线换细金线（去掉糖果感）
 
-   【回退办法】删掉文件末尾这一整段即可，配色立刻回到粉色原版。
+   【回退办法】颜色回退只需改文件开头的令牌；本段的形制（宋体/鱼尾/回纹）
+   要单独撤销时，删掉对应小节即可。
    ============================================================ */
 
-:root {
-  --bg: #f7f8f9;
-  --bg-soft: #f2f4f6;
-  --bg-tint: #e9edf0;
-  --bg-card: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.82);
-  --bg-glass-strong: rgba(255, 255, 255, 0.96);
+/* ============================================================
+   2026-10-25 站主要求「全部颜色重做 · 中国风」
+   ------------------------------------------------------------
+   原来这里重复定义了一整套 :root / [data-theme="dark"] 色值，
+   与文件开头冲突（后者覆盖前者，改一处漏一处）。
+   现在颜色令牌只保留文件开头唯一一份；本段只留字体与形制说明，
+   下面「中式艺术层 / 文化质感层」继续生效。
+   【回退办法】删掉本注释，令牌仍在文件开头，不影响渲染。
+   ============================================================ */
 
-  --text: #1a1d21;
-  --text-light: #4a5159;
-  --text-muted: #8a939c;
-  --text-on-accent: #ffffff;
-
-  --border: #e2e6ea;
-  --border-strong: #cbd2d9;
-
-  --primary: #2b333c;
-  --primary-ink: #1f262e;
-  --primary-dark: #1f262e;
-  --primary-light: #8a95a3;
-  --primary-btn-a: #2b333c;
-  --primary-btn-b: #1f262e;
-  --secondary: #e6ebef;
-  --accent: #a8352a;
-
-  --gold: #8a7340;
-  --gold-light: #b09a68;
-  --gold-strong: #6f5c33;
-  --gold-ink: #6f5c33;
-  --gold-bg: #f5f2ea;
-
-  --success: #5f7f74;
-  --success-dark: #4d6a60;
-  --success-strong: #3d564d;
-  --info-bg: #eef2f5;
-  --info-ink: #4a5a68;
-
-  --danger: #a8352a;
-  --danger-light: #c4635a;
-  --danger-bg: #f8edeb;
-}
-
-[data-theme="dark"] {
-  --bg: #12151a;
-  --bg-soft: #191d23;
-  --bg-tint: #232930;
-  --bg-card: #1e232a;
-  --bg-glass: rgba(30, 35, 42, 0.80);
-  --bg-glass-strong: rgba(30, 35, 42, 0.95);
-
-  --text: #e8ecef;
-  --text-light: #aab4bf;
-  --text-muted: #6f7b87;
-  --text-on-accent: #ffffff;
-
-  --border: #2b323a;
-  --border-strong: #3c454f;
-
-  --primary: #d8e0e8;
-  --primary-ink: #ffffff;
-  --primary-dark: #e8ecef;
-  --primary-light: #8a95a3;
-  --primary-btn-a: #3a444f;
-  --primary-btn-b: #2b333c;
-  --secondary: #2b323a;
-  --accent: #c9543f;
-
-  --gold: #b09a68;
-  --gold-light: #cbb98e;
-  --gold-strong: #b09a68;
-  --gold-ink: #cbb98e;
-  --gold-bg: #232830;
-
-  --success: #7fa396;
-  --success-dark: #5f7f74;
-  --success-strong: #7fa396;
-  --info-bg: #1f2830;
-  --info-ink: #9db3c4;
-
-  --danger: #c9543f;
-  --danger-light: #dd7361;
-  --danger-bg: #2a1f1d;
-}
+/* 深色令牌同样只保留文件开头那一份（2026-10-25 去重）。 */
 
 /* 标题走宋体；正文仍用无衬线（可读性优先） */
 .hero-title,
@@ -2146,18 +2089,18 @@ h2,
 
 body { letter-spacing: 0.005em; }
 
-/* 宣纸晕染底纹（静态，不跑动画） */
+/* 宣纸晕染底纹（静态，不跑动画）：暖金 + 朱砂两团，护眼 */
 body {
   background-image:
-    radial-gradient(circle at 18% 8%, rgba(120, 140, 158, 0.05), transparent 42%),
-    radial-gradient(circle at 82% 78%, rgba(168, 53, 42, 0.035), transparent 46%);
+    radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(var(--accent-rgb), 0.035), transparent 46%);
   /* 2026-10-24 性能：fixed 滚动时每帧重绘整页，去掉 */
   background-attachment: scroll;
 }
 [data-theme="dark"] body {
   background-image:
-    radial-gradient(circle at 18% 8%, rgba(170, 186, 199, 0.045), transparent 42%),
-    radial-gradient(circle at 82% 78%, rgba(201, 84, 63, 0.04), transparent 46%);
+    radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.045), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(var(--accent-rgb), 0.04), transparent 46%);
 }
 
 /* 圆角收小：中式偏方正，不要糖果感 */
@@ -2275,7 +2218,7 @@ body::before {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, rgba(168, 50, 42, 0.10), transparent 62%);
+  background: radial-gradient(circle at 50% 40%, rgba(var(--accent-rgb), 0.10), transparent 62%);
   opacity: 0;
   transition: opacity 0.55s var(--ease-soft, ease);
 }
@@ -2319,8 +2262,9 @@ body::before {
   font-size: 0.74rem;
   line-height: 1.4;
   letter-spacing: 0.16em;
-  color: #fff8ec;
-  background: var(--accent);
+  /* 页脚钤印：朱砂底 + 奶白字（原来用的 --accent 在深色下太亮，字会糊） */
+  color: var(--text-on-accent);
+  background: var(--primary-btn-a);
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20);
   opacity: 0.9;
@@ -2336,8 +2280,8 @@ body::before {
   width: 56px;
   height: 1px;
   margin: 14px auto 0;
-  background: var(--accent);
-  box-shadow: 0 3px 0 rgba(168, 53, 42, 0.32);
+  background: var(--primary-btn-a);
+  box-shadow: 0 3px 0 rgba(var(--accent-rgb), 0.32);
   opacity: 0.9;
 }
 
@@ -2384,7 +2328,7 @@ body.zm-pointer-active::after { opacity: 0 !important; }
 body::before {
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(90, 100, 112, 0.05) 0 1px,
+    rgba(var(--ink-rgb), 0.05) 0 1px,
     transparent 1px 3px
   ) !important;
   opacity: 0.5 !important;
@@ -2416,8 +2360,10 @@ body::before {
 
 /* ⑤ 后台的科技网格 → 宣纸纤维 */
 body[data-theme] {
+  /* 2026-10-25：底 = 暖金晕染 + 竖纤维（宣纸帘纹），两者叠在一起 */
   background-image:
-    repeating-linear-gradient(90deg, rgba(90, 100, 112, 0.045) 0 1px, transparent 1px 3px) !important;
+    radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(var(--ink-rgb), 0.045) 0 1px, transparent 1px 3px) !important;
   background-size: auto !important;
 }
 
@@ -2455,7 +2401,7 @@ a.btn,
   a.btn:hover,
   [role="button"]:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(43, 51, 60, 0.16);
+    box-shadow: 0 4px 12px rgba(var(--ink-rgb), 0.16);
   }
 }
 
@@ -2511,27 +2457,27 @@ a.btn:active,
    ============================================================ */
 
 .id-number {
-  color: #a8352a;
+  color: var(--accent);
   word-break: break-all;
   overflow-wrap: anywhere;
   line-height: 1.35;
 }
 
 [data-theme="dark"] .id-number {
-  color: #e8846c;
+  color: var(--accent);
 }
 
 /* hover 时再亮一点（提示「这串能点/能复制」） */
 .id-number:hover {
-  color: #c9543f;
+  color: var(--primary-btn-a);
 }
 [data-theme="dark"] .id-number:hover {
-  color: #f0a08c;
+  color: color-mix(in srgb, var(--accent) 78%, var(--gold));
 }
 
 /* 已上报/已失效的行保持灰色删线，但删线颜色跟朱砂统一 */
 .id-row.reported .id-number {
-  text-decoration-color: rgba(168, 53, 42, 0.6);
+  text-decoration-color: rgba(var(--accent-rgb), 0.6);
 }
 
 
@@ -2545,7 +2491,9 @@ a.btn:active,
    ============================================================ */
 
 .btn,
-button:not(.theme-toggle):not(.back-to-top):not(.modal-close),
+/* 2026-10-25：大面积的「赞赏卡 / 公告条」不能被胶囊化，否则手机上是一个巨大药丸。
+   这里把它们排除掉，各自用卡片自己的圆角。 */
+button:not(.theme-toggle):not(.back-to-top):not(.modal-close):not(.hero-sponsor):not(.site-announce),
 input[type="submit"],
 input[type="button"],
 a.btn,
@@ -2565,11 +2513,12 @@ a.btn,
   background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .navbar .nav-links a.active {
-  background: var(--primary); color: var(--bg);
+  /* 2026-10-25：当前页 = 朱砂实底 + 奶白字（和主按钮同一档强调） */
+  background: var(--primary-btn-a); color: var(--text-on-accent);
 }
 [data-theme="dark"] .navbar .nav-links a.active {
-  background: var(--primary);
-  color: #12151a;
+  background: var(--primary-btn-a);
+  color: var(--text-on-accent);
 }
 
 /* 建议/反馈页的主题按钮也保持圆（本来就是圆形） */
@@ -2621,4 +2570,66 @@ a.btn,
 .subtabs,
 .cat-tabs {
   border-radius: 999px;
+}
+
+/* ============================================================
+   2026-10-25 手机适配（站主：浅色/暗色切回的那个小太阳也要适配）
+   ------------------------------------------------------------
+   实测问题：导航 5 个入口 + 主题开关在 390px 宽下总宽 417px，
+   开关被挤出屏幕右侧（scrollWidth 417 > 390），点不到。
+   做法：
+     ① ≤768：主题开关脱离导航流，固定在右下角 46×46（够手指点），
+        滚动时也一直能切主题；和「回到顶部」错开约 30px。
+     ② ≤480：导航项再收一档，保证 360px 窄屏也不溢出。
+   只动主题开关与导航间距，不动其它布局。
+   【回退办法】删掉本节两条 @media 即可恢复原布局。
+   ============================================================ */
+@media (max-width: 768px) {
+  /* 反馈/建议页的导航没有 .has-brand，全局 .navbar 的 flex-end 会把品牌挪到右边、
+     导航挤成两行；手机上一律左对齐，品牌在上、导航在下，才不重叠。 */
+  .navbar { justify-content: flex-start; }
+  .navbar .nav-links { margin-left: 0; }
+  .navbar .theme-toggle {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    width: 46px;
+    height: 46px;
+    margin: 0;
+    z-index: 950;                 /* 高于回到顶部(900)，低于弹窗(999) */
+    background: var(--bg-card);
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--border));
+    box-shadow: var(--shadow);
+    color: var(--accent);
+    font-size: 1.25rem;
+    transform: none;
+  }
+  .navbar .theme-toggle:hover {
+    transform: none;
+    color: var(--accent);
+    border-color: var(--gold);
+  }
+  .navbar .theme-toggle:active { transform: scale(0.94); }
+
+  /* 后台顶栏 / 宝库页头里的开关不浮动：它们本来就在页面顶部，
+     且后台顶栏带入场动画（transform），fixed 会以它为包含块跑到屏幕外。
+     这里只把尺寸放大到 44px，保证手指点得到。 */
+  .admin-topbar .theme-toggle,
+  .header-tools .theme-toggle {
+    width: 44px;
+    height: 44px;
+    margin-left: 0;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 480px) {
+  .navbar { padding-left: 6px; padding-right: 6px; gap: 2px; }
+  .navbar .nav-links { gap: 0; }
+  .navbar .nav-links a {
+    padding: 6px 4px;
+    font-size: 0.64rem;
+    letter-spacing: -0.02em;
+  }
+  .navbar .nav-brand { gap: 5px; }
 }

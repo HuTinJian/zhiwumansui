@@ -8,7 +8,8 @@
   <meta name="description" content="织雾满穗 —— 一个持续生长的个人站点：资料库、在线小工具，以及各种打开就能用的东西。">
   <meta name="keywords" content="织雾满穗,在线工具,资料库,个人网站">
   <meta name="author" content="HuTinJian">
-  <meta name="theme-color" content="#fdf2f5">
+  <!-- 2026-10-25：主题色跟随宣纸/墨夜（common.js 切换主题时会覆盖） -->
+  <meta name="theme-color" content="#F5F0E6">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="织雾满穗">
@@ -165,13 +166,13 @@
       font-size: 0.76rem;
       font-weight: 800;
       letter-spacing: 1px;
-      color: #fff;
+      /* 2026-10-25：金底必须配墨字（奶白字压金只有 3:1，看不清） */
+      color: var(--text-on-gold);
       background: var(--gold);
       padding: 4px 11px;
       border-radius: var(--radius-pill);
     }
-    /* 深色主题下 .site-announce-badge 的白字压在浅金上对比度不够，换深色字 */
-    [data-theme="dark"] .site-announce-badge { color: #241c22; }
+    /* 金底墨字在深浅主题都成立（5.2:1 以上），不再单独覆盖 */
     /* 2026-10-05 站主要求「滚动公告加个时间」：
        在「📢 公告」后面钉一个小日期章（**不跟着滚**，一直看得见），
        让人一眼知道这条公告是什么时候的。
@@ -184,7 +185,7 @@
       font-weight: 700;
       letter-spacing: 0.5px;
       color: var(--gold-ink);
-      background: rgba(255, 255, 255, 0.72);
+      background: color-mix(in srgb, var(--bg-card) 78%, transparent);
       border: 1px solid var(--gold-light);
       padding: 3px 9px;
       border-radius: var(--radius-pill);
@@ -193,9 +194,9 @@
     }
     /* 深色主题：白底太跳，换成半透明深底 + 浅金字 */
     [data-theme="dark"] .site-announce-date {
-      color: var(--gold-light);
-      background: rgba(0, 0, 0, 0.22);
-      border-color: rgba(255, 255, 255, 0.16);
+      color: var(--gold-ink);
+      background: var(--bg-glass);
+      border-color: var(--border);
     }
     .site-announce-viewport { flex: 1; min-width: 0; overflow: hidden; }
     .site-announce-track {
@@ -294,7 +295,8 @@
     .hero-sponsor:active { transform: translateY(0) scale(0.98); }
     .hero-sponsor-qr {
       width: 76px; height: 76px; flex-shrink: 0; display: block;
-      border-radius: 10px; background: #fff; border: 1px solid var(--border);
+      /* 二维码底板保留近白（varcard 的深色下也是浅色），保证扫码对比 */
+      border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border);
     }
     .hero-sponsor-txt { display: flex; flex-direction: column; gap: 2px; }
     .hero-sponsor-t { font-size: 0.9rem; font-weight: 700; color: var(--text); }
@@ -348,6 +350,52 @@
     /* 「收到赞助」那一块换个颜色：一眼分得清「花出去的」和「收到的」 */
     .hero-sponsor-cost-got b { color: var(--success); }
 
+    /* 2026-10-25 站主：「请我喝一杯」在手机上不好看。
+       根因是全局「按钮胶囊化」把它也变成了超大圆角胶囊（999px）；
+       这里恢复成方正的卡片，并在手机上重排：上一行二维码 + 文案，
+       下一行两笔账 + 日期，不再挤成一条。 */
+    .hero-sponsor { border-radius: var(--radius-sm) !important; }
+    .site-announce { border-radius: 0 !important; }   /* 公告条是通栏，不该是胶囊 */
+    @media (max-width: 600px) {
+      /* 选择器前面加 .hero，是为了压过下面 768 档的旧规则（同优先级、后出现会赢） */
+      .hero .hero-sponsor {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px 14px;
+        width: 100%;
+        margin-top: 22px;
+        padding: 14px;
+        border-radius: 18px !important;
+        background: linear-gradient(160deg, var(--bg-card) 0%, var(--gold-bg) 100%);
+        border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+        text-align: left;
+        white-space: normal;
+      }
+      .hero .hero-sponsor-qr { width: 70px; height: 70px; border-radius: 8px; }
+      .hero .hero-sponsor-txt { min-width: 0; }
+      .hero .hero-sponsor-t { font-size: 0.92rem; }
+      .hero .hero-sponsor-s { font-size: 0.78rem; line-height: 1.55; }
+      .hero .hero-sponsor-h { font-size: 0.7rem; line-height: 1.5; }
+      .hero .hero-sponsor-stats {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0;
+        padding: 10px 0 0;
+        border-left: none;
+        border-top: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--border));
+        white-space: normal;
+      }
+      .hero .hero-sponsor-nums { gap: 16px; }
+      .hero .hero-sponsor-cost { flex-direction: column; align-items: flex-start; gap: 1px; }
+      .hero .hero-sponsor-cost b { font-size: 1.08rem; }
+      .hero .hero-sponsor-stats-date { text-align: right; font-size: 0.66rem; }
+    }
+
     /* ========== 区块标题 ========== */
     .section-head {
       display: flex;
@@ -390,7 +438,8 @@
       max-width: 720px;
       padding: 9px 14px;
       background: var(--bg-card);
-      border: 1px solid rgba(251, 114, 153, 0.28);   /* B 站粉的淡色描边，不抢站点主色 */
+      /* 2026-10-25：去掉 B 站粉，换成一线淡金，不抢主色 */
+      border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
       border-radius: var(--radius-pill);
       box-shadow: var(--shadow);
       row-gap: 6px;
@@ -420,19 +469,20 @@
       gap: 5px;
       padding: 6px 13px;
       border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, #2b333c, #1f262e);   /* 2026-10-24 水墨：改成墨色，跟全站统一 */
-      color: #fff;
+      /* 2026-10-25：墨色小印（固定深墨，两种主题都配奶白字） */
+      background: linear-gradient(135deg, #2C2721, #17130F);
+      color: var(--text-on-accent);
       font-weight: 800;
       font-size: 0.78rem;
       text-decoration: none;
       white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(43, 51, 60, 0.28);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
       transition: transform 0.25s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft);
     }
     .bili-follow-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 7px 18px rgba(168, 53, 42, 0.42);
-      color: #fff;
+      box-shadow: 0 7px 18px rgba(var(--accent-rgb), 0.42);
+      color: var(--text-on-accent);
     }
     .bili-follow-btn:active { transform: scale(0.98); }
     @media (max-width: 600px) {
@@ -486,7 +536,8 @@
     }
     .card:hover {
       box-shadow: var(--shadow-hover);
-      border-color: rgba(220, 107, 130, 0.32);
+      /* 2026-10-25：hover 用淡金描边，比粉色更稳 */
+      border-color: color-mix(in srgb, var(--gold) 60%, var(--border));
     }
     .card:hover::before { opacity: 1; }
     .card:active { transform: translateY(2px) scale(0.97) !important; transition: transform 0.12s var(--ease-soft); }
@@ -505,7 +556,7 @@
     }
     .card:hover .card-icon {
       transform: translateY(-3px) rotate(-8deg) scale(1.08);
-      box-shadow: 0 8px 20px rgba(220, 107, 130, 0.22);
+      box-shadow: 0 8px 20px rgba(var(--gold-rgb), 0.28);
     }
 
     .card .card-tag {
@@ -699,7 +750,7 @@
            金额【单独一小块，放在赞赏码右边】（用户 2026-09-30 要求）：
            数字和核对日期由 js/common.js 的 SITE_COST 回填，占位属性见
            data-site-cost / data-site-cost-date；HTML 里写的那份只是没脚本时的兜底，
-           换数字时记得一起改（2026-10-24：兜底数字同步成 ¥240.73 / 2026-10-24，
+           换数字时记得一起改（2026-10-25：兜底数字同步成 ¥246.70 / 2026-10-25，
            与 js/common.js 的 SITE_COST 保持一致）。
            2026-10-04（用户要求）：后面再加一块「收到的赞助」（data-sponsor-total），
            数字不写死 —— 由 js/common.js 的 fillSponsorTotal() 按
@@ -725,7 +776,7 @@
         <span class="hero-sponsor-stats">
           <span class="hero-sponsor-nums">
             <span class="hero-sponsor-cost">
-              <b data-site-cost>¥240.73</b>
+              <b data-site-cost>¥246.70</b>
               <span class="hero-sponsor-cost-d">共花费</span>
             </span>
             <span class="hero-sponsor-cost hero-sponsor-cost-got">
@@ -733,7 +784,7 @@
               <span class="hero-sponsor-cost-d">收到赞助</span>
             </span>
           </span>
-          <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-10-24</span></span>
+          <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-10-25</span></span>
         </span>
       </button>
     </section>
@@ -793,6 +844,26 @@
           <span>📅 持续更新</span>
           <span>·</span>
           <span>🍃 手机也能用</span>
+          <span class="arrow" aria-hidden="true">→</span>
+        </div>
+      </a>
+
+      <!-- 2026-10-26 新增：怀旧版入口（站主要求「让大家能体验 2026-08-25 的旧版」）。
+           旧版是独立静态副本，放在 legacy/2026-08-25/，不改动新版任何功能。
+           卡片样式复用本页 .card，只是多一个入口，不参与搜索/筛选（本页没有搜索）。
+           【回退办法】删掉这一整段 <a class="card"> 即可，其余代码无需改动。 -->
+      <a class="card" href="legacy/2026-08-25/index.html"
+         data-title="怀旧版 · 2026 年 8 月 25 日"
+         data-category="时光机"
+         data-tags="怀旧 旧版 2026 回忆 时光机 老网站">
+        <span class="card-icon" aria-hidden="true">🕰️</span>
+        <span class="card-tag">🕰️ 时光机</span>
+        <h3>怀旧版 · 2026 年 8 月 25 日</h3>
+        <p>回到网站刚起步时的样子：粉色界面、旧版宝库和旧版反馈页。旧版只作定格展示，不再更新。</p>
+        <div class="card-meta">
+          <span>📅 已定格</span>
+          <span>·</span>
+          <span>🕰️ 只读体验</span>
           <span class="arrow" aria-hidden="true">→</span>
         </div>
       </a>

@@ -4,8 +4,8 @@
   ------------------------------------------------------------
   作用：收集访客的任何想法（新功能 / 页面体验 / 内容选题 / 合作想法……），
         提交到 POST /api/suggest/submit，落库 D1 表 suggestions。
-  设计：独立深色科幻皮肤（深空信号台）——深色底 + 霓虹青紫 + 细网格 + 发光按钮；
-        不复用 css/style.css 的粉色主题，避免两套变量互相覆盖。
+  设计：中式宣纸皮肤（2026-10-25 重制）——宣纸底 + 墨 + 朱砂 + 金；
+        颜色全部引用 css/style.css 的全局令牌，浅色 / 深色两套主题自动跟随。
         导航栏 / 页脚结构、skip-link、品牌图与 index.html 保持同一套习惯。
   依赖：页面本身只引用站内 images/favicon.svg 与既有的 js/turnstile.js，没有引入框架；
         js/turnstile.js 在当前 SITE_KEY 为空时不会加载任何外部脚本（人机验证未启用）。
@@ -25,7 +25,7 @@
   <title>💡 建议 · 织雾满穗</title>
 
   <meta name="description" content="向织雾满穗提交任何想法：新功能、页面体验、内容选题、合作建议都可以。">
-  <meta name="theme-color" content="#12151a">
+  <meta name="theme-color" content="#F5F0E6">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
 
@@ -57,52 +57,43 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* ============================================================
-       深空信号台 · 页面皮肤
+       中式页面皮肤（2026-10-25 重制）
        ------------------------------------------------------------
-       全部样式内联在本页，刻意不加载 css/style.css：
-         · 那边是粉色主题，变量名相同但色值冲突；
-         · 本页要保证无论系统明暗模式如何，都是深色霓虹观感。
-       结构顺序：变量 → 基础 → 背景 → 导航 → 主内容 → 表单 → 侧栏 → 页脚。
-       【回退办法】整段 <style> 删除后本页会退化成无样式纯表单（功能仍可用）；
-         删除后不影响任何其它页面，因为本页没有改动全局 CSS 文件。
+       本页 <style> 在 css/style.css 之后加载，只负责「本页特有结构」的颜色；
+       所有色值一律引用全局令牌（宣纸 / 墨 / 朱砂 / 金 / 竹青），不再自带一套配色。
+       原来的「深空信号台」霓虹皮肤（深蓝底 + 青紫渐变 + 星点 + 扫描线 + 发光边）
+       已整体换掉：背景改为极淡的宣纸纤维 / 金线 / 朱砂墨晕，全部静态、不发光。
+       结构顺序不变：变量 → 基础 → 背景 → 导航 → 主内容 → 表单 → 侧栏 → 页脚。
+       【回退办法】两页备份在 .verify/backup-theme-20261025/feedback.html 与
+         .verify/backup-theme-20261025/suggest.html；也可执行
+         `git checkout -- feedback.html suggest.html` 恢复本次改动。
        ============================================================ */
 
+    /* 页面局部变量：变量名保留（下面的规则都按这些名字写），
+       但值全部指向 css/style.css 的全局令牌 —— 全站只有一处配色源。
+       注意：--bg / --bg-soft / --text / --danger 不在这里重定义，
+       它们与全局同名，若写成 var(--bg) 会自引用成环，直接让全局值生效即可。
+       【回退办法】把本段还原成旧版局部色板（见 .verify/backup-theme-20261025/feedback.html）。 */
     :root {
-      --bg: #f7f8f9;
-      --bg-soft: #f2f4f6;
-      --panel: rgba(255, 253, 247, 0.88);
-      --panel-solid: #ffffff;
-      --line: rgba(120, 140, 158, 0.22);
-      --line-strong: rgba(120, 140, 158, 0.42);
-      --cyan: #b8860b;
-      --cyan-soft: rgba(120, 140, 158, 0.10);
-      --violet: #a8322a;
-      --violet-soft: rgba(168, 50, 42, 0.10);
-      --text: #2b2520;
-      --text-soft: #4a4038;
-      --text-dim: #7a6d5e;
-      --ok: #6b8e7f;
-      --danger: #a8322a;
-      --warn: #b8860b;
+      --panel: var(--bg-card);
+      --panel-solid: var(--bg-card);
+      --line: var(--border);
+      --line-strong: var(--border-strong);
+      --cyan: var(--gold);
+      --cyan-soft: rgba(var(--gold-rgb), 0.12);
+      --violet: var(--accent);
+      --violet-soft: rgba(var(--accent-rgb), 0.10);
+      --text-soft: var(--text-light);
+      --text-dim: var(--text-muted);
+      --ok: var(--success);
+      /* 警告是文字用途：必须用可读的金墨（--gold-ink），装饰线色 --gold 在浅底只有 3.1:1 */
+      --warn: var(--gold-ink);
     }
 
-    /* 深色 · 墨夜（原配色，2026-10-24 保留为可切换项） */
-    [data-theme="dark"] {--bg: #0f1114;
-      --bg-soft: #14171b;
-      --panel: rgba(25, 29, 34, 0.82);
-      --panel-solid: #191d22;
-      --line: rgba(212, 169, 74, 0.20);
-      --line-strong: rgba(212, 169, 74, 0.45);
-      --cyan: #d4a94a;
-      --cyan-soft: rgba(212, 169, 74, 0.12);
-      --violet: #c9553f;
-      --violet-soft: rgba(201, 85, 63, 0.14);
-      --text: #e9dfcc;
-      --text-soft: #c4b8a3;
-      --text-dim: #9a8d78;
-      --ok: #7fa89a;
-      --danger: #d9604a;
-      --warn: #d4a94a;
+    /* 深色主题不再重写任何颜色：色值全部由全局令牌按主题提供。
+       这里只保留圆角 / 字体这类非颜色差异。
+       【回退办法】删掉本段即回到使用全局圆角与字体（浅色主题原本就是全局值）。 */
+    [data-theme="dark"] {
       --radius: 16px;
       --sans: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, sans-serif;
       --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", "Courier New", monospace;
@@ -135,7 +126,8 @@
     /* 320px 窄屏也不能出现横向滚动条：长单词、长链接一律允许断行 */
     a, p, li, h1, h2, h3, label, span { overflow-wrap: break-word; }
 
-    a { color: #9fd8ff; }
+    /* 链接：朱砂（原来的浅蓝链接色已撤） */
+    a { color: var(--accent); }
 
     button,
     input,
@@ -144,20 +136,23 @@
     code {
       font-family: var(--mono);
       font-size: 0.92em;
-      color: #b9e9ff;
-      background: rgba(120, 140, 158, 0.10);
-      border: 1px solid rgba(120, 140, 158, 0.16);
+      /* 行内代码：墨字 + 淡墨底（原浅蓝字已撤） */
+      color: var(--text);
+      background: rgba(var(--ink-rgb), 0.09);
+      border: 1px solid rgba(var(--ink-rgb), 0.16);
       border-radius: 4px;
       padding: 0 4px;
     }
 
+    /* 选中态：朱砂淡叠底 + 墨字（不再用冷灰 + 纯白） */
     ::selection {
-      background: rgba(120, 140, 158, 0.30);
-      color: #ffffff;
+      background: rgba(var(--accent-rgb), 0.26);
+      color: var(--text);
     }
 
+    /* 键盘焦点环统一走全局 --focus-ring（浅色朱砂 / 深色金） */
     :focus-visible {
-      outline: 2px solid var(--cyan);
+      outline: 2px solid var(--focus-ring, var(--accent));
       outline-offset: 3px;
       border-radius: 6px;
     }
@@ -170,8 +165,9 @@
       z-index: 300;
       padding: 10px 16px;
       border-radius: 0 0 10px 10px;
-      background: var(--cyan);
-      color: #031018;
+      /* 主行动色：朱砂按钮底（深色主题下 --accent 作底只有 3.3:1，不够白字） */
+      background: var(--primary-btn-a);
+      color: var(--text-on-accent);
       font-weight: 800;
       text-decoration: none;
       transition: top 0.16s ease;
@@ -191,7 +187,10 @@
       border: 0;
     }
 
-    /* ---------- 固定背景：网格 / 星点 / 青紫光晕 / 扫描线 ---------- */
+    /* ---------- 固定背景：宣纸纤维 / 淡金线 / 朱砂墨晕（静态，不发光） ----------
+       2026-10-25：原「星点 + 扫描线 + 青紫光斑」全部撤掉，改成宣纸质感。
+       所有装饰的合成不透明度都压在 0.08 以内，避免抢正文；也不再做无限动画。
+       【回退办法】整段换回 .verify/backup-theme-20261025/feedback.html 的对应段落。 */
     .space-bg {
       position: fixed;
       inset: 0;
@@ -200,66 +199,67 @@
       pointer-events: none;
     }
 
+    /* 宣纸帘纹：两组极淡的金 / 墨细线交叉成纸纤维感（合成不透明度 ≈ 0.04） */
     .space-grid {
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(to right, rgba(120, 140, 158, 0.07) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(120, 140, 158, 0.07) 1px, transparent 1px);
+        linear-gradient(to right, rgba(var(--gold-rgb), 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(var(--ink-rgb), 0.035) 1px, transparent 1px);
       background-size: 42px 42px;
+      /* 这里的黑色只是 mask 的遮罩色，不会被看见，也不属于配色 */
       -webkit-mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
       mask-image: radial-gradient(ellipse 90% 62% at 50% 18%, #000 18%, transparent 76%);
       opacity: 0.85;
     }
 
+    /* 纸屑 / 金屑：原来的冷白星点，改成暖金与墨色的静态纸屑（不闪烁） */
     .space-stars {
       position: absolute;
       inset: 0;
       background-image:
-        radial-gradient(1.2px 1.2px at 18% 24%, rgba(225, 245, 255, 0.9), transparent 55%),
-        radial-gradient(1px 1px at 72% 12%, rgba(190, 220, 255, 0.75), transparent 55%),
-        radial-gradient(1.4px 1.4px at 43% 61%, rgba(255, 255, 255, 0.65), transparent 55%),
-        radial-gradient(1px 1px at 86% 72%, rgba(190, 220, 255, 0.6), transparent 55%),
-        radial-gradient(1px 1px at 9% 83%, rgba(225, 245, 255, 0.55), transparent 55%);
+        radial-gradient(1.2px 1.2px at 18% 24%, rgba(var(--gold-rgb), 0.14), transparent 55%),
+        radial-gradient(1px 1px at 72% 12%, rgba(var(--ink-rgb), 0.10), transparent 55%),
+        radial-gradient(1.4px 1.4px at 43% 61%, rgba(var(--gold-rgb), 0.14), transparent 55%),
+        radial-gradient(1px 1px at 86% 72%, rgba(var(--ink-rgb), 0.10), transparent 55%),
+        radial-gradient(1px 1px at 9% 83%, rgba(var(--gold-rgb), 0.12), transparent 55%);
       background-size: 340px 300px;
-      opacity: 0.55;
+      opacity: 0.5;
     }
 
+    /* 两团墨晕：左上一团淡金（宣纸受光），右下一团极淡朱砂（印泥洇开） */
     .space-glow {
       position: absolute;
       width: min(680px, 78vw);
       aspect-ratio: 1;
       border-radius: 50%;
       filter: blur(80px);
-      opacity: 0.10;
+      opacity: 0.06;
     }
     .space-glow-a {
       top: -240px;
       left: -180px;
-      background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0) 68%);
+      background: radial-gradient(circle, var(--gold) 0%, transparent 68%);
     }
     .space-glow-b {
       right: -220px;
       bottom: -260px;
-      background: radial-gradient(circle, #7c3aed 0%, rgba(124, 58, 237, 0) 68%);
+      background: radial-gradient(circle, var(--accent) 0%, transparent 68%);
     }
 
+    /* 原扫描线：撤掉移动与发光，只留一条几乎看不见的静态金线（装裱压边） */
     .space-scan {
       position: absolute;
       left: 0;
       right: 0;
       top: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(120, 140, 158, 0.55), transparent);
-      box-shadow: 0 0 16px rgba(120, 140, 158, 0.65);
-      animation: scanMove 10s linear infinite;
-    }
-    @keyframes scanMove {
-      from { transform: translateY(-4vh); }
-      to   { transform: translateY(104vh); }
+      background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), 0.06), transparent);
+      box-shadow: none;
+      animation: none;
     }
 
-    /* ---------- 导航栏：沿用 .navbar 结构，换成深色玻璃 + 青线 ---------- */
+    /* ---------- 导航栏：沿用 .navbar 结构，改成宣纸玻璃 + 墨线 ---------- */
     .navbar {
       position: sticky;
       top: 0;
@@ -269,7 +269,7 @@
       gap: 10px 18px;
       flex-wrap: wrap;
       padding: 10px clamp(12px, 3vw, 32px);
-      background: rgba(5, 6, 14, 0.86);
+      background: var(--bg-glass);
       border-bottom: 1px solid var(--line);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -288,7 +288,8 @@
       width: 26px;
       height: 26px;
       flex-shrink: 0;
-      filter: drop-shadow(0 0 7px rgba(120, 140, 158, 0.45));
+      /* 去掉原来的青色发光，只留一点墨色接触阴影 */
+      filter: drop-shadow(0 1px 1px rgba(var(--ink-rgb), 0.12));
     }
     .brand-text {
       font-size: 0.92rem;
@@ -327,17 +328,17 @@
     }
     .nav-links a:hover {
       color: var(--text);
-      background: rgba(120, 140, 158, 0.10);
-      border-color: rgba(120, 140, 158, 0.24);
+      background: color-mix(in srgb, var(--text) 7%, transparent);
+      border-color: var(--line-strong);
     }
     .nav-links a.active {
-      /* 2026-10-24 站主要求：选中态要胶囊 + 中式。改成朱砂实心 + 米白字（钤印感）。 */
-      color: #fff8ec;
-      background: var(--violet);
+      /* 选中态：朱砂实底 + 奶白字（钤印感），不再发光 */
+      color: var(--text-on-accent);
+      background: var(--primary-btn-a);
       border-color: transparent;
       border-radius: 999px;
       font-weight: 800;
-      box-shadow: 0 0 18px rgba(120, 140, 158, 0.24);
+      box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.18);
     }
 
     .hud-clock {
@@ -382,7 +383,8 @@
       height: 7px;
       border-radius: 50%;
       background: var(--ok);
-      box-shadow: 0 0 10px var(--ok);
+      /* 去掉霓虹光晕；小圆点本身仍作为「在线」指示 */
+      box-shadow: none;
       animation: signalPulse 2.4s ease-in-out infinite;
     }
     @keyframes signalPulse {
@@ -400,7 +402,8 @@
       font-family: var(--mono);
       font-size: 0.66rem;
       letter-spacing: 0.2em;
-      color: var(--cyan);
+      /* 小字用 --gold-ink（浅底 5.8:1），不用装饰性的 --gold 线色 */
+      color: var(--gold-ink);
       text-transform: uppercase;
     }
     .hero h1 {
@@ -412,7 +415,8 @@
       text-wrap: balance;
     }
     .grad {
-      background: linear-gradient(100deg, var(--cyan) 0%, #9ad8ff 38%, var(--violet) 100%);
+      /* 2026-10-25：青紫霓虹渐变 → 朱砂 → 金（两端都是可读的深色，大标题才敢用渐变） */
+      background: linear-gradient(100deg, var(--accent) 0%, var(--gold-ink) 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -435,10 +439,10 @@
     }
     .hero-tags li {
       padding: 3px 9px;
-      border: 1px solid rgba(120, 140, 158, 0.24);
+      border: 1px solid var(--line);
       border-radius: 999px;
-      background: rgba(120, 140, 158, 0.06);
-      color: #9fd8ff;
+      background: color-mix(in srgb, var(--text) 5%, transparent);
+      color: var(--text-light);
       font-family: var(--mono);
       font-size: 0.66rem;
       letter-spacing: 0.05em;
@@ -455,14 +459,13 @@
     .panel {
       position: relative;
       min-width: 0;
-      background: linear-gradient(160deg, rgba(13, 22, 45, 0.90), rgba(7, 10, 24, 0.94));
+      /* 2026-10-25：深蓝渐层面板 → 宣纸卡片（--panel 指向 --bg-card） */
+      background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow:
-        0 18px 60px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      box-shadow: var(--shadow-sm);
     }
-    /* HUD 直角括号：只做两个角，轻但足够有科幻味 */
+    /* 中式装裱角线：左上金、右下朱砂，只做两个角，不发光 */
     .panel::before,
     .panel::after {
       content: "";
@@ -491,7 +494,7 @@
     .form-head {
       padding-bottom: 16px;
       margin-bottom: 22px;
-      border-bottom: 1px dashed rgba(120, 170, 255, 0.20);
+      border-bottom: 1px dashed var(--line);
     }
     .panel-title {
       display: flex;
@@ -508,7 +511,7 @@
       flex-shrink: 0;
       border-radius: 2px;
       background: linear-gradient(180deg, var(--cyan), var(--violet));
-      box-shadow: 0 0 12px rgba(120, 140, 158, 0.5);
+      box-shadow: 0 1px 3px rgba(var(--ink-rgb), 0.14);
     }
     .panel-sub {
       margin: 0;
@@ -535,7 +538,8 @@
       color: var(--text);
     }
     .req {
-      color: var(--cyan);
+      /* 必填星号：朱砂（比装饰金更“要你看”，符合「突出就突出」） */
+      color: var(--accent);
       font-weight: 800;
       margin-left: 2px;
     }
@@ -566,28 +570,27 @@
       max-width: 100%;
       padding: 12px 14px;
       color: var(--text);
-      background: rgba(4, 8, 20, 0.72);
-      border: 1px solid rgba(120, 170, 255, 0.22);
+      /* 输入框：宣纸蛋壳底（--bg-soft）+ 常规描边，只有聚焦才亮焦点环 */
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 0.92rem;
       line-height: 1.6;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
     .control::placeholder {
-      color: #5c6d90;
+      color: var(--text-muted);
       opacity: 1;
     }
-    .control:hover { border-color: rgba(120, 170, 255, 0.36); }
+    .control:hover { border-color: var(--border-strong); }
     .control:focus {
       outline: none;
-      border-color: var(--cyan);
-      background: rgba(6, 12, 28, 0.92);
-      box-shadow:
-        0 0 0 3px rgba(120, 140, 158, 0.10),
-        0 0 24px rgba(120, 140, 158, 0.10);
+      border-color: var(--focus-ring, var(--accent));
+      background: var(--bg-card);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring, var(--accent)) 16%, transparent);
     }
     .control:focus-visible {
-      outline: 2px solid rgba(120, 140, 158, 0.65);
+      outline: 2px solid var(--focus-ring, var(--accent));
       outline-offset: 2px;
     }
     textarea.control {
@@ -597,7 +600,7 @@
 
     .field.is-invalid .control {
       border-color: var(--danger);
-      box-shadow: 0 0 0 3px rgba(255, 107, 138, 0.12);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.14);
     }
 
     .hint {
@@ -609,6 +612,9 @@
 
     .form-foot { margin-top: 22px; }
 
+    /* 主行动按钮：朱砂渐变实底 + 奶白字（色板第 2 节「强调层级」第 1 条）。
+       原来的青 → 蓝 → 红霓虹渐变、深色字与发光投影已撤。
+       【回退办法】还原 .btn-submit 的 background / color / box-shadow 三段即可。 */
     .btn-submit {
       position: relative;
       display: flex;
@@ -620,36 +626,31 @@
       padding: 14px 18px;
       border: 0;
       border-radius: 12px;
-      background: linear-gradient(105deg, #47e6ff 0%, #6bb8ff 46%, #c9543f 100%);
+      background: linear-gradient(135deg, var(--primary-btn-a) 0%, var(--primary-btn-b) 100%);
       background-size: 160% 100%;
-      color: #03121c;
+      color: var(--text-on-accent);
       font-size: 1rem;
       font-weight: 800;
       letter-spacing: 0.04em;
       cursor: pointer;
-      box-shadow:
-        0 0 0 1px rgba(120, 140, 158, 0.45),
-        0 12px 34px rgba(120, 140, 158, 0.18),
-        0 0 40px rgba(168, 53, 42, 0.12);
+      box-shadow: var(--shadow-sm);
       transition: transform 0.18s ease, box-shadow 0.18s ease, background-position 0.35s ease, opacity 0.18s ease;
     }
     .btn-submit:hover {
       transform: translateY(-2px);
       background-position: 100% 0;
-      box-shadow:
-        0 0 0 1px rgba(120, 140, 158, 0.60),
-        0 16px 42px rgba(120, 140, 158, 0.26),
-        0 0 52px rgba(168, 53, 42, 0.20);
+      box-shadow: var(--shadow-hover);
     }
     .btn-submit:active { transform: translateY(0) scale(0.995); }
     .btn-submit:disabled {
       cursor: progress;
       opacity: 0.66;
       transform: none;
-      box-shadow: 0 0 0 1px rgba(120, 140, 158, 0.28);
+      box-shadow: none;
     }
     .btn-submit:focus-visible {
-      outline: 2px solid #ffffff;
+      /* 焦点环走全局令牌，不再用纯白外描边 */
+      outline: 2px solid var(--focus-ring, var(--accent));
       outline-offset: 3px;
     }
 
@@ -659,7 +660,7 @@
       font-size: 0.7rem;
       line-height: 1.75;
     }
-    .consent a { color: #9fd8ff; }
+    .consent a { color: var(--accent); }
 
     /* 提交结果提示：成功 / 失败 / 进行中三种状态，只改 class 不拼 HTML */
     .status {
@@ -673,30 +674,32 @@
       overflow-wrap: anywhere;
     }
     .status.is-visible { display: block; }
+    /* 三种状态：石青（信息）/ 竹青（成功）/ 胭脂红（危险），全部走全局令牌 */
     .status.is-info {
-      color: #a9d8ff;
-      border-color: rgba(120, 190, 255, 0.32);
-      background: rgba(77, 160, 255, 0.08);
+      color: var(--info-ink);
+      border-color: color-mix(in srgb, var(--info-ink) 32%, transparent);
+      background: var(--info-bg);
     }
     .status.is-ok {
-      color: #9affd6;
-      border-color: rgba(85, 240, 176, 0.38);
-      background: rgba(85, 240, 176, 0.08);
+      /* 成功文字用深一档竹青：浅色底上是 5.2:1（--success 只有 4.2:1，小字不达标） */
+      color: var(--success-dark);
+      border-color: color-mix(in srgb, var(--success) 40%, transparent);
+      background: color-mix(in srgb, var(--success) 10%, transparent);
     }
     .status.is-error {
-      color: #ffb3c0;
-      border-color: rgba(255, 107, 138, 0.42);
-      background: rgba(255, 107, 138, 0.08);
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 38%, transparent);
+      background: var(--danger-bg);
     }
-    .status:focus { outline: 2px solid rgba(120, 140, 158, 0.55); outline-offset: 2px; }
+    .status:focus { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
 
     .noscript {
       margin: 14px 0 0;
       padding: 12px 14px;
-      border: 1px solid rgba(255, 209, 102, 0.36);
+      border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
       border-radius: 10px;
-      background: rgba(255, 209, 102, 0.08);
-      color: #ffe6a8;
+      background: color-mix(in srgb, var(--gold) 10%, transparent);
+      color: var(--gold-ink);
       font-size: 0.8rem;
       line-height: 1.7;
     }
@@ -720,9 +723,10 @@
     .side-index {
       flex-shrink: 0;
       padding: 2px 6px;
-      border: 1px solid rgba(120, 140, 158, 0.35);
+      border: 1px solid var(--line-strong);
       border-radius: 6px;
-      color: var(--cyan);
+      /* 小字号用可读的金色（--gold-ink），不用装饰金线色 */
+      color: var(--gold-ink);
       font-family: var(--mono);
       font-size: 0.62rem;
       letter-spacing: 0.08em;
@@ -764,19 +768,19 @@
     }
     .inline-link:hover {
       color: var(--text);
-      border-color: rgba(120, 140, 158, 0.40);
-      background: rgba(120, 140, 158, 0.06);
+      border-color: var(--line-strong);
+      background: color-mix(in srgb, var(--text) 5%, transparent);
     }
-    .inline-link .arrow { flex-shrink: 0; color: var(--cyan); }
+    .inline-link .arrow { flex-shrink: 0; color: var(--accent); }
 
-    /* ---------- 页脚：结构与 index.html 一致，只做低调深色版 ---------- */
+    /* ---------- 页脚：结构与 index.html 一致，只做低调纸色版 ---------- */
     .footer {
       position: relative;
       z-index: 2;
       margin-top: 44px;
       padding: 26px clamp(14px, 4vw, 32px) calc(30px + env(safe-area-inset-bottom, 0px));
-      border-top: 1px solid rgba(120, 170, 255, 0.14);
-      background: rgba(3, 5, 12, 0.55);
+      border-top: 1px solid var(--border);
+      background: transparent;
       text-align: center;
       color: var(--text-dim);
       font-size: 0.76rem;
@@ -791,11 +795,11 @@
       overflow-wrap: anywhere;
     }
     .footer a {
-      color: #9fd8ff;
+      color: var(--accent);
       text-decoration: none;
-      border-bottom: 1px dashed rgba(159, 216, 255, 0.4);
+      border-bottom: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
     }
-    .footer a:hover { color: #d2efff; }
+    .footer a:hover { color: var(--gold-ink); }
 
     /* ---------- 窄屏：单栏、导航换行、输入框 16px 防 iOS 自动放大 ---------- */
     @media (max-width: 820px) {
@@ -860,13 +864,13 @@
     }
   
     /* 2026-10-24：QQ 群二维码区块（建议 / 反馈页共用这套样式）
-       颜色刻意用 rgba 写死，不依赖各页的 CSS 变量（两页变量名不完全一样）。
+       2026-10-25：两页 <style> 已完全一致，颜色改为引用全局令牌（宣纸卡片 + 常规描边）。
        【回退办法】删掉本段即可。 */
     .group-card {
-      border: 1px solid rgba(120, 200, 255, 0.18);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px 14px;
-      background: rgba(14, 22, 32, 0.55);
+      background: var(--bg-soft);
     }
     .group-card > summary {
       cursor: pointer;
@@ -899,6 +903,7 @@
       max-width: 180px;
       height: auto;
       border-radius: 999px;
+      /* 二维码的白底是功能性的（扫码需要浅色静区），故意保留纯白 */
       background: #fff;
       padding: 6px;
       display: block;
@@ -916,7 +921,7 @@
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      border: 1px solid rgba(120, 140, 158, 0.28);
+      border: 1px solid var(--line);
       background: transparent;
       color: inherit;
       cursor: pointer;
@@ -935,6 +940,8 @@
        2026-10-24 对齐「主页 / 鸣谢 / 法律」（站主：这两页要模仿那三页）
        ------------------------------------------------------------
        那三页共用 css/style.css；本页原本是独立深色皮肤。
+       2026-10-25：全站色板换成中国色后，本段继续保留，只负责「本页与全站一致」
+       的少量收口（变量已全部指向全局令牌，这里不再出现写死的色值）。
        这里把底色、字体、导航、页脚、按钮全部拉回 style.css 的体系，
        内部表单布局保持原样（那些是 .shell/.panel/.field，不影响观感统一）。
        【回退办法】删掉本段 + <link rel="stylesheet" href="css/style.css">。
@@ -951,7 +958,8 @@
     .navbar {
       background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-soft) 100%) !important;
       border-bottom: 1px solid var(--border) !important;
-      box-shadow: 0 2px 12px rgba(43, 51, 60, 0.06) !important;
+      /* 阴影交给全局令牌（浅色暖褐 / 深色黑），删掉旧的冷蓝灰投影 */
+      box-shadow: var(--shadow-sm) !important;
       backdrop-filter: none !important;
     }
     .nav-brand .brand-text { color: var(--text) !important; }
@@ -962,11 +970,12 @@
       border: none !important;
     }
     .nav-links a:hover { background: color-mix(in srgb, var(--text) 7%, transparent) !important; }
+    /* 当前页：朱砂实底 + 奶白字；两套主题共用这条规则，
+       原先深色主题下的深蓝字覆盖已删除。 */
     .nav-links a.active {
-      background: var(--primary) !important;
+      background: var(--primary-btn-a) !important;
       color: var(--text-on-accent) !important;
     }
-    [data-theme="dark"] .nav-links a.active { color: #12151a !important; }
 
     /* 页脚：跟 index 一致 */
     .footer {
@@ -974,8 +983,8 @@
       border-top: 1px solid var(--border) !important;
       color: var(--text-muted) !important;
     }
-    .footer a { color: var(--primary-ink) !important; }
-    .footer a:hover { color: var(--primary) !important; }
+    .footer a { color: var(--accent) !important; }
+    .footer a:hover { color: var(--gold-ink) !important; }
     .footer-legal { color: var(--text-muted) !important; }
 
     /* 卡片/面板也走 style.css 的卡片体系 */
@@ -1005,8 +1014,9 @@
     }
     input.control:focus,
     textarea.control:focus {
-      border-color: var(--primary) !important;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent) !important;
+      /* 焦点环统一 var(--focus-ring)：浅色朱砂、深色金 */
+      border-color: var(--focus-ring, var(--accent)) !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring, var(--accent)) 18%, transparent) !important;
     }
 
     /* 分类/标签类小药丸：淡蓝 → 水墨灰 */
@@ -1022,7 +1032,17 @@
       border-radius: 999px !important;
     }
 
-    /* 大标题的渐变文字 → 纯墨（去掉 background-clip） */
+    /* 2026-10-25 修实际观感问题：上面的 [class*="tag"] 是「类名包含 tag 子串」的宽泛选择器，
+       它把 .hero-tags 这个 <ul> 容器本身也涂成了一条全宽灰带（不是药丸）。
+       这里只把容器还原成透明，药丸样式仍由 .hero-tags li 负责；不动尺寸与布局。
+       【回退办法】删掉这条规则即可恢复原来的全宽灰带。 */
+    .hero .hero-tags {
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    /* 标题容器保持墨色（渐变只给 .grad 那个强调 span） */
     h1, .hero-title {
       background: none !important;
       -webkit-background-clip: border-box !important;
@@ -1037,14 +1057,9 @@
     }
 
 
-    /* 2026-10-24 收尾：标题渐变字 + hero 小药丸 */
-    .grad {
-      background: none !important;
-      -webkit-background-clip: border-box !important;
-      background-clip: border-box !important;
-      -webkit-text-fill-color: currentColor !important;
-      color: var(--accent) !important;
-    }
+    /* 2026-10-25：标题渐变字恢复显示，但改成「朱砂 → 金」可读渐变（见上方 .grad 基础规则）。
+       2026-10-24 为救可读性加的纯色覆盖已删除——现在两端在明暗两套主题下对比度都够。
+       【回退办法】若渐变仍看不清，把 .grad 的 background 改回 none、color 改回 var(--accent)。 */
     /* hero 区那种「新功能 / 页面体验」小药丸：淡蓝 → 水墨灰 */
     .hero-tags span,
     .hero-tags a,

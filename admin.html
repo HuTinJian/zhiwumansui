@@ -7,7 +7,9 @@
   <!-- 2026-10-18：后台原来没有「渲染前定主题」脚本（其它 5 个页面都有），
        用过深色的人每次进后台都会先闪一下浅色。这里补一份，逻辑与 index.html 相同。
        【回退办法】删掉下面这段脚本标签与 meta theme-color 即可。 -->
-  <meta name="theme-color" content="#fdf2f5">
+  <!-- 2026-10-25 中国色施工：初始 theme-color 写浅色宣纸（色值与全局 --bg 一致）；切到深色时由 js/common.js 覆盖为墨夜底。
+       【回退办法】改回原来的粉色初值（见 .verify/backup-theme-20261025/admin.html 第 10 行）。 -->
+  <meta name="theme-color" content="#F5F0E6">
   <script>
     (function () {
       try {
@@ -45,14 +47,18 @@
     }
     .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
     .tab:active { transform: scale(0.98); }
+    /* 2026-10-25 中国色：选中标签的「粉雾阴影」与淡粉底全部换成朱砂叠色（--accent-rgb 随主题变），
+       不再出现粉色；底色仍是 --primary（浅色墨 / 深色月白），字色后面由「选中态修复」统一成 --bg。
+       【回退办法】把本段四处朱砂叠色改回旧的粉色 rgba 写法（透明度不变），
+       或从 .verify/backup-theme-20261025/admin.html 整段拷回。 */
     .tab.active {
-      background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1 */
-      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.3);
+      background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1（见文末「选中态修复」的 --bg 兜底） */
+      box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3);
     }
 
     .subtabs {
       display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-      padding: 6px; background: rgba(220, 107, 130, 0.06);
+      padding: 6px; background: rgba(var(--gold-rgb), 0.10);
       border-radius: var(--radius-pill);
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
@@ -63,11 +69,11 @@
       font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .subtab:hover { color: var(--primary); background: rgba(220, 107, 130, 0.1); }
+    .subtab:hover { color: var(--primary); background: rgba(var(--gold-rgb), 0.14); }
     .subtab:active { transform: scale(0.98); }
     .subtab.active {
       background: var(--primary); color: var(--text-on-accent);
-      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.25);
+      box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.25);
     }
 
     .subtabs-lv3 {
@@ -147,11 +153,16 @@
       border-radius: var(--radius-pill); cursor: pointer; font-weight: 600;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    .list-item .actions .btn-approve { background: var(--gold); color: #fff; }
-    .list-item .actions .btn-approve:hover { background: #b8894f; transform: translateY(-1px); }
-    .list-item .actions .btn-delete { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-delete:hover { background: #a93226; transform: translateY(-1px); }
-    .list-item .actions .btn-expand { background: var(--primary); color: var(--text-on-accent); }
+    /* 2026-10-25 中国色：金/红实底按钮统一换成「深底 + 奶白字」的令牌
+       （--gold-strong / --danger / --text-on-accent），hover 不再写死旧的金褐色/暗红色，
+       改成掺 14% 深朱砂（--primary-btn-b）压暗，浅/深两套主题方向一致。
+       【回退办法】按钮底色改回 var(--gold)，字色改回 #fff，hover 改回旧的写死深色值；
+       或从 .verify/backup-theme-20261025/admin.html 整段拷回。 */
+    .list-item .actions .btn-approve { background: var(--gold-strong); color: var(--text-on-accent); }
+    .list-item .actions .btn-approve:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
+    .list-item .actions .btn-delete { background: var(--danger-solid); color: var(--text-on-accent); }
+    .list-item .actions .btn-delete:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
+    .list-item .actions .btn-expand { background: var(--primary); color: var(--bg); } /* --primary 浅色是墨、深色是月白，字必须用 --bg 才能永远反差 */
     .list-item .actions .btn-expand:hover { background: var(--primary-dark); transform: translateY(-1px); }
     /* 赞助者那一行的「✏️ 编辑」：中性描边款，别跟红色的「🗑️ 删除」抢眼 */
     .list-item .actions .btn-edit-sponsor {
@@ -167,10 +178,10 @@
     }
     .list-item .actions .btn-edit-sponsor-name:hover,
     .list-item .actions .btn-edit-thanks:hover { background: var(--bg-tint); transform: translateY(-1px); }
-    .list-item .actions .btn-delete-name { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-delete-name:hover { background: #a93226; transform: translateY(-1px); }
-    .list-item .actions .btn-restore-sponsor { background: var(--gold); color: #fff; }
-    .list-item .actions .btn-restore-sponsor:hover { background: #b8894f; transform: translateY(-1px); }
+    .list-item .actions .btn-delete-name { background: var(--danger-solid); color: var(--text-on-accent); }
+    .list-item .actions .btn-delete-name:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
+    .list-item .actions .btn-restore-sponsor { background: var(--gold-strong); color: var(--text-on-accent); }
+    .list-item .actions .btn-restore-sponsor:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
 
     /* ========== ID 旁边那对小按钮：📋 复制 / 🔗 试听（2026-10-05 站主要求） ==========
        站主：「后台所有跟 ID 有关的，都要有复制和试听功能，这样更快的审核和判断」，
@@ -202,8 +213,11 @@
     .id-act:hover { border-color: var(--primary-light); color: var(--primary); background: var(--bg-card); }
     .id-act:active { transform: scale(0.97); }
     /* 「🔗 试听」是跳去 Roblox 官方页，给一点区分色，别跟「复制」混在一起 */
-    .id-act[data-admin-listen] { border-color: rgba(107, 182, 232, 0.5); color: #3f86b5; }
-    .id-act[data-admin-listen]:hover { border-color: #6bb6e8; color: #1f6e9c; background: var(--bg-card); }
+    /* 2026-10-25 中国色：「🔗 试听」原来的天蓝/宝蓝换成石青信息色（--info-ink / --info-bg），
+       不再有蓝紫霓虹；边框用 color-mix 调淡，保持小药丸的轻量感。
+       【回退办法】改回旧的天蓝边框与深蓝字（见备份文件 205-206 行）。 */
+    .id-act[data-admin-listen] { border-color: color-mix(in srgb, var(--info-ink) 55%, transparent); color: var(--info-ink); }
+    .id-act[data-admin-listen]:hover { border-color: var(--info-ink); color: var(--info-ink); background: var(--info-bg); }
     @media (max-width: 600px) {
       .id-acts { gap: 5px; margin-left: 6px; }
       .id-act { padding: 2px 7px; font-size: 0.7rem; }
@@ -212,8 +226,8 @@
 
     /* ---------- 上报状态标签（2026-10-05：这套原来叫「反馈处理结果」，
          反馈面板整块下线后留给「🚫 无效音乐ID管理」用 —— 红=上报次数、绿=已下架） ---------- */
-    .list-item .type-tag.green { background: var(--success-strong); color: #fff; }
-    .list-item .type-tag.red { background: var(--danger); color: #fff; }
+    .list-item .type-tag.green { background: var(--success-strong); color: var(--text-on-accent); }
+    .list-item .type-tag.red { background: var(--danger-solid); color: var(--text-on-accent); }
     .list-item .actions button[disabled] { opacity: 0.38; cursor: not-allowed; transform: none; }
 
     /* ========== 🚫 无效音乐ID管理（2026-10-05 新增） ==========
@@ -246,8 +260,11 @@
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
     .invalid-bar button:active { transform: scale(0.97); }
-    .invalid-bar .btn-pick-all { background: var(--primary-light); color: #fff; }
-    .invalid-bar .btn-pick-all:hover { background: var(--primary); }
+    /* 2026-10-25 中国色：「全选」原来是浅灰底白字（浅色下白字对比不够），
+       改成 --primary 实底 + --bg 字（浅色=墨底宣纸字，深色=月白底暖黑字），两边都清楚。
+       【回退办法】改回浅灰底白字的旧写法（见 .verify/backup-theme-20261025/admin.html 第 249-250 行）。 */
+    .invalid-bar .btn-pick-all { background: var(--primary); color: var(--bg); }
+    .invalid-bar .btn-pick-all:hover { background: var(--primary-dark); }
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
     /* 2026-10-24：「❌ 批量拒绝」—— 拒绝类操作用中性描边，不用大红块抢眼。
        【回退办法】删掉这两条规则。 */
@@ -255,12 +272,12 @@
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
     .invalid-bar .btn-batch-reject:hover { background: var(--bg-tint); color: var(--danger); }
-    /* 2026-10-18：原来写死 #e6c9cf（恰好是浅色 --border-strong），深色主题下字会看不见。
-   换成令牌后浅色取值完全相同、深色自动跟随。【回退办法】改回 #e6c9cf。 */
+    /* 2026-10-18：这行原来的浅灰粉描边是写死的，深色主题下字会看不见；已换 --border-strong 令牌。
+       【回退办法】改回旧写法（旧色值见 .verify/backup-theme-20261025/admin.html 第 258-259 行）。 */
     .invalid-bar .btn-pick-none:hover { background: var(--border-strong); }
     /* 「🧹 清空已忽略」那颗按钮 2026-10-07 随那一段一起删了，样式留着不碍事（下面那行只是记录） */
-    .invalid-bar .btn-clear-ignored { background: var(--danger); color: #fff; margin-left: auto; }
-    .invalid-bar .btn-clear-ignored:hover { background: #a93226; }
+    .invalid-bar .btn-clear-ignored { background: var(--danger-solid); color: var(--text-on-accent); margin-left: auto; }
+    .invalid-bar .btn-clear-ignored:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); }
 
     /* 搜索框（2026-10-05 站主要求：无效音乐ID管理的三个分类各自搜索自己的；
        随后歌曲管理也要能搜 —— 四处共用这一套样式，所以类名用中性的 .panel-search）。
@@ -280,7 +297,7 @@
     .panel-search::placeholder { color: var(--text-muted); }
     .panel-search:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
     }
     .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
@@ -289,8 +306,8 @@
        它体检的是**还没处理的**上报，放在已下架那一栏是站主指出来的错。
        在待处理那一栏它排最后，同样用 margin-left:auto 跟左边那排批量按钮分开。
        【回退办法】把两条 margin-left 换回原来的位置（体检那颗挪回 .btn-manual-remove 那栏）。 */
-    .invalid-bar .btn-manual-remove { background: var(--gold); color: #fff; margin-left: auto; }
-    .invalid-bar .btn-manual-remove:hover { background: #b8894f; }
+    .invalid-bar .btn-manual-remove { background: var(--gold-strong); color: var(--text-on-accent); margin-left: auto; }
+    .invalid-bar .btn-manual-remove:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); }
     /* 🔍 批量体检无效 ID（2026-10-17 新增，在「🚫 待处理上报」栏末尾）
        ⚠️ 这里**绝对不能再写 margin-left:auto**：左边那句「已选 N 条」已经是 `margin-right: auto`，
        两个 auto 会各分走一半空白，把体检那颗甩到最右、跟批量按钮拉出一大段空档
@@ -309,16 +326,19 @@
     }
     .invalid-pick input[type="checkbox"]:hover {
       transform: scale(1.1); border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
+      box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.2);
     }
     .invalid-pick input[type="checkbox"]:checked {
       background: var(--primary); border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
+      box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
     }
+    /* 2026-10-25 中国色：勾选后的底色是 --primary（浅色=墨、深色=月白），
+       对勾不能再写死白色（深色主题下白勾压在月白底上会隐形），改用 --bg（永远与 --primary 反色）。
+       【回退办法】把下面两行 var(--bg) 改回白色（见备份 320-321 行）。 */
     .invalid-pick input[type="checkbox"]:checked::after {
       content: ''; position: absolute; left: 50%; top: 50%;
-      width: 5px; height: 10px; border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
+      width: 5px; height: 10px; border-right: 2px solid var(--bg);
+      border-bottom: 2px solid var(--bg);
       transform: translate(-50%, -60%) rotate(45deg);
     }
     /* 行里的 ID 用等宽字体，一行行比对时不容易看串 */
@@ -326,8 +346,8 @@
     /* 待处理行左上角那一组：勾选框 + 歌名。包成一块，免得 .row1 的 space-between
        把歌名甩到行的正中间去（跟右边的分类 / 上报次数标签离得老远） */
     .invalid-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .list-item .actions .btn-invalid-remove { background: var(--danger); color: #fff; }
-    .list-item .actions .btn-invalid-remove:hover { background: #a93226; transform: translateY(-1px); }
+    .list-item .actions .btn-invalid-remove { background: var(--danger-solid); color: var(--text-on-accent); }
+    .list-item .actions .btn-invalid-remove:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
     /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
        中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
        【2026-10-18 修 BUG】上面这行原来缺了收尾的注释符号，导致下面 .btn-invalid-ignore 与
@@ -342,17 +362,23 @@
     .list-item .actions .btn-invalid-ignore:hover,
     .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-1px); }
     /* 📥 玩家投稿那一块的两个按钮（2026-10-07） */
-    .list-item .actions .btn-submission-approve { background: var(--success-strong); color: #fff; }
-    .list-item .actions .btn-submission-approve:hover { background: var(--success-dark); transform: translateY(-1px); }
+    /* 2026-10-25 中国色：成功按钮的浅色底不动（--success-strong 上奶白字 6.8:1），
+       hover 不再用会「变亮」的 --success-dark（深色主题下那是给文字用的浅绿，白字会糊），
+       改成与其它实底按钮一致的 14% 深朱砂压暗。
+       【回退办法】hover 改回 var(--success-dark)；按钮字色改回白色（见备份 345-350 行）。 */
+    .list-item .actions .btn-submission-approve { background: var(--success-strong); color: var(--text-on-accent); }
+    .list-item .actions .btn-submission-approve:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
     .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
     .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-1px); }
-    .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: #fff; }
-    .list-item .actions .btn-invalid-restore:hover { background: var(--success-dark); transform: translateY(-1px); }
+    .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: var(--text-on-accent); }
+    .list-item .actions .btn-invalid-restore:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
     /* ✏️ 修改信息（2026-10-17 新增）：信息出错那一栏的主操作，
        用金黄色（跟「➕ 添加歌曲 / ✏️ 信息出错」同一族），一眼能看出是「改」不是「删 / 下架」。
-       【回退办法】删掉这两行即可（按钮会退回默认外观，功能不受影响）。 */
-    .list-item .actions .btn-info-edit { background: var(--gold, #dfa63a); color: #4a3410; font-weight: 700; }
-    .list-item .actions .btn-info-edit:hover { background: #f0c674; transform: translateY(-1px); }
+       2026-10-25 中国色：底色改用 --gold-strong（深金底 + 奶白字 5.8:1），
+       不再用浅金兜底色与深棕字（那套在深色主题下字会糊）。
+       【回退办法】改回浅金底 + 深棕字的旧写法（见备份 354-355 行）。 */
+    .list-item .actions .btn-info-edit { background: var(--gold-strong); color: var(--text-on-accent); font-weight: 700; }
+    .list-item .actions .btn-info-edit:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
 
     .stat-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
@@ -447,7 +473,7 @@
     #batchImportModal .modal-content { max-width: 720px; }
     #batchImportModal .import-hint {
       font-size: 0.82rem; color: var(--text-muted); line-height: 1.75;
-      margin-bottom: 12px; background: rgba(220, 107, 130, 0.05);
+      margin-bottom: 12px; background: rgba(var(--accent-rgb), 0.05);
       border-left: 3px solid var(--primary-light);
       padding: 10px 14px; border-radius: 0 8px 8px 0;
     }
@@ -466,7 +492,7 @@
     }
     #batchImportModal textarea:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
     }
     #batchImportModal .import-status {
       font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
@@ -531,7 +557,7 @@
     }
     #manualRemoveModal textarea:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
     }
     #manualRemoveModal .import-status {
       font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
@@ -582,7 +608,7 @@
     .select-trigger:active { transform: scale(0.97); }
     .select-trigger.open {
       border-color: var(--primary); background: var(--bg-card);
-      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
     }
     .select-trigger .arrow {
       color: var(--primary); font-size: 0.9rem;
@@ -607,10 +633,10 @@
       cursor: pointer;
       transition: background 0.2s var(--ease-soft), padding-left 0.25s var(--ease-bounce), transform 0.15s var(--ease-soft);
     }
-    .select-option:hover { background: rgba(220, 107, 130, 0.08); padding-left: 24px; }
+    .select-option:hover { background: rgba(var(--accent-rgb), 0.08); padding-left: 24px; }
     .select-option:active { transform: scale(0.97); }
     .select-option.active {
-      background: rgba(220, 107, 130, 0.12); color: var(--primary); font-weight: 600;
+      background: rgba(var(--accent-rgb), 0.12); color: var(--primary); font-weight: 600;
     }
     .select-option.active::after {
       content: '✓'; float: right; color: var(--primary); font-weight: 700;
@@ -648,16 +674,17 @@
     }
     .manual-note-line input[type="checkbox"]:hover {
       transform: scale(1.1); border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
+      box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.2);
     }
     .manual-note-line input[type="checkbox"]:checked {
       background: var(--primary); border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
+      box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
     }
+    /* 2026-10-25 中国色：同上，勾选底是 --primary，对勾用 --bg 才在浅/深两套主题都看得见。 */
     .manual-note-line input[type="checkbox"]:checked::after {
       content: ''; position: absolute; left: 50%; top: 50%;
-      width: 5px; height: 10px; border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
+      width: 5px; height: 10px; border-right: 2px solid var(--bg);
+      border-bottom: 2px solid var(--bg);
       transform: translate(-50%, -60%) rotate(45deg);
     }
     .manual-note-line input[type="checkbox"]:focus-visible {
@@ -694,7 +721,10 @@
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
     .pager button.current {
       background: var(--primary); border-color: var(--primary);
-      color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1 */ opacity: 1; transform: none;
+      /* 2026-10-25 中国色：当前页是 --primary 实底（浅色=墨、深色=月白），字必须用 --bg 才永远反差；
+         原来用 --text-on-accent，深色主题下月白底压奶白字几乎看不见。
+         【回退办法】把 color 改回 var(--text-on-accent)。 */
+      color: var(--bg); opacity: 1; transform: none;
     }
     .pager .pager-gap { color: var(--text-muted); font-size: 0.82rem; padding: 0 2px; user-select: none; }
     .pager .pager-info {
@@ -748,140 +778,68 @@
     }
   
     /* ============================================================
-       2026-10-24 · 后台科幻主题（只在 admin.html 生效，前台不受影响）
+       2026-10-24 · 后台科幻主题（2026-10-25 中国色重制后大部分退役）
        ------------------------------------------------------------
-       只覆盖 CSS 变量 + 加两层底纹，**不改任何选择器/布局/id**。
-       【回退办法】删掉本段即可恢复原样。
+       原段是「深空灰底 + 金色霓虹」的一整套颜色覆盖，和前台的中国色脱节，
+       也是站主说「浅色/深色都不好看」的根因。按 .verify/chinese-palette-20261025.md：
+       颜色变量整段删除，后台改为直接引用全局的宣纸/墨夜令牌；只保留不含颜色的
+       排版规则（等宽数字对齐）与少量改用令牌的细描边，**不改选择器/布局/id**。
+       【回退办法】从 .verify/backup-theme-20261025/admin.html 拷回本段原样
+       （备份与改造前的 admin.html 逐字节一致）；或按各小节注释里的「回退办法」逐条改回。
        ============================================================ */
 
-    /* ① 主题变量：深空底 + 霓虹青/紫 */
-    :root,
-    [data-theme="light"] {
-      --bg: #f7f8f9;
-      --bg-soft: #f2f4f6;
-      --bg-card: #ffffff;
-      --bg-tint: #e9edf0;
-      --border: rgba(120, 140, 158, 0.20);
-      --border-strong: rgba(120, 140, 158, 0.36);
-      --text: #2b2520;
-      --text-light: #4a4038;
-      --text-muted: #7a6d5e;
-      --primary: #2b333c;
-      --primary-light: #5a6570;
-      --primary-dark: #1f262e;
-      --primary-ink: #1f262e;
-      --primary-btn-a: #2b333c;
-      --primary-btn-b: #1f262e;
-      --text-on-accent: #fffaf0;
-      --accent: #a8352a;
-      --danger: #a8352a;
-      --success-strong: #45685a;
-      --success-dark: #557a6b;
-      --gold: #b8860b;
-      --gold-ink: #8a6508;
-      --gold-bg: rgba(120, 140, 158, 0.10);
-      --info-bg: rgba(107, 142, 127, 0.12);
-      --info-ink: #45685a;
-      --shadow-sm:
-        0 1px 2px rgba(90, 70, 50, 0.08),
-        0 4px 12px rgba(90, 70, 50, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
-      --shadow:
-        0 1px 3px rgba(90, 70, 50, 0.10),
-        0 10px 28px rgba(90, 70, 50, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-      --shadow-hover:
-        0 2px 8px rgba(90, 70, 50, 0.12),
-        0 18px 44px rgba(90, 70, 50, 0.10),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
+    /* ① 主题变量（2026-10-25 整段删除）
+       ------------------------------------------------------------
+       原来这里重写了 --bg/--bg-card/--border/--text/--primary/--gold/--shadow 等
+       30 多个变量，还叠了一套 [data-theme="dark"] 深空灰 + 金色霓虹；后台因此和
+       前台是两套色板。整段删除后，后台与前台共用 css/style.css 的一份中国色令牌：
+       浅色=宣纸+墨+朱砂+藤黄，深色=墨夜+月白+提亮朱砂。深色不再单独覆盖颜色。
+       【回退办法】见备份 .verify/backup-theme-20261025/admin.html 第 757-842 行。 */
+    /* （① 浅色变量覆盖已删除：--bg/--border/--text/--primary/--gold/--shadow 等全部交回全局令牌） */
 
-    [data-theme="dark"] {
-      --bg: #0f1114;
-      --bg-soft: #14171b;
-      --bg-card: #191d22;
-      --bg-tint: #1e2329;
+    /* （① 深色变量覆盖已删除：深色不再另立色板，--bg/--border/--text/--primary/--accent 等全部由全局 [data-theme="dark"] 提供） */
 
-      --border: rgba(212, 169, 74, 0.18);
-      --border-strong: rgba(212, 169, 74, 0.34);
-
-      --text: #e9dfcc;
-      --text-light: #c4b8a3;
-      --text-muted: #9a8d78;
-
-      --primary: #dfe4e8;
-      --primary-light: #7a8592;
-      --primary-dark: #ffffff;
-      --primary-ink: #ffffff;
-      --primary-btn-a: #3a444f;
-      --primary-btn-b: #2b333c;
-      --text-on-accent: #fffaf0;
-      --accent: #e8846c;
-
-      --danger: #d9604a;
-      --success-strong: #45685a;
-      --success-dark: #7fa89a;
-      --gold: #d4a94a;
-      --gold-ink: #e8c878;
-      --gold-bg: rgba(212, 169, 74, 0.12);
-      --info-bg: rgba(127, 168, 154, 0.12);
-      --info-ink: #9ec4b4;
-
-      --shadow-sm:
-        0 1px 2px rgba(0, 0, 0, 0.45),
-        0 4px 12px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(120, 200, 255, 0.06);
-      --shadow:
-        0 1px 3px rgba(0, 0, 0, 0.5),
-        0 10px 28px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(120, 200, 255, 0.07);
-      --shadow-hover:
-        0 2px 8px rgba(0, 0, 0, 0.55),
-        0 18px 44px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(120, 200, 255, 0.10);
-    }
-
-    /* ② 底纹：细网格（一层静态 CSS 渐变，不跑动画，省电） */
+    /* ② 底纹：宣纸（暖金晕染 + 竖纤维），不再用科技网格。
+       2026-10-25 站主要中国风：后台也是站的一部分，不能前台宣纸、后台赛博。
+       【回退办法】改回上面的 44px 冷灰网格两道 linear-gradient（见备份 802-814 行）。 */
     body {
       background-color: var(--bg) !important;
       background-image:
-        linear-gradient(rgba(120, 140, 158, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(120, 140, 158, 0.05) 1px, transparent 1px) !important;
-      background-size: 44px 44px, 44px 44px !important;
+        radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
+        repeating-linear-gradient(90deg, rgba(var(--ink-rgb), 0.045) 0 1px, transparent 1px 3px) !important;
+      background-size: auto !important;
     }
     [data-theme="dark"] {
       background-image:
-        linear-gradient(rgba(150, 165, 178, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(212, 169, 74, 0.035) 1px, transparent 1px) !important;
+        radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
+        repeating-linear-gradient(90deg, rgba(var(--ink-rgb), 0.04) 0 1px, transparent 1px 3px) !important;
     }
 
-    /* ③ 卡片：冷色描边 + 内高光，像显示面板 */
+    /* ③ 卡片：宣纸卡 + 淡金描边（原来写死深色渐变，浅色下会黑卡黑字） */
     .panel-card,
     .stat-card,
     .list-item,
     .modal-content {
-      /* 2026-10-24 修：原来这里写死了深色渐变，导致浅色模式下卡片是黑的、
-         深色文字压在深色卡上完全看不见。改走变量，浅/深自动切换。 */
       background: var(--bg-card);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
       backdrop-filter: none;
     }
 
-    /* ④ 顶部标签：选中时霓虹下划线 */
+    /* ④ 顶部标签选中：一线淡金，不再霓虹发光 */
     .tab.active,
     .subtab.active {
       position: relative;
-      box-shadow: 0 0 0 1px rgba(212, 169, 74, 0.4), 0 0 18px rgba(212, 169, 74, 0.22);
+      box-shadow: 0 0 0 1px rgba(var(--gold-rgb), 0.38), 0 4px 14px rgba(var(--gold-rgb), 0.18);
     }
 
-    /* ⑤ 列表行 hover：冷色高亮（原来只有背景微变，在深色底上看不出来） */
+    /* ⑤ 列表行 hover：淡金描边，不刺眼 */
     .list-item:hover {
-      border-color: var(--border-strong);
-      box-shadow: 0 0 0 1px rgba(212, 169, 74, 0.18), 0 6px 20px rgba(0, 0, 0, 0.35);
+      border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+      box-shadow: 0 0 0 1px rgba(var(--gold-rgb), 0.20), 0 6px 20px rgba(0, 0, 0, 0.14);
     }
 
-    /* ⑥ 数字/ID 用等宽 + 青色，像终端输出 */
+    /* ⑥ 数字 / ID：等宽对齐 + 朱砂色（原来写「青色终端」，现已改中国色） */
     .invalid-id,
     .source-num,
     .stat-card .value {
@@ -889,24 +847,24 @@
       letter-spacing: 0.02em;
     }
     .invalid-id {
-      color: var(--primary-ink);
-      text-shadow: 0 0 12px rgba(212, 169, 74, 0.25);
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.18);
     }
 
-    /* ⑦ 输入框：深底 + 青色聚焦环 */
+    /* ⑦ 输入框聚焦：朱砂焦点环（和前台一致） */
     .panel-search:focus,
     input[type="text"]:focus,
     textarea:focus,
     select:focus {
       outline: none;
       border-color: var(--primary) !important;
-      box-shadow: 0 0 0 3px rgba(212, 169, 74, 0.18) !important;
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18) !important;
     }
 
-    /* ⑧ 顶部那条品牌条：霓虹渐变线 */
+    /* ⑧ 顶部品牌条：金色发丝线 + 暖阴影 */
     .admin-topbar {
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 1px 0 rgba(212, 169, 74, 0.15), 0 8px 28px rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
+      box-shadow: var(--shadow-sm);
     }
 
     /* ⑨ 空状态/提示文字在深底上要够亮 */
@@ -961,31 +919,24 @@
 
 
     /* ============================================================
-       2026-10-24 选中态白底白字修复（站主：「白色的能不能解决？」）
+       2026-10-25 选中态文字（原「白底白字修复」按新令牌重写）
        ------------------------------------------------------------
-       背景用 --primary 的元素，文字统一用 --bg（永远反差），
-       这样浅色模式是深底浅字、深色模式是浅底深字，两边都看得清。
-       【回退办法】删掉本段。
+       背景是 --primary 的那几种选中态：字用 --bg（浅色=墨底宣纸字，
+       深色=月白底暖黑字），永远反差；
+       主按钮 .btn-primary 底色是朱砂渐变，字必须用 --text-on-accent（奶白），
+       不能再用 --bg —— 深色下 --bg 是暖黑，压在朱砂上只有 2.7:1。
+       【回退办法】删掉本段，恢复备份里的旧写法（备份 921-970 行）。
        ============================================================ */
     .tab.active,
     .subtab.active,
     .seg-tab.active,
     .select-option.active,
-    .btn-primary,
     .btn.active {
       color: var(--bg) !important;
     }
-
-    /* 深色下再兜一层：primary 是浅灰白，字必须压深 */
-    [data-theme="dark"] .tab.active,
-    [data-theme="dark"] .subtab.active,
-    [data-theme="dark"] .seg-tab.active,
-    [data-theme="dark"] .select-option.active,
-    [data-theme="dark"] .btn-primary,
-    [data-theme="dark"] .btn.active {
-      color: #12151a !important;
+    .btn-primary {
+      color: var(--text-on-accent) !important;
     }
-
 
     /* 2026-10-24 补：子标签选中态要有底色，否则深色字压深底会「消失」 */
     .subtab.active {
@@ -994,10 +945,6 @@
       border-radius: 999px;
       padding-left: 12px;
       padding-right: 12px;
-    }
-    [data-theme="dark"] .subtab.active {
-      background: var(--primary);
-      color: #12151a !important;
     }
     /* 「D1歌曲管理 / 歌曲列表」这种带下划线的三级标签：
        如果真的不该有底，就让它保持原色，不要被上面的 !important 波及 */

@@ -11,14 +11,15 @@
    ============================================================ */
 .update-image-modal {
   /* 不用 backdrop-filter：全屏毛玻璃 + 动画 = 弹窗卡顿的头号原因 */
-  background: rgba(58, 48, 54, 0.66);
+  /* 2026-10-25：暖褐遮罩（原来的紫褐偏冷） */
+  background: rgba(28, 20, 12, 0.66);
 }
 .update-image-modal .modal-content {
   max-width: 1000px;
   width: 92vw;
   padding: 0;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--bg-card);
   border: none;
   border-radius: 20px;
   /* 阴影半径从 100px 降到 48px：
@@ -35,13 +36,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #fde8ef 0%, #fbd5e0 100%);
-  border-bottom: 1px solid rgba(220, 107, 130, 0.15);
+  /* 2026-10-25：宣纸 → 淡金，标题用朱砂，去粉色 */
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--gold-bg) 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
 }
 .update-image-modal .update-image-title {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #c7546a;
+  color: var(--accent);
   letter-spacing: 1px;
 }
 .update-image-modal .update-image-close {
@@ -49,8 +51,8 @@
   height: 30px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.75);
-  color: #c7546a;
+  background: var(--bg-tint);
+  color: var(--accent);
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 700;
@@ -63,9 +65,9 @@
   flex-shrink: 0;
 }
 .update-image-modal .update-image-close:hover {
-  background: #ffffff;
+  background: var(--bg-card);
   transform: rotate(90deg) scale(1.1);
-  box-shadow: 0 4px 12px rgba(220, 107, 130, 0.2);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.20);
 }
 .update-image-modal .update-image-close:active {
   transform: rotate(90deg) scale(0.9);
@@ -74,7 +76,7 @@
 /* ---- 画布区 ---- */
 .update-image-modal .update-image-inner {
   padding: 16px;
-  background: #fdf8fa;
+  background: var(--bg-soft);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -89,9 +91,9 @@
   border-radius: 14px;
   overflow: hidden;
   box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(220, 107, 130, 0.1);
-  background: #fdf2f5;
+    0 10px 30px rgba(0, 0, 0, 0.18),
+    0 0 0 1px color-mix(in srgb, var(--gold) 22%, transparent);
+  background: var(--bg-tint);
   flex-shrink: 0;
 }
 .update-image-modal .update-canvas {
@@ -102,11 +104,14 @@
   border-radius: 14px;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-.update-image-modal .update-canvas.theme-pink   { background: linear-gradient(135deg, #f0a3b4 0%, #dc6b82 50%, #b84460 100%); }
-.update-image-modal .update-canvas.theme-purple { background: linear-gradient(135deg, #a89ce8 0%, #7b68c7 50%, #5544a6 100%); }
-.update-image-modal .update-canvas.theme-blue   { background: linear-gradient(135deg, #8bc7e8 0%, #5aa5d8 50%, #2d6f9c 100%); }
-.update-image-modal .update-canvas.theme-gold   { background: linear-gradient(135deg, #eed4a8 0%, #d4a06a 50%, #926a3a 100%); }
-.update-image-modal .update-canvas.theme-green  { background: linear-gradient(135deg, #a8d4c0 0%, #72a392 50%, #567a6c 100%); }
+/* 2026-10-25 中国色海报底：类名不变（数据里还写着 theme-pink 等），
+   只换颜色。五档都压到足够深，保证白色标题/说明看得清：
+     胭脂 / 黛紫 / 石青 / 鎏金 / 竹青 */
+.update-image-modal .update-canvas.theme-pink   { background: linear-gradient(135deg, #B8515F 0%, #8F2A38 52%, #6E1B26 100%); }
+.update-image-modal .update-canvas.theme-purple { background: linear-gradient(135deg, #7C6A96 0%, #584772 52%, #3A2D4D 100%); }
+.update-image-modal .update-canvas.theme-blue   { background: linear-gradient(135deg, #5E8298 0%, #3F6E8C 52%, #2A4F66 100%); }
+.update-image-modal .update-canvas.theme-gold   { background: linear-gradient(135deg, #9A7429 0%, #7A571B 52%, #5E4212 100%); }
+.update-image-modal .update-canvas.theme-green  { background: linear-gradient(135deg, #5F8A6E 0%, #41684F 52%, #2C4A38 100%); }
 
 /* 柔光层 */
 .update-image-modal .update-canvas::before {
@@ -263,7 +268,7 @@
   line-height: 1;
   z-index: 2;
   pointer-events: none;
-  color: #fff;
+  color: #FFF5D8;
   opacity: 0.13;
   /* 原来这里有 filter: blur(0.3px) —— 肉眼完全看不出差别，
      却会让元素单独开一层合成层，纯粹浪费，已去掉 */
@@ -289,9 +294,9 @@
   position: absolute;
   width: 3px;
   height: 3px;
-  background: #fff;
+  background: #FFF3D0;
   border-radius: 50%;
-  box-shadow: 0 0 8px 2px rgba(255,255,255,0.7);
+  box-shadow: 0 0 8px 2px rgba(255, 243, 208, 0.7);
   pointer-events: none;
   z-index: 4;
   opacity: 0;
@@ -484,8 +489,8 @@
 .update-image-modal .update-image-footer {
   padding: 14px 20px 18px;
   text-align: center;
-  background: #ffffff;
-  border-top: 1px solid rgba(220, 107, 130, 0.12);
+  background: var(--bg-soft);
+  border-top: 1px solid color-mix(in srgb, var(--gold) 22%, var(--border));
 }
 .update-image-modal .update-image-ok {
   padding: 12px 52px;
@@ -496,16 +501,16 @@
   font-weight: 800;
   letter-spacing: 1px;
   cursor: pointer;
-  color: #fff;
-  background: linear-gradient(135deg, #dc6b82, #e88da1);
-  box-shadow: 0 8px 20px rgba(220, 107, 130, 0.35);
+  color: var(--text-on-accent);
+  background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.35);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
   min-width: 200px;
 }
 .update-image-modal .update-image-ok:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(220, 107, 130, 0.5);
+  box-shadow: 0 12px 28px rgba(var(--accent-rgb), 0.50);
 }
 .update-image-modal .update-image-ok:active {
   transform: scale(0.95);
@@ -519,24 +524,25 @@
   overflow: hidden;
   border: none;
   border-radius: 22px;
-  background: #fff;
+  background: var(--bg-card);
   display: flex;
   flex-direction: column;
 }
+/* 手机简洁版同样换五色，压深以保住白字 */
 .update-image-modal .update-simple-content.theme-pink {
-  background: linear-gradient(135deg, #e8a2b0 0%, #c7546a 100%);
+  background: linear-gradient(135deg, #B8515F 0%, #7E1E2A 100%);
 }
 .update-image-modal .update-simple-content.theme-purple {
-  background: linear-gradient(135deg, #b6a8ee 0%, #6d5bc4 100%);
+  background: linear-gradient(135deg, #6E5A88 0%, #443652 100%);
 }
 .update-image-modal .update-simple-content.theme-blue {
-  background: linear-gradient(135deg, #9ed2ee 0%, #3d8dc0 100%);
+  background: linear-gradient(135deg, #4E7288 0%, #2F5A72 100%);
 }
 .update-image-modal .update-simple-content.theme-gold {
-  background: linear-gradient(135deg, #eed4a8 0%, #b8894f 100%);
+  background: linear-gradient(135deg, #9A7429 0%, #6B4C18 100%);
 }
 .update-image-modal .update-simple-content.theme-green {
-  background: linear-gradient(135deg, #bcdccd 0%, #72a392 100%);
+  background: linear-gradient(135deg, #5F8A6E 0%, #3A5C46 100%);
 }
 .update-image-modal .update-simple-header {
   display: flex;
@@ -584,7 +590,8 @@
 .update-image-modal .update-simple-body {
   margin: 0 16px 16px;
   padding: 16px 18px;
-  background: rgba(255,255,255,0.96);
+  /* 2026-10-25：正文卡片固定用暖白纸（它压在彩色渐变上，不能跟随深色主题变黑） */
+  background: #FFFCF6;
   border-radius: 14px;
   max-height: 46vh;
   overflow-y: auto;
@@ -592,7 +599,7 @@
 .update-image-modal .update-simple-line {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4a3f44;
+  color: #221C16;
   line-height: 1.7;
   padding: 4px 0;
 }
@@ -604,8 +611,8 @@
   width: 100%;
   padding: 12px;
   border-radius: 50px;
-  background: #fff;
-  color: #c7546a;
+  background: #FFFCF6;
+  color: var(--accent);
   font-weight: 800;
   font-size: 1rem;
   border: none;
@@ -625,5 +632,5 @@
 html.lite .update-image-modal .sparkle { display: none; }
 html.lite .update-image-modal .logo-ring { animation: none; }
 html.lite .update-image-modal {
-  background: rgba(58, 48, 54, 0.78);
+  background: rgba(28, 20, 12, 0.78);
 }

@@ -11,7 +11,10 @@
        抓取器【不执行 JS】，动态写进去它们看不到；对搜索与分享有效的只有这里写死的静态值。 -->
   <meta name="description" content="收录 4799+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与无效上报，持续更新。">
   <meta name="keywords" content="Roblox,音乐ID,音效ID,SoundId,Roblox 音乐,织雾满穗">
-  <meta name="theme-color" content="#fdf2f5">
+  <!-- 2026-10-25 中国色施工：浏览器地址栏基色改为宣纸米色（浅色主题），
+       深色主题由 js/common.js 切换 theme-color 时覆盖，这里只管浅色。
+       【回退办法】改回旧的粉色基色（具体色值见 .verify/backup-theme-20261025/roblox_music.html 同位置）。 -->
+  <meta name="theme-color" content="#F5F0E6">
   <meta property="og:title" content="Roblox ID 宝库 - 织雾满穗">
   <meta property="og:description" content="4799+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
 
@@ -61,7 +64,8 @@
     }
 
     .page-header {
-      /* 底色走主题变量：浅色是粉，深色是暖紫（见 css/style.css 的 --header-grad-*） */
+      /* 底色走主题变量：浅色暖金、深色墨夜（2026-10-25 由 css/style.css 的 --header-grad-* 决定）。
+         【回退办法】本行不用改 — 想恢复旧页头配色，只改 css/style.css 里这两个令牌即可。 */
       background: linear-gradient(145deg, var(--header-grad-a), var(--header-grad-b));
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -133,19 +137,20 @@
        它虽然只动 transform（不算贵），但页面放着不动也在持续耗电，
        而收益只是「看起来在呼吸」。为了整体流畅度，改成静态按钮，
        靠颜色和阴影本身就已经够醒目了。 */
+    /* 2026-10-25 中国色施工：这颗「玩家/信息类」按钮统一走竹青深底 + 奶白字。
+       浅深两套主题下 --success-strong 都是深青（压奶白字对比度 6:1 以上），
+       光晕用 --accent-mist-line（青瓷描边色），不再写死蓝色渐变。
+       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-source 两段覆盖回来。 */
     .btn-source {
-      /* 2026-10-19 配色统一：原来这颗是蓝色渐变，在粉+雾青的体系里像"第三个主题"。
-         改成雾青后，全站就只剩两套色：粉 = 站内/官方，雾青 = 玩家/信息类。
-         【回退办法】改回 linear-gradient(135deg, #6bb6e8, #4a9dd8) 与 rgba(107,182,232,.35)。 */
-      background: linear-gradient(135deg, var(--accent-mist), #2f635e);
-      color: #fff;
+      background: var(--success-strong);
+      color: var(--text-on-accent);
       border: none;
       box-shadow: 0 6px 18px var(--accent-mist-line);
       font-weight: 700;
     }
     .btn-source:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(107, 182, 232, 0.6);
+      box-shadow: 0 10px 24px var(--accent-mist-line);
     }
     .btn-source:active {
       transform: scale(0.93);
@@ -157,32 +162,36 @@
     /* ========== 「📌 问题上报」按钮 + 上报面板（2026-10-05 新增，10-07 改名并分两类） ==========
        访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
        可以单条撤回 / 全部撤回。数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
+    /* 2026-10-25 中国色施工：墨色按钮 —— 底 var(--primary)、字 var(--bg)，
+       浅色=墨底宣纸字，深色=月白底墨字，两套主题自动反差，不再写死蓝灰渐变。
+       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-mine 两段覆盖回来。 */
     .btn-mine {
-      background: linear-gradient(135deg, #96a5b2, #2b333c);
-      color: #fff;
+      background: var(--primary);
+      color: var(--bg);
       border: none;
-      box-shadow: 0 6px 18px rgba(43, 51, 60, 0.35);
+      box-shadow: var(--shadow-sm);
       font-weight: 700;
     }
     .btn-mine:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(43, 51, 60, 0.55);
+      box-shadow: var(--shadow-hover);
     }
     .btn-mine:active { transform: scale(0.93); }
 
-    /* 「➕ 添加歌曲ID」（2026-10-07 站主要求）：金黄色，跟「问题上报」的粉色区分开，
-       也不跟旁边那颗蓝色的「📱 你的手机屏幕尺寸」撞色 —— 三个按钮都得一眼认出来。
-       （2026-10-17：那颗按钮原来叫「📢 告诉我们你从哪来」（收集渠道），站主已改成收集屏幕尺寸。） */
+    /* 「➕ 添加歌曲ID」是全页的主行动按钮。
+       2026-10-25 中国色施工：改成朱砂渐变 + 奶白字（突出就突出）；
+       金只留给收藏/荣誉/状态标识，不再当普通按钮底色。
+       【回退办法】用备份里 .btn-submit-song 两段覆盖回来。 */
     .btn-submit-song {
-      background: linear-gradient(135deg, #f0c674, #dfa63a);
-      color: #4a3410;
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      color: var(--text-on-accent);
       border: none;
-      box-shadow: 0 6px 18px rgba(223, 166, 58, 0.35);
+      box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.35);
       font-weight: 800;
     }
     .btn-submit-song:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(223, 166, 58, 0.55);
+      box-shadow: 0 8px 22px rgba(var(--accent-rgb), 0.55);
     }
     .btn-submit-song:active { transform: scale(0.93); }
 
@@ -211,18 +220,22 @@
       color: var(--text);
       resize: vertical;
     }
+    /* 2026-10-25 中国色施工：表单聚焦环走全局金令牌（金色只做标识/高亮线，不做大面积底）。
+       【回退办法】用备份里对应规则覆盖回来。 */
     .info-err-form input:focus,
     .info-err-form select:focus,
-    .info-err-form textarea:focus { outline: 2px solid rgba(232, 184, 102, 0.5); border-color: #dfa63a; }
+    .info-err-form textarea:focus { outline: 2px solid rgba(var(--gold-rgb), 0.45); border-color: var(--gold); }
     /* 下拉本身跟输入框一样高、一样圆角；cursor 给个指针免得看不出来能点 */
     .info-err-form select { cursor: pointer; }
-    /* 「✅ 确定上报 / 提交投稿」：跟「信息出错」同一族的琥珀色（护眼、不刺眼）。
+    /* 「✅ 确定上报 / 提交投稿」是弹窗里的主行动。2026-10-25 中国色施工：改成朱砂渐变 + 奶白字
+       （跟页头「添加歌曲」同一套行动色）；金只做状态标识，不再铺在按钮上。
+       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-info-confirm 两段覆盖回来。
        2026-10-07 站主反馈「提交投稿的按钮样式不好看，不是胶囊的」——
        原来这里没写圆角，落到了通用按钮的圆角上；现在跟弹窗里其它按钮一样用**胶囊**
        （border-radius: var(--radius-pill)），内边距也对齐「关闭 / 取消」那几颗。 */
     .btn-info-confirm {
-      background: linear-gradient(135deg, #f0c674, #dfa63a);
-      color: #4a3410;
+      background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
+      color: var(--text-on-accent);
       border: none;
       border-radius: var(--radius-pill);
       padding: 10px 22px;
@@ -230,12 +243,12 @@
       font-weight: 800;
       line-height: 1.2;
       cursor: pointer;
-      box-shadow: 0 5px 14px rgba(223, 166, 58, 0.32);
+      box-shadow: 0 5px 14px rgba(var(--accent-rgb), 0.32);
       transition: transform 0.2s var(--ease-bounce), box-shadow var(--dur) var(--ease-soft);
     }
     .btn-info-confirm:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(223, 166, 58, 0.5);
+      box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.5);
     }
     .btn-info-confirm:active { transform: scale(0.98); }
     .btn-info-confirm[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -248,10 +261,12 @@
       font-size: 0.72rem;
       font-weight: 700;
       margin-right: 6px;
-      background: rgba(232, 184, 102, 0.18);
-      color: #8a6218;
+      background: rgba(var(--gold-rgb), 0.16);
+      color: var(--gold-ink);
     }
-    [data-theme="dark"] .myrep-type-tag { color: #e8b866; }
+    /* 2026-10-25 中国色施工：删掉深色专用覆盖 —— --gold-ink 在深色下本身就是提亮金，
+       一套规则两套主题都够看，少一处写死色值。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .myrep-type-tag 两条。 */
     .myrep-note-cell { color: var(--text-light); font-size: 0.78rem; max-width: 260px; word-break: break-word; }
 
     .myrep-note {
@@ -369,16 +384,16 @@
       font-weight: 700;
       white-space: nowrap;
     }
-    .myrep-status.pending { background: rgba(43, 51, 60, 0.14); color: var(--primary-ink); }
+    .myrep-status.pending { background: rgba(var(--ink-rgb), 0.10); color: var(--primary-ink); }
     /* 2026-10-17：.ignored 那条规则随「已忽略」一起没有写作对象了，
        改给新状态 .noted（已审核·无需处理）用 —— 绿色系，跟「已下架」的灰色区分开，
        让人一眼看出「这条有人看过了」而不是「这条没了」。 */
-    /* 2026-10-18 配色创新：「反馈成功」从绿改成雾青 —— 它跟「玩家说」是同一种「玩家参与」的语义，
-   用同一个辅助色，全站就有了一套「粉=官方 / 雾青=玩家」的隐性语言。
-   【回退办法】改回 background: rgba(114, 163, 146, 0.20); color: var(--success-dark); */
+    /* 2026-10-25 中国色施工：.noted（已审核·无需处理）保留青瓷色 —— 语义是「玩家参与/已看过」；
+       已下架用中性墨灰，已本地用石青（info）；不再出现旧粉、旧蓝灰和写死色值。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .myrep-status 四条。 */
     .myrep-status.noted { background: var(--accent-mist-soft); color: var(--accent-mist); }
-    .myrep-status.removed { background: rgba(120, 120, 120, 0.16); color: var(--text-muted); }
-    .myrep-status.local { background: rgba(107, 182, 232, 0.16); color: var(--text-light); }
+    .myrep-status.removed { background: rgba(var(--ink-rgb), 0.08); color: var(--text-muted); }
+    .myrep-status.local { background: var(--info-bg); color: var(--info-ink); }
     .myrep-btn {
       border: 1px solid var(--primary-light);
       background: var(--bg-card);
@@ -438,8 +453,11 @@
       transition: border-color 0.25s var(--ease-soft);
     }
     .search-row input[type="text"]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(43, 51, 60, 0.12);
+      /* 2026-10-25 中国色施工：聚焦环改用全局 --focus-ring / --shadow-glow
+         （浅色朱砂、深色金），不再写死旧蓝灰投影。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原该规则两条。 */
+      border-color: var(--focus-ring);
+      box-shadow: var(--shadow-glow);
     }
     .filter-tabs {
       display: flex;
@@ -465,65 +483,76 @@
     .filter-tabs button:active {
       transform: scale(0.93);
     }
+    /* 2026-10-25 中国色施工：当前分类 = 朱砂实底 + 奶白字（不再用浅灰描边表示选中）。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .filter-tabs button.active。 */
     .filter-tabs button.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(43, 51, 60, 0.3);
+      background: var(--primary-btn-a);
+      border-color: var(--primary-btn-a);
+      color: var(--text-on-accent);
+      box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.28);
     }
 
+    /* 2026-10-25 中国色施工：「最新」是竹青系筛选 —— 默认淡青瓷底 + 竹青字，
+       选中时换成 --success-strong 实底 + 奶白字（两套主题下都是深青压白字，对比度 6:1）。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-latest 四段。 */
     .btn-latest {
       margin-left: auto;
-      border: 2px solid #a8d5c2;
-      background: linear-gradient(135deg, rgba(110, 198, 160, 0.15), rgba(86, 176, 138, 0.12));
-      color: #3d8a6b;
-      box-shadow: 0 2px 8px rgba(110, 198, 160, 0.15);
+      border: 2px solid var(--accent-mist-line);
+      background: var(--accent-mist-soft);
+      color: var(--accent-mist);
+      box-shadow: var(--shadow-sm);
     }
     .btn-latest:hover {
-      border-color: #56b08a;
-      color: #2e7355;
+      border-color: var(--accent-mist);
+      color: var(--accent-mist);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(110, 198, 160, 0.3);
+      box-shadow: var(--shadow);
     }
     .btn-latest:active { transform: scale(0.93); }
     .btn-latest.active {
-      background: linear-gradient(135deg, #6ec6a0, #56b08a);
-      border-color: #56b08a;
-      color: #fff;
-      box-shadow: 0 6px 18px rgba(110, 198, 160, 0.5);
+      background: var(--success-strong);
+      border-color: var(--success-strong);
+      color: var(--text-on-accent);
+      box-shadow: 0 0 0 3px var(--accent-mist-soft), var(--shadow);
     }
 
+    /* 2026-10-25 中国色施工：「热门」是朱砂系筛选 —— 默认淡朱砂底 + 朱砂字，
+       选中时朱砂实底 + 奶白字（用深档 --primary-btn-a 保证白字对比度 ≥5.8:1）。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-hot 四段。 */
     .btn-hot {
-      border: 2px solid #f5a89a;
-      background: linear-gradient(135deg, rgba(245, 138, 120, 0.15), rgba(232, 100, 80, 0.12));
-      color: #a8352a;
-      box-shadow: 0 2px 8px rgba(245, 138, 120, 0.15);
+      border: 2px solid rgba(var(--accent-rgb), 0.45);
+      background: rgba(var(--accent-rgb), 0.10);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
     }
     .btn-hot:hover {
-      border-color: #a8352a;
-      color: #a03220;
+      border-color: var(--accent);
+      color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
+      box-shadow: var(--shadow);
     }
     .btn-hot:active { transform: scale(0.93); }
     .btn-hot.active {
-      background: linear-gradient(135deg, #c4635a, #a8352a);
-      border-color: #a8352a;
-      color: #fff;
-      box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
+      background: var(--primary-btn-a);
+      border-color: var(--primary-btn-a);
+      color: var(--text-on-accent);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18), var(--shadow);
     }
 
+    /* 2026-10-25 中国色施工：原来是紫色渐变（紫蓝霓虹），现在改为中性宣纸底；
+       选中态与其它筛选项统一：朱砂实底 + 奶白字 + 淡朱砂光圈；深色专用覆盖一并删除。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-multi 四段及深色覆盖。 */
     .filter-tabs .btn-multi {
       padding: 8px 18px;
       border: 2px solid var(--primary-light);
       border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, rgba(162, 155, 254, 0.15), rgba(108, 92, 231, 0.12));
-      color: var(--primary);
+      background: var(--bg-card);
+      color: var(--primary-ink);
       font-size: 0.85rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
-      box-shadow: 0 2px 8px rgba(108, 92, 231, 0.12);
+      box-shadow: var(--shadow-sm);
       font-family: var(--font);
       white-space: nowrap;
       display: inline-flex;
@@ -532,46 +561,41 @@
     }
     .filter-tabs .btn-multi:hover {
       border-color: var(--primary);
-      color: var(--primary-dark);
+      color: var(--primary-ink);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
+      box-shadow: var(--shadow);
     }
     .filter-tabs .btn-multi:active { transform: scale(0.93); }
-    /* 选中态：护眼绿 + 柔和光晕。粉色系主题里绿色最跳，同时绿色本身最不费眼；
-       不用纯白配高饱和色（那种最刺眼），改成深一点的绿配白字 + 淡绿光圈。 */
     .filter-tabs .btn-multi.active {
-      background: linear-gradient(135deg, #35795a, #3f8f6b);
-      border-color: #2f6b4f;
-      color: #fff;
+      background: var(--primary-btn-a);
+      border-color: var(--primary-btn-a);
+      color: var(--text-on-accent);
       font-weight: 800;
       transform: translateY(-1px);
-      box-shadow: 0 0 0 3px rgba(86, 168, 131, 0.22), 0 6px 16px rgba(53, 121, 90, 0.35);
-    }
-    [data-theme="dark"] .filter-tabs .btn-multi.active {
-      background: linear-gradient(135deg, #2f6b4f, #3f8f6b);
-      border-color: #56a883;
-      color: #eafff3;
-      box-shadow: 0 0 0 3px rgba(86, 168, 131, 0.16), 0 6px 16px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18), var(--shadow);
     }
 
+    /* 2026-10-25 中国色施工：收藏筛选属于「金 = 标识/荣誉」—— 默认淡金底 + 金字，
+       选中时 --gold-strong 实底 + 奶白字（浅色 5.8:1 / 深色 5.1:1），不再拿浅金底压白字。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-fav-filter 四段。 */
     .btn-fav-filter {
       border: 2px solid var(--gold-light);
-      background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
+      background: var(--gold-bg);
       color: var(--gold-ink);
-      box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
+      box-shadow: var(--shadow-sm);
     }
     .btn-fav-filter:hover {
-      border-color: var(--gold-ink);
+      border-color: var(--gold);
       color: var(--gold-ink);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
+      box-shadow: var(--shadow);
     }
     .btn-fav-filter:active { transform: scale(0.93); }
     .btn-fav-filter.active {
-      background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      border-color: var(--gold-ink);
-      color: #fff;
-      box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
+      background: var(--gold-strong);
+      border-color: var(--gold-strong);
+      color: var(--text-on-accent);
+      box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.22), var(--shadow);
     }
 
     /* 2026-10-05（站主要求）：这里原来是一整块 .batch-bar（批量条）的样式。
@@ -582,7 +606,9 @@
       background: var(--bg-card);
       border-radius: var(--radius);
       border: 2px solid transparent;
-      box-shadow: 0 2px 8px rgba(43, 51, 60, 0.06);
+      /* 2026-10-25 中国色施工：卡片投影改用全局阴影令牌（浅色暖褐 / 深色黑，随主题自动切换）。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .song-group 两条。 */
+      box-shadow: var(--shadow-sm);
       margin-bottom: 10px;
       padding: 14px 18px;
       transition: transform 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
@@ -595,8 +621,8 @@
       contain-intrinsic-size: auto 110px;
     }
     .song-group:hover {
-      border-color: rgba(43, 51, 60, 0.3);
-      box-shadow: 0 6px 18px rgba(43, 51, 60, 0.1);
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow);
       transform: translateX(4px);
     }
     .group-header {
@@ -609,7 +635,7 @@
     }
     /* 2026-10-18 新增：歌名后面的「玩家说：xxx」小字（玩家投稿时自己填的歌曲类型）。
        样式刻意做小做淡，不抢主歌名。【回退办法】删掉这条规则。 */
-    /* 2026-10-18 配色创新：这枚小字代表「玩家自己说的话」，用雾青和站内粉色区分开，
+    /* 2026-10-18 配色创新：这枚小字代表「玩家自己说的话」，用青瓷和朱砂/墨区分开，
        一眼能看出「这是投稿者补充的、不是官方分类」。
        【回退办法】颜色改回 var(--text-muted) / var(--bg-soft) / var(--border)。 */
     .genre-tip {
@@ -637,9 +663,9 @@
       gap: 8px;
     }
     .badge-multi {
-      /* 2026-10-18 可访问性：深色模式下 --primary 会变浅（#96a5b2），压白字只有 2.3:1。
-         改用令牌 --text-on-accent（浅色=白，深色=#12151a），深色下对比度升到约 8:1。
-         【回退办法】把 color 改回 #fff。 */
+      /* 2026-10-25 中国色施工：沿用「墨底反白 / 月白底反墨」的写法（--primary + --bg），
+         两套主题自动反差，不再有深字压深底的问题。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .badge-multi 整段。 */
       background: var(--primary); color: var(--bg);
       font-size: 0.72rem;
       font-weight: 600;
@@ -648,8 +674,10 @@
       white-space: nowrap;
     }
     .badge-hot {
-      background: linear-gradient(135deg, #c4635a, #a8352a);
-      color: #fff;
+      /* 2026-10-25 中国色施工：「热门」属于标识类，走金 —— 深金底 + 奶白字（5.8:1），
+         不再用旧红渐变。 */
+      background: var(--gold-strong);
+      color: var(--text-on-accent);
       font-size: 0.72rem;
       font-weight: 600;
       padding: 2px 10px;
@@ -673,12 +701,15 @@
       gap: 8px 12px;
       padding: 8px 10px;
       border-radius: 10px;
-      background: rgba(253, 242, 245, 0.5);
+      /* 2026-10-25 中国色施工：行底从旧粉改成墨色淡叠；--ink-rgb 在深色主题下自动变亮，
+         一层叠加同时服务两套主题，原来那两条深色专用覆盖已经删掉。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .id-row 两段。 */
+      background: rgba(var(--ink-rgb), 0.035);
       margin-bottom: 4px;
       transition: background 0.2s var(--ease-soft), transform 0.25s var(--ease-soft);
     }
     .id-row:hover {
-      background: rgba(253, 242, 245, 0.9);
+      background: rgba(var(--ink-rgb), 0.07);
       transform: translateX(3px);
     }
     /* 2026-10-05（站主要求）：这里原来是 .id-checkbox（批量选择用的圆形勾选框）
@@ -719,7 +750,8 @@
     }
     .id-actions .btn-fav:hover {
       color: var(--gold-ink);
-      background: rgba(212, 160, 106, 0.12);
+      /* 2026-10-25 中国色施工：淡金叠色改用 --gold-rgb，深浅主题自动跟随。 */
+      background: rgba(var(--gold-rgb), 0.12);
     }
     .id-actions .btn-fav:active { transform: scale(0.85); }
     .id-actions .btn-fav.active { color: var(--gold-ink); }
@@ -734,11 +766,14 @@
     .id-actions .btn-copy:active { transform: scale(0.9); }
     .id-actions .btn-copy.copied { background: var(--success-strong); }
     .id-actions .btn-play {
+      /* 2026-10-25 中国色施工：试听按钮走竹青深底 + 奶白字；hover 不再换成
+         --success-dark（深色主题里它是亮档，压白字会糊），只靠 transform 给反馈。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-play 两段。 */
       background: var(--success-strong);
-      color: #fff;
+      color: var(--text-on-accent);
     }
     .id-actions .btn-play:hover {
-      background: var(--success-dark);
+      background: var(--success-strong);
       transform: scale(1.06) rotate(2deg);
     }
     .id-actions .btn-play:active { transform: scale(0.9); }
@@ -753,15 +788,14 @@
       padding: 4px 9px;
     }
 
-    /* 「✏️ 信息出错」—— 2026-10-07 站主要求：原来这里是「📋 复制全部」，
-       改成「信息出错」（点开改歌名/分类/说明再上报到后台）。
-       颜色要求「区分开、但护眼」：用**琥珀色**（暖黄橙）而不是刺眼的红 ——
-       暗底上这块 #e8b866 的对比度够看，又不扎眼；跟「🚫 无效处理」的柔红（--danger）
-       和「📋 复制」的中性灰都能一眼分开。 */
+    /* 「✏️ 信息出错」—— 2026-10-07 站主要求「区分开、但护眼」，沿用琥珀金这一族。
+       2026-10-25 中国色施工：色值全部换成金令牌（--gold / --gold-ink / --gold-rgb），
+       深色专用覆盖删除 —— 深色主题的 --gold-ink 本来就是亮金，一套规则够用。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-info-error 四段。 */
     .group-actions .btn-info-error {
       background: transparent;
-      color: #a97a2f;
-      border: 1px solid rgba(201, 154, 76, 0.55);
+      color: var(--gold-ink);
+      border: 1px solid rgba(var(--gold-rgb), 0.55);
       font-size: 0.72rem;
       font-weight: 600;
       padding: 4px 10px;
@@ -774,19 +808,16 @@
                   border-color 0.25s var(--ease-soft), transform 0.2s var(--ease-bounce);
     }
     .group-actions .btn-info-error:hover {
-      color: #7d5716;
-      border-color: #c99a4c;
-      background: rgba(232, 184, 102, 0.16);
+      color: var(--gold-ink);
+      border-color: var(--gold);
+      background: rgba(var(--gold-rgb), 0.16);
     }
     .group-actions .btn-info-error:active { transform: scale(0.97); }
     .group-actions .btn-info-error.reported {
-      color: #7d5716;
-      border-color: #c99a4c;
-      background: rgba(232, 184, 102, 0.18);
+      color: var(--gold-ink);
+      border-color: var(--gold);
+      background: rgba(var(--gold-rgb), 0.18);
     }
-    [data-theme="dark"] .group-actions .btn-info-error { color: #e8b866; border-color: rgba(232, 184, 102, 0.5); }
-    [data-theme="dark"] .group-actions .btn-info-error:hover,
-    [data-theme="dark"] .group-actions .btn-info-error.reported { color: #f3cf90; background: rgba(232, 184, 102, 0.22); }
     /* 「以无效为主」（2026-10-07）：这一组已报过无效 → 信息出错按钮置灰、点了只提示 */
     .group-actions .btn-info-error.blocked {
       opacity: 0.5;
@@ -799,7 +830,7 @@
     .id-actions .btn-invalid:hover {
       color: var(--danger);
       border-color: var(--danger);
-      background: rgba(232, 116, 122, 0.12);
+      background: rgba(var(--accent-rgb), 0.12);
     }
     .id-actions .btn-invalid:active {
       transform: scale(0.9);
@@ -807,7 +838,7 @@
     .id-actions .btn-invalid.reported {
       color: var(--danger);
       border-color: var(--danger);
-      background: rgba(232, 116, 122, 0.1);
+      background: rgba(var(--accent-rgb), 0.1);
     }
     .id-actions .btn-invalid[disabled] {
       opacity: 0.55;
@@ -816,7 +847,7 @@
     .id-row.reported .id-number {
       color: var(--text-muted);
       text-decoration: line-through;
-      text-decoration-color: rgba(232, 116, 122, 0.7);
+      text-decoration-color: rgba(var(--accent-rgb), 0.55);
     }
     .id-row.reported .btn-copy,
     .id-row.reported .btn-play {
@@ -869,9 +900,11 @@
     .pager button:active:not(:disabled) { transform: scale(0.93); }
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
     .pager button.current {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
+      /* 2026-10-25 中国色施工：当前页 = 朱砂实底 + 奶白字，跟其它「选中」统一。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .pager button.current。 */
+      background: var(--primary-btn-a);
+      border-color: var(--primary-btn-a);
+      color: var(--text-on-accent);
       opacity: 1;
       transform: none;
     }
@@ -936,14 +969,17 @@
     .btn-random:active { transform: scale(0.93) rotate(3deg); }
 
     /* 随机跳转的目标高亮 */
+    /* 2026-10-25 中国色施工：随机跳转高亮从旧蓝灰光圈改成低透明金线，
+       不再有粉色高亮闪底；两套主题共用这一套，深色专有动画一并删除。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 targetFlash 段。 */
     @keyframes targetFlash {
-      0%   { box-shadow: 0 0 0 0 rgba(43, 51, 60, 0.55); background: rgba(253, 232, 239, 0.9); }
-      70%  { box-shadow: 0 0 0 14px rgba(43, 51, 60, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(43, 51, 60, 0); background: transparent; }
+      0%   { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0.55); background: rgba(var(--gold-rgb), 0.16); }
+      70%  { box-shadow: 0 0 0 14px rgba(var(--gold-rgb), 0); }
+      100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0); background: transparent; }
     }
     .song-group.flash-target {
       animation: targetFlash 1.6s var(--ease-soft) 2;
-      border-color: var(--primary) !important;
+      border-color: var(--gold) !important;
     }
 
     /* ========== 结果计数 ========== */
@@ -998,7 +1034,7 @@
     }
     .group-actions button:hover { background: var(--primary); color: var(--bg); transform: translateY(-1px); }
     .group-actions button:active { transform: scale(0.92); }
-    .group-actions button.copied { background: var(--success-strong); color: #fff; }
+    .group-actions button.copied { background: var(--success-strong); color: var(--text-on-accent); }
 
     /* ========== 空状态增强 ========== */
     .empty-state .big {
@@ -1023,30 +1059,17 @@
       white-space: nowrap;
     }
 
-    /* ========== 深色模式局部适配 ========== */
-    [data-theme="dark"] .id-row { background: rgba(255, 255, 255, 0.03); }
-    [data-theme="dark"] .id-row:hover { background: rgba(255, 255, 255, 0.07); }
-    [data-theme="dark"] .visit-source-btn { background: var(--bg-soft); }
-    [data-theme="dark"] .visit-source-btn:hover { background: var(--bg-card); }
-    [data-theme="dark"] .visit-source-btn.active-choice { background: rgba(150, 165, 178, 0.14); }
-    [data-theme="dark"] .visit-source-btn.active-choice .src-count { background: var(--bg-card); }
-    [data-theme="dark"] .visit-other-input { background: var(--bg-soft); }
-    [data-theme="dark"] .visit-other-input input { background: var(--bg-card); }
-    /* 2026-10-05：#quarantineModal 在深色模式下的那条覆盖规则随弹窗一起删除 */
-    [data-theme="dark"] #riskModal .sub-warning,
-    [data-theme="dark"] #riskConfirmModal .sub-warning { background: rgba(239, 125, 116, 0.14); }
-    [data-theme="dark"] #riskModal .redirect-notice,
-    [data-theme="dark"] #riskConfirmModal .redirect-notice { background: rgba(239, 125, 116, 0.12); }
-    [data-theme="dark"] .update-image-modal .modal-content { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.75); }
-    [data-theme="dark"] .song-group.flash-target {
-      animation-name: targetFlashDark;
-    }
-    @keyframes targetFlashDark {
-      0%   { box-shadow: 0 0 0 0 rgba(150, 165, 178, 0.6); background: rgba(150, 165, 178, 0.14); }
-      70%  { box-shadow: 0 0 0 14px rgba(150, 165, 178, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(150, 165, 178, 0); background: transparent; }
-    }
-    [data-theme="dark"] .group-actions button { background: rgba(150, 165, 178, 0.16); }
+    /* ========== 深色模式局部适配（2026-10-25 中国色施工重写） ==========
+       原来这里是一批写死色值的深色覆盖：旧蓝灰叠色、浅白叠色、粉红提示底，
+       外加一套蓝灰高亮动画。全局令牌在深色下已经是「墨夜」暖色，这些覆盖
+       既重复又把页面拉回蓝黑/霓虹，因此整段删除：
+         · .id-row / .group-actions / .visit-source-btn 的底色改由令牌本身承担；
+         · .visit-other-input 的底色与全局一致，无需再覆盖；
+         · 风险弹窗的淡红提示底改用 --danger-bg（深浅两套都定义过）；
+         · 更新弹窗投影交给全局 --shadow-modal；
+         · 随机跳转高亮两套主题共用金线 targetFlash（见上方关键帧）。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原
+       「深色模式局部适配」整段（备份文件里是连续的 [data-theme="dark"] 规则）。 */
 
     /* 2026-10-09：两个风险弹窗（#riskModal 告知 / #riskConfirmModal 二次确认）现在共用同一套
        「元素」—— h2 + .sub-warning 小胶囊 + .redirect-notice 提示条 + .risk-body + .section-title。
@@ -1165,8 +1188,11 @@
       border-top: 1px solid var(--border);
     }
     #riskModal .btn-confirm {
-      background: var(--danger);
-      color: #fff;
+      /* 2026-10-25 中国色施工：危险确认按钮 = 胭脂红实底 + 奶白字；
+         hover 用更深的朱砂档（--primary-btn-b）压暗，不再写死十六进制。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-confirm 两段。 */
+      background: var(--danger-solid);
+      color: var(--text-on-accent);
       opacity: 0.5;
       pointer-events: none;
       transition: opacity 0.3s var(--ease-soft), background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
@@ -1176,19 +1202,19 @@
       pointer-events: auto;
     }
     #riskModal .btn-confirm:hover.active {
-      background: #a93226;
+      background: var(--primary-btn-b);
       transform: translateY(-1px);
     }
     #riskModal .risk-body::-webkit-scrollbar { width: 6px; }
     #riskModal .risk-body::-webkit-scrollbar-track { background: transparent; }
     #riskModal .risk-body::-webkit-scrollbar-thumb {
-      background: rgba(43, 51, 60, 0.25);
+      background: rgba(var(--ink-rgb), 0.22);
       border-radius: 10px;
     }
     #riskModal .risk-body,
     #riskConfirmModal .risk-body {
       scrollbar-width: thin;
-      scrollbar-color: rgba(43, 51, 60, 0.25) transparent;
+      scrollbar-color: rgba(var(--ink-rgb), 0.22) transparent;
     }
 
     /* 2026-10-09：二次确认弹窗（#riskConfirmModal）原来单独写了一套 .modal-content / .risk-body /
@@ -1321,7 +1347,7 @@
       color: var(--primary);
       background: var(--bg-card);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(43, 51, 60, 0.12);
+      box-shadow: var(--shadow-sm);
     }
     .visit-source-btn:active {
       transform: scale(0.97);
@@ -1340,11 +1366,14 @@
       background: var(--bg-tint);
     }
 
+    /* 2026-10-25 中国色施工：「当前来源」是选中项，按色板允许的「墨底 + 宣纸字」做，
+       「当前」小徽标改成朱砂实底；行内计数胶囊保持 --bg-card / --primary 自动反差。
+       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 active-choice 三条。 */
     .visit-source-btn.active-choice {
       border-color: var(--primary);
-      background: var(--bg-tint);
-      color: var(--primary);
-      box-shadow: 0 4px 14px rgba(43, 51, 60, 0.22);
+      background: var(--primary);
+      color: var(--bg);
+      box-shadow: var(--shadow);
       position: relative;
     }
     .visit-source-btn.active-choice::before {
@@ -1355,7 +1384,7 @@
       font-size: 0.68rem;
       font-weight: 700;
       color: var(--text-on-accent);
-      background: var(--primary);
+      background: var(--primary-btn-a);
       padding: 1px 8px;
       border-radius: 10px;
       letter-spacing: 0.5px;
@@ -1387,8 +1416,10 @@
       transition: border-color 0.25s var(--ease-soft);
     }
     .visit-other-input input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(43, 51, 60, 0.12);
+      /* 2026-10-25 中国色施工：聚焦环跟搜索框统一走 --focus-ring / --shadow-glow。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原该规则两条。 */
+      border-color: var(--focus-ring);
+      box-shadow: var(--shadow-glow);
     }
     .visit-other-actions {
       display: flex;
@@ -1410,8 +1441,8 @@
       color: var(--text);
     }
     .visit-other-actions .btn-cancel-other:hover {
-      /* 2026-10-18：同 admin，写死的浅粉在深色主题下会让文字消失 → 用令牌。
-         【回退办法】改回 #e2e6ea。 */
+      /* 2026-10-18：写死的浅粉在深色主题下会让文字消失 → 用令牌。
+         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原本条。 */
       background: var(--border-strong);
     }
     .visit-other-actions .btn-confirm-other {

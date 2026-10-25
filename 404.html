@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>页面走丢了 - 织雾满穗</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#fdf2f5">
+  <meta name="theme-color" content="#F5F0E6">
 
   <script>
     (function () {
@@ -43,50 +43,84 @@
     并用脚本站点根目录探测来修正站内链接。
   -->
   <style>
+    /* ============================================================
+       404 页令牌桥（2026-10-25 中国色重制）
+       ------------------------------------------------------------
+       背景：404 页是「自带样式的独立页面」，可能被服务器用任意 URL 提供，
+       所以它不加载 css/style.css（相对路径不可靠），全局令牌在这里取不到。
+       本块只做一件事：把 css/style.css 里的同名全局令牌「值」桥接进来，
+       下面所有规则一律引用 var(--令牌)，页面内不再维护第二套粉色色值。
+       ⚠️ 色值取自 css/style.css（2026-10-25 中国色板），将来改色请两边一起改。
+          阴影按色板用「暖褐单层」（404 只有一个圆形按钮，不需要 style.css 那种
+          三层内高光），深色用黑；除此之外不启用第二套颜色。
+       只保留圆角 / 缓动 / 字体等非颜色项。
+       【回退办法】用 git checkout -- 404.html 恢复，或从
+       .verify/backup-theme-20261025/404.html 拷回原文件。
+       ============================================================ */
     :root {
-      --primary: #dc6b82;
-      --primary-ink: #a83c56;
-      --primary-btn-a: #c7546a;
-      --primary-btn-b: #b84460;
-      --accent: #e88da1;
-      --gold: #d4a06a;
-      --bg: #fdf2f5;
-      --bg-card: #ffffff;
-      --text: #4a3f44;
-      --text-light: #6e5f65;
-      --text-muted: #7d6972;
-      --border: #f0d9de;
+      /* 表面与文字（宣纸）：只桥接本页用到的令牌 */
+      --bg: #F5F0E6;
+      --bg-card: #FFFCF6;
+      --text: #221C16;
+      --text-light: #544A3E;
+      --text-muted: #786B5B;
+      --text-on-accent: #FFF8EE;
+      --border: #DCD2C0;
+      /* 墨 / 朱砂 / 金 */
+      --primary: #2C2721;
+      --primary-ink: #1B1712;
+      --primary-btn-a: #A62E22;
+      --primary-btn-b: #8A1F18;
+      --accent: #A62E22;
+      --gold-ink: #7A571B;
+      /* 叠色用 RGB（阴影 / 氛围光），写法：rgba(var(--xxx-rgb), α) */
+      --ink-rgb: 34, 28, 22;
+      --accent-rgb: 166, 46, 34;
+      --gold-rgb: 176, 138, 62;
+      /* 阴影：暖褐（不用冷蓝灰）；主按钮另用朱砂光晕 */
+      --shadow: 0 4px 20px rgba(var(--ink-rgb), 0.10);
+      --shadow-hover: 0 12px 40px rgba(var(--ink-rgb), 0.16);
+      /* 氛围光：金 / 朱砂 / 青瓷低透明（与 style.css 的 --aurora-* 同值），
+         404 只有这一层底纹，所以单独起 --glow-* 名字给 body::before 用 */
+      --aurora-1: rgba(var(--gold-rgb), 0.16);
+      --aurora-2: rgba(var(--accent-rgb), 0.10);
+      --aurora-3: rgba(74, 115, 104, 0.12);
+      --glow-1: var(--aurora-1);
+      --glow-2: var(--aurora-2);
+      --glow-3: var(--aurora-3);
+      /* 非颜色项（原样保留） */
       --radius: 20px;
       --radius-pill: 50px;
-      --shadow: 0 4px 20px rgba(220, 107, 130, 0.08);
-      --shadow-hover: 0 12px 40px rgba(220, 107, 130, 0.15);
       --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
-      --glow-1: rgba(240, 163, 180, 0.62);
-      --glow-2: rgba(232, 196, 154, 0.5);
-      --glow-3: rgba(176, 212, 232, 0.45);
       color-scheme: light;
     }
+    /* 深色 · 墨夜（暖黑，不是蓝黑/纯黑）：同样只桥接全局令牌值，不另设计一套颜色 */
     [data-theme="dark"] {
-      --primary: #ef8ea4;
-      --primary-ink: #ffa9bd;
-      --primary-btn-a: #d0617a;
-      --primary-btn-b: #bf4f67;
-      --accent: #f2a0b3;
-      --gold: #e0b477;
-      --bg: #17121a;
-      --bg-card: #241c2a;
-      --text: #f2e9ee;
-      --text-light: #cdbcc5;
-      --text-muted: #a4909a;
-      --border: #3a2c36;
+      --bg: #14110E;
+      --bg-card: #201B15;
+      --text: #F0E8D8;
+      --text-light: #C8BCA8;
+      --text-muted: #9C8F7C;
+      --text-on-accent: #FFF8EE;
+      --border: #3A3228;
+      --primary: #E9DFC9;
+      --primary-ink: #FFF7E6;
+      --primary-btn-a: #B23A2A;
+      --primary-btn-b: #8E2218;
+      --accent: #E2604A;
+      --gold-ink: #E3C47C;
+      --accent-rgb: 226, 96, 74;
+      --gold-rgb: 216, 181, 102;
+      /* 深色阴影用黑：暖黑底上自然投影，不用蓝灰 */
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
       --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
-      --glow-1: rgba(178, 74, 106, 0.5);
-      --glow-2: rgba(150, 108, 58, 0.42);
-      --glow-3: rgba(58, 92, 134, 0.48);
+      /* 深色氛围光：与 style.css 深色 --aurora-* 同值（更淡，夜里不刺眼） */
+      --aurora-1: rgba(var(--gold-rgb), 0.10);
+      --aurora-2: rgba(var(--accent-rgb), 0.08);
+      --aurora-3: rgba(63, 107, 82, 0.14);
       color-scheme: dark;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -130,12 +164,15 @@
     }
 
     .mist { font-size: 2.8rem; margin-bottom: 4px; animation: floatY 4s ease-in-out infinite; }
+    /* 404 大字：墨 → 朱砂 → 金（印章感）。三档都取深色令牌，
+       保证大字在宣纸底上也够清楚；深色主题自动变亮。
+       【回退办法】把渐变三色改回 var(--primary), var(--accent) 45%, var(--gold)。 */
     .err-code {
       font-size: clamp(4.5rem, 18vw, 8rem);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -4px;
-      background: linear-gradient(120deg, var(--primary), var(--accent) 45%, var(--gold));
+      background: linear-gradient(120deg, var(--primary-ink), var(--accent) 46%, var(--gold-ink));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -179,12 +216,15 @@
       transition: transform 0.3s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), background 0.3s var(--ease-soft);
     }
     .btn:active { transform: scale(0.93); }
+    /* 主按钮：朱砂渐变实底 + 奶白字（强调层级第 1 档，「突出就突出」）。
+       阴影用朱砂 RGB 令牌，不再用粉色字面量。
+       【回退办法】color 改回 #fff，两处阴影改回 rgba(220,107,130,.3/.4)。 */
     .btn-primary {
       background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-      color: #fff;
-      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.3);
+      color: var(--text-on-accent);
+      box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.30);
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(220, 107, 130, 0.4); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.40); }
     .btn-secondary {
       background: transparent;
       color: var(--text-light);
@@ -198,7 +238,9 @@
       color: var(--text-muted);
       animation: fadeInUp 0.6s var(--ease-out) 0.44s backwards;
     }
-    .hint a { color: var(--primary-ink); text-decoration: none; }
+    /* 文本链接统一走朱砂 --accent（色板规定「链接 = accent」）。
+       【回退办法】改回 var(--primary-ink)。 */
+    .hint a { color: var(--accent); text-decoration: none; }
     .hint a:hover { text-decoration: underline; }
 
     .theme-toggle {
@@ -217,7 +259,9 @@
       box-shadow: var(--shadow);
       transition: transform 0.3s var(--ease-bounce), color 0.3s var(--ease-soft);
     }
-    .theme-toggle:hover { color: var(--primary-ink); transform: rotate(-18deg) scale(1.08); }
+    /* 主题按钮悬停：朱砂，跟链接同一套强调色。
+       【回退办法】改回 var(--primary-ink)。 */
+    .theme-toggle:hover { color: var(--accent); transform: rotate(-18deg) scale(1.08); }
 
     @keyframes titleIn {
       0%   { opacity: 0; transform: scale(0.7) translateY(-14px); }
@@ -287,6 +331,10 @@
       function paint() {
         var dark = root.getAttribute('data-theme') === 'dark';
         btn.textContent = dark ? '☀️' : '🌙';
+        /* 2026-10-25 中国色：404 不加载 common.js，浏览器状态栏颜色要在本页自己同步。
+           【回退办法】删掉下面两行 meta 同步（状态栏会固定在浅色 #F5F0E6）。 */
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#14110E' : '#F5F0E6');
       }
       paint();
       btn.addEventListener('click', function () {
