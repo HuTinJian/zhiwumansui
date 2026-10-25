@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roblox ID 宝库 - 织雾满穗</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <!-- 怀旧版专用横幅样式（2026-10-26 新增；只给 legacy/2026-08-25/ 用）
+       【回退办法】删掉这一行 <link> 与 <body> 后的 .legacy-bar 段落，即可恢复旧版原样。 -->
+  <link rel="stylesheet" href="legacy.css">
+
+  <style>
+    .header-nav {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(220, 107, 130, 0.2);
+      border-radius: var(--radius-pill);
+      padding: 4px 6px;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.08);
+      gap: 2px;
+      margin-left: auto;
+    }
+    .header-nav .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-light);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce);
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: var(--font);
+    }
+    .header-nav .nav-btn:hover {
+      background: rgba(220, 107, 130, 0.12);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .header-nav .nav-btn:active {
+      transform: scale(0.92);
+    }
+    .header-nav .nav-btn.gold {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .header-nav .nav-btn.gold:hover {
+      background: rgba(212, 160, 106, 0.15);
+      color: #b8894f;
+    }
+    .header-nav .nav-divider {
+      width: 1px;
+      height: 18px;
+      background: rgba(220, 107, 130, 0.15);
+      margin: 0 2px;
+      flex-shrink: 0;
+    }
+    .header-nav .nav-divider-gold {
+      width: 1px;
+      height: 18px;
+      background: rgba(212, 160, 106, 0.3);
+      margin: 0 2px;
+      flex-shrink: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    .page-header {
+      background: linear-gradient(145deg, #f8d7de, #f0c4cd);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
+      animation: cardRise 0.55s var(--ease-bounce) both;
+    }
+    .page-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 20px;
+      margin-bottom: 14px;
+    }
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .page-header .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      font-size: 0.88rem;
+      color: var(--text-light);
+      flex: 1 1 auto;
+    }
+    .page-header .stats strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .page-header .stats .fav-stat strong {
+      color: var(--gold);
+    }
+    .page-header .btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .page-header .btns button {
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      font-family: var(--font);
+      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+    .btn-quarantine-custom {
+      background: linear-gradient(135deg, #f5b872, #e8a05a);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 16px rgba(232, 160, 90, 0.25);
+    }
+    .btn-quarantine-custom:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-source {
+      background: linear-gradient(135deg, #6bb6e8, #4a9dd8);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
+      font-weight: 700;
+      animation: sourcePulse 2.5s ease-in-out infinite;
+    }
+    .btn-source:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(107, 182, 232, 0.6);
+      animation: none;
+    }
+    .btn-source:active {
+      transform: scale(0.93);
+    }
+    @keyframes sourcePulse {
+      0%, 100% {
+        box-shadow: 0 6px 18px rgba(107, 182, 232, 0.35);
+      }
+      50% {
+        box-shadow: 0 6px 24px rgba(107, 182, 232, 0.7),
+                    0 0 0 4px rgba(107, 182, 232, 0.15);
+      }
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+      animation: fadeInUp 0.4s var(--ease-soft) 0.15s both;
+    }
+    .search-row input[type="text"] {
+      flex: 1 1 200px;
+      min-width: 160px;
+      padding: 10px 18px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-pill);
+      font-size: 0.95rem;
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.25s var(--ease-soft);
+    }
+    .search-row input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-tabs button {
+      padding: 7px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      color: var(--text-light);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+    .filter-tabs button:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .filter-tabs button:active {
+      transform: scale(0.93);
+    }
+    .filter-tabs button.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 107, 130, 0.3);
+    }
+
+    .btn-latest {
+      margin-left: auto;
+      border: 2px solid #a8d5c2;
+      background: linear-gradient(135deg, rgba(110, 198, 160, 0.15), rgba(86, 176, 138, 0.12));
+      color: #3d8a6b;
+      box-shadow: 0 2px 8px rgba(110, 198, 160, 0.15);
+    }
+    .btn-latest:hover {
+      border-color: #56b08a;
+      color: #2e7355;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(110, 198, 160, 0.3);
+    }
+    .btn-latest:active { transform: scale(0.93); }
+    .btn-latest.active {
+      background: linear-gradient(135deg, #6ec6a0, #56b08a);
+      border-color: #56b08a;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(110, 198, 160, 0.5);
+    }
+
+    .btn-hot {
+      border: 2px solid #f5a89a;
+      background: linear-gradient(135deg, rgba(245, 138, 120, 0.15), rgba(232, 100, 80, 0.12));
+      color: #c04a35;
+      box-shadow: 0 2px 8px rgba(245, 138, 120, 0.15);
+    }
+    .btn-hot:hover {
+      border-color: #e86450;
+      color: #a03220;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245, 138, 120, 0.32);
+    }
+    .btn-hot:active { transform: scale(0.93); }
+    .btn-hot.active {
+      background: linear-gradient(135deg, #f58a78, #e86450);
+      border-color: #e86450;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(245, 138, 120, 0.5);
+    }
+
+    .btn-multi {
+      padding: 8px 18px;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(162, 155, 254, 0.15), rgba(108, 92, 231, 0.12));
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      box-shadow: 0 2px 8px rgba(108, 92, 231, 0.12);
+      font-family: var(--font);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-multi:hover {
+      border-color: var(--primary);
+      color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(108, 92, 231, 0.22);
+    }
+    .btn-multi:active { transform: scale(0.93); }
+    .btn-multi.active {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
+    }
+
+    .btn-fav-filter {
+      border: 2px solid var(--gold-light);
+      background: linear-gradient(135deg, rgba(232, 196, 154, 0.2), rgba(212, 160, 106, 0.12));
+      color: #b8894f;
+      box-shadow: 0 2px 8px rgba(212, 160, 106, 0.15);
+    }
+    .btn-fav-filter:hover {
+      border-color: var(--gold);
+      color: #a07038;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(212, 160, 106, 0.28);
+    }
+    .btn-fav-filter:active { transform: scale(0.93); }
+    .btn-fav-filter.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-color: var(--gold);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(212, 160, 106, 0.45);
+    }
+
+    .batch-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(220, 107, 130, 0.08);
+    }
+    .batch-bar.show {
+      display: flex;
+      animation: popIn 0.35s var(--ease-bounce) both;
+    }
+    .batch-bar .info {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    .batch-bar .info strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .batch-bar .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .batch-bar .actions button {
+      padding: 8px 18px;
+      font-size: 0.85rem;
+    }
+
+    .song-group {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 2px solid transparent;
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.06);
+      margin-bottom: 10px;
+      padding: 14px 18px;
+      transition: transform 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), box-shadow 0.25s var(--ease-soft);
+      animation: groupIn 0.35s var(--ease-soft) both;
+      will-change: transform;
+    }
+    .song-group:hover {
+      border-color: rgba(220, 107, 130, 0.3);
+      box-shadow: 0 6px 18px rgba(220, 107, 130, 0.1);
+      transform: translateX(4px);
+    }
+    .group-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px 12px;
+      margin-bottom: 10px;
+    }
+    .group-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-word;
+      flex: 1 1 140px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .badge-multi {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge-hot {
+      background: linear-gradient(135deg, #f58a78, #e86450);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .group-category {
+      font-size: 0.75rem;
+      background: #fde8ef;
+      color: var(--primary);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .id-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(253, 242, 245, 0.5);
+      margin-bottom: 4px;
+      transition: background 0.2s var(--ease-soft), transform 0.25s var(--ease-soft);
+    }
+    .id-row:hover {
+      background: rgba(253, 242, 245, 0.9);
+      transform: translateX(3px);
+    }
+    .id-checkbox {
+      display: none;
+      width: 20px;
+      height: 20px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 2px solid var(--primary-light);
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      transition: all 0.25s var(--ease-bounce);
+    }
+    .id-checkbox:hover {
+      transform: scale(1.1);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.2);
+    }
+    .id-checkbox:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(220, 107, 130, 0.3);
+    }
+    .id-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 5px;
+      height: 10px;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: translate(-50%, -60%) rotate(45deg);
+    }
+    .batch-mode .id-checkbox {
+      display: inline-block;
+    }
+    .id-number {
+      font-family: 'Courier New', monospace;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--primary-dark);
+      word-break: break-all;
+      flex: 1 1 120px;
+      min-width: 80px;
+    }
+    .id-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .id-actions button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .id-actions .btn-fav {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      padding: 4px 8px;
+    }
+    .id-actions .btn-fav:hover {
+      color: var(--gold);
+      background: rgba(212, 160, 106, 0.12);
+    }
+    .id-actions .btn-fav:active { transform: scale(0.85); }
+    .id-actions .btn-fav.active { color: var(--gold); }
+    .id-actions .btn-copy {
+      background: var(--primary);
+      color: #fff;
+    }
+    .id-actions .btn-copy:hover {
+      background: var(--primary-dark);
+      transform: scale(1.06) rotate(-2deg);
+    }
+    .id-actions .btn-copy:active { transform: scale(0.9); }
+    .id-actions .btn-copy.copied { background: var(--success); }
+    .id-actions .btn-play {
+      background: var(--success);
+      color: #fff;
+    }
+    .id-actions .btn-play:hover {
+      background: var(--success-dark);
+      transform: scale(1.06) rotate(2deg);
+    }
+    .id-actions .btn-play:active { transform: scale(0.9); }
+    .id-actions .btn-quarantine {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      padding: 4px 8px;
+    }
+    .id-actions .btn-quarantine:hover {
+      color: var(--danger);
+      background: rgba(232, 116, 122, 0.12);
+    }
+    .id-actions .btn-quarantine:active {
+      transform: scale(0.85) rotate(-10deg);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+      font-size: 1rem;
+      animation: fadeInUp 0.4s var(--ease-soft) both;
+    }
+
+    .load-more-wrap {
+      text-align: center;
+      padding: 20px 0 40px;
+      animation: fadeInUp 0.4s var(--ease-soft) both;
+    }
+    .load-more-wrap .info {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+    .load-more-wrap .btn-more {
+      padding: 10px 32px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: transform 0.25s var(--ease-bounce), background 0.25s var(--ease-soft);
+    }
+    .load-more-wrap .btn-more:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .load-more-wrap .btn-more:active { transform: scale(0.95); }
+    .load-more-wrap .btn-more:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #riskModal .modal-content {
+      max-width: 700px;
+      border: 1px solid var(--border);
+      padding: 24px 28px 16px;
+    }
+    #riskModal .modal-content h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--danger);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #riskModal .sub-warning {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--danger);
+      background: #fdf0ed;
+      padding: 3px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--danger-light);
+      margin-bottom: 10px;
+    }
+    #riskModal .redirect-notice {
+      background: #fdf0ed;
+      border-left: 4px solid var(--danger);
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--danger);
+      border-radius: 0 6px 6px 0;
+    }
+    #riskModal .risk-body {
+      max-height: 48vh;
+      overflow-y: auto;
+      padding-right: 6px;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--text-light);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 12px;
+    }
+    #riskModal .risk-body .section-title {
+      display: block;
+      font-weight: 700;
+      color: var(--danger);
+      margin-top: 10px;
+      margin-bottom: 2px;
+      font-size: 0.88rem;
+    }
+    #riskModal .risk-body .section-title:first-of-type {
+      margin-top: 0;
+    }
+    #riskModal .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    #riskModal .btn-confirm {
+      background: var(--danger);
+      color: #fff;
+      opacity: 0.5;
+      pointer-events: none;
+      transition: opacity 0.3s var(--ease-soft), background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+    #riskModal .btn-confirm.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #riskModal .btn-confirm:hover.active {
+      background: #a93226;
+      transform: translateY(-2px);
+    }
+    #riskModal .risk-body::-webkit-scrollbar { width: 6px; }
+    #riskModal .risk-body::-webkit-scrollbar-track { background: transparent; }
+    #riskModal .risk-body::-webkit-scrollbar-thumb {
+      background: rgba(220, 107, 130, 0.25);
+      border-radius: 10px;
+    }
+    #riskModal .risk-body {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
+    }
+
+    #riskConfirmModal .modal-content { max-width: 620px; }
+    #riskConfirmModal .risk-body {
+      font-size: 0.88rem;
+      line-height: 1.9;
+      color: var(--text-light);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 14px;
+    }
+    #riskConfirmModal .section-title {
+      display: block;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 10px;
+      margin-bottom: 2px;
+      font-size: 0.9rem;
+    }
+    #riskConfirmModal .section-title:first-of-type {
+      margin-top: 0;
+    }
+
+    #quarantineModal .modal-content { max-width: 800px; }
+    #quarantineModal .search-inline {
+      width: 100%;
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-pill);
+      font-size: 0.9rem;
+      background: #fdf8fa;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.25s var(--ease-soft);
+    }
+    #quarantineModal .search-inline:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    #quarantineList {
+      max-height: 50vh;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      padding-right: 4px;
+    }
+    .quarantine-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .quarantine-item:last-child {
+      border-bottom: none;
+    }
+    .quarantine-item .info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      flex: 1 1 200px;
+    }
+    .quarantine-item .name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .quarantine-item .q-id {
+      color: var(--primary-dark);
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .quarantine-item .time {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+    .quarantine-item .q-actions button {
+      padding: 5px 14px;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: var(--success);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
+    }
+    .quarantine-item .q-actions button:hover {
+      background: var(--success-dark);
+      transform: scale(1.06);
+    }
+    .quarantine-item .q-actions button:active {
+      transform: scale(0.9);
+    }
+    .quarantine-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .quarantine-footer button {
+      padding: 8px 18px;
+      font-size: 0.85rem;
+    }
+
+    #thanksModal .modal-content {
+      max-width: 600px;
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-light);
+    }
+    #thanksModal h2 {
+      color: var(--gold);
+      text-align: center;
+    }
+    #thanksModal .subtitle {
+      text-align: center;
+      color: var(--gold);
+      font-style: italic;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      opacity: 0.85;
+    }
+    #thanksModal .thanks-dev-line {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.82rem;
+      margin: -8px 0 14px 0;
+      opacity: 0.85;
+    }
+    #thanksList {
+      max-height: 50vh;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .thanks-cat { margin-bottom: 14px; }
+    .thanks-cat .cat-title {
+      font-weight: 700;
+      color: #7a4a5a;
+      font-size: 0.95rem;
+      border-bottom: 1px solid var(--gold-light);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .thanks-person {
+      padding: 4px 0;
+      font-size: 0.9rem;
+      color: var(--text);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      align-items: baseline;
+    }
+    .thanks-person .p-name {
+      font-weight: 600;
+      color: #d4884a;
+    }
+    .thanks-person .p-platform {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+    .thanks-person .p-message {
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    #visitSourceModal .modal-content {
+      max-width: 480px;
+    }
+    #visitSourceModal h2 {
+      color: var(--primary);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    #visitSourceModal .visit-desc {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    #visitSourceModal .visit-current {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .visit-source-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .visit-source-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 18px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fdf8fa;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.25s var(--ease-soft);
+    }
+    .visit-source-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(220, 107, 130, 0.12);
+    }
+    .visit-source-btn:active {
+      transform: scale(0.97);
+    }
+    .visit-source-btn .src-count {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .visit-source-btn:hover .src-count {
+      color: var(--primary);
+      background: #fde8ef;
+    }
+
+    .visit-source-btn.active-choice {
+      border-color: var(--primary);
+      background: #fde8ef;
+      color: var(--primary);
+      box-shadow: 0 4px 14px rgba(220, 107, 130, 0.22);
+      position: relative;
+    }
+    .visit-source-btn.active-choice::before {
+      content: '当前';
+      position: absolute;
+      top: -8px;
+      left: 12px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--primary);
+      padding: 1px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .visit-source-btn.active-choice .src-count {
+      color: var(--primary);
+      background: #fff;
+    }
+
+    .visit-other-input {
+      margin-top: 12px;
+      padding: 14px;
+      background: #fdf8fa;
+      border: 2px dashed var(--primary-light);
+      border-radius: var(--radius-sm);
+      animation: fadeInUp 0.25s var(--ease-soft) both;
+    }
+    .visit-other-input input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color 0.25s var(--ease-soft);
+    }
+    .visit-other-input input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(220, 107, 130, 0.12);
+    }
+    .visit-other-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .visit-other-actions button {
+      padding: 7px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      border: none;
+      transition: all 0.25s var(--ease-soft);
+    }
+    .visit-other-actions .btn-cancel-other {
+      background: var(--border);
+      color: var(--text);
+    }
+    .visit-other-actions .btn-cancel-other:hover {
+      background: #e6c9cf;
+    }
+    .visit-other-actions .btn-confirm-other {
+      background: var(--primary);
+      color: #fff;
+    }
+    .visit-other-actions .btn-confirm-other:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    #thanksList::-webkit-scrollbar,
+    #quarantineList::-webkit-scrollbar { width: 6px; }
+    #thanksList::-webkit-scrollbar-track,
+    #quarantineList::-webkit-scrollbar-track { background: transparent; }
+    #thanksList::-webkit-scrollbar-thumb,
+    #quarantineList::-webkit-scrollbar-thumb {
+      background: rgba(220, 107, 130, 0.25);
+      border-radius: 10px;
+    }
+    #thanksList::-webkit-scrollbar-thumb:hover,
+    #quarantineList::-webkit-scrollbar-thumb:hover {
+      background: rgba(220, 107, 130, 0.45);
+    }
+    #thanksList,
+    #quarantineList {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(220, 107, 130, 0.25) transparent;
+    }
+
+    @keyframes cardRise {
+      0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.5); }
+      70% { transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes groupIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 16px 12px 40px; }
+      .page-header { padding: 16px 18px; }
+      .page-header h1 { font-size: 1.2rem; }
+      .page-header-top { flex-direction: column; align-items: stretch; }
+      .header-nav {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+        flex-wrap: wrap;
+      }
+      .page-header .btns { justify-content: center; }
+      .search-row input[type="text"] { font-size: 0.9rem; padding: 9px 14px; }
+      .filter-tabs button { font-size: 0.78rem; padding: 6px 12px; }
+      .song-group { padding: 12px 14px; }
+      .group-name { font-size: 1rem; }
+      .id-number { font-size: 0.82rem; }
+      .id-actions button { padding: 5px 10px; font-size: 0.75rem; }
+      #riskModal .modal-content { padding: 18px 16px 12px; }
+      #riskModal .risk-body { font-size: 0.78rem; max-height: 45vh; }
+    }
+    @media (max-width: 480px) {
+      .page-header { padding: 14px 14px; }
+      .page-header h1 { font-size: 1.1rem; }
+      .id-row { padding: 6px 8px; }
+      .id-number { font-size: 0.78rem; }
+      .page-header .btns button { padding: 7px 12px; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       怀旧版横幅（2026-10-26 新增，只存在于 legacy/2026-08-25/）
+       这是怀旧版唯一新增的界面元素，其余样式与脚本保持旧版原样。
+       【回退办法】删掉本段与 <head> 里的 legacy.css 引用，即可完全恢复旧版。
+       ============================================================ -->
+  <div class="legacy-bar" role="note">
+    <span class="legacy-bar-tag">🕰️ 怀旧版</span>
+    <span class="legacy-bar-text">
+      <span class="legacy-bar-full">你正在浏览 <b>2026 年 8 月 25 日</b> 的织雾满穗 —— 这一版已经定格，不再更新。</span>
+      <!-- 手机端短句：完整句子在 390px 宽会折成两三行，横幅就太高了 -->
+      <span class="legacy-bar-short"><b>2026 年 8 月 25 日</b> 的旧版</span>
+    </span>
+    <a class="legacy-bar-back" href="../../index.html">回到新版 →</a>
+  </div>
+
+  <div class="container">
+    <header class="page-header">
+      <div class="page-header-top">
+        <h1>🎵 Roblox ID 宝库</h1>
+        <div class="stats">
+          <span>📚 <strong id="statGroups">0</strong> 组</span>
+          <span>🎶 <strong id="statIds">0</strong> 个 ID</span>
+          <span>🔁 <strong id="statMulti">0</strong> 组多 ID</span>
+          <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
+        </div>
+        <nav class="header-nav" aria-label="主导航">
+          <a href="index.html" class="nav-btn">🏠 首页</a>
+          <span class="nav-divider" aria-hidden="true"></span>
+          <a href="feedback.html" class="nav-btn">📩 反馈</a>
+          <span class="nav-divider-gold" aria-hidden="true"></span>
+          <button type="button" class="nav-btn gold" id="openThanksBtn">❤️ 鸣谢名单</button>
+        </nav>
+      </div>
+      <div class="btns">
+        <button class="btn btn-quarantine-custom" id="openQuarantineBtn">⛔ 我的隔离区</button>
+        <button class="btn btn-primary" id="batchToggleBtn">📦 批量隔离</button>
+        <button class="btn btn-source" id="openSourceBtn">📢 告诉我们你从哪来</button>
+        <button class="btn btn-latest" id="latestToggleBtn">最新收录</button>
+        <button class="btn btn-hot" id="hotToggleBtn">热门推荐</button>
+        <button class="btn btn-fav-filter" id="favFilterBtn">⭐ 收藏</button>
+      </div>
+    </header>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="🔍 搜索歌名或 ID...">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="active" data-cat="all">全部</button>
+      </div>
+      <button class="btn-multi" id="multiToggleBtn">🔁 多 ID</button>
+    </div>
+
+    <div class="batch-bar" id="batchBar">
+      <span class="info">已选 <strong id="selectedCount">0</strong> 个 ID</span>
+      <div class="actions">
+        <button class="btn btn-secondary" id="batchClearBtn">取消选择</button>
+        <button class="btn btn-danger" id="batchQuarantineBtn">🗑️ 隔离选中</button>
+      </div>
+    </div>
+
+    <div id="songList"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">😕 没有找到匹配的歌曲</div>
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+      <div class="info" id="loadMoreInfo"></div>
+      <button class="btn-more" id="loadMoreBtn">加载更多</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+  </footer>
+
+  <div class="modal" id="riskModal">
+    <div class="modal-content">
+      <h2>⚠️ 法律与平台风险告知</h2>
+      <div class="sub-warning">请务必仔细阅读以下全部内容</div>
+      <div class="redirect-notice">即将跳转至 Roblox 官方页面</div>
+      <div class="risk-body" id="riskBody">
+        <span class="section-title">【中华人民共和国法律】</span>
+根据《中华人民共和国著作权法》第五十二条、第五十三条：
+• 未经著作权人许可，复制、发行、表演、放映、广播、汇编、通过信息网络向公众传播其作品的，应当根据情况，承担停止侵害、消除影响、赔礼道歉、赔偿损失等民事责任。
+• 侵权行为同时损害公共利益的，主管著作权的部门可责令停止侵权行为，予以警告，没收违法所得，没收、无害化销毁处理侵权复制品以及主要用于制作侵权复制品的材料、工具、设备等；违法经营额五万元以上的，可以并处违法经营额一倍以上五倍以下的罚款；没有违法经营额、违法经营额难以计算或者不足五万元的，可以并处二十五万元以下的罚款。
+• 构成犯罪的，依法追究刑事责任。
+
+<span class="section-title">【司法实践参考】</span>
+• 未经许可使用他人音乐作品，即使仅使用片段，只要该部分具有独创性，即构成侵权。
+• 使用第三方平台提供的音源，使用者仍需取得著作权人授权，不能当然免责。
+• 吉林省长春市二道区人民检察院办理的个人网络音乐侵犯著作权案中，被告人未经许可通过直播传播他人音乐作品获利近300万元，被判处有期徒刑三年，缓刑三年，并处罚金15万元。
+
+<span class="section-title">【网易云音乐 / QQ音乐 / 汽水音乐 等音乐软件风险告知】</span>
+• 上述平台提供的试听、下载、会员服务，其授权范围严格限定于「平台内用户个人收听」，不包含「第三方网站嵌入播放」或「向公众传播」的授权。
+• 未经许可将上述平台的音乐作品嵌入第三方工具（如本工具），构成对著作权人「信息网络传播权」的侵犯。
+• 使用平台的「外链播放器」功能，其授权范围仅限于个人社交分享，不包含商业工具或辅助工具的嵌入使用。
+• 音乐平台用户协议均明确规定：用户仅可在平台内个人使用，不得将平台内容用于任何商业目的或第三方平台传播。
+
+<span class="section-title">【Roblox 平台政策与风险】</span>
+• Roblox 曾因未经授权使用音乐被美国国家音乐出版商协会（NMPA）起诉，索赔至少2亿美元。
+• Roblox 已与 APM Music 签署授权协议，开发者可在每个体验中使用最多250首 APM 曲目。
+• 上传受版权保护的材料可能被 Roblox 自动检测并删除。
+
+<span class="section-title">【最终提醒】</span>
+本工具仅提供 Roblox 官方页面跳转链接，不存储、不传播任何音频文件。
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="riskCancelBtn">取消</button>
+        <button class="btn btn-confirm" id="riskConfirmBtn" disabled>确认跳转 (10s)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="riskConfirmModal">
+    <div class="modal-content">
+      <h2>⚠️ 二次确认</h2>
+      <div class="risk-body">
+        <span class="section-title">【访问提示】</span>
+访问 Roblox 官方页面可能需要网络加速器
+
+<span class="section-title">【风险告知】</span>
+我们已在上一页向你完整告知全部法律与平台风险。
+
+<span class="section-title">【关于"不再提示"】</span>
+选择"我已知晓，不再提示"后，你本次将不再看到风险告知弹窗，可直接跳转。
+
+如开发者重置风险告知，届时你会再一次看到完整的风险告知。
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="riskConfirmCancel">取消</button>
+        <button class="btn btn-primary" id="riskConfirmOk">我已知晓，不再提示</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="quarantineModal">
+    <div class="modal-content">
+      <h2>⛔ 我的隔离区</h2>
+      <p style="margin-bottom:14px;font-size:0.85rem;">仅你自己可见，不影响其他用户</p>
+      <input type="text" class="search-inline" id="quarantineSearch" placeholder="🔍 搜索隔离区（歌名或 ID）...">
+      <div id="quarantineList"></div>
+      <div class="quarantine-footer">
+        <button class="btn btn-success" id="restoreAllQuarantineBtn">🔄 全部恢复</button>
+        <button class="btn btn-primary" id="closeQuarantineBtn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="thanksModal">
+    <div class="modal-content">
+      <h2>❤️ 鸣谢名单</h2>
+      <div class="subtitle">“因为你们，这个项目才更美好。”</div>
+      <div class="thanks-dev-line">👑 开发者 · Roblox：@HuTinJian</div>
+      <div id="thanksList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="closeThanksBtn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="visitSourceModal">
+    <div class="modal-content">
+      <h2>🙏 帮助我们了解推广渠道</h2>
+      <p class="visit-desc">
+        请告诉我们你是从哪知道这个网站的，<br>
+        这对我们改进内容很重要！
+        <span style="display:block;font-size:0.78rem;color:#b5a1a8;margin-top:6px;">（怀旧版只作展示，选择不会被记录）</span>
+        <span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
+      </p>
+
+      <div class="visit-source-list">
+        <button class="visit-source-btn" data-source="哔哩哔哩">
+          <span>📺 哔哩哔哩</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="抖音">
+          <span>🎵 抖音</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="快手">
+          <span>⚡ 快手</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="小红书">
+          <span>📕 小红书</span>
+          <span class="src-count">--</span>
+        </button>
+        <button class="visit-source-btn" data-source="__other__" id="visitSourceOther">
+          <span>💡 其它（可自定义）</span>
+          <span class="src-count">--</span>
+        </button>
+      </div>
+
+      <div class="visit-other-input" id="visitOtherInput" style="display:none;">
+        <input type="text" id="visitOtherText" placeholder="请输入平台名字（最多 20 字）" maxlength="20">
+        <div class="visit-other-actions">
+          <button type="button" class="btn-cancel-other" id="visitOtherCancel">返回</button>
+          <button type="button" class="btn-confirm-other" id="visitOtherConfirm">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    /* ========== 全局状态 ========== */
+    let songDatabase = [];
+    let quarantineGuest = [];
+    let favorites = new Set();
+    let currentCategory = 'all';
+    let currentKeyword = '';
+    let showMultiOnly = false;
+    let showFavOnly = false;
+    let showLatestOnly = false;
+    let showHotOnly = false;
+    let hotMap = new Map();
+    let batchMode = false;
+    let selectedIds = new Set();
+    let riskCountdownCleanup = null;
+    let pendingRedirectId = null;
+
+    let serverRiskVersion = null;
+
+    /* 怀旧版（2026-10-26）：下面这些 localStorage 键统一加了 legacy_ 前缀。
+       原因：怀旧版和新版同源；键名一样的话，两边的收藏 / 隔离区 / 风险确认会互相覆盖。
+       【回退办法】把 legacy_ 前缀去掉即可（会重新和现版共用同一份本地数据）。 */
+
+    /* 热门计数：每个 ID 只上报一次（localStorage 持久保存） */
+    let countedIds = new Set();
+    let countedIdsLoaded = false;
+
+    function loadCountedIds() {
+      if (countedIdsLoaded) return;
+      try {
+        const raw = localStorage.getItem('legacy_hot_counted_ids');
+        const arr = raw ? JSON.parse(raw) : [];
+        countedIds = new Set(Array.isArray(arr) ? arr.map(String) : []);
+      } catch (e) {
+        countedIds = new Set();
+      }
+      countedIdsLoaded = true;
+    }
+
+    function saveCountedIds() {
+      try {
+        let arr = [...countedIds];
+        /* 加上限，只保留最近 1000 个，防止 localStorage 无限增长 */
+        if (arr.length > 1000) {
+          arr = arr.slice(-1000);
+          countedIds = new Set(arr);
+        }
+        localStorage.setItem('legacy_hot_counted_ids', JSON.stringify(arr));
+      } catch (e) {}
+    }
+
+    function reportHot(id, type) {
+      loadCountedIds();
+      id = String(id);
+      if (countedIds.has(id)) return false;
+      countedIds.add(id);
+      saveCountedIds();
+
+      fetch('/api/hot/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type })
+      }).catch(() => {});
+
+      return true;
+    }
+
+    const PAGE_SIZE = 100;
+    let currentGroups = [];
+    let renderedGroupCount = 0;
+    let isLoadingMore = false;
+
+    const $ = id => document.getElementById(id);
+    const dom = {
+      statGroups: $('statGroups'),
+      statIds: $('statIds'),
+      statMulti: $('statMulti'),
+      statFavs: $('statFavs'),
+      searchInput: $('searchInput'),
+      filterTabs: $('filterTabs'),
+      hotToggleBtn: $('hotToggleBtn'),
+      latestToggleBtn: $('latestToggleBtn'),
+      multiToggleBtn: $('multiToggleBtn'),
+      favFilterBtn: $('favFilterBtn'),
+      songList: $('songList'),
+      emptyState: $('emptyState'),
+      batchBar: $('batchBar'),
+      selectedCount: $('selectedCount'),
+      batchClearBtn: $('batchClearBtn'),
+      batchQuarantineBtn: $('batchQuarantineBtn'),
+      batchToggleBtn: $('batchToggleBtn'),
+      quarantineModal: $('quarantineModal'),
+      quarantineSearch: $('quarantineSearch'),
+      quarantineList: $('quarantineList'),
+      restoreAllQuarantineBtn: $('restoreAllQuarantineBtn'),
+      closeQuarantineBtn: $('closeQuarantineBtn'),
+      openQuarantineBtn: $('openQuarantineBtn'),
+      thanksModal: $('thanksModal'),
+      thanksList: $('thanksList'),
+      closeThanksBtn: $('closeThanksBtn'),
+      openThanksBtn: $('openThanksBtn'),
+      riskModal: $('riskModal'),
+      riskBody: $('riskBody'),
+      riskCancelBtn: $('riskCancelBtn'),
+      riskConfirmBtn: $('riskConfirmBtn'),
+      riskConfirmModal: $('riskConfirmModal'),
+      riskConfirmOk: $('riskConfirmOk'),
+      riskConfirmCancel: $('riskConfirmCancel'),
+      loadMoreWrap: $('loadMoreWrap'),
+      loadMoreBtn: $('loadMoreBtn'),
+      loadMoreInfo: $('loadMoreInfo')
+    };
+
+    function cleanName(name) {
+      if (!name) return '未知歌名';
+      return name.replace(/[《》]/g, '')
+        .replace(/\s*[｜|]\s*/g, '')
+        .replace(/\s*[（(][^）)]*[）)]\s*$/, '')
+        .replace(/[，。、：；！？.,;:!?]+$/, '')
+        .trim() || '未知歌名';
+    }
+
+    function saveQuarantine() {
+      try {
+        localStorage.setItem('legacy_roblox_quarantine_guest', JSON.stringify(quarantineGuest));
+      } catch (e) {}
+    }
+
+    function loadQuarantine() {
+      try {
+        const raw = localStorage.getItem('legacy_roblox_quarantine_guest');
+        quarantineGuest = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(quarantineGuest)) quarantineGuest = [];
+      } catch (e) {
+        quarantineGuest = [];
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem('legacy_roblox_favorites', JSON.stringify([...favorites]));
+      } catch (e) {}
+    }
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem('legacy_roblox_favorites');
+        const arr = raw ? JSON.parse(raw) : [];
+        favorites = new Set(Array.isArray(arr) ? arr.map(String) : []);
+      } catch (e) {
+        favorites = new Set();
+      }
+    }
+
+    function nowStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0') + ' ' +
+        String(d.getHours()).padStart(2, '0') + ':' +
+        String(d.getMinutes()).padStart(2, '0');
+    }
+
+    async function loadServerRiskVersion() {
+      try {
+        const res = await fetch('/api/risk?t=' + Date.now());
+        const data = await res.json();
+        if (data.ok && data.version) {
+          serverRiskVersion = data.version;
+        }
+      } catch (e) {
+        console.warn('获取风险版本失败', e);
+      }
+    }
+
+    async function loadHotList() {
+      try {
+        const res = await fetch('/api/hot/list?t=' + Date.now());
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.data)) {
+          hotMap.clear();
+          data.data.forEach(item => {
+            hotMap.set(String(item.id), Number(item.total) || 0);
+          });
+        }
+      } catch (e) {
+        console.warn('加载热门列表失败', e);
+      }
+    }
+
+    async function loadData() {
+      try {
+        const [mainRes, qRes, extraRes] = await Promise.all([
+          /* 怀旧版（2026-10-26）：不复制一份旧歌单，直接读现在的主列表，
+             这样旧版页面也能看到最新收录（站主要求：主数据用现在代码里的那份）。 */
+          fetch('../../data/roblox_music.json'),
+          fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
+          fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
+        ]);
+
+        if (!mainRes.ok) throw new Error('main HTTP ' + mainRes.status);
+        const raw = await mainRes.json();
+
+        let adminQuarantine = [];
+        if (qRes && qRes.ok) {
+          try {
+            const qData = await qRes.json();
+            if (qData.ok && Array.isArray(qData.data)) {
+              adminQuarantine = qData.data;
+            }
+          } catch (e) {}
+        }
+
+        let extraSongs = [];
+        if (extraRes && extraRes.ok) {
+          try {
+            const eData = await extraRes.json();
+            if (eData.ok && Array.isArray(eData.data)) {
+              extraSongs = eData.data;
+            }
+          } catch (e) {}
+        }
+
+        const mergedMap = new Map();
+        raw.forEach(i => {
+          if (!i || !i.id) return;
+          mergedMap.set(String(i.id), {
+            id: String(i.id),
+            name: i.name || '未知歌名',
+            category: i.category || '未分类',
+            lineIndex: i.lineIndex || 0
+          });
+        });
+        extraSongs.forEach(i => {
+          if (!i || !i.id) return;
+          mergedMap.set(String(i.id), {
+            id: String(i.id),
+            name: i.name || '未知歌名',
+            category: i.category || '未分类',
+            lineIndex: i.lineIndex || 100000,
+            _fromD1: true
+          });
+        });
+
+        const adminIds = new Set(adminQuarantine.map(i => String(i.id)));
+        const guestIds = new Set(quarantineGuest.map(i => String(i.id)));
+
+        songDatabase = [...mergedMap.values()]
+          .filter(i => !adminIds.has(i.id) && !guestIds.has(i.id))
+          .map(i => ({ ...i, name: cleanName(i.name) }));
+
+        renderAll();
+      } catch (err) {
+        console.error('主数据加载失败:', err);
+        songDatabase = [];
+        renderAll();
+        showToast('⚠️ 数据加载失败，请稍后重试');
+      }
+    }
+
+    function renderAll() {
+      const uniqueNames = new Set(songDatabase.map(i => i.name));
+      dom.statGroups.textContent = uniqueNames.size;
+      dom.statIds.textContent = songDatabase.length;
+      dom.statFavs.textContent = favorites.size;
+
+      const nameCount = {};
+      songDatabase.forEach(i => nameCount[i.name] = (nameCount[i.name] || 0) + 1);
+      dom.statMulti.textContent = Object.values(nameCount).filter(c => c > 1).length;
+
+      while (dom.filterTabs.children.length > 1) {
+        dom.filterTabs.removeChild(dom.filterTabs.lastChild);
+      }
+      const cats = [...new Set(songDatabase.map(i => i.category).filter(Boolean))];
+      cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.dataset.cat = cat;
+        btn.textContent = cat;
+        dom.filterTabs.appendChild(btn);
+      });
+
+      dom.filterTabs.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => {
+          if (showFavOnly) {
+            showFavOnly = false;
+            dom.favFilterBtn.classList.remove('active');
+          }
+          if (showLatestOnly) {
+            showLatestOnly = false;
+            dom.latestToggleBtn.classList.remove('active');
+          }
+          if (showHotOnly) {
+            showHotOnly = false;
+            dom.hotToggleBtn.classList.remove('active');
+          }
+          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentCategory = btn.dataset.cat;
+          renderList();
+        };
+      });
+
+      renderList();
+    }
+
+    function renderList() {
+      const keyword = currentKeyword.trim().toLowerCase();
+
+      let filtered = songDatabase.filter(item => {
+        const catMatch = currentCategory === 'all' || item.category === currentCategory;
+        const kwMatch = !keyword || item.name.toLowerCase().includes(keyword) || item.id.includes(keyword);
+        const latestMatch = !showLatestOnly || item._fromD1 === true;
+        const hotMatch = !showHotOnly || hotMap.has(String(item.id));
+        return catMatch && kwMatch && latestMatch && hotMatch;
+      });
+
+      const groupMap = {};
+      filtered.forEach(item => {
+        if (!groupMap[item.name]) {
+          groupMap[item.name] = {
+            name: item.name,
+            ids: [],
+            categories: new Set(),
+            maxLineIndex: 0,
+            maxHot: 0
+          };
+        }
+        groupMap[item.name].ids.push(item.id);
+        groupMap[item.name].categories.add(item.category);
+        if ((item.lineIndex || 0) > groupMap[item.name].maxLineIndex) {
+          groupMap[item.name].maxLineIndex = item.lineIndex || 0;
+        }
+        const h = hotMap.get(String(item.id)) || 0;
+        if (h > groupMap[item.name].maxHot) {
+          groupMap[item.name].maxHot = h;
+        }
+      });
+
+      let groups = Object.values(groupMap);
+
+      if (showHotOnly) {
+        groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0));
+      } else if (showLatestOnly) {
+        groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
+      } else {
+        groups.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+      }
+      if (showMultiOnly) groups = groups.filter(g => g.ids.length > 1);
+      if (showFavOnly) {
+        groups = groups
+          .map(g => ({ ...g, ids: g.ids.filter(id => favorites.has(id)) }))
+          .filter(g => g.ids.length > 0);
+      }
+
+      currentGroups = groups;
+      renderedGroupCount = 0;
+
+      if (groups.length === 0) {
+        dom.songList.innerHTML = '';
+        dom.emptyState.style.display = 'block';
+        dom.loadMoreWrap.style.display = 'none';
+        if (showFavOnly) {
+          dom.emptyState.textContent = '⭐ 暂无收藏的歌曲';
+        } else if (showLatestOnly) {
+          dom.emptyState.textContent = '目前还没有新收录的歌曲，敬请期待';
+        } else if (showHotOnly) {
+          dom.emptyState.textContent = '🔥 暂时还没有热门数据，快来复制/试听吧';
+        } else {
+          dom.emptyState.textContent = '😕 没有找到匹配的歌曲';
+        }
+        return;
+      }
+      dom.emptyState.style.display = 'none';
+      dom.songList.innerHTML = '';
+
+      renderPage();
+    }
+
+    function renderPage() {
+      if (isLoadingMore) return;
+      isLoadingMore = true;
+
+      const start = renderedGroupCount;
+      const end = Math.min(start + PAGE_SIZE, currentGroups.length);
+      const pageGroups = currentGroups.slice(start, end);
+
+      if (pageGroups.length === 0) {
+        isLoadingMore = false;
+        updateLoadMoreUI();
+        return;
+      }
+
+      let html = '';
+      pageGroups.forEach((group) => {
+        group.ids.sort((a, b) => Number(a) - Number(b));
+        const catStr = [...group.categories].join(' / ');
+        const safeName = escapeHtml(group.name);
+        const isMulti = group.ids.length > 1;
+
+        let nameHtml = safeName;
+        if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
+        if (showHotOnly && group.maxHot > 0) {
+          nameHtml += ' <span class="badge-hot">🔥 ' + group.maxHot + '</span>';
+        }
+
+        let rowsHtml = '';
+        group.ids.forEach(id => {
+          const checked = selectedIds.has(id) ? 'checked' : '';
+          const faved = favorites.has(id) ? 'active' : '';
+          const favIcon = favorites.has(id) ? '⭐' : '☆';
+          rowsHtml += `
+            <div class="id-row">
+              <input type="checkbox" class="id-checkbox" data-id="${escapeHtml(id)}" ${checked}>
+              <span class="id-number">${escapeHtml(id)}</span>
+              <div class="id-actions">
+                <button class="btn-fav ${faved}" data-id="${escapeHtml(id)}" title="收藏">${favIcon}</button>
+                <button class="btn-play" data-id="${escapeHtml(id)}">🔗 试听</button>
+                <button class="btn-copy" data-id="${escapeHtml(id)}">📋 复制</button>
+                <button class="btn-quarantine" data-name="${safeName}" data-id="${escapeHtml(id)}" title="移入隔离区">✕</button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          <div class="song-group">
+            <div class="group-header">
+              <div class="group-name">${nameHtml}</div>
+              <span class="group-category">${escapeHtml(catStr)}</span>
+            </div>
+            ${rowsHtml}
+          </div>
+        `;
+      });
+
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      const fragment = document.createDocumentFragment();
+      while (temp.firstChild) fragment.appendChild(temp.firstChild);
+      dom.songList.appendChild(fragment);
+
+      renderedGroupCount = end;
+
+      bindNewElements(start);
+      isLoadingMore = false;
+      updateLoadMoreUI();
+    }
+
+    function updateLoadMoreUI() {
+      if (renderedGroupCount >= currentGroups.length) {
+        dom.loadMoreWrap.style.display = 'none';
+        return;
+      }
+      dom.loadMoreWrap.style.display = 'block';
+      dom.loadMoreInfo.textContent = `已显示 ${renderedGroupCount} / ${currentGroups.length} 组`;
+    }
+
+    function bindNewElements(startIndex) {
+      const allGroups = dom.songList.querySelectorAll('.song-group');
+      const newGroups = Array.from(allGroups).slice(startIndex);
+
+      newGroups.forEach(group => {
+        group.querySelectorAll('.id-checkbox').forEach(cb => {
+          cb.onchange = function () {
+            const id = this.dataset.id;
+            if (this.checked) selectedIds.add(id);
+            else selectedIds.delete(id);
+            updateSelectedCount();
+          };
+        });
+        group.querySelectorAll('.btn-fav').forEach(btn => {
+          btn.onclick = () => toggleFavorite(btn.dataset.id, btn);
+        });
+        group.querySelectorAll('.btn-play').forEach(btn => {
+          btn.onclick = () => previewId(btn.dataset.id);
+        });
+        group.querySelectorAll('.btn-copy').forEach(btn => {
+          btn.onclick = async () => {
+            const id = btn.dataset.id;
+            const ok = await copyText(id);
+            if (ok) {
+              if (reportHot(id, 'copy')) {
+                const oldTotal = hotMap.get(String(id)) || 0;
+                hotMap.set(String(id), oldTotal + 1);
+              }
+              btn.textContent = '✅ 已复制';
+              btn.classList.add('copied');
+              setTimeout(() => {
+                btn.textContent = '📋 复制';
+                btn.classList.remove('copied');
+              }, 1500);
+              showToast('✅ 已复制 ID');
+            } else {
+              showToast('复制失败');
+            }
+          };
+        });
+        group.querySelectorAll('.btn-quarantine').forEach(btn => {
+          btn.onclick = () => quarantineSingle(btn.dataset.name, btn.dataset.id);
+        });
+      });
+
+      if (batchMode) {
+        dom.songList.classList.add('batch-mode');
+        dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
+          if (selectedIds.has(cb.dataset.id)) cb.checked = true;
+        });
+      }
+    }
+
+    function updateSelectedCount() {
+      dom.selectedCount.textContent = selectedIds.size;
+    }
+
+    function toggleFavorite(id, btn) {
+      if (favorites.has(id)) {
+        favorites.delete(id);
+        btn.classList.remove('active');
+        btn.textContent = '☆';
+      } else {
+        favorites.add(id);
+        btn.classList.add('active');
+        btn.textContent = '⭐';
+        if (reportHot(id, 'fav')) {
+          const oldTotal = hotMap.get(String(id)) || 0;
+          hotMap.set(String(id), oldTotal + 1);
+        }
+      }
+      saveFavorites();
+      dom.statFavs.textContent = favorites.size;
+
+      if (showFavOnly && !favorites.has(id)) {
+        renderList();
+      }
+    }
+
+    function previewId(id) {
+      if (reportHot(id, 'play')) {
+        const oldTotal = hotMap.get(String(id)) || 0;
+        hotMap.set(String(id), oldTotal + 1);
+      }
+
+      pendingRedirectId = id;
+
+      const ackVersion = localStorage.getItem('legacy_riskAckVersion');
+      if (ackVersion && serverRiskVersion && ackVersion === serverRiskVersion) {
+        const targetId = pendingRedirectId;
+        pendingRedirectId = null;
+        showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
+          window.open(`https://create.roblox.com/store/asset/${targetId}`, '_blank');
+        });
+        return;
+      }
+
+      if (riskCountdownCleanup) {
+        riskCountdownCleanup();
+        riskCountdownCleanup = null;
+      }
+
+      dom.riskBody.scrollTop = 0;
+      const btn = dom.riskConfirmBtn;
+      btn.disabled = true;
+      btn.classList.remove('active');
+      btn.textContent = '确认跳转 (10s)';
+
+      openModal('riskModal');
+
+      let remaining = 10;
+      let timerId = null;
+      const update = () => {
+        if (remaining > 0) {
+          btn.textContent = `确认跳转 (${remaining}s)`;
+          remaining--;
+          timerId = setTimeout(update, 1000);
+        } else {
+          btn.textContent = '确认跳转';
+          btn.disabled = false;
+          btn.classList.add('active');
+          timerId = null;
+        }
+      };
+      update();
+
+      riskCountdownCleanup = () => {
+        if (timerId) { clearTimeout(timerId); timerId = null; }
+      };
+    }
+
+    dom.riskConfirmBtn.onclick = () => {
+      if (dom.riskConfirmBtn.disabled) return;
+      if (riskCountdownCleanup) {
+        riskCountdownCleanup();
+        riskCountdownCleanup = null;
+      }
+      closeModal('riskModal');
+      openModal('riskConfirmModal');
+    };
+
+    dom.riskCancelBtn.onclick = () => {
+      if (riskCountdownCleanup) {
+        riskCountdownCleanup();
+        riskCountdownCleanup = null;
+      }
+      pendingRedirectId = null;
+      closeModal('riskModal');
+    };
+
+    dom.riskConfirmOk.onclick = () => {
+      closeModal('riskConfirmModal');
+      if (serverRiskVersion) {
+        localStorage.setItem('legacy_riskAckVersion', serverRiskVersion);
+      }
+      const id = pendingRedirectId;
+      pendingRedirectId = null;
+      if (!id) return;
+
+      showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
+        window.open(`https://create.roblox.com/store/asset/${id}`, '_blank');
+      });
+    };
+
+    dom.riskConfirmCancel.onclick = () => {
+      closeModal('riskConfirmModal');
+      pendingRedirectId = null;
+    };
+
+    function showCountdownNotice(msg, seconds, callback) {
+      let el = document.getElementById('globalNotice');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'globalNotice';
+        el.className = 'notice-bar';
+        document.body.appendChild(el);
+      }
+      el.classList.add('show');
+      let remaining = seconds;
+      const update = () => {
+        if (remaining > 0) {
+          el.textContent = `${msg} · ${remaining}s`;
+          remaining--;
+          setTimeout(update, 1000);
+        } else {
+          el.classList.remove('show');
+          if (callback) callback();
+        }
+      };
+      update();
+    }
+
+    async function quarantineSingle(name, id) {
+      const ok = await showConfirm('移入隔离区', `确定将 ID ${id}（${name}）移入你的隔离区吗？\n\n移入后，该 ID 不再显示在你的列表中。`);
+      if (!ok) return;
+      const idx = songDatabase.findIndex(i => i.name === name && i.id === id);
+      if (idx === -1) return;
+      const item = songDatabase[idx];
+      songDatabase.splice(idx, 1);
+      quarantineGuest.push({ ...item, quarantinedAt: nowStr() });
+      saveQuarantine();
+      showToast('⛔ 已移入隔离区');
+      renderAll();
+    }
+
+    async function batchQuarantine() {
+      if (selectedIds.size === 0) {
+        showToast('请先选择要隔离的 ID');
+        return;
+      }
+      const ok = await showConfirm('批量隔离', `确定将选中的 ${selectedIds.size} 个 ID 移入你的隔离区吗？`);
+      if (!ok) return;
+      const timeStr = nowStr();
+      const toRemove = [];
+      const remaining = [];
+      songDatabase.forEach(item => {
+        if (selectedIds.has(item.id)) {
+          toRemove.push({ ...item, quarantinedAt: timeStr });
+        } else {
+          remaining.push(item);
+        }
+      });
+      quarantineGuest.push(...toRemove);
+      songDatabase = remaining;
+      saveQuarantine();
+      selectedIds.clear();
+      updateSelectedCount();
+      toggleBatchMode(false);
+      showToast(`⛔ 已隔离 ${toRemove.length} 个 ID`);
+      renderAll();
+    }
+
+    function toggleBatchMode(force) {
+      batchMode = typeof force === 'boolean' ? force : !batchMode;
+
+      if (batchMode) {
+        dom.batchBar.classList.add('show');
+        dom.batchToggleBtn.textContent = '📦 退出批量';
+        dom.batchToggleBtn.classList.remove('btn-primary');
+        dom.batchToggleBtn.classList.add('btn-secondary');
+      } else {
+        dom.batchBar.classList.remove('show');
+        dom.batchToggleBtn.textContent = '📦 批量隔离';
+        dom.batchToggleBtn.classList.remove('btn-secondary');
+        dom.batchToggleBtn.classList.add('btn-primary');
+        selectedIds.clear();
+        updateSelectedCount();
+      }
+
+      if (batchMode) {
+        dom.songList.classList.add('batch-mode');
+        dom.songList.querySelectorAll('.id-checkbox').forEach(cb => {
+          if (selectedIds.has(cb.dataset.id)) cb.checked = true;
+        });
+      } else {
+        dom.songList.classList.remove('batch-mode');
+      }
+    }
+
+    function renderQuarantineList() {
+      const keyword = dom.quarantineSearch.value.trim().toLowerCase();
+      let list = quarantineGuest;
+      if (keyword) {
+        list = list.filter(i =>
+          i.name.toLowerCase().includes(keyword) || i.id.includes(keyword)
+        );
+      }
+
+      if (list.length === 0) {
+        dom.quarantineList.innerHTML = '<div class="empty-state">隔离区是空的 ⛔</div>';
+        return;
+      }
+
+      const sorted = [...list].sort((a, b) => {
+        const ta = a.quarantinedAt ? new Date(a.quarantinedAt) : new Date(0);
+        const tb = b.quarantinedAt ? new Date(b.quarantinedAt) : new Date(0);
+        return tb - ta;
+      });
+
+      let html = '';
+      sorted.forEach(item => {
+        html += `
+          <div class="quarantine-item">
+            <div class="info">
+              <span class="name">${escapeHtml(item.name)}</span>
+              <span class="q-id">${escapeHtml(item.id)}</span>
+              <span class="time">⛔ ${escapeHtml(item.quarantinedAt || '未知')}</span>
+            </div>
+            <div class="q-actions">
+              <button data-id="${escapeHtml(item.id)}">🔓 恢复</button>
+            </div>
+          </div>
+        `;
+      });
+      dom.quarantineList.innerHTML = html;
+
+      dom.quarantineList.querySelectorAll('.q-actions button').forEach(btn => {
+        btn.onclick = () => restoreFromQuarantine(btn.dataset.id);
+      });
+    }
+
+    async function restoreFromQuarantine(id) {
+      const idx = quarantineGuest.findIndex(i => i.id === id);
+      if (idx === -1) return;
+      const item = quarantineGuest[idx];
+      const ok = await showConfirm('恢复 ID', `确定将 ID ${id}（${item.name}）从隔离区恢复吗？`);
+      if (!ok) return;
+      quarantineGuest.splice(idx, 1);
+      saveQuarantine();
+      if (!songDatabase.some(i => i.id === item.id)) {
+        songDatabase.push(item);
+      }
+      showToast('✅ 已恢复');
+      renderAll();
+      renderQuarantineList();
+    }
+
+    async function restoreAllFromQuarantine() {
+      if (quarantineGuest.length === 0) {
+        showToast('隔离区是空的');
+        return;
+      }
+      const count = quarantineGuest.length;
+      const ok = await showConfirm(
+        '全部恢复',
+        `确定将隔离区中的全部 ${count} 个 ID 恢复到主列表吗？\n\n恢复后，这些 ID 会重新出现在列表中。`
+      );
+      if (!ok) return;
+      const existing = new Set(songDatabase.map(i => i.id));
+      let added = 0;
+      quarantineGuest.forEach(item => {
+        if (!existing.has(item.id)) {
+          songDatabase.push({
+            id: item.id,
+            name: item.name,
+            category: item.category || '未分类',
+            lineIndex: item.lineIndex || 0
+          });
+          existing.add(item.id);
+          added++;
+        }
+      });
+      const restoredCount = quarantineGuest.length;
+      quarantineGuest = [];
+      saveQuarantine();
+      showToast(`🔄 已恢复 ${added} 个 ID（跳过 ${restoredCount - added} 个已存在的）`);
+      renderAll();
+      renderQuarantineList();
+    }
+
+    async function loadThanks() {
+      dom.thanksList.innerHTML = '<div class="empty-state">加载中...</div>';
+      try {
+        const res = await fetch('/api/thanks?t=' + Date.now());
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
+          return;
+        }
+        let html = '';
+        data.forEach(cat => {
+          if (!cat.people || cat.people.length === 0) return;
+          html += '<div class="thanks-cat">';
+          html += `<div class="cat-title">${escapeHtml(cat.category)}</div>`;
+          cat.people.forEach(p => {
+            html += '<div class="thanks-person">';
+            html += `<span class="p-name">${escapeHtml(p.name)}</span>`;
+            if (p.platform) html += `<span class="p-platform">· ${escapeHtml(p.platform)}</span>`;
+            if (p.message) html += `<span class="p-message">· ${escapeHtml(p.message)}</span>`;
+            html += '</div>';
+          });
+          html += '</div>';
+        });
+        dom.thanksList.innerHTML = html || '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
+      } catch (err) {
+        dom.thanksList.innerHTML = '<div class="empty-state">暂无鸣谢名单 ❤️</div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadServerRiskVersion();
+      /* 怀旧版（2026-10-26）：不再检查版本更新弹窗。 */
+
+      loadQuarantine();
+      loadFavorites();
+      loadCountedIds();
+
+      await Promise.all([
+        loadData(),
+        loadHotList()
+      ]);
+
+      renderAll();
+
+      dom.loadMoreBtn.onclick = () => {
+        renderPage();
+      };
+
+      dom.searchInput.addEventListener('input', debounce(() => {
+        currentKeyword = dom.searchInput.value;
+        renderList();
+      }, 250));
+
+      dom.multiToggleBtn.onclick = () => {
+        if (showFavOnly) {
+          showFavOnly = false;
+          dom.favFilterBtn.classList.remove('active');
+        }
+        if (showLatestOnly) {
+          showLatestOnly = false;
+          dom.latestToggleBtn.classList.remove('active');
+        }
+        if (showHotOnly) {
+          showHotOnly = false;
+          dom.hotToggleBtn.classList.remove('active');
+        }
+        showMultiOnly = !showMultiOnly;
+        dom.multiToggleBtn.classList.toggle('active', showMultiOnly);
+        renderList();
+      };
+
+      dom.favFilterBtn.onclick = () => {
+        const willActivate = !showFavOnly;
+        if (willActivate) {
+          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          dom.multiToggleBtn.classList.remove('active');
+          dom.latestToggleBtn.classList.remove('active');
+          dom.hotToggleBtn.classList.remove('active');
+          showMultiOnly = false;
+          showLatestOnly = false;
+          showHotOnly = false;
+          currentCategory = 'all';
+        }
+        showFavOnly = willActivate;
+        dom.favFilterBtn.classList.toggle('active', showFavOnly);
+        if (!showFavOnly) {
+          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
+          if (allBtn) allBtn.classList.add('active');
+        }
+        renderList();
+      };
+
+      dom.latestToggleBtn.onclick = () => {
+        const willActivate = !showLatestOnly;
+        if (willActivate) {
+          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          dom.multiToggleBtn.classList.remove('active');
+          dom.favFilterBtn.classList.remove('active');
+          dom.hotToggleBtn.classList.remove('active');
+          showMultiOnly = false;
+          showFavOnly = false;
+          showHotOnly = false;
+          currentCategory = 'all';
+        }
+        showLatestOnly = willActivate;
+        dom.latestToggleBtn.classList.toggle('active', showLatestOnly);
+        if (!showLatestOnly) {
+          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
+          if (allBtn) allBtn.classList.add('active');
+        }
+        renderList();
+      };
+
+      dom.hotToggleBtn.onclick = async () => {
+        const willActivate = !showHotOnly;
+        if (willActivate) {
+          await loadHotList();
+          dom.filterTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          dom.multiToggleBtn.classList.remove('active');
+          dom.favFilterBtn.classList.remove('active');
+          dom.latestToggleBtn.classList.remove('active');
+          showMultiOnly = false;
+          showFavOnly = false;
+          showLatestOnly = false;
+          currentCategory = 'all';
+        }
+        showHotOnly = willActivate;
+        dom.hotToggleBtn.classList.toggle('active', showHotOnly);
+        if (!showHotOnly) {
+          const allBtn = dom.filterTabs.querySelector('[data-cat="all"]');
+          if (allBtn) allBtn.classList.add('active');
+        }
+        renderList();
+      };
+
+      dom.batchToggleBtn.onclick = () => toggleBatchMode();
+
+      dom.batchClearBtn.onclick = () => {
+        selectedIds.clear();
+        updateSelectedCount();
+        document.querySelectorAll('.id-checkbox').forEach(cb => cb.checked = false);
+      };
+      dom.batchQuarantineBtn.onclick = batchQuarantine;
+
+      dom.openQuarantineBtn.onclick = () => {
+        dom.quarantineSearch.value = '';
+        renderQuarantineList();
+        openModal('quarantineModal');
+      };
+      dom.closeQuarantineBtn.onclick = () => closeModal('quarantineModal');
+      dom.quarantineSearch.addEventListener('input', debounce(renderQuarantineList, 200));
+      dom.restoreAllQuarantineBtn.onclick = restoreAllFromQuarantine;
+
+      dom.openThanksBtn.onclick = () => {
+        openModal('thanksModal');
+        loadThanks();
+      };
+      dom.closeThanksBtn.onclick = () => closeModal('thanksModal');
+    });
+  </script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const USER_ID_KEY = 'legacy_visit_user_id';
+    const CHOICE_KEY = 'legacy_visit_source_choice';
+    const MODAL_ID = 'visitSourceModal';
+
+    function getUserId() {
+      let uid = localStorage.getItem(USER_ID_KEY);
+      if (!uid) {
+        uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem(USER_ID_KEY, uid);
+      }
+      return uid;
+    }
+
+    const openBtn = document.getElementById('openSourceBtn');
+    const modal = document.getElementById(MODAL_ID);
+    if (!openBtn || !modal) return;
+
+    const otherInput = document.getElementById('visitOtherInput');
+    const otherText = document.getElementById('visitOtherText');
+    const sourceList = modal.querySelector('.visit-source-list');
+    const currentHint = document.getElementById('visitCurrentHint');
+
+    const PRESET = ['哔哩哔哩', '抖音', '快手', '小红书'];
+
+    function updateCurrentHint() {
+      const cur = localStorage.getItem(CHOICE_KEY);
+      if (cur && currentHint) {
+        currentHint.textContent = '当前已选择：' + cur + '（可重新选择）';
+        currentHint.style.display = 'block';
+      } else if (currentHint) {
+        currentHint.textContent = '你还没有回答过哦';
+        currentHint.style.display = 'block';
+      }
+    }
+
+    function markActiveChoice() {
+      const cur = localStorage.getItem(CHOICE_KEY) || '';
+      modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+        const src = btn.dataset.source;
+        btn.classList.remove('active-choice');
+        if (src === cur) {
+          btn.classList.add('active-choice');
+        } else if (src === '__other__' && cur && !PRESET.includes(cur)) {
+          btn.classList.add('active-choice');
+        }
+      });
+    }
+
+    async function showModal() {
+      otherInput.style.display = 'none';
+      otherText.value = '';
+      sourceList.style.display = 'flex';
+
+      updateCurrentHint();
+      markActiveChoice();
+
+      openModal(MODAL_ID);
+      loadSourceCounts();
+    }
+
+    async function loadSourceCounts() {
+      try {
+        const res = await fetch('/api/visit/stats?t=' + Date.now());
+        const data = await res.json();
+        if (!data.ok || !Array.isArray(data.data)) return;
+
+        const counts = {};
+        PRESET.forEach(p => counts[p] = 0);
+        let otherTotal = 0;
+
+        data.data.forEach(item => {
+          /* 怀旧版（2026-10-26）：新版把 source 改成了「407|Xiaomi 17@6.3」这种设备尺寸，
+             不再是渠道名。这些新数据不能算进「其它」，否则那个数字会大得离谱。 */
+          if (PRESET.includes(item.source)) {
+            counts[item.source] = item.count;
+          } else if (!/\d+[|x]\d*/.test(item.source) && item.source.indexOf('@') === -1) {
+            otherTotal += item.count;
+          }
+        });
+        counts['__other__'] = otherTotal;
+
+        modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+          const src = btn.dataset.source;
+          const el = btn.querySelector('.src-count');
+          if (el && counts[src] !== undefined) {
+            el.textContent = counts[src] + ' 人';
+          }
+        });
+      } catch (e) {}
+    }
+
+    /* 怀旧版适配（2026-10-26）：
+       /api/visit/report 现在收集的是「设备型号 + 屏幕尺寸」，不再接受渠道名，
+       旧问卷的答案发过去会被 400 拒绝。所以这里只把选择存在本地、不再上报，
+       提示也改成「只做展示」—— 不让访客以为自己的答案被记录了。
+       弹窗、按钮、历史统计都保持旧版原样。
+       【回退办法】把本段换回带 fetch('/api/visit/report') 的旧版即可。 */
+    async function submitSource(source) {
+      localStorage.setItem(CHOICE_KEY, source);
+      closeModal(MODAL_ID);
+      showToast('🎉 谢谢你的回忆！怀旧版只做展示，不再记录来源');
+    }
+
+    openBtn.addEventListener('click', showModal);
+
+    modal.querySelectorAll('.visit-source-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const src = btn.dataset.source;
+        if (src === '__other__') {
+          sourceList.style.display = 'none';
+          otherInput.style.display = 'block';
+          const cur = localStorage.getItem(CHOICE_KEY) || '';
+          if (cur && !PRESET.includes(cur)) {
+            otherText.value = cur;
+          } else {
+            otherText.value = '';
+          }
+          setTimeout(() => otherText.focus(), 80);
+          return;
+        }
+        submitSource(src);
+      });
+    });
+
+    document.getElementById('visitOtherConfirm').addEventListener('click', () => {
+      const val = otherText.value.trim();
+      if (!val) { otherText.focus(); return; }
+      submitSource(val.slice(0, 20));
+    });
+
+    document.getElementById('visitOtherCancel').addEventListener('click', () => {
+      otherInput.style.display = 'none';
+      otherText.value = '';
+      sourceList.style.display = 'flex';
+    });
+
+    otherText.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('visitOtherConfirm').click();
+      }
+    });
+  })();
+  </script>
+
+</body>
+</html>

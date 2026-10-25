@@ -1,0 +1,89 @@
+/* ============================================================
+   织雾满穗 · 怀旧版横幅样式（2026-10-26 新增）
+   ------------------------------------------------------------
+   只给 legacy/2026-08-25/ 里的三个旧版页面用，不进入新版页面。
+   配色沿用旧版的粉色 + 暖金，不引入任何新字体或外部资源。
+
+   【回退办法】删掉本文件，并删掉三个旧版页面 <head> 里的
+   <link rel="stylesheet" href="legacy.css"> 与 <body> 后的 .legacy-bar 段落，
+   旧版就回到 2026-08-25 的完全原样。
+   ============================================================ */
+
+.legacy-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #fff3e2, #ffe8ef);
+  border-bottom: 1px solid var(--border, #f0d9de);
+  color: var(--text-light, #6e5f65);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.legacy-bar-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: var(--primary, #dc6b82);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.legacy-bar-text b {
+  color: var(--primary-dark, #c7546a);
+  font-weight: 700;
+}
+
+/* 手机端短句：默认不显示，≤640px 时与 .legacy-bar-full 互换（见文件末尾媒体查询） */
+.legacy-bar-short {
+  display: none;
+}
+
+.legacy-bar-back {
+  color: var(--primary-dark, #c7546a);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--primary-light, #f0a3b4);
+  white-space: nowrap;
+  transition: background 0.25s var(--ease-soft, ease), color 0.25s var(--ease-soft, ease);
+}
+
+.legacy-bar-back:hover {
+  background: var(--primary, #dc6b82);
+  border-color: var(--primary, #dc6b82);
+  color: #fff;
+}
+
+.legacy-bar-back:focus-visible {
+  outline: 3px solid var(--primary-light, #f0a3b4);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .legacy-bar {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    gap: 4px 8px;
+  }
+  /* 完整句子在手机上一折就是两三行、横幅要 117px 高；
+     换成短句后一条横幅只有一行，不挡旧版内容。 */
+  .legacy-bar-full {
+    display: none;
+  }
+  .legacy-bar-short {
+    display: inline;
+  }
+  .legacy-bar-back {
+    padding: 1px 8px;
+    font-size: 0.76rem;
+  }
+}

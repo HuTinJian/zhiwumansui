@@ -21,6 +21,8 @@ Disallow: /schema.sql
 Disallow: /migrations.sql
 Disallow: /d1-drop-blog.sql
 Disallow: /tools/
+# 2026-10-26：怀旧版（legacy/2026-08-25/）只作展示，不收录
+Disallow: /legacy/
 
 # ---- AI 训练 / 采集类爬虫（明确拒绝）----
 User-agent: GPTBot

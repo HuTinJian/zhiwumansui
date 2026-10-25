@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>织雾满穗</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <!-- 怀旧版专用横幅样式（2026-10-26 新增；只给 legacy/2026-08-25/ 用）
+       【回退办法】删掉这一行 <link> 与 <body> 后的 .legacy-bar 段落，即可恢复旧版原样。 -->
+  <link rel="stylesheet" href="legacy.css">
+
+  <style>
+    /* ========== 主容器 ========== */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    /* ========== 搜索区域 ========== */
+    .search-section {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .search-section h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+      user-select: none;
+      display: inline-block;
+      transition: transform 0.3s var(--ease-bounce);
+      animation: titlePop 0.6s var(--ease-bounce) both;
+      will-change: transform;
+    }
+
+    .search-section h1:hover {
+      transform: rotate(-3deg) scale(1.05);
+    }
+
+    .search-section h1:active {
+      transform: rotate(2deg) scale(0.96);
+    }
+
+    .search-section .subtitle {
+      color: var(--text-light);
+      font-size: 1.05rem;
+      margin-bottom: 28px;
+      animation: fadeInUp 0.5s var(--ease-soft) 0.1s both;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      max-width: 560px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 4px 20px rgba(220, 107, 130, 0.1);
+      padding: 6px 6px 6px 20px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), transform 0.3s var(--ease-bounce);
+      animation: boxPop 0.5s var(--ease-bounce) 0.2s both;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--primary-light);
+      box-shadow: 0 8px 30px rgba(220, 107, 130, 0.2);
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .search-box .search-icon {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 10px 14px;
+      font-size: 1rem;
+      font-family: var(--font);
+      color: var(--text);
+      min-width: 0;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-box button {
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s var(--ease-bounce), background 0.25s var(--ease-soft);
+      font-family: var(--font);
+      white-space: nowrap;
+    }
+
+    .search-box button:hover {
+      background: var(--primary-dark);
+      transform: scale(1.06) rotate(-1deg);
+    }
+
+    .search-box button:active {
+      transform: scale(0.9) rotate(1deg);
+      transition: transform 0.1s var(--ease-soft);
+    }
+
+    .no-results {
+      display: none;
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .no-results.show {
+      display: block;
+      animation: popIn 0.4s var(--ease-bounce) both;
+    }
+
+    /* ========== 卡片区 ========== */
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+      cursor: pointer;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      animation: cardRise 0.55s var(--ease-bounce) both;
+      will-change: transform;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.25s; }
+    .card:nth-child(2) { animation-delay: 0.35s; }
+    .card:nth-child(3) { animation-delay: 0.45s; }
+    .card:nth-child(4) { animation-delay: 0.55s; }
+    .card:nth-child(5) { animation-delay: 0.65s; }
+    .card:nth-child(6) { animation-delay: 0.75s; }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.3s var(--ease-soft);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-6px) rotate(-1.5deg) scale(1.02);
+      border-color: rgba(220, 107, 130, 0.3);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:nth-child(even):hover {
+      transform: translateY(-6px) rotate(1.5deg) scale(1.02);
+    }
+
+    .card:active {
+      transform: translateY(2px) rotate(0) scale(0.96);
+      transition: transform 0.12s var(--ease-soft);
+    }
+
+    .card .card-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      background: #fde8ef;
+      color: var(--primary);
+      transition: transform 0.3s var(--ease-bounce);
+    }
+
+    .card:hover .card-tag {
+      transform: scale(1.1) rotate(-4deg);
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .card .card-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card.highlight-result {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(232, 141, 161, 0.2), var(--shadow-hover);
+    }
+
+    mark {
+      background: #ffdae3;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    /* ========== 开发者与支持者 ========== */
+    .credits-section {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 40px auto 20px;
+      max-width: 800px;
+      padding: 0 20px;
+    }
+
+    .credits-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+      border: 2px solid transparent;
+      min-width: 220px;
+      animation: cardRise 0.55s var(--ease-bounce) 0.75s both;
+      will-change: transform;
+    }
+
+    .credits-card:nth-child(2) { animation-delay: 0.85s; }
+
+    .credits-card:hover {
+      border-color: rgba(220, 107, 130, 0.3);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-5px) rotate(-2deg) scale(1.03);
+    }
+
+    .credits-card:nth-child(even):hover {
+      transform: translateY(-5px) rotate(2deg) scale(1.03);
+    }
+
+    .credits-card:active {
+      transform: translateY(2px) rotate(0) scale(0.96);
+      transition: transform 0.12s var(--ease-soft);
+    }
+
+    .credits-card:hover .credits-icon {
+      transform: rotate(15deg) scale(1.12);
+    }
+
+    .credits-icon {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border-radius: 50%;
+      transition: transform 0.35s var(--ease-bounce);
+    }
+
+    .credits-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.4;
+    }
+
+    .credits-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .credits-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .credits-en {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    /* ========== 动画 ========== */
+    @keyframes titlePop {
+      0% { opacity: 0; transform: scale(0.7) translateY(-12px); }
+      60% { opacity: 1; transform: scale(1.05) translateY(2px); }
+      100% { transform: scale(1) translateY(0); }
+    }
+
+    @keyframes boxPop {
+      0% { opacity: 0; transform: scale(0.85); }
+      60% { opacity: 1; transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes cardRise {
+      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.5); }
+      70% { transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ========== 响应式 ========== */
+    @media (max-width: 768px) {
+      .container { padding: 24px 16px 40px; }
+      .search-section h1 { font-size: 1.8rem; }
+      .search-section .subtitle { font-size: 0.95rem; }
+      .search-box {
+        flex-wrap: nowrap;
+        padding: 6px 6px 6px 14px;
+        margin: 0 4px;
+        max-width: 100%;
+      }
+      .search-box input { padding: 10px 8px; }
+      .search-box button { padding: 8px 18px; }
+      .content-grid { grid-template-columns: 1fr; }
+      .credits-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .credits-card { min-width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+      .search-section h1 { font-size: 1.5rem; }
+      .search-section .subtitle { font-size: 0.85rem; }
+      .card { padding: 20px; }
+      .card h3 { font-size: 1.05rem; }
+      .credits-card { padding: 16px; }
+      .credits-icon { width: 40px; height: 40px; }
+    }
+
+    /* 尊重用户的减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       怀旧版横幅（2026-10-26 新增，只存在于 legacy/2026-08-25/）
+       这是怀旧版唯一新增的界面元素，其余样式与脚本保持旧版原样。
+       【回退办法】删掉本段与 <head> 里的 legacy.css 引用，即可完全恢复旧版。
+       ============================================================ -->
+  <div class="legacy-bar" role="note">
+    <span class="legacy-bar-tag">🕰️ 怀旧版</span>
+    <span class="legacy-bar-text">
+      <span class="legacy-bar-full">你正在浏览 <b>2026 年 8 月 25 日</b> 的织雾满穗 —— 这一版已经定格，不再更新。</span>
+      <!-- 手机端短句：完整句子在 390px 宽会折成两三行，横幅就太高了 -->
+      <span class="legacy-bar-short"><b>2026 年 8 月 25 日</b> 的旧版</span>
+    </span>
+    <a class="legacy-bar-back" href="../../index.html">回到新版 →</a>
+  </div>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <nav class="navbar">
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">🏠 首页</a></li>
+      <li><a href="feedback.html">💬 反馈</a></li>
+    </ul>
+  </nav>
+
+  <!-- ==================== 主内容 ==================== -->
+  <div class="container">
+    <!-- 搜索区域 -->
+    <div class="search-section" id="search">
+      <h1 id="mainTitle">织雾满穗</h1>
+      <p class="subtitle">织梦疾追星斗近，拨云终揽霁光欣</p>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="输入关键词搜索..." autocomplete="off">
+        <button id="searchBtn">搜索</button>
+      </div>
+      <div class="no-results" id="noResults">
+        😕 没有找到匹配的内容，试试其他关键词吧
+      </div>
+    </div>
+
+    <!-- 内容卡片列表 -->
+    <div class="content-grid" id="contentGrid">
+      <!-- 卡片 1：Roblox ID 宝库 -->
+      <div class="card"
+           data-title="Roblox ID 宝库"
+           data-category="游戏"
+           data-tags="Roblox 音乐ID 游戏 音乐 代码 宝库"
+           data-link="roblox_music.html">
+        <span class="card-tag">🎮 游戏</span>
+        <h3>Roblox ID 宝库</h3>
+        <p>收录数千个 Roblox 游戏内可用的音乐ID，支持一键复制，帮助玩家快速为游戏添加背景音乐或音效。</p>
+        <div class="card-meta">📅 持续更新 &nbsp;·&nbsp; ⏱ 点击进入</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 开发者与支持者 ==================== -->
+  <div class="credits-section">
+    <div class="credits-card">
+      <img class="credits-icon" src="images/developer.png" alt="开发者图标">
+      <div class="credits-info">
+        <span class="credits-label">开发者</span>
+        <span class="credits-name">织雾满穗</span>
+        <span class="credits-en">HuTinJian</span>
+      </div>
+    </div>
+    <div class="credits-card">
+      <img class="credits-icon" src="images/deepseek.png" alt="支持者图标">
+      <div class="credits-info">
+        <span class="credits-label">支持者</span>
+        <span class="credits-name">DeepSeek</span>
+        <span class="credits-en">AI Assistant</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 页脚 ==================== -->
+  <footer class="footer">
+    <p>© 2026 织雾满穗 · 用知识照亮世界</p>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <!-- 怀旧版（2026-10-26）：旧后台已删除，不再加载 js/auth.js，也不再提供登录入口 -->
+  <script>
+    /* 怀旧版（2026-10-26）：后台入口与版本更新弹窗已移除。
+       旧后台不再维护，旧版页面也不该弹「新版更新了什么」。
+       【回退办法】恢复这两行，并在页尾重新引入 js/auth.js 即可。 */
+
+    /* 搜索 */
+    const cards = document.querySelectorAll('.card');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const noResults = document.getElementById('noResults');
+    const contentGrid = document.getElementById('contentGrid');
+
+    function performSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      let matchCount = 0;
+
+      cards.forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const category = card.getAttribute('data-category') || '';
+        const tags = card.getAttribute('data-tags') || '';
+        const bodyText = card.querySelector('p') ? card.querySelector('p').textContent : '';
+        const searchable = (title + ' ' + category + ' ' + tags + ' ' + bodyText).toLowerCase();
+
+        if (query === '') {
+          card.style.display = '';
+          card.classList.remove('highlight-result');
+          removeHighlights(card);
+          matchCount++;
+        } else if (searchable.includes(query)) {
+          card.style.display = '';
+          card.classList.add('highlight-result');
+          highlightKeyword(card, query);
+          matchCount++;
+        } else {
+          card.style.display = 'none';
+          card.classList.remove('highlight-result');
+          removeHighlights(card);
+        }
+      });
+
+      if (matchCount === 0 && query !== '') {
+        noResults.classList.add('show');
+        contentGrid.style.display = 'none';
+      } else {
+        noResults.classList.remove('show');
+        contentGrid.style.display = '';
+      }
+    }
+
+    function highlightKeyword(card, keyword) {
+      removeHighlights(card);
+      const els = card.querySelectorAll('h3, p, .card-meta, .card-tag');
+      els.forEach(el => {
+        if (el.querySelector('mark')) return;
+        const text = el.textContent;
+        if (text.toLowerCase().includes(keyword)) {
+          const regex = new RegExp('(' + escapeRegex(keyword) + ')', 'gi');
+          el.innerHTML = text.replace(regex, '<mark>$1</mark>');
+        }
+      });
+    }
+
+    function removeHighlights(card) {
+      card.querySelectorAll('mark').forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+    }
+
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    searchInput.addEventListener('input', debounce(performSearch, 250));
+    searchBtn.addEventListener('click', e => {
+      e.preventDefault();
+      performSearch();
+    });
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch();
+      }
+    });
+
+    /* 卡片点击跳转 */
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const link = card.getAttribute('data-link');
+        if (link) {
+          window.location.href = link;
+        } else {
+          showToast('📖 ' + (card.getAttribute('data-title') || '详情页即将上线'));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
