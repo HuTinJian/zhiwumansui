@@ -1046,12 +1046,16 @@ function renderInvalidRemoved() {
   pageItems.forEach(item => {
     const el = document.createElement('div');
     el.className = 'list-item';
+    /* 2026-10-27 站主核对：确认无效并下架 = 上报者的反馈属实，
+       上报者隔离区显示「✅ 反馈成功」；后台这一栏原来却写「❌ 拒绝」，
+       而且那行注释写在模板字符串里，浏览器会把「拒绝」当文字显示出来，已一并改正。
+       手动下架（不是访客上报）没有反馈结果，就不显示成功标签。 */
     el.innerHTML = `
       <div class="row1">
         <span class="name">${escapeHtml(item.name)}</span>
-        /* 2026-10-24 站主要求：隔离区（已下架）要显示反馈结果为「拒绝」。
-           下架 = 判定这个 ID 无效 = 拒绝，所以这里用红色「拒绝」+ 灰色「已下架」说明。 */
-        <span class="type-tag red" title="这个 ID 被确认无效并下架，对应的反馈结果是「拒绝」">❌ 拒绝</span>
+        ${item.source === '无效上报'
+          ? '<span class="type-tag green" title="上报者看到的反馈结果是「✅ 反馈成功」">✅ 反馈成功</span>'
+          : ''}
         <span class="type-tag">已下架</span>
       </div>
       <div class="meta">
