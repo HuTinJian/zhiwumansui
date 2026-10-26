@@ -385,14 +385,12 @@
       white-space: nowrap;
     }
     .myrep-status.pending { background: rgba(var(--ink-rgb), 0.10); color: var(--primary-ink); }
-    /* 2026-10-17：.ignored 那条规则随「已忽略」一起没有写作对象了，
-       改给新状态 .noted（已审核·无需处理）用 —— 绿色系，跟「已下架」的灰色区分开，
-       让人一眼看出「这条有人看过了」而不是「这条没了」。 */
-    /* 2026-10-25 中国色施工：.noted（已审核·无需处理）保留青瓷色 —— 语义是「玩家参与/已看过」；
-       已下架用中性墨灰，已本地用石青（info）；不再出现旧粉、旧蓝灰和写死色值。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .myrep-status 四条。 */
-    .myrep-status.noted { background: var(--accent-mist-soft); color: var(--accent-mist); }
-    .myrep-status.removed { background: rgba(var(--ink-rgb), 0.08); color: var(--text-muted); }
+    /* 2026-10-26 语义修正（原来颜色也正好反了）：
+         removed（确认无效并下架）= 反馈成功 → 竹青/青瓷成功色
+         noted（无效反馈）        = 反馈不成立 → 胭脂红警示色
+       【回退办法】把下面两条的 background/color 对调回 2026-10-25 版本。 */
+    .myrep-status.removed { background: var(--accent-mist-soft); color: var(--accent-mist); }
+    .myrep-status.noted { background: var(--danger-bg); color: var(--danger); }
     .myrep-status.local { background: var(--info-bg); color: var(--info-ink); }
     .myrep-btn {
       border: 1px solid var(--primary-light);
@@ -1798,8 +1796,8 @@
       <div class="seg-tabs myrep-tabs myrep-status-tabs" id="myRepStatusTabs" role="tablist" aria-label="审核状态">
         <button type="button" class="seg-tab active" data-rstatus="all" role="tab" aria-selected="true">全部</button>
         <button type="button" class="seg-tab" data-rstatus="pending" role="tab" aria-selected="false">⏳ 待审核</button>
-        <button type="button" class="seg-tab" data-rstatus="noted" role="tab" aria-selected="false">✅ 成功</button>
-        <button type="button" class="seg-tab" data-rstatus="removed" role="tab" aria-selected="false">❌ 拒绝</button>
+        <button type="button" class="seg-tab" data-rstatus="noted" role="tab" aria-selected="false">❌ 无效反馈</button>
+        <button type="button" class="seg-tab" data-rstatus="removed" role="tab" aria-selected="false">✅ 反馈成功</button>
       </div>
       <div class="myrep-wrap" id="myRepWrap" aria-live="polite">
         <div class="myrep-empty">加载中…</div>
@@ -1860,39 +1858,12 @@
       <div class="info-err-form">
         <label for="submitSongName">歌名</label>
         <input type="text" id="submitSongName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
-        <!-- 2026-10-17 站主要求（终版）：「选择类型不能有其它」——
-             分类只能从固定列表里选（默认「🧩 玩家提供」+ 站内 14 个分类，打开弹窗时由
-             fillSubmitCategories() 填好）；「✍️ 其它（自己写）」连同手写框已经删掉。
-             【回退办法】要恢复「自己写」：select 末尾加 value="__custom__" 一项、
-             加回 <input id="submitSongCategoryCustom">、恢复 syncSubmitCategoryCustom()。 -->
-        <label for="submitSongCategory">分类</label>
-        <!-- 2026-10-17 站主要求「游客添加歌曲的类型可以继续选择，如『中文流行』」：
-             原来这里是一个**只能手打**的输入框（写错字或不写就变「未分类」）；
-             现在改成下拉选择：默认「🧩 玩家提供（不确定就选这个）」，其余是站内已有的分类
-             （点开「➕ 添加歌曲ID」时由 fillSubmitCategories() 从宝库里动态填进来）。
-             最后一排仍然是想自己写的人用的 —— 选「✍️ 其它（自己写）」会变出一个输入框。
-             【回退办法】把这一整段 <select> + <input> 换回原来的
-             <input type="text" id="submitSongCategory" maxlength="30" placeholder="例如：中文流行">，
-             再删掉 js 里的 fillSubmitCategories() / resolveSubmitCategory() 两个函数即可。 -->
-        <!-- 2026-10-18 站主要求：「分类只显示『玩家提供』」——
-             游客投稿一律进「🧩 玩家提供」分栏，不再让他们挑站内分类。
-             disabled 只是禁止改选，value 仍能被 JS 读到（提交逻辑不用改）。
-             【回退办法】去掉 disabled、并恢复 fillSubmitCategories() 里的分类列表。 -->
-        <select id="submitSongCategory" disabled>
-          <option value="🧩 玩家提供">🧩 玩家提供（游客投稿统一进这里）</option>
-        </select>
-        <label for="submitSongGenre">歌曲类型（选填，你自己判断）</label>
-        <!-- 2026-10-18 新增：玩家自己填「歌曲类型」（如 中文流行 / 纯音乐 / 电子）。
-             审核通过后会在宝库页歌名后面显示小字「玩家说：xxx」。
-             存 song_submissions.genre → songs_extra.genre。 -->
-        <input type="text" id="submitSongGenre" maxlength="40" autocomplete="off"
-               placeholder="例如：中文流行 / 纯音乐 / 电子舞曲">
-        <label for="submitSongNote">说明（选填）</label>
-        <!-- 2026-10-17 新增：分类不让自己写了，但可以在这里用一句话描述（站主：「这 2 个功能都可以描述」）。
-             存进 D1 的 song_submissions.note（需执行 migrations.sql 第 5 组那句 ALTER；
-             没执行也不报错：投稿照常成功，只是这条描述落不了库）。 -->
-        <textarea id="submitSongNote" rows="3" maxlength="300"
-                  placeholder="想补充的话写在这里，例如：这是纯音乐版 / 歌名可能记得不准"></textarea>
+        <!-- 2026-10-26 站主定死：分类只有「🧩 玩家提供」；「歌曲类型」「说明」两栏删除。
+             游客投稿不再挑分类、不再填类型/说明，只留歌名 + ID（后台也只按玩家提供入库）。
+             【回退办法】从 git 历史恢复本段原来的 <select id="submitSongCategory">、
+             <input id="submitSongGenre">、<textarea id="submitSongNote"> 三块，
+             并恢复 js 里 fillSubmitCategories() 的调用。 -->
+        <p class="myrep-note submit-cat-fixed">分类：<b>🧩 玩家提供</b>（游客投稿统一进这里）</p>
         <label for="submitSongIds">歌曲 ID（一行一个，最多 20 个）</label>
         <textarea id="submitSongIds" rows="3" placeholder="例如：&#10;1876950732&#10;1441450732"></textarea>
       </div>
@@ -2852,10 +2823,7 @@ const AUX_TIMEOUT = 700;
       el.dataset.name = group.name;
       el.innerHTML = `
           <div class="group-header">
-            <div class="group-name">${nameHtml}${
-              /* 2026-10-18 站主要求：玩家提供并审核通过的歌，歌名后面显示小字「玩家说：xxx」 */
-              group.genre ? '<span class="genre-tip" title="这是投稿玩家自己写的歌曲类型">玩家说：' + escapeHtml(group.genre) + '</span>' : ''
-            }</div>
+            <div class="group-name">${nameHtml}</div>
             <div class="group-actions">
               <button type="button" class="btn-info-error" title="这首歌的歌名 / 分类 / ID 哪里不对？点这里改一改再上报">✏️ 信息出错</button>
             </div>
@@ -3028,32 +2996,19 @@ const AUX_TIMEOUT = 700;
       const looksInvalid = INVALID_WORDS.some(w => noteLower.indexOf(w.toLowerCase()) !== -1);
 
       if (looksInvalid) {
-        const goInvalid = await showConfirm(
-          '⚠️ 这里不是报「用不了」的地方',
-          '你写的内容看起来是在说「这个 ID 用不了 / 已经失效 / 打开是 404」。\n\n' +
-          '「✏️ 信息出错」只用来改**歌名 / 分类**这种「信息写错了」的问题；\n' +
-          '「ID 放不出来」要用宝库页每首歌旁边的「🚫 无效处理」上报 —— 那才是对应通道。\n\n' +
-          '要现在就把这一组 ID 直接改成「无效上报」吗？',
-          { okText: '✅ 改成无效上报', cancelText: '继续报信息出错' }
+        /* 2026-10-26 站主明确要求：说明里写「取不到音频 / 下架 / 这个 ID 无效」的，
+           一律弹窗拦下，**这条信息出错反馈不加入后台**，也不自动转成无效上报
+           （要报无效请他自己点「🚫 无效处理」，避免两条链混在一起）。
+           【回退办法】从 git 历史恢复本段原来的「改成无效上报 / 继续报信息出错」分支。 */
+        await showConfirm(
+          '⚠️ 这条要报「无效处理」，不是「信息出错」',
+          '你写的内容是在说「这个 ID 用不了 / 取不到音频 / 已经下架 / 是无效的」。\n\n' +
+          '「✏️ 信息出错」只用来改「歌名 / 分类」这种信息写错的问题；\n' +
+          '「ID 放不出来」请关掉这个窗口，点这首歌旁边的「🚫 无效处理」上报。\n\n' +
+          '这条信息出错反馈不会提交到后台。',
+          { okText: '我知道了', cancelText: '关闭' }
         );
-
-        if (goInvalid) {
-          const origName = String(modal.dataset.origName || '').trim();
-          const origCategory = String(modal.dataset.origCategory || '').trim();
-          const res = await sendInvalidReport([{
-            id: ids[0],
-            name: origName,
-            category: origCategory
-          }]);
-          if (!res.ok) return;
-          invalidReported.add(String(ids[0]));
-          saveInvalidReported();
-          paintInvalidRow(String(ids[0]));
-          closeModal('infoErrorModal');
-          showToast('🚫 已改成「无效上报」，站长会在后台的无效音乐ID管理里看到');
-          return;
-        }
-        /* 他坚持要报「信息出错」，那就照他的意思走下面的正常流程 */
+        return;
       }
 
       const okBtn = document.getElementById('confirmInfoError');
@@ -3335,20 +3290,28 @@ const AUX_TIMEOUT = 700;
       if (typeof showConfirm !== 'function') return status;
       const want = await showConfirm(
         '🚫 这个 ID 无效',
-        'ID ' + sid + ' 在 Roblox 那边**取不到音频**（已经下架 / 不存在），' +
+        'ID ' + sid + ' 在 Roblox 那边取不到音频（已经下架 / 不存在），' +
         '所以这个 ID 是无效的 —— 放了也没有声音。\n\n' +
         '要把它报给站长处理吗？（报完站长会在后台下架它）',
-        { okText: '✏️ 上报这个无效 ID', cancelText: '不用了' }
+        { okText: '🚫 上报这个无效 ID', cancelText: '不用了' }
       );
       if (!want) return status;
 
-      /* 已经报过无效的不重复报（以无效为主） */
+      /* 2026-10-26 站主定死：ID 用不了只能走「无效处理」，绝不能预填进「信息出错」。
+         原来这里 openInfoErrorModal(..., '试听时...这个 ID 是无效的。') 就是玩家滥用信息出错的源头，
+         现在直接调用无效上报接口，不再碰信息出错表单。
+         【回退办法】改回 openInfoErrorModal([sid], meta.name, meta.category, '...')。 */
       if (invalidReported.has(sid)) {
         showToast('🚫 这个 ID 你已经报过「无效」了，站长会处理的');
         return status;
       }
-      openInfoErrorModal([sid], meta.name, meta.category,
-        '试听时在 Roblox 那边取不到音频（下架或不存在）：这个 ID 是无效的。');
+      const res = await sendInvalidReport([{ id: sid, name: meta.name, category: meta.category }]);
+      if (res.ok) {
+        invalidReported.add(sid);
+        saveInvalidReported();
+        paintInvalidRow(sid);
+        showToast('🚫 已上报「无效 ID」，站长会在后台处理');
+      }
       return status;
     }
 
@@ -3644,11 +3607,12 @@ const AUX_TIMEOUT = 700;
       info: { text: '✏️ 信息出错', empty: '你还没有报过「信息出错」。<br>在宝库里点某首歌右上角的「✏️ 信息出错」，改好信息再「确定上报」就会出现在这里。' }
     };
 
-    /* 2026-10-17 站主定的状态文案：
-         · 还没处理            → 「审核进行中」
-         · 后台点「确认无效并下架」→ 「审核失败」（这个 ID 审核没通过）
-         · 后台点「无效反馈」     → 「反馈成功」，并且这条会从列表里消失（见 mergeMyRepRows）
-       【回退办法】把下面四条 text 改回原来的「⏳ 后台待处理 / 🚫 已审核·已下架 / ✅ 已审核」。 */
+    /* 2026-10-26 站主定死语义（原来这里正好写反了）：
+         · 后台点「确认无效并下架」→ 反馈属实 → 「✅ 反馈成功」（status = removed）
+         · 后台点「无效反馈」      → 反馈不成立 → 「❌ 无效反馈」（status = noted）
+         · 后台「信息出错 → 修改信息」保存成功 → 反馈属实 → 「✅ 反馈成功」（status = fixed，
+           前端合并时按 removed 处理，见 mergeMyRepRows）。
+       【回退办法】把下面三条 text/tip 改回旧文案，并把 tab 标签改回「成功 / 拒绝」。 */
     /* 2026-10-24：二级状态筛选（all / pending / noted / removed） */
     let myRepStatusFilter = 'all';
 
@@ -3671,16 +3635,13 @@ const AUX_TIMEOUT = 700;
     }
 
     const MY_REP_STATUS = {
-      /* 2026-10-24 站主要求：三态统一叫「待审核 / 成功 / 拒绝」。
-         【回退办法】改回「反馈进行中 / 反馈失败 / 反馈成功」。 */
+      /* 2026-10-26：三种结果，语义由站主定死：
+           removed = 确认无效并下架 = 反馈成功
+           fixed   = 信息出错已改好 = 反馈成功（前端映射成 removed）
+           noted   = 无效反馈（乱报）→ 一直保留，不再 30 分钟消失 */
       pending: { text: '⏳ 待审核', cls: 'pending', canRestore: true, tip: '管理员还没看，可以自己撤回' },
-      /* 2026-10-17 站主反馈：「自己反馈的 ID 想要看到有没有过审核」——
-         凡是后台动过的上报，状态里都带「已审核」四个字，并显示审核时间（见 auditStatusText()）。 */
-      removed: { text: '❌ 拒绝', cls: 'removed', canRestore: false, tip: '管理员核实后拒绝了这条反馈（例如这个 ID 其实是对的）' },
-      /* noted = 2026-10-17 新增：后台「🗑️ 删记录（处理完）」标的态（软删） */
-      /* 「反馈成功」= 管理员核实这个 ID 没问题（是你报错了）。站主要求：这种情况直接消失，
-         所以 mergeMyRepRows 里不渲染它；用户会先收到一条「反馈成功」的弹窗提示。 */
-      noted: { text: '✅ 成功', cls: 'noted', canRestore: false, tip: '管理员采纳了这条反馈。这条会在你第一次看到它之后 30 分钟自动消失' },
+      removed: { text: '✅ 反馈成功', cls: 'removed', canRestore: false, tip: '管理员核实这个 ID 确实无效，已下架（这条会一直保留）' },
+      noted: { text: '❌ 无效反馈', cls: 'noted', canRestore: false, tip: '管理员核实后认为这条反馈不成立（ID 其实没问题）' },
       local: { text: '📌 仅本地记录', cls: 'local', canRestore: true, tip: '后台已经没有这条上报了（可能已处理或换了设备），点「🧹 清除」把本地标记擦掉' }
     };
     /* 2026-10-07：「已忽略」这个状态随后台那一段一起下线（没问题的上报后台直接删记录）。
@@ -3700,47 +3661,11 @@ const AUX_TIMEOUT = 700;
     }
 
     /* ============================================================
-       2026-10-17：「反馈成功」保留 30 分钟后自动消失
-       ------------------------------------------------------------
-       站主原话：「用户在第一次看到『反馈成功』…后 30min 内不删除，30min 后…删除，
-                  不影响用户查看『反馈进行中』后『反馈失败』」。
-       实现取舍（为什么记在 localStorage）：
-         · 服务端只知道「什么时候处理的」，不知道「用户什么时候看到的」；
-         · 要做到「第一次看到后 30 分钟」，只能在前端记首看时间戳；
-         · 换浏览器 / 清了缓存会重新计一次 30 分钟 —— 这是可接受的（不会让数据错乱）。
-       「反馈失败」(removed) **不参与**这个计时，永久保留。
-       【回退办法】把下面 MYREP_KEEP_MS 改成 Infinity 即等于「永不消失」；
-         删掉这个 localStorage 键 myrep_seen_noted 也能让所有记录重新可见。 */
-    const MYREP_KEEP_MS = 30 * 60 * 1000;      /* 30 分钟 */
-    const MYREP_SEEN_KEY = 'myrep_seen_noted'; /* { [id]: 首次看到的时间戳 } */
-
-    function loadSeenNoted() {
-      try {
-        const raw = localStorage.getItem(MYREP_SEEN_KEY);
-        const obj = raw ? JSON.parse(raw) : null;
-        return (obj && typeof obj === 'object') ? obj : {};
-      } catch (e) { return {}; }
-    }
-    function saveSeenNoted(map) {
-      try { localStorage.setItem(MYREP_SEEN_KEY, JSON.stringify(map || {})); } catch (e) {}
-    }
-    /* 返回 true = 这条「反馈成功」还该显示；false = 超过 30 分钟，已经可以收走 */
-    function notedStillVisible(id) {
-      const now = Date.now();
-      const map = loadSeenNoted();
-      const first = Number(map[id]) || 0;
-      if (!first) {
-        /* 第一次看到：记下时间，正常显示 */
-        map[id] = now;
-        saveSeenNoted(map);
-        return true;
-      }
-      if (now - first < MYREP_KEEP_MS) return true;
-      /* 超过 30 分钟：不再显示，顺手把这条记录从 localStorage 里删掉 */
-      delete map[id];
-      saveSeenNoted(map);
-      return false;
-    }
+       2026-10-26 站主要求：反馈结果除了玩家自己点「🗑️ 删除记录」外，
+       **不再自动删除**。原来「反馈成功看 30 分钟后自动消失」的整套逻辑
+       （MYREP_KEEP_MS / myrep_seen_noted / notedStillVisible）已整体删除。
+       【回退办法】从 git 历史恢复这一段，并在 mergeMyRepRows 里加回过滤调用。
+       ============================================================ */
 
     let myRepRows = [];        /* 当前拉到的全部行（两类都在这，渲染时按标签过滤） */
     let myRepLoading = false;
@@ -3805,14 +3730,13 @@ const AUX_TIMEOUT = 700;
            2026-10-17：但**也不许把行藏起来** —— 站主要求「自己反馈的 ID 想要看到有没有过审核」，
            历史 ignored 行同样是「后台动过」的记录，当成 noted（已审核）显示才不违背这个要求。 */
         const rawStatus = String(item.status || '');
-        const status = rawStatus === 'ignored' ? 'noted' : (rawStatus || 'pending');
+        /* 2026-10-26：fixed（信息出错已改好）和 removed（确认无效并下架）都算「反馈成功」，
+           统一按 removed 渲染，共用同一档绿色/成功样式；noted 才是「无效反馈」。 */
+        const status = rawStatus === 'ignored' ? 'noted'
+          : (rawStatus === 'fixed' ? 'removed' : (rawStatus || 'pending'));
         /* ⚠️ 必须先记 seen：哪怕下面要跳过渲染，也得让「本地兜底」知道服务端有这条，
            否则它会被当成「仅本地记录」再冒出来 —— 那就等于没消失。 */
         seen[id] = true;
-        /* 2026-10-17 站主要求（第二轮修正）：noted（反馈成功）**先给看 30 分钟**，超时才收走。
-           第一版是「直接不显示」，站主指出太急 —— 所以要让人真的看到这句「反馈成功」。
-           notedStillVisible() 会顺手把首次看到的时间记进 localStorage。 */
-        if (status === 'noted' && !notedStillVisible(id)) return;
         const meta = MY_REP_STATUS[status] || MY_REP_STATUS.pending;
         const type = item.type === 'info' ? 'info' : 'invalid';
         rows.push({
@@ -4096,28 +4020,10 @@ const AUX_TIMEOUT = 700;
       'Phonk/DJ'
     ];
 
-    /* 打开弹窗时把下拉填好：
-       ① 默认选中「🧩 玩家提供」；
-       ② 站内分类按上面那 14 个的顺序排在前面（没有的也留着，免得玩家选不到）；
-       ③ 数据里真实出现过、但不在白名单里的自定义分类追加在后面；
-       ④ 最后永远是「✍️ 其它（自己写）」。
-       每次都重建：数据是异步加载的，第一次打开时可能还没加载完，重建一次就补上了。 */
-    /* ============================================================
-       2026-10-18 站主要求：「分类只显示『玩家提供』」——
-       游客投稿一律进「🧩 玩家提供」分栏，不再给他们挑站内分类。
-       所以这里不再填 14 个分类，只保留唯一一项（下拉同时是 disabled）。
-       想让游客能选分类的话：把下面 reset 掉、恢复成按 CATEGORY_WHITELIST 循环即可。
-       ============================================================ */
-    function fillSubmitCategories() {
-      const sel = document.getElementById('submitSongCategory');
-      if (!sel) return;
-      sel.innerHTML = '';
-      const only = document.createElement('option');
-      only.value = CAT_PLAYER_PROVIDED;
-      only.textContent = CAT_PLAYER_PROVIDED + '（游客投稿统一进这里）';
-      sel.appendChild(only);
-      sel.value = CAT_PLAYER_PROVIDED;
-    }
+    /* 2026-10-26 站主要求：游客投稿的分类只有「🧩 玩家提供」，
+       所以原来 fillSubmitCategories() 那套下拉填充整段删除；
+       提交时 submitSongIds() 直接使用 CAT_PLAYER_PROVIDED。
+       【回退办法】从 git 历史恢复 fillSubmitCategories() 与 <select id="submitSongCategory">。 */
 
     /* 2026-10-17 新增：「✏️ 信息出错」弹窗的分类也做成下拉（同样没有「其它」）。
        · 第一项「（不确定就留空）」值为空串（保持原来「不确定可以留空」的行为）；
@@ -4163,17 +4069,8 @@ const AUX_TIMEOUT = 700;
     /* 2026-10-17：syncSubmitCategoryCustom() 随「✍️ 其它（自己写）」一起删除
        —— 分类只能是固定项，不再需要「选到某项才变出输入框」那套逻辑。 */
 
-    /* 最终要提交的分类：
-       下拉选的是真分类 → 用它；选「其它」→ 用输入框里手写的；
-       什么都不填 → 「🧩 玩家提供」（任务 2：认不出 = 玩家提供，不是「未完成」）。 */
-    function resolveSubmitCategory() {
-      /* 2026-10-17：不再读手写输入框（已删）。下拉选什么就是什么；
-         什么都没选就兜底「🧩 玩家提供」（任务 2 的口径没变）。 */
-      const sel = document.getElementById('submitSongCategory');
-      const value = sel ? String(sel.value || '').trim() : '';
-      if (!value) return CAT_PLAYER_PROVIDED;
-      return value.slice(0, 30);
-    }
+    /* 2026-10-26：resolveSubmitCategory() 随分类下拉一起删除；
+       投稿分类固定 CAT_PLAYER_PROVIDED（服务端也会再强制一次）。 */
 
     /* 「这个 ID 看起来就不是正经音乐 ID」的判定（纯数字 + 9~20 位）。
        真实的 Roblox 音频 ID 全是纯数字，且没有 9 位以下的
@@ -4201,21 +4098,17 @@ const AUX_TIMEOUT = 700;
     function openSubmitSong() {
       const nameEl = document.getElementById('submitSongName');
       const idsEl = document.getElementById('submitSongIds');
-      const noteEl = document.getElementById('submitSongNote');
       if (nameEl) nameEl.value = '';
       if (idsEl) idsEl.value = '';
-      if (noteEl) noteEl.value = '';
-      fillSubmitCategories();
+      /* 2026-10-26：分类固定「🧩 玩家提供」，不再填下拉；歌曲类型/说明栏已删除。 */
       openModal('submitSongModal');
     }
 
     async function submitSongIds() {
       const name = ((document.getElementById('submitSongName') || {}).value || '').trim();
-      const category = resolveSubmitCategory();
-      /* 2026-10-18：玩家自己填的「歌曲类型」（选填，最多 40 字） */
-      const genre = ((document.getElementById('submitSongGenre') || {}).value || '').trim().slice(0, 40);
-      /* 2026-10-17：分类不让写了，但玩家可以写一句说明（选填，最多 300 字） */
-      const note = ((document.getElementById('submitSongNote') || {}).value || '').trim().slice(0, 300);
+      /* 2026-10-26 站主定死：游客投稿分类只有「🧩 玩家提供」。
+         歌曲类型 / 说明两栏已删除，payload 只带 id、name、category。 */
+      const category = CAT_PLAYER_PROVIDED;
       const rawIds = ((document.getElementById('submitSongIds') || {}).value || '')
         .split(/[\s,，、;；]+/)
         .map(s => s.trim())
@@ -4245,8 +4138,8 @@ const AUX_TIMEOUT = 700;
       if (btn) btn.disabled = true;
 
       try {
-        /* 2026-10-18：payload 带 genre。 */
-        const items = ids.map(id => ({ id: id, name: name, category: category, note: note, genre: genre }));
+        /* 2026-10-26：只投稿 ID + 歌名；分类由前端/服务端双重固定为「🧩 玩家提供」。 */
+        const items = ids.map(id => ({ id: id, name: name, category: category }));
         /* 服务端单次最多 20 条（见 functions/api/songs/submit.js），超出就分批 */
         for (let i = 0; i < items.length; i += 20) {
           const res = await zmPostJson('/api/songs/submit', {

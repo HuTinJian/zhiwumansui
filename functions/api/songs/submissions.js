@@ -19,11 +19,11 @@ const MAX_IDS = 200;
    必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED、functions/api/songs/submit.js 一致。 */
 const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
 
-/* 把投稿里的分类归一：空 / 「未分类」/「未完成」→ 玩家提供；其余原样（截 30 字） */
-function normalizeSubmissionCategory(raw) {
-  const c = String(raw || '').trim().slice(0, 30);
-  if (!c || c === '未分类' || c === '未完成') return CATEGORY_PLAYER_PROVIDED;
-  return c;
+/* 2026-10-26 站主定死：玩家投稿分类只有「🧩 玩家提供」。
+   所以审核通过时无条件写「玩家提供」，旧待审核行里残留的其他分类也一并归到这里。
+   【回退办法】恢复成按 raw 归一（空/未分类/未完成 → 玩家提供，其余原样）。 */
+function normalizeSubmissionCategory() {
+  return CATEGORY_PLAYER_PROVIDED;
 }
 
 const ACTIONS = ['approve', 'delete'];

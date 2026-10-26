@@ -1265,10 +1265,11 @@ function initShareTriggers() {
     /* 2026-10-05：原来这里还会调 checkFeedbackDecision() 去查「我提过的反馈有没有被处理」。
        反馈功能整页下线（feedback.html 已删、/api/feedback/* 已删），回执弹窗一并删除。 */
 
-    /* 2026-10-07 站主要求：站长下架了 ID / 删了上报记录，上报的人要收到**我们自己的**弹窗提示。
-       延后 1.2 秒再查：先让页面把内容画出来，免得跟「版本更新」弹窗同时抢屏
-       （两者都弹时，先来的那个在上面，用户点掉一个再看下一个，不会互相盖住）。 */
-    setTimeout(checkReportNotices, 1200);
+    /* 2026-10-26 站主要求：把「反馈结果」弹窗删除。
+       所以这里不再调用 checkReportNotices，上报结果只在上报者自己的「📌 我上报的」里显示。
+       （checkReportNotices / showReportNotices 两个函数连同 CSS 已删；/api/notices/mine 保留但不再被调用。）
+       【回退办法】把下面这一行放回来，并从 git 历史恢复 common.js 的 10.5 节：
+         setTimeout(checkReportNotices, 1200); */
   }
 
   if (document.readyState === 'loading') {
@@ -1827,109 +1828,14 @@ function initShareTriggers() {
   }
 
   /* ============================================================
-     10.5 「你的上报有结果了」提示（2026-10-07 站主要求新增）
+     10.5 「你的上报有结果了」弹窗（2026-10-26 已删除）
      ------------------------------------------------------------
-     站主原话：「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示，
-               弹窗是我们自己的」。
-     谁写进去的：后台「✅ 确认无效并下架」/「✅ 标记已审核」时，
-       functions/api/invalid/handle.js 会给当时报过这个 ID 的人各写一条 report_notices。
-     这里只做两件事：
-       ① 页面打开时拉一次 GET /api/notices/mine?reporter=<本机身份>；
-       ② 有未读就弹**我们自己的**弹窗（.modal 那套，不是浏览器的 Notification），
-          点「我知道了」→ POST 把这几条标成已读，之后不再弹。
-     几个刻意的取舍：
-       · 纯静态托管 / 接口挂了 → 静默跳过，绝不弹错误框打扰访客；
-       · 一次最多列 5 条（再多也只说「还有 N 条」），弹窗不会长到离谱；
-       · 用 sessionStorage 记住「这次会话已经查过了」，同一标签页里翻来翻去不重复请求
-         （新开标签页/重开浏览器会再查一次，保证通知不会漏）。
+     站主原话：「首先将反馈结果的那个弹窗删除了」。
+     所以原来这里的 checkReportNotices / showReportNotices / noticeLine 整段删除，
+     上报结果只在上报者自己的「📌 我上报的」隔离区里显示。
+     【回退办法】从 git 历史恢复本段（git show HEAD~:js/common.js），
+       并把 initUI 里被注释掉的那行 setTimeout(checkReportNotices, 1200) 放回来。
      ============================================================ */
-  const NOTICE_API = '/api/notices/mine';
-  const NOTICE_SESSION_KEY = 'zm_notice_checked';
-
-  function noticeLine(n) {
-    const id = escapeHtml(String(n.musicId || ''));
-    const name = n.name ? '「' + escapeHtml(String(n.name)) + '」' : '';
-    /* 2026-10-17 站主定的说法：
-         · kind='removed'（后台点「确认无效并下架」）→「审核失败」
-         · kind='deleted'（后台点「无效反馈」= 这条反馈本身无效、ID 其实是对的）→「反馈成功」，
-           并且这条会从「📌 我上报的」里消失（见 roblox_music.html 的 mergeMyRepRows）
-       【回退办法】把下面两句的文案改回原来的「已被确认无效」/「上报记录已删除」即可。 */
-    if (n.kind === 'removed') {
-      return '❌ 反馈失败：你上报的 ID <b>' + id + '</b>' + name +
-        ' 经确认无效，已从宝库里下架（这条会永久保留，随时能在「我上报的」里查看）。';
-    }
-    return '✅ 反馈成功：你上报的 ID <b>' + id + '</b>' + name +
-      ' 经核实没有问题（歌还在宝库里）。这条记录会再保留 30 分钟，之后自动消失。';
-  }
-
-  function showReportNotices(items) {
-    if (!Array.isArray(items) || items.length === 0) return;
-
-    const old = document.getElementById('zmNoticeModal');
-    if (old) old.remove();
-
-    const shown = items.slice(0, 5);
-    const more = items.length - shown.length;
-
-    const modal = document.createElement('div');
-    modal.id = 'zmNoticeModal';
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content zm-notice-content">
-        <h2>📬 你上报的内容有结果了</h2>
-        <div class="zm-notice-list">
-          ${shown.map(n => '<div class="zm-notice-line">' + noticeLine(n) + '</div>').join('')}
-          ${more > 0 ? '<div class="zm-notice-line zm-notice-more">…还有 ' + more + ' 条，不再一一列出</div>' : ''}
-        </div>
-        <p class="zm-notice-foot">谢谢你帮忙校对宝库 ❤️</p>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-primary" id="zmNoticeOk">我知道了</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    openModal('zmNoticeModal');
-
-    const okBtn = document.getElementById('zmNoticeOk');
-    if (okBtn) {
-      okBtn.addEventListener('click', () => {
-        closeModal('zmNoticeModal');
-        /* 标成已读：失败也没关系（下次打开会再弹一次，不会丢消息） */
-        try {
-          fetch(NOTICE_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reporter: getClientId(), ids: items.map(n => n.id) }),
-            keepalive: true
-          }).catch(() => {});
-        } catch (e) { /* 忽略 */ }
-      });
-    }
-  }
-
-  async function checkReportNotices() {
-    let seen = '';
-    try { seen = sessionStorage.getItem(NOTICE_SESSION_KEY) || ''; } catch (e) {}
-    if (seen === '1') return;
-    try { sessionStorage.setItem(NOTICE_SESSION_KEY, '1'); } catch (e) {}
-
-    try {
-      const res = await fetch(NOTICE_API + '?reporter=' + encodeURIComponent(getClientId()) + '&t=' + Date.now(), {
-        cache: 'no-store'
-      });
-      if (!res.ok) return;
-      const data = await res.json().catch(() => null);
-      if (!data || data.ok !== true || !Array.isArray(data.items)) return;
-      /* 2026-10-24 站主要求：反馈结果的弹窗**放到 ID 宝库那里**。
-         所以这里只在宝库页弹（宝库页独有 #songList）；其它页面静默。
-         【回退办法】去掉 && document.getElementById('songList') 这个条件即可。 */
-      if (data.items.length > 0 && document.getElementById('songList')) {
-        showReportNotices(data.items);
-      }
-    } catch (e) {
-      /* 静态托管 / 断网 → 静默跳过 */
-    }
-  }
 
   /* ============================================================
      11. 导出到全局

@@ -108,17 +108,14 @@ export async function onRequestPost(context) {
       if (!ID_PATTERN.test(id)) continue;
 
       const name = String(item.name || '').trim().slice(0, 100);
-      /* 2026-10-17 站主要求「这 2 个功能都可以描述」→ 投稿可带一句说明（≤300 字）。
-         存 song_submissions.note；没这列（迁移没跑）时自动走 4 列写法。 */
-      const note = String(item.note || '').trim().slice(0, 300);
-      /* 2026-10-18 站主要求：玩家自己填「歌曲类型」（如「中文流行」「纯音乐」），
-         存 genre 列，审核通过后会在宝库页以「玩家说：xxx」的小字显示。 */
-      const genre = String(item.genre || '').trim().slice(0, 40);
-      /* 2026-10-17：分类只收 30 字以内；空 / 认不出 → 「🧩 玩家提供」 */
-      const rawCategory = String(item.category || '').trim().slice(0, 30);
-      const category = rawCategory && rawCategory !== '未分类' && rawCategory !== '未完成'
-        ? rawCategory
-        : CATEGORY_PLAYER_PROVIDED;
+      /* 2026-10-26 站主定死：游客投稿只收「ID + 歌名」，分类固定「🧩 玩家提供」。
+         原来可带的 note（说明）/ genre（歌曲类型）两栏已删除，服务端不再接收，
+         即使旧客户端硬塞也一律丢弃（存 NULL），避免这两类内容再进库。
+         【回退办法】从 git 历史恢复 note/genre 的读取与绑定。 */
+      const note = '';
+      const genre = '';
+      /* 分类不由客户端决定：无论传什么都记「🧩 玩家提供」。 */
+      const category = CATEGORY_PLAYER_PROVIDED;
 
       stmts.push(
         hasGenre

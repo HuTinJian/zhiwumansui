@@ -899,7 +899,7 @@ function renderInvalidPending() {
     btn.addEventListener('click', () => confirmInvalidRemove([btn.dataset.id]));
   });
   container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
-    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id]));
+    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id], 'invalid'));
   });
 
   renderAdminPager(pager, total, invalidPendingPage, '个 ID', (p) => {
@@ -1001,9 +1001,10 @@ function renderInvalidInfo() {
     }));
   });
   /* 2026-10-18：这里原来还有 .btn-invalid-remove 的绑定（确认无效并下架），
-     随那颗按钮一起删了 —— 这一栏不再提供下架操作。 */
+     随那颗按钮一起删了 —— 这一栏不再提供下架操作。
+     2026-10-26：这一栏的「❌ 无效反馈」只处理 type='info'，别误伤同 ID 的无效上报。 */
   container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
-    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id]));
+    btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id], 'info'));
   });
 
   renderAdminPager(pager, total, invalidInfoPage, '个 ID', (p) => {
@@ -1174,9 +1175,11 @@ async function handleInfoEdit() {
     return;
   }
 
-  /* 保存成功 → 这条上报就处理完了：标成已审核（顺带通知上报者「站长看过了」） */
+  /* 2026-10-26 站主定死语义：修改信息成功 = 反馈属实 → 上报者隔离区显示「✅ 反馈成功」。
+     所以这里调 fix-info（新状态 fixed），不再用 delete-records（那个表示「无效反馈」）。
+     【回退办法】把 'fix-info' 改回 'delete-records'（会显示成「无效反馈」，是旧错误行为）。 */
   try {
-    await handleInvalidAction([id], 'delete-records');
+    await handleInvalidAction([id], 'fix-info');
   } catch (err) { /* handleInvalidAction 自己会提示失败；保存本身已经成功 */ }
 
   closeModal('infoEditModal');
@@ -1184,7 +1187,7 @@ async function handleInfoEdit() {
   if (saved.quarantined) {
     showToast('✅ 已保存，但该 ID 处在隔离区（已被下架），宝库页不会显示；要恢复请去「✅ 已下架」点「🔓 恢复上架」');
   } else {
-    showToast('✅ 已保存：' + name + '（' + category + '）');
+    showToast('✅ 已保存：' + name + '（' + category + '）· 上报者会看到「反馈成功」');
   }
   /* D1 歌曲列表和统计都变了，一起刷新 */
   loadSongs();
@@ -1202,18 +1205,21 @@ async function confirmInvalidRemove(ids) {
   handleInvalidAction(list, 'remove');
 }
 
-/* 标记已审核（单个 / 批量，2026-10-07 取代原来的「批量忽略」；2026-10-17 从真删改成软删）：
-   站主原话「没有问题的上报的 ID 直接删除后台记录就行」——删掉的是它出现在「待处理」里的资格。
-   ⚠️ 2026-10-17 起**不再真删行**：状态标成 noted，上报者在「📌 我上报的」里能看到
-   「✅ 已审核」+ 处理时间（站主要求「自己反馈的 ID 想要看到有没有过审核」）。
-   歌本身不动（宝库照旧能搜到）。 */
-async function confirmInvalidDelete(ids) {
+/* 标记「无效反馈」（单个 / 批量）。
+   2026-10-26 站主定死语义：这就是「这条反馈不成立、ID 其实没问题」，
+   上报者隔离区会显示「❌ 无效反馈」。
+   type 必须传：
+     · 后台「🚫 待处理上报」那一栏 → 'invalid'
+     · 后台「✏️ 信息出错管理」那一栏 → 'info'
+   不传时兼容旧行为（一个 ID 下 pending 全标，容易误伤另一类，别这么调）。
+   ⚠️ 不再真删行：状态标成 noted，上报者能查到审核结果。
+   【回退办法】把 type 参数和 handleInvalidAction 里的 body.type 去掉即可恢复旧行为。 */
+async function confirmInvalidDelete(ids, type) {
   const list = (ids || []).filter(Boolean);
-  if (list.length === 0) { showToast('请先勾选要删除记录的上报'); return; }
+  if (list.length === 0) { showToast('请先勾选要处理的上报'); return; }
 
-  const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
   /* 2026-10-24：无效反馈只是「标记」，不改歌、可改回，所以不弹确认。 */
-  handleInvalidAction(list, 'delete-records');
+  handleInvalidAction(list, 'delete-records', type === 'info' ? 'info' : 'invalid');
 }
 
 /* ============================================================
@@ -1484,12 +1490,16 @@ async function scanSongsValidity() {
 }
 
 /* 调 /api/invalid/handle 干一件事。ids：要处理的音乐 ID。
-   成败只看 ok，不看 changed —— 它是受影响行数，重复 remove 也还是 1。
-   2026-10-07：动作只剩 remove（下架）/ delete-records（标记已审核）/ restore（恢复上架）。
-   2026-10-17：delete-records 的返回文案跟着软删一起改（不再说「删除」）。 */
-async function handleInvalidAction(ids, action) {
+   2026-10-26 站主定死语义（原本文案/状态是反的）：
+     remove         确认无效并下架 → 上报者隔离区「✅ 反馈成功」
+     delete-records 无效反馈（乱报）→ 上报者隔离区「❌ 无效反馈」
+     fix-info       信息出错已改好   → 上报者隔离区「✅ 反馈成功」
+     restore        恢复上架
+   type 只对 delete-records 有意义（'invalid' / 'info'，见 confirmInvalidDelete）。 */
+async function handleInvalidAction(ids, action, type) {
   const body = { action: action };
   body.ids = (ids || []).filter(Boolean);
+  if (action === 'delete-records' && type) body.type = type;
 
   try {
     const res = await fetch('/api/invalid/handle', {
@@ -1507,8 +1517,9 @@ async function handleInvalidAction(ids, action) {
     }
 
     let tip;
-    if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID';
+    if (action === 'remove') tip = '✅ 已下架 ' + body.ids.length + ' 个 ID · 上报者会看到「反馈成功」';
     else if (action === 'delete-records') tip = '❌ 已标记 ' + body.ids.length + ' 条为「无效反馈」（ID 保留）';
+    else if (action === 'fix-info') tip = '✅ 信息已保存 · 上报者会看到「反馈成功」';
     else tip = '♻️ 已恢复 ' + body.ids.length + ' 个 ID';
     showToast(tip);
 
@@ -1589,7 +1600,7 @@ function bindInvalidPanel() {
   /* 2026-10-24 站主要求：「❌ 批量拒绝」= 批量把上报标记为无效反馈（ID 本身没问题）。
      【回退办法】删掉这两行。 */
   const batchReject = document.getElementById('invalidBatchReject');
-  if (batchReject) batchReject.onclick = () => confirmInvalidDelete(pickedInvalidIds());
+  if (batchReject) batchReject.onclick = () => confirmInvalidDelete(pickedInvalidIds(), 'invalid');
   if (batchRemove) batchRemove.onclick = () => confirmInvalidRemove(pickedInvalidIds());
 
   /* 2026-10-07：「🙈 批量忽略」改成批量处理（元素 id 没变，省得动样式）；
@@ -1813,9 +1824,7 @@ function renderSubmissionPage() {
           <span class="type-tag green">📥 玩家投稿${item.count > 1 ? ' ' + item.count + ' 次' : ''}</span>
         </span>
       </div>
-      ${item.note ? '<div class="message">💬 玩家说明：' + escapeHtml(item.note) + '</div>' : ''}
-      <!-- 2026-10-18：玩家自己填的「歌曲类型」，审核时一起看；通过后会显示在宝库页歌名后面。 -->
-      ${item.genre ? '<div class="message">🎵 玩家说的类型：' + escapeHtml(item.genre) + '</div>' : ''}
+      <!-- 2026-10-26 站主要求：投稿只有「ID + 歌名 + 玩家提供」，说明/歌曲类型两栏已删除。 -->
       <div class="meta">
         🆔 <span class="invalid-id">${escapeHtml(item.id)}</span>${adminIdActions(item.id)}
         ${item.lastAt ? ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.lastAt)) + '</span>' : ''}
