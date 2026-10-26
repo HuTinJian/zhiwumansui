@@ -1262,6 +1262,9 @@
   </div>
 
   <script src="js/common.js"></script>
+  <!-- 怀旧版只读守卫（2026-10-26 新增）：所有功能按钮只弹提示、不执行、不发写请求。
+       【回退办法】删掉这一行与本文件 js/legacy-readonly.js 即可恢复可点击。 -->
+  <script src="js/legacy-readonly.js"></script>
   <script>
     /* ========== 全局状态 ========== */
     let songDatabase = [];
@@ -1313,20 +1316,15 @@
       } catch (e) {}
     }
 
-    function reportHot(id, type) {
-      loadCountedIds();
-      id = String(id);
-      if (countedIds.has(id)) return false;
-      countedIds.add(id);
-      saveCountedIds();
-
-      fetch('/api/hot/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type })
-      }).catch(() => {});
-
-      return true;
+    /* 怀旧版只读（2026-10-26）：热度统计一律不写。
+       旧版原本在复制 / 试听 / 收藏时 POST /api/hot/report，会把旧版的点击
+       算进新版的「热门推荐」里。现在按钮已经被 js/legacy-readonly.js 拦住，
+       这里再把函数改成空操作，作为第二道保险（避免任何路径漏写）。
+       注意：不再调用后，上面的 loadCountedIds / saveCountedIds 成了备用代码，
+       保留它们不影响任何行为。
+       【回退办法】把本函数换回带 fetch('/api/hot/report') 的旧版本即可。 */
+    function reportHot() {
+      return false;
     }
 
     const PAGE_SIZE = 100;

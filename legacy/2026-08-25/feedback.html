@@ -591,6 +591,9 @@
   </footer>
 
   <script src="js/common.js"></script>
+  <!-- 怀旧版只读守卫（2026-10-26 新增）：所有功能按钮只弹提示、不执行、不发写请求。
+       【回退办法】删掉这一行与本文件 js/legacy-readonly.js 即可恢复可点击。 -->
+  <script src="js/legacy-readonly.js"></script>
 
   <script>
     /* 怀旧版（2026-10-26）：不再检查版本更新弹窗。 */
@@ -674,85 +677,17 @@
       }
     }
 
-    /* 提交反馈 */
-    form.addEventListener('submit', async (e) => {
+    /* 提交反馈 —— 怀旧版只读（2026-10-26）
+       ------------------------------------------------------------
+       旧版这里原本会 POST 到新版反馈接口，成功后切到「提交成功」页。
+       站主要求：怀旧版只作展示，不能真的提交。所以这段现在只弹统一提示，
+       不再发任何请求、也不再显示成功页。
+       按钮点击还会被 js/legacy-readonly.js 的捕获层先拦住（双保险）。
+       【回退办法】把本段换回 2026-10-26 之前的版本（git 提交 4c1f22f 里的
+       feedback.html）即可恢复真实提交。 */
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      const name = document.getElementById('feedbackName').value.trim();
-      const email = document.getElementById('feedbackEmail').value.trim();
-      const message = document.getElementById('feedbackMessage').value.trim();
-
-      if (!currentType) { showToast('请选择反馈类型'); return; }
-      if (!name) { showToast('请填写你的称呼'); return; }
-      if (!message) { showToast('请填写反馈内容'); return; }
-      if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); return; }
-
-      /* ============================================================
-         怀旧版适配（2026-10-26）
-         ------------------------------------------------------------
-         旧页面原本 POST /api/feedback —— 那是旧后台的接口，已随旧后台一起删除。
-         现在改发 /api/feedback/submit（新版反馈接口），字段映射：
-           旧 name    → 新 nickname（新版上限 20 字，超了会提示缩短）
-           旧 message → 新 content（前面带上反馈类型，旧版的两个附加选项写进正文）
-           旧 email   → 新 contact
-         界面、校验、成功页都保持旧版原样，不做改动。
-         【回退办法】把本段换回旧的 /api/feedback 版本
-                     （备份在 .verify/backup-legacy-20261026/ 之外，见 git 提交 61b5be9）。
-         ============================================================ */
-      let quarantineIds = [];
-      const willUpload = currentType === '卡片1' && uploadQuarantine.checked;
-      if (willUpload) {
-        quarantineIds = getGuestQuarantine();
-      }
-
-      if (name.length > 20) {
-        showToast('新版接口的称呼最多 20 个字，请短一点');
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = '提交中...';
-
-      const noteLines = [];
-      if (currentType === '卡片1' && wantThanks.checked) noteLines.push('（希望加入鸣谢名单）');
-      if (willUpload) noteLines.push(`（附：隔离区 ID ${quarantineIds.length} 个；怀旧版不接收上传）`);
-
-      const contentText = (
-        `【怀旧版反馈｜${currentType}】\n` + message +
-        (noteLines.length ? '\n' + noteLines.join('\n') : '')
-      ).slice(0, 1000);
-
-      try {
-        const res = await fetch('/api/feedback/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nickname: name,
-            content: contentText,
-            contact: email
-          })
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (res.ok && data.ok === true) {
-          formContainer.style.display = 'none';
-          successMessage.classList.add('show');
-
-          if (willUpload) {
-            extraInfo.textContent = `📦 已在反馈里注明 ${quarantineIds.length} 个隔离区 ID；怀旧版不再保存上传。`;
-            extraInfo.style.display = 'block';
-          }
-        } else {
-          showToast('提交失败：' + (data.error || '请稍后再试'));
-          submitBtn.disabled = false;
-          submitBtn.textContent = '🚀 提交反馈';
-        }
-      } catch (err) {
-        showToast('网络异常，请稍后重试');
-        submitBtn.disabled = false;
-        submitBtn.textContent = '🚀 提交反馈';
-      }
+      if (typeof legacyNotice === 'function') legacyNotice();
     });
   </script>
 </body>

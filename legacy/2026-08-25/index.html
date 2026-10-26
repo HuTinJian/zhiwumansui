@@ -481,6 +481,9 @@
   </footer>
 
   <script src="js/common.js"></script>
+  <!-- 怀旧版只读守卫（2026-10-26 新增）：所有功能按钮只弹提示、不执行、不发写请求。
+       【回退办法】删掉这一行与本文件 js/legacy-readonly.js 即可恢复可点击。 -->
+  <script src="js/legacy-readonly.js"></script>
   <!-- 怀旧版（2026-10-26）：旧后台已删除，不再加载 js/auth.js，也不再提供登录入口 -->
   <script>
     /* 怀旧版（2026-10-26）：后台入口与版本更新弹窗已移除。
