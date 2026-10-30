@@ -3219,7 +3219,14 @@ function renderInbox() {
       '</div>' +
       '<div class="message">' + escapeInbox(r.content).replace(/\n/g, '<br>') + '</div>' +
       (r.contact ? '<div class="meta">📮 ' + escapeInbox(r.contact) + '</div>' : '') +
-      '<div class="meta">🕒 ' + escapeInbox(r.created_at || '') + '</div>' +
+      /* 2026-10-30 验收发现：D1 的 created_at 是 UTC，直接显示会差 8 小时。
+         这里和其它后台列表一样走 formatBeijingTime（没加载 common.js 时退回原值）。
+         【回退办法】改回 escapeInbox(r.created_at || '')。 */
+      '<div class="meta">🕒 ' + escapeInbox(
+        typeof formatBeijingTime === 'function'
+          ? (formatBeijingTime(r.created_at, 'full') || r.created_at || '')
+          : (r.created_at || '')
+      ) + '</div>' +
       '<div class="actions">' +
         (isNew ? '<button class="btn-inbox-read" data-inbox-id="' + Number(r.id) + '">✅ 标记已读</button>' : '') +
         '<button class="btn-inbox-del" data-inbox-id="' + Number(r.id) + '">🗑️ 删除</button>' +
