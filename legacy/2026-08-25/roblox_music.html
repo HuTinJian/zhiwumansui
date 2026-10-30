@@ -1262,9 +1262,9 @@
   </div>
 
   <script src="js/common.js"></script>
-  <!-- 怀旧版只读守卫（2026-10-26 新增）：所有功能按钮只弹提示、不执行、不发写请求。
-       【回退办法】删掉这一行与本文件 js/legacy-readonly.js 即可恢复可点击。 -->
-  <script src="js/legacy-readonly.js"></script>
+  <!-- 怀旧版演示提示（2026-10-30 更新）：搜索、筛选、收藏、隔离、复制、弹窗都照常可用；
+       只在「真正提交 / 跳转出去」的最后一步弹提示，不写新版、不跳转。 -->
+  <script src="js/legacy-demo.js"></script>
   <script>
     /* ========== 全局状态 ========== */
     let songDatabase = [];
@@ -1318,7 +1318,7 @@
 
     /* 怀旧版只读（2026-10-26）：热度统计一律不写。
        旧版原本在复制 / 试听 / 收藏时 POST /api/hot/report，会把旧版的点击
-       算进新版的「热门推荐」里。现在按钮已经被 js/legacy-readonly.js 拦住，
+       算进新版的「热门推荐」里。现在旧版按钮恢复可点后仍会调用这个函数，
        这里再把函数改成空操作，作为第二道保险（避免任何路径漏写）。
        注意：不再调用后，上面的 loadCountedIds / saveCountedIds 成了备用代码，
        保留它们不影响任何行为。
@@ -1806,11 +1806,11 @@
 
       const ackVersion = localStorage.getItem('legacy_riskAckVersion');
       if (ackVersion && serverRiskVersion && ackVersion === serverRiskVersion) {
-        const targetId = pendingRedirectId;
+        /* 怀旧版演示（2026-10-30）：以前这里会直接跳 Roblox，现在只提示。 */
         pendingRedirectId = null;
-        showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
-          window.open(`https://create.roblox.com/store/asset/${targetId}`, '_blank');
-        });
+        if (typeof legacyNotice === 'function') {
+          legacyNotice('🕰️ 怀旧版只作展示：这里不会跳转到 Roblox，也不计入热度。');
+        }
         return;
       }
 
@@ -1848,14 +1848,19 @@
       };
     }
 
+    /* 怀旧版演示（2026-10-30）：风险告知弹窗照常弹、10 秒倒计时照常走，
+       但点「确认跳转」不再真的跳 Roblox，只弹提示并关掉弹窗。 */
     dom.riskConfirmBtn.onclick = () => {
       if (dom.riskConfirmBtn.disabled) return;
       if (riskCountdownCleanup) {
         riskCountdownCleanup();
         riskCountdownCleanup = null;
       }
+      pendingRedirectId = null;
       closeModal('riskModal');
-      openModal('riskConfirmModal');
+      if (typeof legacyNotice === 'function') {
+        legacyNotice('🕰️ 怀旧版只作展示：这里不会跳转到 Roblox，也不计入热度。');
+      }
     };
 
     dom.riskCancelBtn.onclick = () => {
@@ -1867,18 +1872,14 @@
       closeModal('riskModal');
     };
 
+    /* 二次确认弹窗现在正常流程里已经打不开了，这里也改成只提示，
+       防止以后别的地方误开这个弹窗时真的跳出去。 */
     dom.riskConfirmOk.onclick = () => {
       closeModal('riskConfirmModal');
-      if (serverRiskVersion) {
-        localStorage.setItem('legacy_riskAckVersion', serverRiskVersion);
-      }
-      const id = pendingRedirectId;
       pendingRedirectId = null;
-      if (!id) return;
-
-      showCountdownNotice('🚀 即将跳转 Roblox 官方页面（需加速器）', 3, () => {
-        window.open(`https://create.roblox.com/store/asset/${id}`, '_blank');
-      });
+      if (typeof legacyNotice === 'function') {
+        legacyNotice('🕰️ 怀旧版只作展示：这里不会跳转到 Roblox。');
+      }
     };
 
     dom.riskConfirmCancel.onclick = () => {

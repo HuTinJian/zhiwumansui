@@ -591,9 +591,9 @@
   </footer>
 
   <script src="js/common.js"></script>
-  <!-- 怀旧版只读守卫（2026-10-26 新增）：所有功能按钮只弹提示、不执行、不发写请求。
-       【回退办法】删掉这一行与本文件 js/legacy-readonly.js 即可恢复可点击。 -->
-  <script src="js/legacy-readonly.js"></script>
+  <!-- 怀旧版演示提示（2026-10-30 更新）：搜索、筛选、收藏、隔离、复制、弹窗都照常可用；
+       只在「真正提交 / 跳转出去」的最后一步弹提示，不写新版、不跳转。 -->
+  <script src="js/legacy-demo.js"></script>
 
   <script>
     /* 怀旧版（2026-10-26）：不再检查版本更新弹窗。 */
@@ -677,17 +677,50 @@
       }
     }
 
-    /* 提交反馈 —— 怀旧版只读（2026-10-26）
+    /* 提交反馈 —— 怀旧版「演示成功」（2026-10-30 更新）
        ------------------------------------------------------------
-       旧版这里原本会 POST 到新版反馈接口，成功后切到「提交成功」页。
-       站主要求：怀旧版只作展示，不能真的提交。所以这段现在只弹统一提示，
-       不再发任何请求、也不再显示成功页。
-       按钮点击还会被 js/legacy-readonly.js 的捕获层先拦住（双保险）。
-       【回退办法】把本段换回 2026-10-26 之前的版本（git 提交 4c1f22f 里的
-       feedback.html）即可恢复真实提交。 */
+       站主要求：点「提交反馈」要能看到旧版的「提交成功」页，但绝不能真的提交。
+       所以这里保留旧版全部校验，成功后只切换 UI + 弹提示，不发任何网络请求。
+       【回退办法】把本段换回 git 提交 4c1f22f 里的 feedback.html 即可恢复真实提交。 */
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      if (typeof legacyNotice === 'function') legacyNotice();
+
+      const name = document.getElementById('feedbackName').value.trim();
+      const email = document.getElementById('feedbackEmail').value.trim();
+      const message = document.getElementById('feedbackMessage').value.trim();
+
+      if (!currentType) { showToast('请选择反馈类型'); return; }
+      if (!name) { showToast('请填写你的称呼'); return; }
+      if (!message) { showToast('请填写反馈内容'); return; }
+      if (email && !isValidEmail(email)) { showToast('邮箱格式不正确'); return; }
+
+      let quarantineIds = [];
+      const willUpload = currentType === '卡片1' && uploadQuarantine.checked;
+      if (willUpload) {
+        quarantineIds = getGuestQuarantine();
+        if (quarantineIds.length === 0) {
+          showToast('你的隔离区是空的，无法上传');
+          uploadQuarantine.checked = false;
+          return;
+        }
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '提交中...';
+
+      /* 延时 500ms 模拟旧版提交过程，让「提交中...」不会一闪而过 */
+      window.setTimeout(function () {
+        formContainer.style.display = 'none';
+        successMessage.classList.add('show');
+
+        extraInfo.textContent = '🕰️ 怀旧版只作展示：这条反馈没有提交到新版，刷新页面后就会消失。'
+          + (willUpload ? '（原本会上传 ' + quarantineIds.length + ' 个隔离区 ID）' : '');
+        extraInfo.style.display = 'block';
+
+        if (typeof legacyNotice === 'function') {
+          legacyNotice('🕰️ 怀旧版只作展示：反馈没有真的提交。');
+        }
+      }, 500);
     });
   </script>
 </body>
