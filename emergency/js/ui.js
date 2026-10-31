@@ -66,7 +66,7 @@
       'shop', 'shop-funds', 'shop-shop-sub', 'shop-next-brief', 'shop-grid', 'btn-shop-next', 'btn-shop-menu',
       'lobby', 'lobby-entry', 'lobby-host-view', 'lobby-guest-view', 'lobby-code', 'guest-code', 'lobby-status', 'guest-status',
       'lobby-player-count', 'lobby-players', 'btn-create-room', 'btn-join-room', 'btn-copy-code', 'btn-lobby-start',
-      'btn-lobby-leave', 'coop-difficulty', 'lobby-error', 'host-name', 'join-code', 'join-name', 'join-status',
+      'btn-lobby-leave', 'lobby-error', 'host-name', 'join-code', 'join-name', 'join-status',
       'modal-root', 'toast-root', 'loading', 'loading-text', 'map-tooltip', 'critical-flash', 'btn-fit', 'btn-help', 'btn-settings',
       'btn-pause', 'btn-auto-dispatch', 'btn-queue-close', 'btn-detail-close', 'queue-panel'];
     ids.forEach(function (id) {
@@ -74,7 +74,6 @@
       if (node) el[id] = node;
     });
     bindEvents();
-    if (el['coop-difficulty']) el['coop-difficulty'].value = (app && app.coopDifficulty) || 'normal';
     var hn = localStorage.getItem('emergency112.name');
     if (hn && el['host-name']) el['host-name'].value = hn;
     if (hn && el['join-name']) el['join-name'].value = hn;
@@ -197,9 +196,6 @@
     click(el['btn-lobby-leave'], function () {
       if (app.lobbyState && app.lobbyState.role) app.leaveLobby();
       else app.backToMenuFromLobby();
-    });
-    if (el['coop-difficulty']) el['coop-difficulty'].addEventListener('change', function () {
-      app.setCoopDifficulty(el['coop-difficulty'].value);
     });
     if (el['join-code']) {
       el['join-code'].addEventListener('input', function () {
@@ -1223,10 +1219,6 @@
     if (el['lobby-error']) {
       if (st.error) { el['lobby-error'].textContent = st.error; el['lobby-error'].classList.remove('hidden'); }
       else { el['lobby-error'].classList.add('hidden'); el['lobby-error'].textContent = ''; }
-    }
-    if (el['coop-difficulty']) {
-      el['coop-difficulty'].value = st.difficulty || app.coopDifficulty || 'normal';
-      el['coop-difficulty'].disabled = false;
     }
     if (el['btn-create-room']) el['btn-create-room'].disabled = !!joining;
     if (el['btn-join-room']) el['btn-join-room'].disabled = !!joining;

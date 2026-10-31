@@ -37,7 +37,6 @@
     lobbyJoining: false,
     lobbyError: '',
     myPlayerId: 'p1',
-    coopDifficulty: 'real',
     netPing: 0,
     netSynced: false,
     _closingNet: false,
@@ -59,7 +58,6 @@
     App.stats = U.store.get(D.STATS_KEY, {}) || {};
     App.achievements = loadAchievements();
     App.leaderboard = loadLeaderboard();
-    App.coopDifficulty = 'real';
     App.renderer = new EM.render.Renderer(document.getElementById('world'));
     App.renderer.setSettings(App.settings);
     EM.ui.init(App);
@@ -765,14 +763,10 @@
           code: meta.code,
           players: players,
           state: meta.state,
-          difficulty: self.coopDifficulty,
           error: self.lobbyError || ''
         };
         self.roomCode = meta.code;
         if (self.screen === 'lobby') EM.ui.setLobbyState(self.lobbyState);
-        if (self.net && self.net.broadcast) {
-          self.net.broadcast({ t: 'lobbyconfig', difficulty: self.coopDifficulty });
-        }
       },
       onStart: function (config) {
         self.beginCoopGame(config, false);
@@ -831,11 +825,6 @@
       onSnapshot: function (snap) {
         self.applyCoopSnapshot(snap);
       },
-      onLobbyConfig: function (difficulty) {
-        self.coopDifficulty = difficulty;
-        if (self.lobbyState) self.lobbyState.difficulty = difficulty;
-        if (self.screen === 'lobby') EM.ui.setLobbyState(self.lobbyState);
-      },
       onNotice: function (text) {
         if (text) EM.ui.toast(text, 'warn');
       },
@@ -857,12 +846,6 @@
         EM.ui.toast(msg, 'bad');
       }
     });
-  };
-
-  // 已删除难度选择：联机固定真实难度，保留空函数兼容旧调用。
-  App.setCoopDifficulty = function () {
-    App.coopDifficulty = 'real';
-    if (App.lobbyState) App.lobbyState.difficulty = 'real';
   };
 
   App.startCoop = function () {
@@ -961,11 +944,6 @@
   };
 
   App.handleNetCommand = function (playerId, msg) {
-    // 大厅阶段允许队友提议难度，房主最终生效
-    if (msg.cmd === 'difficulty') {
-      // 难度已固定真实，忽略旧客户端的难度指令。
-      return;
-    }
     var s = App.sim;
     if (!s || App.screen !== 'game' || App.mode !== 'coop' || App.netRole !== 'host') return;
     var res = null;

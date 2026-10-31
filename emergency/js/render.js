@@ -1129,61 +1129,6 @@
     return c;
   };
 
-  Renderer.prototype.drawWindows = function (sim, light) {
-    var night = this.nightFactor(light);
-    if (night < 0.15 || !this.quality.lights) return;
-    var ctx = this.ctx;
-    var maxZ = this.cam.zoom;
-    var quality = this.quality.windows || 1;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    var count = 0;
-    var limit = Math.round(this.windows.length * Math.min(1, quality));
-    for (var i = 0; i < this.windows.length; i++) {
-      var win = this.windows[i];
-      if (!this.isVisible(win.x, win.y, 20)) continue;
-      if (count++ > limit) break;
-      if (maxZ < 0.4 && (i % 2)) continue;
-      var a = win.a * night;
-      ctx.fillStyle = win.warm ? 'rgba(255,190,110,' + a + ')' : 'rgba(140,205,240,' + a * 0.7 + ')';
-      ctx.fillRect(win.x, win.y, win.s, win.s * 0.8);
-    }
-    ctx.restore();
-    // 高楼航空障碍灯
-    if (light === D.LIGHTS.night || light === D.LIGHTS.dusk) {
-      this.beacons.forEach(function (b) {
-        if (!this.isVisible(b.x, b.y, 30)) return;
-        var on = (Math.sin(this.time * 2.2 + b.phase) + 1) * 0.5 > 0.55;
-        if (!on) return;
-        ctx.fillStyle = 'rgba(255,70,70,0.75)';
-        ctx.beginPath(); ctx.arc(b.x, b.y, 2.4, 0, Math.PI * 2); ctx.fill();
-      }, this);
-    }
-  };
-
-  Renderer.prototype.drawLamps = function (light) {
-    var night = this.nightFactor(light);
-    if (night < 0.12 || !this.quality.lights) return;
-    var ctx = this.ctx;
-    var sprite = this.glowSprite('#ffb570');
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (var i = 0; i < this.world.lamps.length; i++) {
-      var l = this.world.lamps[i];
-      if (!this.isVisible(l.x, l.y, 40)) continue;
-      var r = 30 + (i % 5) * 4;
-      ctx.globalAlpha = 0.08 * night;
-      ctx.drawImage(sprite, l.x - r, l.y - r, r * 2, r * 2);
-    }
-    // 城市整体环境光
-    var cityGlow = this.glowSprite('#ff9a55');
-    ctx.globalAlpha = 0.07 * night;
-    ctx.drawImage(cityGlow, 10 * TILE, 10 * TILE, 50 * TILE, 32 * TILE);
-    ctx.globalAlpha = 0.05 * night;
-    ctx.drawImage(this.glowSprite('#7bd7ff'), 78 * TILE, 10 * TILE, 46 * TILE, 26 * TILE);
-    ctx.restore();
-  };
-
   Renderer.prototype.drawStations = function (light) {
     var night = this.nightFactor(light);
     var ctx = this.ctx;
