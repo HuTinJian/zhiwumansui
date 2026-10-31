@@ -22,7 +22,7 @@
 'use strict';
 
 // 缓存版本号：改动任何静态资源后把这里 +1，旧缓存会在下次 activate 时被清掉。
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE_PREFIX = 'linjie112-';
 const CACHE_NAME = CACHE_PREFIX + VERSION;
 

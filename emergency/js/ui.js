@@ -93,7 +93,7 @@
     });
     click(el['btn-endless'], function () { app.startEndless(); });
     click(el['btn-coop'], function () { app.openCoop(); });
-    click(el['btn-menu-achievements'], function () { UI.openAchievements('ach'); });
+    click(el['btn-menu-achievements'], function () { UI.openAchievements('career'); });
     click(el['btn-menu-settings'], function () { UI.openSettings('video'); });
     click(el['btn-menu-help'], function () { UI.openHelp(); });
     click(el['btn-menu-about'], function () { UI.openAbout(); });
@@ -731,10 +731,27 @@
   };
 
   UI.openAchievements = function (tab) {
-    tab = tab || 'ach';
+    tab = tab || 'career';
     var prog = app.achievements || { unlocked: [], counters: {} };
     var unlocked = prog.unlocked || [];
     var counters = prog.counters || {};
+    var camp = app.campaign;
+    var totals = (camp && camp.totals) || {};
+    var stats = app.stats || {};
+    var careerStats = [
+      ['生涯完成班次', (totals.shifts || 0) + '<small> / 5</small>'],
+      ['生涯总积分', U.fmtShort(totals.score || 0)],
+      ['生涯处置成功', (totals.resolved || 0) + '<small> 起</small>'],
+      ['生涯处置失败', (totals.failed || 0) + '<small> 起</small>'],
+      ['生涯累计伤亡', (totals.deaths || 0) + '<small> 人</small>'],
+      ['无尽最佳积分', U.fmtShort(stats.bestEndless || 0)],
+      ['无尽轮数', (stats.runs || 0) + '<small> 轮</small>'],
+      ['联机行动', (stats.coopRuns || 0) + '<small> 次</small>'],
+      ['累计成功处置', (counters.resolved || 0) + '<small> 起</small>']
+    ];
+    var careerHtml = '<div class="career-grid">' + careerStats.map(function (s) {
+      return '<div class="sum-stat"><div class="k">' + s[0] + '</div><div class="v">' + s[1] + '</div></div>';
+    }).join('') + '</div><p class="dispatch-note">生涯统计只累计成功完成的班次；累计成功处置包含生涯、无尽与联机的全部成功警情。</p>';
     var achCards = D.ACHIEVEMENTS.map(function (a) {
       var got = unlocked.indexOf(a.id) >= 0;
       var progTxt = got ? '已解锁' : (a.counter ? '进度 ' + (counters[a.counter] || 0) + ' / ' + a.target : '未解锁');
@@ -757,12 +774,14 @@
         '<span class="board-deaths">' + (e.deaths || 0) + ' 死</span></div>';
     }).join('') : '<div class="queue-empty">还没有成绩。完成一次值班就会出现在这里。</div>';
     var html = '<div class="modal-card wide" data-modal="achievements">' +
-      '<div class="modal-head"><div><h2>成就与排行榜</h2><span class="sub">全部保存在本机浏览器，不会上传</span></div><button class="modal-close" data-close="1">×</button></div>' +
+      '<div class="modal-head"><div><h2>战绩 · 成就 · 排行榜</h2><span class="sub">全部保存在本机浏览器，不会上传</span></div><button class="modal-close" data-close="1">×</button></div>' +
       '<div class="modal-body">' +
       '<div class="tabs">' +
+      '<button class="' + (tab === 'career' ? 'active' : '') + '" data-ach-tab="career">战绩</button>' +
       '<button class="' + (tab === 'ach' ? 'active' : '') + '" data-ach-tab="ach">成就 · ' + unlocked.length + ' / ' + D.ACHIEVEMENTS.length + '</button>' +
       '<button class="' + (tab === 'board' ? 'active' : '') + '" data-ach-tab="board">排行榜 · 本机 Top 10</button>' +
       '</div>' +
+      '<div class="ach-pane" data-ach-pane="career"' + (tab === 'career' ? '' : ' style="display:none"') + '>' + careerHtml + '</div>' +
       '<div class="ach-pane" data-ach-pane="ach"' + (tab === 'ach' ? '' : ' style="display:none"') + '>' +
       '<div class="ach-grid">' + achCards + '</div>' +
       '<p class="dispatch-note">成就随游戏进程自动解锁；联机合作与无尽值班也会记录。清除全部存档会同时清空成就。</p>' +

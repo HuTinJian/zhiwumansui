@@ -607,6 +607,11 @@
       App.stats.lastScore = summary.score;
       U.store.set(D.STATS_KEY, App.stats);
     }
+    if (App.mode === 'coop') {
+      App.stats = App.stats || {};
+      App.stats.coopRuns = (App.stats.coopRuns || 0) + 1;
+      U.store.set(D.STATS_KEY, App.stats);
+    }
     if (App.mode === 'coop' && App.netRole === 'host' && App.net) {
       // 让加入者一定收到最终状态
       App.net.broadcastSnapshot(s.snapshot());

@@ -541,6 +541,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--line-stro
 .summary-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
 
 /* ============================ 成就 / 排行榜 ============================ */
+.career-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .ach-card {
   display: flex; gap: 9px; align-items: flex-start;
@@ -575,9 +576,11 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--line-stro
 .board-deaths { font: 500 9.5px/1 var(--mono); color: var(--muted); width: 34px; text-align: right; }
 @media (max-width: 900px) {
   .ach-grid { grid-template-columns: 1fr 1fr; }
+  .career-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
   .ach-grid { grid-template-columns: 1fr; }
+  .career-grid { grid-template-columns: 1fr; }
 }
 
 /* ============================ 补给站 ============================ */
