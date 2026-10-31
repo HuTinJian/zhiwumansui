@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070b12">
+  <title>临界 · 紧急调度</title>
+  <meta name="description" content="《临界 · 紧急调度》：一款 2D 城市应急调度游戏。在临江市接警、派车、控场，单人战役或六位编号联机。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b12'/%3E%3Ctext x='32' y='43' font-size='26' font-family='Arial' font-weight='700' text-anchor='middle' fill='%2364d8ff'%3E112%3C/text%3E%3C/svg%3E">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="app" class="mode-menu">
+
+  <!-- 全屏地图画布：主菜单、游戏、结算共用一层 -->
+  <canvas id="world" aria-label="临江市地图"></canvas>
+  <div id="map-vignette" aria-hidden="true"></div>
+
+  <!-- ================= 游戏 HUD ================= -->
+  <header id="topbar" class="hud hidden">
+    <div class="tb-group tb-left">
+      <div class="brand small">
+        <span class="brand-mark">112</span>
+        <span class="brand-text">临界<span class="dot">·</span>紧急调度</span>
+      </div>
+      <div class="shift-block">
+        <span id="shift-name" class="shift-name">行动准备中</span>
+        <span id="shift-clock" class="shift-clock">--:--</span>
+      </div>
+    </div>
+    <div class="tb-group tb-mid">
+      <div class="stat" title="可用资金 / 行动积分">
+        <span class="stat-k" id="stat-money-label">资金</span><span id="stat-funds" class="stat-v">¥0</span>
+      </div>
+      <div class="stat" title="城市信任度，降到 0 即失败">
+        <span class="stat-k">声望</span><span id="stat-rep" class="stat-v">0</span>
+        <span class="rep-track"><i id="stat-rep-bar"></i></span>
+      </div>
+      <div class="stat" title="正在处置的警情">
+        <span class="stat-k">在场警情</span><span id="stat-calls" class="stat-v">0</span>
+      </div>
+    </div>
+    <div class="tb-group tb-right">
+      <div class="speed-group" role="group" aria-label="时间速度">
+        <button type="button" data-speed="0" title="暂停（空格）">❚❚</button>
+        <button type="button" data-speed="1" class="active" title="1 倍速（1）">1×</button>
+        <button type="button" data-speed="2" title="2 倍速（2）">2×</button>
+        <button type="button" data-speed="4" title="4 倍速（3）">4×</button>
+      </div>
+      <button type="button" id="btn-fit" class="icon-btn" title="看全图（F）" aria-label="看全图">⛶</button>
+      <button type="button" id="btn-help" class="icon-btn" title="玩法说明（H）" aria-label="玩法说明">?</button>
+      <button type="button" id="btn-settings" class="icon-btn" title="设置" aria-label="设置">⚙</button>
+      <button type="button" id="btn-pause" class="icon-btn" title="暂停菜单（Esc）" aria-label="暂停菜单">☰</button>
+    </div>
+  </header>
+
+  <aside id="queue-panel" class="hud panel hidden" aria-label="警情队列">
+    <div class="panel-head">
+      <h2>警情队列</h2>
+      <span id="queue-count" class="count-chip">0</span>
+      <button type="button" class="icon-btn only-mobile" id="btn-queue-close" aria-label="收起警情列表">×</button>
+    </div>
+    <div id="queue-list" class="queue-list"></div>
+    <div class="panel-foot">
+      <button type="button" id="btn-auto-dispatch" class="btn primary wide" disabled>一键派遣</button>
+    </div>
+  </aside>
+
+  <aside id="detail-panel" class="hud panel hidden" aria-label="调度台">
+    <div class="panel-head">
+      <h2 id="detail-title">调度台</h2>
+      <button type="button" class="icon-btn only-mobile" id="btn-detail-close" aria-label="关闭调度台">×</button>
+    </div>
+    <div id="detail-body" class="detail-body"></div>
+  </aside>
+
+  <div id="bottom-bar" class="hud hidden">
+    <div class="unit-strip-wrap">
+      <div class="strip-head">
+        <span>应急单位</span>
+        <span id="unit-summary" class="strip-sum">--</span>
+      </div>
+      <div id="unit-strip" class="unit-strip"></div>
+    </div>
+    <div class="radio-wrap">
+      <div class="radio-head"><span class="live-dot"></span> 指挥频道 <span id="coop-badge" class="coop-badge hidden"></span></div>
+      <div id="radio-log" class="radio-log" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="mobile-dock" class="hud hidden">
+    <button type="button" data-dock="queue">警情 <b id="dock-calls">0</b></button>
+    <button type="button" data-dock="units">单位 <b id="dock-ready">0</b></button>
+    <button type="button" data-dock="detail">调度台</button>
+  </div>
+
+  <div id="map-tooltip" class="map-tooltip hidden"></div>
+  <div id="critical-flash" aria-hidden="true"></div>
+
+  <!-- ================= 主菜单 ================= -->
+  <section id="menu" class="screen">
+    <div class="menu-hero">
+      <div class="menu-brand">
+        <span class="brand-mark large">112</span>
+        <div>
+          <div class="brand-title">临界 <em>·</em> 紧急调度</div>
+          <div class="brand-sub">CITY EMERGENCY DISPATCH</div>
+        </div>
+      </div>
+
+      <p class="menu-lead">临江市 112 指挥中心。<br>每一通电话，都是一场倒计时。</p>
+
+      <div class="menu-actions">
+        <button type="button" id="btn-continue" class="menu-btn primary hidden">
+          <span class="mb-icon">▸</span>
+          <span class="mb-text"><b id="continue-label">继续生涯</b><small>从上一班结束后继续</small></span>
+        </button>
+        <button type="button" id="btn-campaign" class="menu-btn primary">
+          <span class="mb-icon">▸</span>
+          <span class="mb-text"><b>生涯模式</b><small>五个班次 · 从暴雨夜到临界时刻</small></span>
+        </button>
+        <button type="button" id="btn-endless" class="menu-btn">
+          <span class="mb-icon">∞</span>
+          <span class="mb-text"><b>无尽值班</b><small>没有终点，只有更高的强度和分数</small></span>
+        </button>
+        <button type="button" id="btn-coop" class="menu-btn">
+          <span class="mb-icon">⌁</span>
+          <span class="mb-text"><b>联机合作</b><small>创建房间，把六位编号发给队友</small></span>
+        </button>
+        <div class="menu-minor">
+          <button type="button" id="btn-menu-achievements">成就与排行榜</button>
+          <button type="button" id="btn-menu-settings">设置</button>
+          <button type="button" id="btn-menu-help">玩法说明</button>
+          <button type="button" id="btn-menu-about">关于</button>
+        </div>
+      </div>
+
+      <div class="menu-foot">
+        <span id="menu-save-info">本地存档：无</span>
+        <span class="sep">/</span>
+        <span>v1.0.0</span>
+        <span class="sep">/</span>
+        <span>建议使用耳机</span>
+      </div>
+    </div>
+    <div class="menu-map-caption">
+      <span class="live-dot"></span>
+      <span>临江市 · 实时态势</span>
+      <span id="menu-scene" class="scene-tag">暴雨 · 23:40</span>
+      <span class="demo-tag">STANDBY</span>
+    </div>
+  </section>
+
+  <!-- ================= 结算 ================= -->
+  <section id="summary" class="screen hidden">
+    <div class="summary-card">
+      <div class="summary-head">
+        <div class="summary-grade-wrap">
+          <div id="summary-grade" class="summary-grade">A</div>
+          <div class="summary-grade-label">行动评级</div>
+        </div>
+        <div class="summary-title-wrap">
+          <div id="summary-kicker" class="kicker">班次结束</div>
+          <h1 id="summary-title">第一班 · 风雨夜</h1>
+          <p id="summary-sub" class="summary-sub">城市的灯还亮着。</p>
+        </div>
+      </div>
+      <div id="summary-stats" class="summary-stats"></div>
+      <div class="summary-calls-head"><span>警情处置记录</span><span id="summary-calls-count"></span></div>
+      <div id="summary-calls" class="summary-calls"></div>
+      <div id="summary-note" class="summary-note"></div>
+      <div class="summary-actions">
+        <button type="button" id="btn-summary-next" class="btn primary">进入补给站 →</button>
+        <button type="button" id="btn-summary-retry" class="btn hidden">重试本班</button>
+        <button type="button" id="btn-summary-menu" class="btn ghost">返回主菜单</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 补给站 ================= -->
+  <section id="shop" class="screen hidden">
+    <div class="shop-card">
+      <div class="shop-head">
+        <div>
+          <div class="kicker">班次之间</div>
+          <h1>应急补给站 <span class="shop-funds" id="shop-funds">¥0</span></h1>
+          <p class="shop-sub" id="shop-shop-sub">采购装备与增援，下一班会更难。</p>
+        </div>
+        <button type="button" id="btn-shop-menu" class="btn ghost small">保存并返回</button>
+      </div>
+      <div class="shop-next" id="shop-next-brief"></div>
+      <div id="shop-grid" class="shop-grid"></div>
+      <div class="shop-actions">
+        <button type="button" id="btn-shop-next" class="btn primary">开始下一班 →</button>
+        <span class="shop-hint">购买立即生效；资金不继承到结局评分以外的地方。</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 联机大厅 ================= -->
+  <section id="lobby" class="screen hidden">
+    <div class="lobby-card">
+      <div class="lobby-head">
+        <div>
+          <div class="kicker">联机合作 · 联合行动</div>
+          <h1>临时指挥所</h1>
+          <p class="lobby-sub">队友输入六位房间编号加入。房主开启行动后，共享同一座临江市。</p>
+        </div>
+        <button type="button" id="btn-lobby-leave" class="btn ghost small">离开</button>
+      </div>
+
+      <div id="lobby-entry" class="lobby-entry">
+        <div class="entry-col">
+          <h3>① 创建房间</h3>
+          <p>生成一个六位编号，把它发给队友。房主负责主持行动。</p>
+          <label class="field"><span>你的呼号</span><input id="host-name" class="text-input" maxlength="12" autocomplete="off" placeholder="指挥官"></label>
+          <button type="button" id="btn-create-room" class="btn primary">创建房间</button>
+        </div>
+        <div class="entry-col">
+          <h3>② 加入房间</h3>
+          <p>输入房主提供的六位编号，加入同一座临江市。</p>
+          <label class="field"><span>六位编号</span><input id="join-code" class="text-input code-input" maxlength="6" autocomplete="off" spellcheck="false" inputmode="latin" placeholder="K7M2QX"></label>
+          <label class="field"><span>你的呼号</span><input id="join-name" class="text-input" maxlength="12" autocomplete="off" placeholder="调度员"></label>
+          <button type="button" id="btn-join-room" class="btn">加入房间</button>
+          <div id="join-status" class="lobby-status"></div>
+        </div>
+      </div>
+
+      <div id="lobby-host-view" class="lobby-code-view hidden">
+        <div class="code-label">房间编号</div>
+        <div class="code-row">
+          <div id="lobby-code" class="lobby-code">------</div>
+          <button type="button" id="btn-copy-code" class="btn ghost small">复制</button>
+        </div>
+        <div id="lobby-status" class="lobby-status">正在创建房间…</div>
+      </div>
+
+      <div id="lobby-guest-view" class="lobby-join-view hidden">
+        <div class="code-label">已加入房间</div>
+        <div class="code-row">
+          <div id="guest-code" class="lobby-code">------</div>
+        </div>
+        <div id="guest-status" class="lobby-status">等待房主开始行动…</div>
+      </div>
+
+      <div class="lobby-players-head"><span>在场调度员</span><span id="lobby-player-count">0 / 4</span></div>
+      <div id="lobby-players" class="lobby-players"></div>
+
+      <div class="lobby-options">
+        <label class="field inline">
+          <span>行动难度</span>
+          <select id="coop-difficulty" class="select">
+            <option value="easy">轻松 · 更多缓冲</option>
+            <option value="normal" selected>标准 · 推荐</option>
+            <option value="hard">硬核 · 警情更凶</option>
+          </select>
+        </label>
+        <div class="lobby-tip">P2P 直连；房主请保持页面可见。若无法连接，试试切换网络或热点。</div>
+      </div>
+
+      <div class="lobby-actions">
+        <button type="button" id="btn-lobby-start" class="btn primary hidden" disabled>开始联合行动</button>
+      </div>
+      <div id="lobby-error" class="lobby-error hidden"></div>
+    </div>
+  </section>
+
+  <!-- ================= 通用弹层 ================= -->
+  <div id="modal-root" class="modal-root hidden"></div>
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+  <div id="loading" class="loading-overlay hidden">
+    <div class="loading-inner">
+      <div class="loading-ring"></div>
+      <div id="loading-text" class="loading-text">正在接入临江市…</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="vendor/peerjs.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/map.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/render.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/net.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
