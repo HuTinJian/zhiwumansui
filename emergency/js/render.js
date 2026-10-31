@@ -1152,6 +1152,30 @@
     }, this);
   };
 
+  // 现场人物：平民、工人、旅客等；任务结束后显示去向
+  Renderer.prototype.drawPeople = function (sim) {
+    if (!sim) return;
+    var ctx = this.ctx;
+    var zoom = this.cam.zoom;
+    sim.incidents.forEach(function (inc) {
+      if (inc.status !== 'active' || !inc.people) return;
+      if (!this.isVisible(inc.x, inc.y, 100)) return;
+      inc.people.forEach(function (p, idx) {
+        var px = p.x, py = p.y;
+        if (zoom < 0.65) return;
+        var safe = /安全|送医|控制|转移/.test(p.state || '');
+        var bad = /伤亡|失联|脱离|被困/.test(p.state || '');
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = safe ? 'rgba(110,230,190,0.9)' : bad ? 'rgba(255,100,90,0.9)' : 'rgba(240,210,150,0.9)';
+        ctx.beginPath(); ctx.arc(px, py, zoom > 1.2 ? 2.8 : 2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#101820';
+        ctx.beginPath(); ctx.arc(px, py - 2, 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }, this);
+    }, this);
+  };
+
   Renderer.prototype.drawIncidentGround = function (sim) {
     if (!sim) return;
     var ctx = this.ctx;
@@ -1159,7 +1183,7 @@
     sim.incidents.forEach(function (inc) {
       if (inc.status !== 'active') return;
       var color = D.PRIORITIES[inc.priority].color;
-      var b = inc.buildingId ? this.world.buildingsById[inc.buildingId] : null;
+      var b = inc.buildingId && !inc.mobile ? this.world.buildingsById[inc.buildingId] : null;
       if (b) {
         ctx.save();
         ctx.strokeStyle = U.alpha(color, 0.5);
@@ -1401,13 +1425,20 @@
         ctx.fillStyle = 'rgba(20,30,40,0.5)';
         ctx.fillRect(-2, 8, 4, 12);
         var fireHeli = u.type === 'heli_fire';
+        var policeHeli = u.type === 'police_heli';
         var hg = ctx.createLinearGradient(0, -Wd * 0.4, 0, Wd * 0.4);
-        hg.addColorStop(0, fireHeli ? '#ffb15c' : '#f4f8f9');
-        hg.addColorStop(1, fireHeli ? '#b94a2e' : '#b9c9cf');
+        hg.addColorStop(0, fireHeli ? '#ffb15c' : policeHeli ? '#eaf3ff' : '#f4f8f9');
+        hg.addColorStop(1, fireHeli ? '#b94a2e' : policeHeli ? '#2b5590' : '#b9c9cf');
         ctx.fillStyle = hg;
         rr(ctx, -L * 0.32, -Wd * 0.32, L * 0.5, Wd * 0.64, 7); ctx.fill();
-        ctx.fillStyle = def.accent;
+        ctx.fillStyle = policeHeli ? '#1f4f9c' : def.accent;
         ctx.fillRect(-L * 0.30, -Wd * 0.08, L * 0.16, Wd * 0.16);
+        if (policeHeli) {
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          ctx.fillRect(-L * 0.05, -Wd * 0.22, L * 0.12, Wd * 0.44);
+          ctx.fillStyle = '#2b5590';
+          ctx.fillRect(-L * 0.01, -Wd * 0.06, L * 0.04, Wd * 0.12);
+        }
         ctx.fillStyle = '#28343c';
         ctx.beginPath(); ctx.ellipse(L * 0.12, 0, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'rgba(30,45,55,0.7)';
@@ -1504,6 +1535,23 @@
         ctx.strokeStyle = 'rgba(25,35,25,0.6)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(-L * 0.30, -Wd / 2 + 4); ctx.lineTo(-L * 0.30, Wd / 2 - 4); ctx.stroke();
         compartments(2);
+        lightbar(-Wd * 0.34, true);
+        headlights(L / 2);
+      } else if (u.type === 'engineer') {
+        // 工程抢险车：黄色车身、工具箱、吊臂、抽水泵
+        body('#d7a33a');
+        ctx.fillStyle = '#3b4148';
+        ctx.fillRect(L * 0.12, -Wd / 2, L * 0.38, Wd);
+        windshield(L * 0.18, L * 0.12);
+        ctx.fillStyle = 'rgba(235,240,245,0.55)';
+        ctx.fillRect(-L * 0.40, -Wd / 2 + 2, L * 0.50, Wd - 4);
+        compartments(3);
+        ctx.strokeStyle = 'rgba(30,35,40,0.75)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-L * 0.34, 0); ctx.lineTo(-L * 0.10, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-L * 0.08, 0, 4, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,210,80,0.9)';
+        ctx.fillRect(-L * 0.42, -Wd / 2 + 3, 4, 4);
         lightbar(-Wd * 0.34, true);
         headlights(L / 2);
       } else if (u.type === 'swat') {
@@ -1843,40 +1891,51 @@
       var pr = D.PRIORITIES[inc.priority];
       var pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + inc.x * 0.01);
       var selected = this.selectedIncident === inc.id;
-      var R = selected ? 22 : 18;
+      var R = selected ? 15 : 11.5;
       // 外圈
       ctx.save();
-      ctx.globalAlpha = 0.85;
+      ctx.globalAlpha = 0.82;
       ctx.strokeStyle = pr.color;
-      ctx.lineWidth = selected ? 2.4 : 1.4;
+      ctx.lineWidth = selected ? 2 : 1.2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, R + 4 + pulse * 3, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, R + 2.5 + pulse * 2, 0, Math.PI * 2);
       ctx.stroke();
       // 底盘
       ctx.fillStyle = 'rgba(6,12,20,0.9)';
       ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = U.alpha(pr.color, 0.6);
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = U.alpha(pr.color, 0.55);
+      ctx.lineWidth = 1;
       ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.stroke();
       // 倒计时弧
       var frac = U.clamp(inc.timeLeft / Math.max(1, inc.maxTime), 0, 1);
       ctx.strokeStyle = pr.color;
-      ctx.lineWidth = 2.6;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, R + 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
+      ctx.arc(p.x, p.y, R + 1.5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
       ctx.stroke();
       // 图标
-      ctx.font = (R * 1.02) + 'px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+      ctx.font = (R * 1.15) + 'px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(inc.icon, p.x, p.y + 1);
+      ctx.fillText(inc.icon, p.x, p.y + 0.5);
       // 优先标签
-      ctx.font = '700 8px ' + FONT;
+      ctx.font = '700 7px ' + FONT;
       ctx.fillStyle = pr.color;
-      ctx.fillText(pr.label, p.x, p.y - R - 7);
+      ctx.fillText(pr.label, p.x, p.y - R - 5);
       ctx.restore();
+      // 追逐箭头：提示目标正在移动
+      if (inc.mobile) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(inc.heading || 0);
+        ctx.fillStyle = inc.stopped ? 'rgba(160,180,195,0.85)' : pr.color;
+        ctx.beginPath();
+        ctx.moveTo(R + 7, 0); ctx.lineTo(R + 2, -3.5); ctx.lineTo(R + 2, 3.5);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
       // 名称
-      if (selected || inc.priority === 1 || this.cam.zoom > 0.8) {
+      if (selected || this.cam.zoom > 1.0) {
         var label = inc.label;
         ctx.save();
         ctx.font = '600 10px ' + FONT;
@@ -1904,6 +1963,36 @@
   Renderer.prototype.drawLabels = function (sim) {
     var ctx = this.ctx;
     var zoom = this.cam.zoom;
+    // 高速公路路牌：地图很大，玩家需要一眼知道高速在哪
+    if (this.world && this.world.highwayY != null) {
+      var hp = this.worldToScreen(this.world.W * TILE * 0.56, this.world.highwayY * TILE - 12);
+      if (hp.x > -80 && hp.x < this.w + 80 && hp.y > -40 && hp.y < this.h + 40) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(26,72,48,0.92)';
+        rr(ctx, hp.x - 38, hp.y - 10, 76, 19, 3); ctx.fill();
+        ctx.strokeStyle = 'rgba(190,230,200,0.45)'; ctx.lineWidth = 1;
+        rr(ctx, hp.x - 38, hp.y - 10, 76, 19, 3); ctx.stroke();
+        ctx.fillStyle = 'rgba(235,250,240,0.9)';
+        ctx.font = '700 9px ' + FONT;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('环城高速', hp.x, hp.y);
+        ctx.restore();
+      }
+    }
+    if (zoom > 0.45 && this.world && this.world.tagPoints && this.world.tagPoints.bus_stop) {
+      this.world.tagPoints.bus_stop.forEach(function (bp) {
+        var sp = this.worldToScreen(bp.x, bp.y);
+        if (sp.x < -30 || sp.x > this.w + 30 || sp.y < -20 || sp.y > this.h + 20) return;
+        ctx.save();
+        ctx.fillStyle = 'rgba(40,90,150,0.92)';
+        rr(ctx, sp.x - 13, sp.y - 7, 26, 14, 3); ctx.fill();
+        ctx.fillStyle = 'rgba(225,245,255,0.92)';
+        ctx.font = '700 7px ' + FONT;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('公交', sp.x, sp.y);
+        ctx.restore();
+      }, this);
+    }
     if (zoom < 0.72) {
       ctx.save();
       ctx.textAlign = 'center';
@@ -1982,6 +2071,7 @@
     this.drawTraffic(light);
     this.drawStations(light);
     this.drawIncidentGround(sim);
+    this.drawPeople(sim);
     this.drawRoutes(sim);
     this.drawParticles();
     this.drawUnits(sim);

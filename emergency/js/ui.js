@@ -27,6 +27,88 @@
   function statusText(st) {
     return ({ idle: '待命', enroute: '出动中', scene: '现场处置', returning: '返回基地', resting: '整备中' })[st] || st;
   }
+
+  // 追逐/酒驾状态：让任务卡直接显示“吹气检测中 / 突然逃跑 / 已控制”
+  function chaseMeta(inc) {
+    if (!inc) return '';
+    if (inc.defId === 'drunk_drive') {
+      if (inc.negotiating) return '吹气检测中';
+      if (inc.drunkOutcome === 'fled') return '司机逃跑';
+      if (inc.drunkOutcome === 'arrested') return '已控制';
+      if (inc.mobile) return '酒驾逃逸';
+    }
+    if (inc.mobile) return inc.stopped ? '已截停' : '追捕中';
+    return inc.assigned.length ? '已派 ' + inc.assigned.length : '未派遣';
+  }
+
+  function simTime(t) {
+    t = Math.max(0, Number(t) || 0);
+    var m = Math.floor(t / 60), s = Math.floor(t % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function unitAction(u, inc) {
+    if (!u) return '';
+    if (u.status === 'enroute') {
+      if (inc && inc.mobile && !inc.stopped) {
+        if (u.tactic === 'intercept') return '已脱离尾随，在前方路口设伏，等目标进入拦截区。';
+        if (u.tactic === 'pit') return '贴近目标侧后方，寻找 PIT 角度。';
+        return '正在追击移动目标，路线随目标刷新。';
+      }
+      return '正前往现场。';
+    }
+    if (u.status === 'scene') {
+      if (inc && inc.defId === 'drunk_drive' && inc.negotiating) return '在车旁控制局面，等待吹气检测结果。';
+      if (inc && inc.mobile && inc.stopped) return '已截停目标，正在控制现场。';
+      return '在现场警戒/处置。';
+    }
+    if (u.status === 'returning') return '正在返回基地。';
+    if (u.status === 'resting') return '在基地整备。';
+    return statusText(u.status) + '。';
+  }
+
+  function nextActionText(inc, s) {
+    if (!inc) return '';
+    if (inc.defId === 'drunk_drive') {
+      if (inc.negotiating) return '等待吹气结果：司机可能配合，也可能突然挂挡逃跑。';
+      if (inc.drunkOutcome === 'fled') return '目标再次逃逸，警车会重新选择尾随、设伏或 PIT。';
+      if (inc.drunkOutcome === 'arrested') return '控制驾驶人并等待医疗检查，随后拖车与笔录。';
+    }
+    if (inc.mobile) {
+      if (inc.stopped) return '目标已停下，现场警力正在控制局面并等待支援。';
+      var tacticUnit = (inc.assigned || []).map(function (id) { return s && s.unitById ? s.unitById[id] : null; }).filter(Boolean).some(function (u) { return u.tactic === 'intercept'; });
+      if (tacticUnit) return '警车已在前方路口设伏，目标进入拦截区后可能执行 PIT。';
+      return '目标继续移动，警车会实时重新寻路并寻找拦截时机。';
+    }
+    if (inc.coverage >= 0.999) return '能力已覆盖，现场转入处置与人员交接；注意倒计时与次生风险。';
+    if (inc.assigned && inc.assigned.length) return '单位正在途中或部分到场；先补齐缺口，现场人员会继续等待/避险。';
+    return '尚未派遣；现场人员会继续避险，倒计时不会停止。';
+  }
+
+  function realityTableHtml(s, inc) {
+    var rows = [];
+    (inc.people || []).slice(0, 5).forEach(function (p) {
+      rows.push('<div class="sim-row person"><span class="sim-who">👤 ' + esc(p.role || '现场人员') +
+        '</span><span class="sim-text">' + esc(p.state || '在现场') + '</span><span class="sim-time">现场</span></div>');
+    });
+    (inc.assigned || []).forEach(function (uid) {
+      var u = s.unitById[uid];
+      if (!u) return;
+      rows.push('<div class="sim-row unit"><span class="sim-who">' + u.def.icon + ' ' + esc(u.def.short) + ' ' + u.id.slice(1) +
+        '</span><span class="sim-text">' + esc(unitAction(u, inc)) + '</span><span class="sim-time">现在</span></div>');
+    });
+    var beh = (inc.behavior || []).slice(-9);
+    beh.forEach(function (b) {
+      rows.push('<div class="sim-row ' + esc(b.kind || 'person') + '"><span class="sim-who">' + esc(b.who || '现场') +
+        '</span><span class="sim-text">' + esc(b.text || '') + '</span><span class="sim-time">' + simTime(b.t) + '</span></div>');
+    });
+    if (!rows.length) rows.push('<div class="sim-row"><span class="sim-who">现场</span><span class="sim-text">等待第一手情况。</span><span class="sim-time">--:--</span></div>');
+    return '<div class="detail-sec"><div class="detail-sec-head"><h3>现实模拟表</h3><span class="sim-live">● 实时</span></div>' +
+      '<div class="sim-table"><div class="sim-row sim-head"><span>对象</span><span>行为 / 状态</span><span>时间</span></div>' +
+      rows.join('') + '</div>' +
+      '<p class="dispatch-note"><b style="color:var(--cyan)">下一步：</b>' + esc(nextActionText(inc, s)) + '</p>' +
+      '<p class="dispatch-note">记录现场人员与单位正在做什么；追逐、酒驾检测会实时变化。</p></div>';
+  }
   function statusClass(st) {
     return st === 'enroute' ? 'enroute' : st === 'scene' ? 'scene' : (st === 'returning' || st === 'resting') ? 'returning' : '';
   }
@@ -36,8 +118,8 @@
     return p ? p.color : '#67dcff';
   }
   function committed(inc) {
-    var s = sim(); if (!s) return { police: 0, fire: 0, medical: 0, hazmat: 0, rescue: 0 };
-    var out = { police: 0, fire: 0, medical: 0, hazmat: 0, rescue: 0 };
+    var s = sim(); if (!s) return { police: 0, fire: 0, medical: 0, hazmat: 0, rescue: 0, engineering: 0 };
+    var out = { police: 0, fire: 0, medical: 0, hazmat: 0, rescue: 0, engineering: 0 };
     (inc.assigned || []).forEach(function (uid) {
       var u = s.unitById[uid];
       if (!u || (u.status !== 'enroute' && u.status !== 'scene')) return;
@@ -110,17 +192,14 @@
       });
     });
     if (el['btn-auto-dispatch']) el['btn-auto-dispatch'].addEventListener('click', function () {
-      var s = sim();
-      if (!s) return;
-      var id = app.selectedIncident;
-      if (!id) {
-        var list = s.activeIncidents ? s.activeIncidents() : [];
-        if (list.length) id = list[0].id;
-      }
-      if (!id) return;
-      var res = app.autoDispatch(id);
+      if (!sim()) return;
+      var res = app.autoDispatchAll();
       if (res && !res.ok) toast(res.reason || '没有可派遣的单位', 'warn');
-      else { toast('已派遣增援', 'good'); sfx('dispatch'); }
+      else {
+        var n = res && res.incidents ? res.incidents : 0;
+        toast(n ? ('已为 ' + n + ' 个任务派出 ' + (res.count || 0) + ' 个单位') : '已派遣增援', 'good');
+        sfx('dispatch');
+      }
     });
     if (el['queue-list']) el['queue-list'].addEventListener('click', function (e) {
       var card = e.target.closest('[data-incident]');
@@ -416,14 +495,14 @@
           '<div class="qc-needs">' + needChips(inc) + '</div>' +
           '<div class="qc-bottom">' +
           '<div class="qc-progress"><i data-prog="' + inc.id + '" style="width:' + U.clamp(inc.progress, 0, 100) + '%"></i></div>' +
-          '<span class="qc-meta">' + (inc.assigned.length ? '已派 ' + inc.assigned.length : '未派遣') + '</span>' +
+          '<span class="qc-meta">' + chaseMeta(inc) + '</span>' +
           '</div></div>';
       }).join('');
     }
     el['queue-list'].scrollTop = scroll;
     if (el['btn-auto-dispatch']) {
       el['btn-auto-dispatch'].disabled = incs.length === 0;
-      el['btn-auto-dispatch'].textContent = app.selectedIncident ? '一键派遣 · 已选警情' : '一键派遣 · 最高优先';
+      el['btn-auto-dispatch'].textContent = '一键派遣 · 全部警情';
     }
   }
 
@@ -442,7 +521,9 @@
   function detailSignature(s) {
     var inc = app.selectedIncident ? s.findIncident(app.selectedIncident) : null;
     var u = app.selectedUnit ? s.unitById[app.selectedUnit] : null;
-    var a = inc ? (inc.id + ':' + inc.assigned.join(',') + ':' + Math.round(inc.coverage * 10) + ':' + Math.ceil(inc.timeLeft / 4) + ':' + Math.round(inc.progress / 3) + ':' + inc.status) : '';
+    var a = inc ? (inc.id + ':' + inc.assigned.join(',') + ':' + Math.round(inc.coverage * 10) + ':' + Math.ceil(inc.timeLeft / 4) + ':' + Math.round(inc.progress / 3) + ':' + inc.status +
+      ':' + (inc.behavior ? inc.behavior.length + '@' + (inc.behavior[inc.behavior.length - 1] || {}).t : '') +
+      ':' + inc.assigned.map(function (uid) { var x = s.unitById[uid]; return uid + '.' + (x ? x.status : '?'); }).join(',')) : '';
     var b = u ? (u.id + ':' + u.status + ':' + Math.ceil(u.cooldown)) : '';
     var avail = inc ? s.units.filter(function (x) { return x.status === 'idle'; }).map(function (x) { return x.id; }).join(',') : '';
     // 未选中警情/单位时，总览也会随单位到来/返航而变化，必须纳入签名
@@ -528,6 +609,7 @@
       '<div class="qc-progress" style="margin-top:10px"><i style="width:' + U.clamp(inc.progress, 0, 100) + '%;background:linear-gradient(90deg,var(--cyan-2),var(--cyan))"></i></div>' +
       '<div class="dispatch-note">' + coverTxt + ' · 处置进度 ' + Math.round(inc.progress) + '%</div>' +
       '</div>' +
+      realityTableHtml(s, inc) +
       '<div class="detail-sec"><div class="detail-sec-head"><h3>已在现场 / 途中</h3><span>' + inc.assigned.length + '</span></div>' +
       (assigned || '<div class="detail-empty">还没有派出单位。时间不等人。</div>') +
       (inc.assigned.length ? '<div class="detail-actions"><button class="btn ghost small" data-act="recall-all">全部撤离</button><button class="btn ghost small" data-act="focus-incident" data-incident="' + inc.id + '">定位现场</button></div>' : '') +
@@ -549,7 +631,7 @@
       '<small>' + statusText(u.status) + ' · ' + esc(u.homeStationName || '') + '</small></div></div>' +
       '<div class="ih-desc">' + esc(u.def.desc) + '</div>' +
       '<div style="margin-top:9px;display:flex;gap:5px;flex-wrap:wrap">' + caps + '</div>' +
-      (u.status === 'resting' ? '<div class="dispatch-note">整备剩余 ' + Math.ceil(u.cooldown) + ' 秒' + (u.refueled ? '（就近加油站 / 航空加油站加成）' : '') + '。</div>' : '') +
+      (u.status === 'resting' ? '<div class="dispatch-note">整备剩余 ' + Math.ceil(u.cooldown) + ' 秒' + (u.refueled ? '（就近加油站加成）' : (u.def.flying ? '（直升机在所属单位整备）' : '')) + '。</div>' : '') +
       '</div>';
     if (inc) {
       html += '<div class="detail-sec"><div class="detail-sec-head"><h3>当前任务</h3></div>' +
@@ -577,7 +659,7 @@
   }
 
   function overviewHtml(s) {
-    var groups = { police: [], fire: [], medical: [] };
+    var groups = { police: [], fire: [], medical: [], engineering: [] };
     s.units.forEach(function (u) { (groups[u.def.service] || groups.fire).push(u); });
     var total = s.units.length, ready = s.units.filter(function (u) { return u.status === 'idle'; }).length;
     var html = '<div class="dispatch-note" style="margin-top:0">本单位 ' + ready + ' / ' + total + ' 处于待命。' + D.TEXT.selectHint + '</div>';

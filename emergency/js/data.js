@@ -8,7 +8,7 @@
   var EM = root.EM = root.EM || {};
 
   var D = EM.data = {};
-  D.VERSION = '2.1.0';
+  D.VERSION = '2.2.0';
   D.TITLE = '临界 · 紧急调度';
   D.SETTINGS_KEY = 'emergency112.settings.v1';
   D.SAVE_KEY = 'emergency112.campaign.v1';
@@ -34,16 +34,18 @@
   D.SERVICES = {
     police: { id: 'police', name: '警务', icon: '🚓', color: '#5aa9ff', short: '警' },
     fire: { id: 'fire', name: '消防', icon: '🚒', color: '#ff7a45', short: '消' },
-    medical: { id: 'medical', name: '医疗', icon: '🚑', color: '#45e0c3', short: '医' }
+    medical: { id: 'medical', name: '医疗', icon: '🚑', color: '#45e0c3', short: '医' },
+    engineering: { id: 'engineering', name: '工程抢险', icon: '🚧', color: '#e0a83c', short: '工' }
   };
   D.CAPS = {
     police: { name: '警力', icon: '🛡', color: '#5aa9ff', short: '警' },
     fire: { name: '灭火', icon: '🔥', color: '#ff7a45', short: '火' },
     medical: { name: '医疗', icon: '✚', color: '#45e0c3', short: '医' },
     hazmat: { name: '危化', icon: '☣', color: '#b8e34c', short: '危' },
-    rescue: { name: '救援', icon: '⛑', color: '#c7a0ff', short: '救' }
+    rescue: { name: '救援', icon: '⛑', color: '#c7a0ff', short: '救' },
+    engineering: { name: '工程', icon: '🚧', color: '#e0a83c', short: '工' }
   };
-  D.CAP_ORDER = ['police', 'fire', 'medical', 'hazmat', 'rescue'];
+  D.CAP_ORDER = ['police', 'fire', 'medical', 'hazmat', 'rescue', 'engineering'];
 
   D.PRIORITIES = {
     1: { id: 1, name: '紧急', color: '#ff4d5e', label: 'P1' },
@@ -226,7 +228,7 @@
     {
       id: 'gas_leak', name: '燃气泄漏', icon: '⚠️', priority: 3, weight: 8,
       zones: ['city'], kinds: ['house', 'apartment', 'shop'],
-      needs: { fire: 1, hazmat: 1 }, window: 175, work: 36, harm: 1, damage: 160,
+      needs: { fire: 1, hazmat: 1, engineering: 1 }, window: 175, work: 36, harm: 1, damage: 160,
       code: '泄漏',
       desc: '街区燃气管道破损，味道浓重，附近商户已自行疏散。',
       tip: '危化车负责侦检与堵漏，消防车负责稀释与警戒。'
@@ -370,6 +372,7 @@
     {
       id: 'drunk_drive', name: '酒驾肇事', icon: '🍺', priority: 2, weight: 9,
       zones: ['city', 'industrial', 'country'], onRoad: true,
+      mobile: true, moveSpeed: 38, chaseStop: 'police',
       needs: { police: 1, medical: 1 }, window: 120, work: 30, harm: 1, damage: 180,
       code: '酒驾',
       desc: '一辆轿车在路口蛇形行驶后撞上护栏，司机满身酒气，拒绝下车。',
@@ -378,6 +381,7 @@
     {
       id: 'hit_and_run', name: '肇事逃逸', icon: '🚗', priority: 2, weight: 7,
       zones: ['city', 'industrial', 'country'], onRoad: true,
+      mobile: true, moveSpeed: 52, chaseStop: 'police',
       needs: { police: 2, medical: 2 }, window: 135, work: 36, harm: 2, damage: 260,
       code: '肇事',
       desc: '一名行人被撞倒在路边，肇事车辆沿主干道加速逃离，目击者记下了车牌。',
@@ -386,6 +390,7 @@
     {
       id: 'suspect_flee', name: '持械逃窜', icon: '🏃', priority: 2, weight: 6,
       zones: ['city', 'industrial', 'country'], onRoad: true,
+      mobile: true, moveSpeed: 58, chaseStop: 'police',
       needs: { police: 2 }, window: 145, work: 34, harm: 2, damage: 200,
       code: '追捕',
       desc: '一名持刀嫌疑人在盘查时突然逃跑，沿主干道向城外方向逃窜，可能劫持车辆。',
@@ -525,7 +530,8 @@
   D.STATION_STYLE = {
     fire: { icon: '🚒', color: '#ff7a45', label: '消防站' },
     medical: { icon: '🚑', color: '#45e0c3', label: '医疗点' },
-    police: { icon: '🚓', color: '#5aa9ff', label: '警务点' }
+    police: { icon: '🚓', color: '#5aa9ff', label: '警务点' },
+    engineering: { icon: '🚧', color: '#e0a83c', label: '工程抢险队' }
   };
 
   /* ---------------- 电台文案 ---------------- */

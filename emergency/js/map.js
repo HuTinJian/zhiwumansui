@@ -492,6 +492,11 @@
     this.placeLandmark(30, 30, 5, 4, { kind: 'hospital', name: '织雾市第一医院', tag: 'hospital', stationId: 'hospital_main' });
     // 紧急医疗中心
     this.placeLandmark(10, 38, 4, 3, { kind: 'hospital', name: '紧急医疗中心', stationId: 'ems_center', color: '#39444f', roof: '#27313a' });
+    // 市政工程抢险队（工程单位站点）
+    this.placeLandmark(34, 40, 5, 4, {
+      kind: 'warehouse', name: '市政工程抢险队', tag: 'public_works', stationId: 'public_works',
+      color: '#5a4b2d', roof: '#3b3220'
+    });
     // 织雾广场（商场）
     this.placeLandmark(44, 24, 5, 5, { kind: 'mall', name: '织雾广场', tag: 'mall' });
     // 第三中学
@@ -501,6 +506,15 @@
     // 中心广场（视觉公园）
     var plaza = { kind: 'park', x: 30, y: 10, w: 4, h: 4, name: '中心广场' };
     this.props.push(plaza); this.markProp(plaza);
+    // 公共交通：地铁站 + 公交总站
+    this.placeLandmark(34, 26, 5, 3, {
+      kind: 'subway_station', name: '织雾地铁 1 号线 · 中央站', tag: 'subway_station',
+      color: '#384451', roof: '#232c36'
+    });
+    this.placeLandmark(46, 40, 5, 3, {
+      kind: 'bus_station', name: '织雾公交总站', tag: 'bus_station',
+      color: '#3f4548', roof: '#2b3032'
+    });
     // 织雾站：城市与工业区之间的铁路客运站
     this.placeLandmark(67, 27, 6, 4, { kind: 'rail_station', name: '织雾站', tag: 'train_station' });
     this.rail = { x: 70, y1: 8, y2: 47 };
@@ -651,7 +665,7 @@
       kind: 'gas_station', name: '工业区加油站', tag: 'gas_station', color: '#49443a', roof: '#332e26', floors: 1, radius: 16
     });
     this.placeLandmark(114, 76, 4, 3, {
-      kind: 'tank', name: '机场航空加油站', tag: 'air_fuel', color: '#4b4a3a', roof: '#333226', floors: 1, radius: 16
+      kind: 'tank', name: '机场航空油料库', tag: 'air_fuel', color: '#4b4a3a', roof: '#333226', floors: 1, radius: 16
     });
     this.rng = oldRng3;
 
@@ -713,10 +727,11 @@
         // 兜底：在锚点附近强行找位置（可能会挪动一点）
         var pos = self.findFreeNear(st.x, st.y, st.w, st.h, 14);
         if (!pos) { console.warn('[map] station anchor unavailable:', st.id); return; }
-        b = self.addBuilding({ x: pos.x, y: pos.y, w: st.w, h: st.h, kind: st.type === 'fire' ? 'fire_station' : st.type === 'police' ? 'police_hq' : 'hospital', name: st.name, stationId: st.id });
+        var fbKind = st.type === 'fire' ? 'fire_station' : st.type === 'police' ? 'police_hq' : st.type === 'engineering' ? 'warehouse' : 'hospital';
+        b = self.addBuilding({ x: pos.x, y: pos.y, w: st.w, h: st.h, kind: fbKind, name: st.name, stationId: st.id });
         if (!b) {
           console.warn('[map] station building failed, retrying without road requirement:', st.id);
-          b = self.addBuilding({ x: pos.x, y: pos.y, w: st.w, h: st.h, kind: st.type === 'fire' ? 'fire_station' : st.type === 'police' ? 'police_hq' : 'hospital', name: st.name, stationId: st.id, needRoad: false });
+          b = self.addBuilding({ x: pos.x, y: pos.y, w: st.w, h: st.h, kind: fbKind, name: st.name, stationId: st.id, needRoad: false });
         }
         if (!b) { console.warn('[map] station dropped:', st.id); return; }
       }
@@ -871,6 +886,10 @@
     }
     // 政务广场（gov 区域警情落点；central_gov 等建筑标签另有 building.tag）
     this.addTagPoint('gov', 175, 41, '政务广场');
+    // 公交站台：沿城区主干道取点；每个点附一条站台名字
+    [[15, 22], [29, 22], [43, 22], [57, 36], [20, 47]].forEach(function (p, i) {
+      this.addTagPoint('bus_stop', p[0], p[1], ['中山路公交站台', '建设路公交站台', '人民路公交站台', '和平路公交站台', '环城北路公交站台'][i % 5]);
+    }, this);
   };
 
   MapGen.prototype.computeReach = function () {
@@ -1062,20 +1081,32 @@
     if (def.onRoad) {
       var zones = def.zones || [];
       var picked = null;
-      for (var t = 0; t < 250 && !picked; t++) {
+      var wantHighway = !!def.onHighway || (def.spotTags && def.spotTags.indexOf('highway') >= 0);
+      function isHighwayCell(ci) { return String(self.roadName[ci] || '').indexOf('高速') >= 0; }
+      // 高速公路警情优先在“环城高速”上找点；找不到再退回普通道路，避免空警情
+      for (var t = 0; t < 350 && !picked; t++) {
         var ci = this.trafficCells[Math.floor(rng() * this.trafficCells.length)];
         if (ci == null) break;
         var cx = ci % W, cy = (ci / W) | 0;
         var z = ZONE_NAMES[this.zone[ci]];
         if (zones.indexOf(z) < 0) continue;
         if (this.road[ci] < 2) continue;
+        if (wantHighway && !isHighwayCell(ci)) continue;
         picked = { cx: cx, cy: cy };
       }
       if (!picked) {
-        for (var t2 = 0; t2 < 120 && !picked; t2++) {
+        for (var t2 = 0; t2 < 180 && !picked; t2++) {
           var ci2 = this.roadCells[Math.floor(rng() * this.roadCells.length)];
           var cx2 = ci2 % W, cy2 = (ci2 / W) | 0;
-          if (zones.indexOf(ZONE_NAMES[this.zone[ci2]]) >= 0) picked = { cx: cx2, cy: cy2 };
+          if (zones.indexOf(ZONE_NAMES[this.zone[ci2]]) >= 0 && (!wantHighway || isHighwayCell(ci2))) picked = { cx: cx2, cy: cy2 };
+        }
+      }
+      if (!picked && wantHighway) {
+        // 极端种子下没有高速格：退化为普通道路，不让警情丢失
+        for (var t3 = 0; t3 < 120 && !picked; t3++) {
+          var ci3 = this.roadCells[Math.floor(rng() * this.roadCells.length)];
+          var cx3 = ci3 % W, cy3 = (ci3 / W) | 0;
+          if (zones.indexOf(ZONE_NAMES[this.zone[ci3]]) >= 0) picked = { cx: cx3, cy: cy3 };
         }
       }
       if (!picked) return null;

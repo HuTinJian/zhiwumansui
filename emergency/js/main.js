@@ -459,6 +459,26 @@
     }
     return res;
   };
+
+  /* 顶部“一键派遣”：给所有正在进行的任务补车，而不是只处理当前选中的那一条 */
+  App.autoDispatchAll = function () {
+    var s = App.sim;
+    if (!s) return { ok: false, reason: '还没有开始值班' };
+    var res;
+    if (App.mode === 'coop' && App.netRole === 'guest') {
+      if (!App.net) return { ok: false, reason: '连接已断开' };
+      App.net.sendCommand({ cmd: 'autoAll' });
+      res = { ok: true, queued: true, count: 0, incidents: 0 };
+    } else {
+      res = s.autoDispatchAll(App.myPlayerId);
+    }
+    if (res && res.ok && App.achievements && App.achievements.counters) {
+      App.achievements.counters.auto = (App.achievements.counters.auto || 0) + 1;
+      saveAchievements();
+      App.checkProgressAchievements();
+    }
+    return res;
+  };
   App.recall = function (unitId) {
     var s = App.sim;
     if (!s) return { ok: false, reason: '还没有开始值班' };
@@ -505,6 +525,31 @@
       case 'dispatch':
         EM.audio.play('dispatch');
         break;
+      case 'chaseStart':
+        EM.ui.toast('目标正在移动：' + (ev.label || '追捕对象'), 'warn');
+        break;
+      case 'chaseStop':
+        EM.ui.toast('目标已被截停，转入现场处置', 'good');
+        break;
+      case 'intercept':
+        EM.ui.toast('警车正在前方路口设伏', 'warn');
+        break;
+      case 'pitPrep':
+        EM.ui.toast('警车已贴近目标，准备 PIT', 'warn');
+        break;
+      case 'pit':
+        EM.ui.toast('PIT 成功，目标车辆被撞停', 'good');
+        break;
+      case 'drunkTest':
+        EM.ui.toast('酒驾吹气检测中，司机情绪不稳定…', 'warn');
+        break;
+      case 'drunkFled':
+        EM.ui.toast('司机突然挂挡逃跑！继续追捕', 'bad');
+        EM.audio.play('critical');
+        break;
+      case 'drunkArrested':
+        EM.ui.toast('吹气结果超标，司机已被控制', 'good');
+        break;
       case 'arrive':
         EM.audio.play('arrive');
         break;
@@ -521,6 +566,10 @@
           saveAchievements();
           App.checkProgressAchievements();
         }
+        var savedInc = App.sim && App.sim.incidentById ? App.sim.incidentById[ev.incidentId] : null;
+        if (savedInc && savedInc.people && savedInc.people.length) {
+          EM.ui.toast('任务完成 · 现场 ' + savedInc.people.length + ' 名人员已转移/救治', 'good');
+        }
         break;
       case 'fail':
         EM.audio.play('fail');
@@ -534,6 +583,10 @@
         }
         EM.ui.flashCritical();
         EM.ui.toast('处置失败：' + (ev.label || ''), 'bad');
+        var failedInc = App.sim && App.sim.incidentById ? App.sim.incidentById[ev.incidentId] : null;
+        if (failedInc && failedInc.people && failedInc.people.length) {
+          EM.ui.toast('现场 ' + failedInc.people.length + ' 名人员出现伤亡/失联', 'bad');
+        }
         break;
       case 'spread':
         EM.audio.play('alert');
@@ -951,6 +1004,8 @@
       res = s.dispatch(msg.units.slice(0, 6), msg.incidentId, playerId);
     } else if (msg.cmd === 'auto') {
       res = s.autoDispatch(msg.incidentId, playerId);
+    } else if (msg.cmd === 'autoAll') {
+      res = s.autoDispatchAll(playerId);
     } else if (msg.cmd === 'recall') {
       res = s.recall(msg.unitId);
     }
