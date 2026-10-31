@@ -209,6 +209,7 @@
     this.drawRoads(g);
     this.drawBridges(g);
     this.drawTunnels(g);
+    this.drawHighway(g);
     this.drawTrees(g);
     this.drawBuildings(g);
     this.drawParkedCars(g);
@@ -568,6 +569,49 @@
       g.beginPath(); g.moveTo(4 * TILE, hy + TILE * 2 - 4); g.lineTo(136 * TILE, hy + TILE * 2 - 4); g.stroke();
       g.restore();
     }
+  };
+
+  /* 环城高速：按 highwayPath 画一条连通的曲线带；底层道路仍是格子，A* 不受影响。 */
+  Renderer.prototype.drawHighway = function (g) {
+    var path = this.world && this.world.highwayPath;
+    if (!path || path.length < 3) return;
+    function trace() {
+      g.beginPath();
+      g.moveTo(path[0].x, path[0].y);
+      for (var i = 1; i < path.length; i++) g.lineTo(path[i].x, path[i].y);
+      g.closePath();
+    }
+    g.save();
+    g.lineJoin = 'round';
+    g.lineCap = 'round';
+    // 路基 / 护栏
+    trace();
+    g.strokeStyle = 'rgba(12,17,22,0.95)';
+    g.lineWidth = TILE * 3.35;
+    g.stroke();
+    trace();
+    g.strokeStyle = '#2a333d';
+    g.lineWidth = TILE * 3.05;
+    g.stroke();
+    // 内侧车道
+    trace();
+    g.strokeStyle = 'rgba(57,68,80,0.55)';
+    g.lineWidth = TILE * 2.72;
+    g.stroke();
+    // 中央虚线
+    trace();
+    g.strokeStyle = 'rgba(235,242,245,0.38)';
+    g.lineWidth = 2;
+    g.setLineDash([16, 20]);
+    g.stroke();
+    g.setLineDash([]);
+    // 外侧黄色边线
+    g.globalAlpha = 0.55;
+    trace();
+    g.strokeStyle = 'rgba(240,200,90,0.55)';
+    g.lineWidth = 1.4;
+    g.stroke();
+    g.restore();
   };
 
   Renderer.prototype.drawTunnels = function (g) {

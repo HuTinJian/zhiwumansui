@@ -8,7 +8,7 @@
   var EM = root.EM = root.EM || {};
 
   var D = EM.data = {};
-  D.VERSION = '2.2.0';
+  D.VERSION = '2.2.1';
   D.TITLE = '临界 · 紧急调度';
   D.SETTINGS_KEY = 'emergency112.settings.v1';
   D.SAVE_KEY = 'emergency112.campaign.v1';
