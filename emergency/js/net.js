@@ -122,7 +122,7 @@
               self._broadcastLobby();
               return;
             }
-            if (msg.t === 'cmd' && self.started) {
+            if (msg.t === 'cmd' && (self.started || msg.cmd === 'difficulty')) {
               self.onCommand(player.id, msg);
               return;
             }
@@ -225,6 +225,7 @@
       onLobby: opts.onLobby || function () { },
       onStart: opts.onStart || function () { },
       onSnapshot: opts.onSnapshot || function () { },
+      onLobbyConfig: opts.onLobbyConfig || function () { },
       onNotice: opts.onNotice || function () { },
       onClose: opts.onClose || function () { },
       onError: opts.onError || function () { },
@@ -272,6 +273,11 @@
           if (msg.t === 'lobby') {
             client.players = msg.players || [];
             client.onLobby(client.players, { code: code, state: client.state, maxPlayers: MAX_PLAYERS });
+            return;
+          }
+          if (msg.t === 'lobbyconfig') {
+            client.difficulty = msg.difficulty || 'normal';
+            if (client.onLobbyConfig) client.onLobbyConfig(client.difficulty);
             return;
           }
           if (msg.t === 'start') {

@@ -6,8 +6,7 @@
   <meta name="theme-color" content="#070b12">
   <title>临界 · 紧急调度</title>
   <meta name="description" content="《临界 · 紧急调度》：一款 2D 城市应急调度游戏。在临江市接警、派车、控场，单人战役或六位编号联机。">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b12'/%3E%3Ctext x='32' y='43' font-size='26' font-family='Arial' font-weight='700' text-anchor='middle' fill='%2364d8ff'%3E112%3C/text%3E%3C/svg%3E">
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b12'/%3E%3Ctext x='32' y='43' font-size='26' font-family='Arial' font-weight='700' text-anchor='middle' fill='%2364d8ff'%3E911%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
@@ -21,7 +20,7 @@
   <header id="topbar" class="hud hidden">
     <div class="tb-group tb-left">
       <div class="brand small">
-        <span class="brand-mark">112</span>
+        <span class="brand-mark">911</span>
         <span class="brand-text">临界<span class="dot">·</span>紧急调度</span>
       </div>
       <div class="shift-block">
@@ -75,20 +74,6 @@
     <div id="detail-body" class="detail-body"></div>
   </aside>
 
-  <div id="bottom-bar" class="hud hidden">
-    <div class="unit-strip-wrap">
-      <div class="strip-head">
-        <span>应急单位</span>
-        <span id="unit-summary" class="strip-sum">--</span>
-      </div>
-      <div id="unit-strip" class="unit-strip"></div>
-    </div>
-    <div class="radio-wrap">
-      <div class="radio-head"><span class="live-dot"></span> 指挥频道 <span id="coop-badge" class="coop-badge hidden"></span></div>
-      <div id="radio-log" class="radio-log" aria-live="polite"></div>
-    </div>
-  </div>
-
   <div id="mobile-dock" class="hud hidden">
     <button type="button" data-dock="queue">警情 <b id="dock-calls">0</b></button>
     <button type="button" data-dock="units">单位 <b id="dock-ready">0</b></button>
@@ -102,14 +87,14 @@
   <section id="menu" class="screen">
     <div class="menu-hero">
       <div class="menu-brand">
-        <span class="brand-mark large">112</span>
+        <span class="brand-mark large">911</span>
         <div>
           <div class="brand-title">临界 <em>·</em> 紧急调度</div>
           <div class="brand-sub">CITY EMERGENCY DISPATCH</div>
         </div>
       </div>
 
-      <p class="menu-lead">临江市 112 指挥中心。<br>每一通电话，都是一场倒计时。</p>
+      <p class="menu-lead">临江市 911 指挥中心。<br>每一通电话，都是一场倒计时。</p>
 
       <div class="menu-actions">
         <button type="button" id="btn-continue" class="menu-btn primary hidden">
@@ -146,7 +131,7 @@
     </div>
     <div class="menu-map-caption">
       <span class="live-dot"></span>
-      <span>临江市 · 实时态势</span>
+      <span>临江市 · 值班画面</span>
       <span id="menu-scene" class="scene-tag">暴雨 · 23:40</span>
       <span class="demo-tag">STANDBY</span>
     </div>
@@ -289,6 +274,5 @@
 <script src="js/net.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
-<script src="js/pwa.js"></script>
 </body>
 </html>

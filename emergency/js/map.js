@@ -182,6 +182,10 @@
     s.stamp(90, 80, 134, 80, 1, 1, '');
     s.stamp(90, 92, 136, 92, 1, 1, '');
     s.stamp(120, 70, 120, 80, 1, 1, '');
+    // 环城高速：贴着地图北缘，带三条匝道接入城区/工业区
+    s.stamp(4, 3, 136, 3, 3, 3, '环城高速');
+    [22, 64, 106].forEach(function (x) { s.stamp(x, 3, x, 8, 1, 2, ''); });
+    this.highwayY = 3;
 
     // 汇总道路单元（供寻路和车流使用）
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
@@ -353,6 +357,9 @@
     // 中心广场（视觉公园）
     var plaza = { kind: 'park', x: 30, y: 10, w: 4, h: 4, name: '中心广场' };
     this.props.push(plaza); this.markProp(plaza);
+    // 临江站：城市与工业区之间的铁路客运站
+    this.placeLandmark(67, 27, 6, 4, { kind: 'rail_station', name: '临江站', tag: 'train_station' });
+    this.rail = { x: 70, y1: 8, y2: 47 };
 
     /* ---- 工业区 ---- */
     this.placeLandmark(94, 16, 5, 4, { kind: 'fire_station', name: '工业区消防站', stationId: 'fire_industrial', color: '#443a33', roof: '#2b2420' });

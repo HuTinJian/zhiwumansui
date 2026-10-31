@@ -770,6 +770,9 @@
         };
         self.roomCode = meta.code;
         if (self.screen === 'lobby') EM.ui.setLobbyState(self.lobbyState);
+        if (self.net && self.net.broadcast) {
+          self.net.broadcast({ t: 'lobbyconfig', difficulty: self.coopDifficulty });
+        }
       },
       onStart: function (config) {
         self.beginCoopGame(config, false);
@@ -828,6 +831,11 @@
       onSnapshot: function (snap) {
         self.applyCoopSnapshot(snap);
       },
+      onLobbyConfig: function (difficulty) {
+        self.coopDifficulty = difficulty;
+        if (self.lobbyState) self.lobbyState.difficulty = difficulty;
+        if (self.screen === 'lobby') EM.ui.setLobbyState(self.lobbyState);
+      },
       onNotice: function (text) {
         if (text) EM.ui.toast(text, 'warn');
       },
@@ -852,12 +860,15 @@
   };
 
   App.setCoopDifficulty = function (v) {
+    if (!D.DIFFICULTY[v]) v = 'normal';
     App.coopDifficulty = v;
-    if (App.lobbyState && App.lobbyState.role === 'host') {
-      App.lobbyState.difficulty = v;
-      if (App.net && App.net.broadcast) {
-        App.net.broadcast({ t: 'notice', text: '房主把难度改为：' + (D.DIFFICULTY[v] || D.DIFFICULTY.normal).name });
-      }
+    if (App.lobbyState) App.lobbyState.difficulty = v;
+    if (App.screen === 'lobby') EM.ui.setLobbyState(App.lobbyState);
+    if (!App.net) return;
+    if (App.netRole === 'host') {
+      App.net.broadcast({ t: 'lobbyconfig', difficulty: v });
+    } else if (App.netRole === 'guest') {
+      App.net.sendCommand({ cmd: 'difficulty', value: v });
     }
   };
 
@@ -957,6 +968,16 @@
   };
 
   App.handleNetCommand = function (playerId, msg) {
+    // 大厅阶段允许队友提议难度，房主最终生效
+    if (msg.cmd === 'difficulty') {
+      if (App.netRole !== 'host' || !D.DIFFICULTY[msg.value]) return;
+      App.coopDifficulty = msg.value;
+      if (App.lobbyState) App.lobbyState.difficulty = msg.value;
+      if (App.net) App.net.broadcast({ t: 'lobbyconfig', difficulty: msg.value });
+      if (App.screen === 'lobby') EM.ui.setLobbyState(App.lobbyState);
+      EM.ui.toast('房主将难度设为：' + D.DIFFICULTY[msg.value].name, 'good');
+      return;
+    }
     var s = App.sim;
     if (!s || App.screen !== 'game' || App.mode !== 'coop' || App.netRole !== 'host') return;
     var res = null;
@@ -1068,6 +1089,7 @@
       App._lastRender = now;
       App.renderer.drawGame(App.sim, {
         dt: dt,
+        paused: App.paused,
         settings: App.settings,
         selected: App.selectedUnit ? { kind: 'unit', id: App.selectedUnit } : null,
         selectedIncident: App.selectedIncident
@@ -1080,7 +1102,7 @@
       if (App.settings.fpsCap && now - App._lastRender < 1000 / App.settings.fpsCap - 2) return;
       App._lastRender = now;
       if (App.sim) {
-        App.renderer.drawGame(App.sim, { dt: dt, settings: App.settings, selected: null, selectedIncident: null });
+        App.renderer.drawGame(App.sim, { dt: dt, paused: true, settings: App.settings, selected: null, selectedIncident: null });
       } else {
         App.renderer.drawMenu(dt);
       }
@@ -1215,10 +1237,6 @@
       if (U.isMobileLayout()) EM.ui.closeSheets();
       return;
     }
-    if (pick.kind === 'minimap') {
-      App.renderer.focusOn(pick.wx, pick.wy, Math.max(App.renderer.cam.tz, 0.8));
-      return;
-    }
     if (pick.kind === 'incident') {
       App.selectIncident(pick.id);
       if (U.isMobileLayout()) EM.ui.openSheet('detail');
@@ -1236,7 +1254,7 @@
     var s = App.sim;
     if (!s) return;
     var pick = App.renderer.pick(x, y, s);
-    if (!pick || pick.kind === 'minimap') { EM.ui.hideTooltip(); return; }
+    if (!pick) { EM.ui.hideTooltip(); return; }
     if (pick.kind === 'incident') {
       var inc = s.incidentById[pick.id];
       if (!inc) return;
@@ -1280,11 +1298,6 @@
     }
     if (e.key === 'f' || e.key === 'F') { App.fitMap(); return; }
     if (e.key === 'h' || e.key === 'H') { EM.ui.openHelp(); return; }
-    if (e.key === 'm' || e.key === 'M') {
-      App.setSetting('minimap', !App.settings.minimap);
-      EM.ui.toast('小地图：' + (App.settings.minimap ? '开' : '关'), 'good');
-      return;
-    }
     var pan = 150 / App.renderer.cam.zoom;
     if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { App.renderer.cam.tx -= pan; e.preventDefault(); }
     else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') { App.renderer.cam.tx += pan; e.preventDefault(); }

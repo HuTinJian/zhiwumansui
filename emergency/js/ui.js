@@ -199,8 +199,7 @@
       else app.backToMenuFromLobby();
     });
     if (el['coop-difficulty']) el['coop-difficulty'].addEventListener('change', function () {
-      app.coopDifficulty = el['coop-difficulty'].value;
-      if (app.lobbyState && app.lobbyState.role === 'host') app.setCoopDifficulty(el['coop-difficulty'].value);
+      app.setCoopDifficulty(el['coop-difficulty'].value);
     });
     if (el['join-code']) {
       el['join-code'].addEventListener('input', function () {
@@ -349,7 +348,12 @@
   function updateTopbar(s) {
     var c = cfg() || {};
     if (el['shift-name']) el['shift-name'].textContent = c.name || '行动中';
-    if (el['shift-clock']) el['shift-clock'].textContent = U.clockFromMinutes(c.startMinutes || 0, s.clock);
+    if (el['shift-clock']) {
+      // 城市时间加速：1 秒 ≈ 1 分钟（个别人班次更快），时钟与昼夜光照保持一致
+      var scale = c.clockScale || 1;
+      el['shift-clock'].textContent = U.clockFromMinutes(c.startMinutes || 0, s.clock * scale * 60);
+      el['shift-clock'].title = '城市时间（班次内加速）';
+    }
     var money = app.mode === 'campaign';
     if (el['stat-money-label']) el['stat-money-label'].textContent = money ? '资金' : '积分';
     if (el['stat-funds']) el['stat-funds'].textContent = money ? U.fmtMoney(s.funds) : U.fmtShort(s.score);
@@ -672,7 +676,6 @@
         switchRow('weatherFx', '天气效果', '雨、雾、闪电等动态天气', st.weatherFx) +
         switchRow('screenShake', '画面震动', '爆炸和巨响时震动镜头', st.screenShake) +
         switchRow('scanlines', '终端扫描线', '轻微 CRT 质感', st.scanlines) +
-        switchRow('minimap', '显示小地图', '右下角态势图，M 键切换', st.minimap) +
         switchRow('showLabels', '显示地名标签', '地标建筑名称', st.showLabels) +
         switchRow('reducedMotion', '减少动态效果', '降低闪烁与动画', st.reducedMotion) +
         switchRow('colorblind', '色弱辅助', '警情优先级改用蓝/橙/黄', st.colorblind) +
@@ -720,7 +723,7 @@
     showModal('<div class="modal-card wide" data-modal="help">' +
       '<div class="modal-head"><div><h2>玩法说明</h2><span class="sub">临界 · 紧急调度</span></div><button class="modal-close" data-close="1">×</button></div>' +
       '<div class="modal-body"><div class="help-grid">' +
-      '<div class="help-block"><h3>你在做什么</h3><p>你是临江市 112 指挥中心的值班长。接警、判断、派车、盯住倒计时。单位到达现场且能力覆盖需求后，处置进度才会推进；凑不齐能力，倒计时不会停。</p><p>警情失败会带来伤亡、财产损失与声望下降。声望降到 0，或单班伤亡超过上限，行动失败。</p></div>' +
+      '<div class="help-block"><h3>你在做什么</h3><p>你是临江市 911 指挥中心的值班长。接警、判断、派车、盯住倒计时。单位到达现场且能力覆盖需求后，处置进度才会推进；凑不齐能力，倒计时不会停。</p><p>警情失败会带来伤亡、财产损失与声望下降。声望降到 0，或单班伤亡超过上限，行动失败。</p></div>' +
       '<div class="help-block"><h3>能力与单位</h3><p>警力：封控、谈判、防暴；灭火：压制火势；医疗：急救与转运；危化：泄漏与毒气；救援：破拆、云梯、高空。</p><p>云梯车同时提供灭火与救援；危化车提供危化 + 少量灭火；直升机无视道路直飞现场。</p></div>' +
       '<div class="help-block"><h3>五个区域</h3><p>中心城区：警情最密；临江工业区：危化与储罐；稻香乡：农舍、谷仓与农田；白岩监狱：监区冲突与暴动；临江机场：航站楼、跑道与航班迫降。</p></div>' +
       '<div class="help-block"><h3>联机合作</h3><p>房主创建房间拿到六位编号，队友输入编号加入同一座城市。房主主持模拟与时间，所有调度员共享城市和分数。P2P 直连，不需要服务器；网络受限时可能连不上。</p></div>' +
@@ -1223,7 +1226,7 @@
     }
     if (el['coop-difficulty']) {
       el['coop-difficulty'].value = st.difficulty || app.coopDifficulty || 'normal';
-      el['coop-difficulty'].disabled = role !== 'host';
+      el['coop-difficulty'].disabled = false;
     }
     if (el['btn-create-room']) el['btn-create-room'].disabled = !!joining;
     if (el['btn-join-room']) el['btn-join-room'].disabled = !!joining;

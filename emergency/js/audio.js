@@ -1,6 +1,6 @@
 /* =========================================================================
    临界 · 紧急调度 — 程序化音频（WebAudio，无任何外部音频文件）
-   内容：环境底噪 / 雨声 / 低频氛围 / 和声垫 / 警笛 / 调度与警情音效。
+   内容：环境底噪 / 雨声 / 低频氛围 / 和声垫 / 调度与警情音效（无持续警笛）。
    设计原则：首次用户点击后才解锁声音（浏览器策略）；所有音量受设置控制；
             标签页隐藏时自动压低，避免后台扰民。
    回退办法：删除 emergency/ 目录或 revert；没有外部素材与授权问题。
@@ -82,17 +82,9 @@
       var shimGain = this.shimmerGain = ctx.createGain(); shimGain.gain.value = 0;
       shim.connect(shimGain); shimGain.connect(music); shim.start();
 
-      // 警笛：锯齿波 + 慢速 LFO
-      var siren = this.sirenOsc = ctx.createOscillator();
-      siren.type = 'sawtooth'; siren.frequency.value = 760;
-      var sirenFilter = ctx.createBiquadFilter();
-      sirenFilter.type = 'lowpass'; sirenFilter.frequency.value = 1200;
-      var lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.72;
-      var lfoGain = ctx.createGain(); lfoGain.gain.value = 160;
-      lfo.connect(lfoGain); lfoGain.connect(siren.frequency);
-      var sirenGain = this.sirenGain = ctx.createGain(); sirenGain.gain.value = 0;
-      siren.connect(sirenFilter); sirenFilter.connect(sirenGain); sirenGain.connect(sfx);
-      siren.start(); lfo.start();
+      // v1.1：移除持续警笛，只保留短促的派遣/到场提示音。
+      this.sirenOsc = null;
+      this.sirenGain = null;
 
       this.ready = true;
       this.applySettings(this.settings);
@@ -261,17 +253,12 @@
     }
     if (!sim) {
       if (this.rainGain) this.rainGain.gain.setTargetAtTime(0.05, t, 0.3);
-      if (this.sirenGain) this.sirenGain.gain.setTargetAtTime(0, t, 0.4);
       if (this.shimmerGain) this.shimmerGain.gain.setTargetAtTime(0, t, 0.4);
       return;
     }
-    var active = 0, critical = 0, moving = 0;
+    var active = 0, critical = 0;
     for (var j = 0; j < sim.incidents.length; j++) {
       if (sim.incidents[j].status === 'active') { active++; if (sim.incidents[j].priority === 1) critical++; }
-    }
-    for (var k = 0; k < sim.units.length; k++) {
-      var st = sim.units[k].status;
-      if (st === 'enroute' || st === 'scene') moving++;
     }
     var intensity = Math.min(1, active / 5 + critical * 0.18);
     this.intensity = intensity;
@@ -280,7 +267,6 @@
     if (this.rainGain) this.rainGain.gain.setTargetAtTime(rain * 0.09 * (0.6 + intensity * 0.4), t, 0.6);
     if (this.padFilter) this.padFilter.frequency.setTargetAtTime(460 + intensity * 420, t, 0.8);
     if (this.shimmerGain) this.shimmerGain.gain.setTargetAtTime(critical > 0 ? 0.012 + critical * 0.004 : 0, t, 0.8);
-    if (this.sirenGain) this.sirenGain.gain.setTargetAtTime(moving > 0 ? Math.min(0.035, moving * 0.006) : 0, t, 0.5);
     if (this.humGain) this.humGain.gain.setTargetAtTime(0.04, t, 0.8);
     if (renderer && renderer.consumeLightning && renderer.consumeLightning()) {
       this.play('thunder');

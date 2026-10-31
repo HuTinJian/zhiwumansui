@@ -142,7 +142,8 @@
     fire_station: { w: [4, 5], h: [3, 4], floors: [2, 2], colors: ['#4a3d37'], roof: '#302723', name: '消防站', pop: 20 },
     hospital: { w: [6, 7], h: [4, 5], floors: [6, 10], colors: ['#3b4652'], roof: '#28323d', name: '医院', pop: 220 },
     mall: { w: [5, 6], h: [5, 6], floors: [4, 6], colors: ['#3f3d46', '#3b4048'], roof: '#282a31', name: '商场', pop: 260 },
-    runway: { w: [40, 40], h: [4, 4], floors: [0, 0], colors: ['#2c3238'], roof: '#2c3238', name: '跑道', pop: 0, flat: true }
+    runway: { w: [40, 40], h: [4, 4], floors: [0, 0], colors: ['#2c3238'], roof: '#2c3238', name: '跑道', pop: 0, flat: true },
+    rail_station: { w: [6, 7], h: [4, 5], floors: [2, 3], colors: ['#3b424a', '#384048'], roof: '#262d34', name: '火车站', pop: 240 }
   };
 
   D.NAME_POOLS = {
@@ -167,7 +168,8 @@
     police_hq: ['临江市公安局'],
     fire_station: ['消防站'],
     hospital: ['临江市第一医院'],
-    mall: ['临江广场', '万象城', '滨江购物中心']
+    mall: ['临江广场', '万象城', '滨江购物中心'],
+    rail_station: ['临江站', '临江北站']
   };
 
   /* ---------------- 天气与光照 ---------------- */
@@ -180,6 +182,7 @@
   };
   D.LIGHTS = {
     night: { id: 'night', name: '夜', alpha: 0.38, tint: '#07101c', lights: 1, ambient: 0.22 },
+    dawn: { id: 'dawn', name: '黎明', alpha: 0.16, tint: '#13202c', lights: 0.5, ambient: 0.55 },
     dusk: { id: 'dusk', name: '黄昏', alpha: 0.24, tint: '#140f18', lights: 0.72, ambient: 0.5 },
     day: { id: 'day', name: '白天', alpha: 0.0, tint: '#0b1a20', lights: 0.1, ambient: 0.9 },
     storm: { id: 'storm', name: '风暴', alpha: 0.4, tint: '#050b14', lights: 0.8, ambient: 0.35 }
@@ -348,6 +351,78 @@
       tip: '这是特殊地点警情：市公安局位于中心城区。'
     },
     {
+      id: 'plane_crash', name: '飞机失事', icon: '✈️', priority: 1, weight: 2,
+      zones: ['airport'], spotTags: ['runway'],
+      needs: { fire: 3, medical: 4, police: 2 }, window: 280, work: 68, harm: 4, damage: 1500,
+      code: '空难',
+      desc: '一架小型客机在跑道末端重着陆，机身断裂并起火，机上有多名伤员。',
+      tip: '真正的空难：需要大量医疗与消防同时到场，警力负责封控跑道。'
+    },
+    {
+      id: 'prison_escape', name: '越狱事件', icon: '🚨', priority: 1, weight: 3,
+      zones: ['prison'], spotTags: ['prison_yard', 'prison_block'],
+      needs: { police: 3, medical: 1 }, window: 240, work: 55, harm: 2, damage: 700,
+      code: '越狱',
+      desc: '白岩监狱围墙报警：至少两名囚犯趁换班时逃脱，狱警已封锁外围道路。',
+      tip: '需要三组警力封控与搜捕；医疗组准备处理越狱过程中的伤员。'
+    },
+    {
+      id: 'bank_robbery', name: '银行劫案', icon: '🏦', priority: 1, weight: 3,
+      zones: ['city'], kinds: ['office', 'shop', 'mall'],
+      needs: { police: 3 }, window: 200, work: 48, harm: 2, damage: 900,
+      code: '重案',
+      desc: '两名持枪劫匪闯入银行，柜台人员被扣为人质，现场传出枪声。',
+      tip: '至少三组警力同时封控与谈判；不要只派一辆巡逻车。'
+    },
+    {
+      id: 'drunk_drive', name: '酒驾肇事', icon: '🍺', priority: 2, weight: 9,
+      zones: ['city', 'industrial', 'country'], onRoad: true,
+      needs: { police: 1, medical: 1 }, window: 120, work: 30, harm: 1, damage: 180,
+      code: '酒驾',
+      desc: '一辆轿车在路口蛇形行驶后撞上护栏，司机满身酒气，拒绝下车。',
+      tip: '先由警力控制驾驶人，医疗组检查伤情；短窗口，别拖。'
+    },
+    {
+      id: 'hit_and_run', name: '肇事逃逸', icon: '🚗', priority: 2, weight: 7,
+      zones: ['city', 'industrial', 'country'], onRoad: true,
+      needs: { police: 2, medical: 2 }, window: 135, work: 36, harm: 2, damage: 260,
+      code: '肇事',
+      desc: '一名行人被撞倒在路边，肇事车辆沿主干道加速逃离，目击者记下了车牌。',
+      tip: '警力追查与封控，医疗组先救人；两组医疗才够处理多名伤者。'
+    },
+    {
+      id: 'suspect_flee', name: '持械逃窜', icon: '🏃', priority: 2, weight: 6,
+      zones: ['city', 'industrial', 'country'], onRoad: true,
+      needs: { police: 2 }, window: 145, work: 34, harm: 2, damage: 200,
+      code: '追捕',
+      desc: '一名持刀嫌疑人在盘查时突然逃跑，沿主干道向城外方向逃窜，可能劫持车辆。',
+      tip: '需要两组警力前后夹击；窗口短，别只派一辆车。'
+    },
+    {
+      id: 'missing_person', name: '人员失踪', icon: '🔍', priority: 3, weight: 7,
+      zones: ['city', 'country'], kinds: ['house', 'apartment', 'farmhouse', 'field', 'shop'],
+      needs: { police: 2 }, window: 300, work: 55, harm: 1, damage: 20,
+      code: '失踪',
+      desc: '家属报称一名老人清晨出门后失联，最后出现在河边步道附近。',
+      tip: '窗口长但别忘掉：需要两组警力分头搜索与调监控。'
+    },
+    {
+      id: 'train_derail', name: '列车脱轨', icon: '🚆', priority: 1, weight: 2,
+      zones: ['city'], spotTags: ['train_station'], kinds: ['rail_station'],
+      needs: { fire: 2, rescue: 2, medical: 2, police: 1 }, window: 260, work: 60, harm: 3, damage: 1000,
+      code: '列车',
+      desc: '一列货运列车在临江站进站时脱轨，车厢倾覆并压住站台，有人员被困。',
+      tip: '消防与救援必须同时到场破拆，医疗组在外围待命。'
+    },
+    {
+      id: 'station_crowd', name: '车站踩踏', icon: '🧍', priority: 2, weight: 4,
+      zones: ['city'], spotTags: ['train_station'], kinds: ['rail_station'],
+      needs: { police: 2, medical: 2 }, window: 160, work: 38, harm: 2, damage: 150,
+      code: '踩踏',
+      desc: '临江站候车厅因列车晚点发生拥挤，楼梯口有人摔倒，现场开始混乱。',
+      tip: '警力分流人群，医疗组处理挤压伤；两组都要到。'
+    },
+    {
       id: 'airport_crash', name: '航班紧急迫降', icon: '✈️', priority: 1, weight: 0,
       zones: ['airport'], spotTags: ['runway'], finale: true,
       needs: { fire: 3, medical: 3, police: 2 }, window: 330, work: 74, harm: 4, damage: 1400,
@@ -379,7 +454,7 @@
   D.SHIFTS = [
     {
       index: 0, name: '第一班 · 风雨夜', short: '风雨夜', startMinutes: 23 * 60 + 40,
-      light: 'night', weather: 'rain', duration: 330, difficulty: 1.0,
+      light: 'night', clockScale: 1, weather: 'rain', weather2: 'storm', duration: 330, difficulty: 1.0,
       windowScale: 1.15, spawnMin: 27, spawnMax: 37, firstAt: 9, maxActive: 4,
       startFunds: 1800, startRep: 82, maxDeaths: 12, finale: null,
       intro: '暴雨压城，电台里全是杂音。今晚是你第一次独立值班。',
@@ -387,7 +462,7 @@
     },
     {
       index: 1, name: '第二班 · 工业区警报', short: '工业区警报', startMinutes: 15 * 60 + 10,
-      light: 'dusk', weather: 'fog', duration: 360, difficulty: 1.08,
+      light: 'dusk', clockScale: 1, weather: 'fog', weather2: 'drizzle', duration: 360, difficulty: 1.08,
       windowScale: 1.06, spawnMin: 25, spawnMax: 34, firstAt: 7, maxActive: 4,
       startFunds: 1800, startRep: 82, maxDeaths: 12,
       finale: { def: 'chem_explosion', at: 0.58 },
@@ -395,8 +470,8 @@
       next: '监狱方面的电话越来越频繁。下一班，白岩监狱。'
     },
     {
-      index: 2, name: '第三班 · 白岩之夜', short: '白岩之夜', startMinutes: 21 * 60 + 20,
-      light: 'night', weather: 'clear', duration: 390, difficulty: 1.2,
+      index: 2, name: '第三班 · 白岩之夜', short: '白岩之夜', startMinutes: 0 * 60 + 20,
+      light: 'night', clockScale: 1.2, weather: 'clear', weather2: 'drizzle', duration: 390, difficulty: 1.2,
       windowScale: 0.99, spawnMin: 23, spawnMax: 32, firstAt: 6, maxActive: 5,
       startFunds: 1800, startRep: 82, maxDeaths: 11,
       finale: { def: 'prison_riot', at: 0.6 },
@@ -405,7 +480,7 @@
     },
     {
       index: 3, name: '第四班 · 机场惊雷', short: '机场惊雷', startMinutes: 11 * 60 + 20,
-      light: 'storm', weather: 'storm', duration: 420, difficulty: 1.34,
+      light: 'storm', clockScale: 1, weather: 'storm', weather2: 'fog', duration: 420, difficulty: 1.34,
       windowScale: 0.93, spawnMin: 22, spawnMax: 31, firstAt: 6, maxActive: 5,
       startFunds: 1800, startRep: 82, maxDeaths: 10,
       finale: { def: 'airport_crash', at: 0.62 },
@@ -414,7 +489,7 @@
     },
     {
       index: 4, name: '第五班 · 临界时刻', short: '临界时刻', startMinutes: 18 * 60 + 50,
-      light: 'night', weather: 'storm', duration: 480, difficulty: 1.5,
+      light: 'night', clockScale: 1.5, weather: 'storm', weather2: 'rain', duration: 480, difficulty: 1.5,
       windowScale: 0.88, spawnMin: 21, spawnMax: 29, firstAt: 5, maxActive: 6,
       startFunds: 1800, startRep: 82, maxDeaths: 9,
       finale: { defs: ['airport_crash', 'prison_riot'], at: 0.58 },
@@ -424,13 +499,13 @@
   ];
 
   D.ENDLESS = {
-    name: '无尽值班', startMinutes: 21 * 60 + 10, light: 'night', weather: 'rain',
+    name: '无尽值班', startMinutes: 21 * 60 + 10, light: 'night', clockScale: 1, weather: 'rain', weather2: 'storm',
     duration: null, difficulty: 1.0, windowScale: 1.0, spawnMin: 26, spawnMax: 36,
     firstAt: 8, maxActive: 5, startFunds: 0, startRep: 85, maxDeaths: 99,
     rampEvery: 75, rampIncidents: 0.02, rampMaxActive: 7
   };
   D.COOP = {
-    name: '联合行动', startMinutes: 22 * 60 + 30, light: 'night', weather: 'rain',
+    name: '联合行动', startMinutes: 22 * 60 + 30, light: 'night', clockScale: 1, weather: 'rain', weather2: 'storm',
     duration: 600, difficulty: 1.12, windowScale: 1.0, spawnMin: 22, spawnMax: 31,
     firstAt: 6, maxActive: 5, startFunds: 0, startRep: 85, maxDeaths: 20
   };
@@ -465,7 +540,7 @@
     spawn: [
       '接警：{place}发生{type}，{priority}。',
       '{place}报{type}，请附近单位留意。',
-      '110/119/120 转来警情：{place}，{type}。'
+      '911 接警台转来警情：{place}，{type}。'
     ],
     dispatch: [
       '{unit} 出动，前往 {place}。',
@@ -539,7 +614,6 @@
     screenShake: true,
     fpsCap: 60,
     scanlines: true,
-    minimap: true,
     showLabels: true,
     edgePan: false,
     volumeMaster: 0.8,
@@ -555,10 +629,10 @@
   };
 
   D.QUALITY = {
-    low: { id: 'low', name: '低', baseScale: 0.5, dprCap: 1, particles: 0.35, windows: 0.35, lights: false, traffic: 12, shadows: false, fog: false },
-    medium: { id: 'medium', name: '中', baseScale: 0.75, dprCap: 1.25, particles: 0.7, windows: 0.7, lights: true, traffic: 24, shadows: true, fog: true },
-    high: { id: 'high', name: '高', baseScale: 1, dprCap: 1.5, particles: 1, windows: 1, lights: true, traffic: 40, shadows: true, fog: true },
-    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 2, particles: 1.5, windows: 1.2, lights: true, traffic: 60, shadows: true, fog: true }
+    low: { id: 'low', name: '低', baseScale: 1, dprCap: 1, particles: 0.3, windows: 0.35, lights: false, traffic: 8, shadows: false, fog: false },
+    medium: { id: 'medium', name: '中', baseScale: 1, dprCap: 1, particles: 0.6, windows: 0.7, lights: true, traffic: 16, shadows: true, fog: true },
+    high: { id: 'high', name: '高', baseScale: 1, dprCap: 1, particles: 1, windows: 1, lights: true, traffic: 26, shadows: true, fog: true },
+    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 1.25, particles: 1.3, windows: 1.2, lights: true, traffic: 36, shadows: true, fog: true }
   };
 
   /* 给 UI 显示的按键表 */
@@ -571,8 +645,7 @@
     ['空格', '暂停 / 继续'],
     ['F', '看全图'],
     ['Esc', '暂停菜单 / 关闭弹层'],
-    ['H', '玩法说明'],
-    ['M', '小地图开关']
+    ['H', '玩法说明']
   ];
 
   /* 中文本地化的少量固定词 */

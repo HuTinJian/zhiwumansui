@@ -259,8 +259,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .speed-group button:hover { color: var(--text); }
 .speed-group button.active { color: #041019; background: var(--cyan); }
 
-#queue-panel { position: absolute; left: 14px; top: 70px; bottom: 104px; width: 292px; }
-#detail-panel { position: absolute; right: 14px; top: 70px; bottom: 104px; width: 322px; }
+#queue-panel { position: absolute; left: 14px; top: 70px; bottom: 14px; width: 292px; }
+#detail-panel { position: absolute; right: 14px; top: 70px; bottom: 14px; width: 322px; }
 #bottom-bar {
   position: absolute; left: 14px; right: 14px; bottom: 10px; height: 82px;
   display: flex; gap: 12px; align-items: stretch;
@@ -651,7 +651,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--line-stro
 .lobby-error { margin-top: 10px; font-size: 11px; color: #ff9aa0; background: rgba(255, 90, 99, 0.08); border: 1px solid rgba(255, 90, 99, 0.25); border-radius: 8px; padding: 8px 10px; line-height: 1.6; }
 
 /* ============================ Toast / Loading ============================ */
-.toast-root { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 55; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.toast-root { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 55; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
 .toast {
   padding: 8px 14px; border-radius: 8px; font-size: 12px; letter-spacing: 0.02em;
   background: rgba(9, 17, 28, 0.96); border: 1px solid var(--line-strong);
@@ -796,3 +796,9 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--line-stro
 #app.cb .queue-card.p3 { --p: #ffe066; }
 #app.cb .req-chip.svc-police, #app.cb .req-chip.svc-fire, #app.cb .req-chip.svc-medical,
 #app.cb .req-chip.svc-hazmat, #app.cb .req-chip.svc-rescue { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+/* 性能优先：大面积毛玻璃在低端设备上非常吃 GPU，统一改成实色渐变。 */
+.panel, #bottom-bar, #mobile-dock, .modal-root, #summary, #shop, #lobby {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
