@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#070b12">
   <title>临界 · 紧急调度</title>
-  <meta name="description" content="《临界 · 紧急调度》：一款 2D 城市应急调度游戏。在临江市接警、派车、控场，单人战役或六位编号联机。">
+  <meta name="description" content="《临界 · 紧急调度》：一款 2D 城市应急调度游戏。在织雾市接警、派车、控场，单人战役或六位编号联机。">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b12'/%3E%3Ctext x='32' y='43' font-size='26' font-family='Arial' font-weight='700' text-anchor='middle' fill='%2364d8ff'%3E911%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/game.css">
 </head>
@@ -13,7 +13,7 @@
 <div id="app" class="mode-menu">
 
   <!-- 全屏地图画布：主菜单、游戏、结算共用一层 -->
-  <canvas id="world" aria-label="临江市地图"></canvas>
+  <canvas id="world" aria-label="织雾市地图"></canvas>
   <div id="map-vignette" aria-hidden="true"></div>
 
   <!-- ================= 游戏 HUD ================= -->
@@ -94,7 +94,7 @@
         </div>
       </div>
 
-      <p class="menu-lead">临江市 911 指挥中心。<br>每一通电话，都是一场倒计时。</p>
+      <p class="menu-lead">织雾市 911 指挥中心。<br>每一通电话，都是一场倒计时。</p>
 
       <div class="menu-actions">
         <button type="button" id="btn-continue" class="menu-btn primary hidden">
@@ -131,7 +131,7 @@
     </div>
     <div class="menu-map-caption">
       <span class="live-dot"></span>
-      <span>临江市 · 值班画面</span>
+      <span>织雾市 · 值班画面</span>
       <span id="menu-scene" class="scene-tag">暴雨 · 23:40</span>
       <span class="demo-tag">STANDBY</span>
     </div>
@@ -190,7 +190,7 @@
         <div>
           <div class="kicker">联机合作 · 联合行动</div>
           <h1>临时指挥所</h1>
-          <p class="lobby-sub">队友输入六位房间编号加入。房主开启行动后，共享同一座临江市。</p>
+          <p class="lobby-sub">队友输入六位房间编号加入。房主开启行动后，共享同一座织雾市。</p>
         </div>
         <button type="button" id="btn-lobby-leave" class="btn ghost small">离开</button>
       </div>
@@ -204,7 +204,7 @@
         </div>
         <div class="entry-col">
           <h3>② 加入房间</h3>
-          <p>输入房主提供的六位编号，加入同一座临江市。</p>
+          <p>输入房主提供的六位编号，加入同一座织雾市。</p>
           <label class="field"><span>六位编号</span><input id="join-code" class="text-input code-input" maxlength="6" autocomplete="off" spellcheck="false" inputmode="latin" placeholder="K7M2QX"></label>
           <label class="field"><span>你的呼号</span><input id="join-name" class="text-input" maxlength="12" autocomplete="off" placeholder="调度员"></label>
           <button type="button" id="btn-join-room" class="btn">加入房间</button>
@@ -233,14 +233,7 @@
       <div id="lobby-players" class="lobby-players"></div>
 
       <div class="lobby-options">
-        <label class="field inline">
-          <span>行动难度</span>
-          <select id="coop-difficulty" class="select">
-            <option value="easy">轻松 · 更多缓冲</option>
-            <option value="normal" selected>标准 · 推荐</option>
-            <option value="hard">硬核 · 警情更凶</option>
-          </select>
-        </label>
+        <div class="field inline"><span>行动难度</span><b style="color:var(--text)">真实（固定）</b></div>
         <div class="lobby-tip">P2P 直连；房主请保持页面可见。若无法连接，试试切换网络或热点。</div>
       </div>
 
@@ -258,7 +251,7 @@
   <div id="loading" class="loading-overlay hidden">
     <div class="loading-inner">
       <div class="loading-ring"></div>
-      <div id="loading-text" class="loading-text">正在接入临江市…</div>
+      <div id="loading-text" class="loading-text">正在接入织雾市…</div>
     </div>
   </div>
 
@@ -267,6 +260,8 @@
 <script src="vendor/peerjs.min.js"></script>
 <script src="js/util.js"></script>
 <script src="js/data.js"></script>
+<script src="js/world-expansion.js"></script>
+<script src="js/content-expansion.js"></script>
 <script src="js/map.js"></script>
 <script src="js/sim.js"></script>
 <script src="js/render.js"></script>

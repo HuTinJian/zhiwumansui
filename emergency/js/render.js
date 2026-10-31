@@ -193,8 +193,9 @@
   /* ============================ 静态底图 ============================ */
   Renderer.prototype.buildBase = function () {
     if (!this.world) return;
-    // 底图固定 0.75x：清晰度足够，内存与绘制成本明显下降；切换画质不重建
-    var scale = 0.75;
+    // 220×160 大图固定 0.5x：画布 3520×2560，避免超过 GPU 纹理上限；
+    // 清晰度由动态图层补足，切换画质不重建底图。
+    var scale = 0.5;
     var c = document.createElement('canvas');
     c.width = Math.max(1, Math.round(WORLD_W * scale));
     c.height = Math.max(1, Math.round(WORLD_H * scale));
@@ -207,6 +208,7 @@
     this.drawRail(g);
     this.drawRoads(g);
     this.drawBridges(g);
+    this.drawTunnels(g);
     this.drawTrees(g);
     this.drawBuildings(g);
     this.drawParkedCars(g);
@@ -222,7 +224,8 @@
     g.fillRect(0, 0, WORLD_W, WORLD_H);
     // 区域底色
     var tones = {
-      city: '#26313b', industrial: '#302e27', country: '#223522', prison: '#2b2e33', airport: '#29313a'
+      city: '#26313b', industrial: '#302e27', country: '#223522', prison: '#2b2e33', airport: '#29313a',
+      gov: '#2b3240', mountain: '#1e2c21', coast: '#23323b'
     };
     D.DISTRICTS.forEach(function (d) {
       g.fillStyle = tones[d.id] || '#1b2a1f';
@@ -243,6 +246,10 @@
         g.fillRect(x2 * TILE, y2 * TILE, TILE, TILE);
       } else if (this.world.ground[gi] === 7) {
         g.fillStyle = 'rgba(112,100,76,0.34)';
+        g.fillRect(x2 * TILE, y2 * TILE, TILE, TILE);
+      } else if (this.world.ground[gi] === 8) {
+        // 政务区混凝土广场
+        g.fillStyle = 'rgba(125,132,140,0.1)';
         g.fillRect(x2 * TILE, y2 * TILE, TILE, TILE);
       }
     }
@@ -563,6 +570,40 @@
     }
   };
 
+  Renderer.prototype.drawTunnels = function (g) {
+    if (!this.world || !this.world.tunnels) return;
+    this.world.tunnels.forEach(function (t) {
+      var x = t.x * TILE, y = t.y * TILE, ww = t.w * TILE, hh = t.h * TILE;
+      // 隧道顶棚
+      g.fillStyle = 'rgba(15,20,26,0.82)';
+      g.fillRect(x - 2, y - 2, ww + 4, hh + 4);
+      g.strokeStyle = 'rgba(120,145,155,0.22)';
+      g.lineWidth = 2;
+      g.strokeRect(x, y, ww, hh);
+      // 顶灯
+      g.strokeStyle = 'rgba(255,210,130,0.28)';
+      g.lineWidth = 1;
+      g.setLineDash([4, 10]);
+      g.beginPath();
+      if (t.w === 1) {
+        g.moveTo(x + ww / 2, y + 4); g.lineTo(x + ww / 2, y + hh - 4);
+      } else {
+        g.moveTo(x + 4, y + hh / 2); g.lineTo(x + ww - 4, y + hh / 2);
+      }
+      g.stroke();
+      g.setLineDash([]);
+      // 两端洞口
+      g.fillStyle = 'rgba(6,10,14,0.9)';
+      if (t.w === 1) {
+        g.fillRect(x - 5, y - 5, ww + 10, 7);
+        g.fillRect(x - 5, y + hh - 2, ww + 10, 7);
+      } else {
+        g.fillRect(x - 5, y - 5, 7, hh + 10);
+        g.fillRect(x + ww - 2, y - 5, 7, hh + 10);
+      }
+    }, this);
+  };
+
   Renderer.prototype.drawBridges = function (g) {
     var w = this.world;
     for (var y = 0; y < H; y++) {
@@ -726,6 +767,29 @@
     var rng = U.mulberry32(b.seed + 11);
     var k = b.kind;
     g.save();
+    if (b.tag === 'gas_station' || b.tag === 'air_fuel') {
+      // 加油站：顶棚 + 两台加油机；航空加油站额外画 H 停机标
+      g.fillStyle = 'rgba(240,200,80,0.22)';
+      g.fillRect(x + 3, y + 4, w - 6, h - 8);
+      g.strokeStyle = 'rgba(245,225,150,0.55)';
+      g.lineWidth = 1.5;
+      g.strokeRect(x + 5, y + 5, w - 10, h - 10);
+      g.fillStyle = 'rgba(30,38,45,0.8)';
+      g.fillRect(x + w * 0.3, y + h * 0.35, 6, 10);
+      g.fillRect(x + w * 0.62, y + h * 0.35, 6, 10);
+      g.fillStyle = 'rgba(255,220,100,0.65)';
+      g.fillRect(x + w * 0.3, y + h * 0.33, 6, 2);
+      g.fillRect(x + w * 0.62, y + h * 0.33, 6, 2);
+      if (b.tag === 'air_fuel') {
+        g.strokeStyle = 'rgba(180,235,255,0.5)';
+        g.beginPath(); g.arc(x + w * 0.5, y + h * 0.5, Math.min(w, h) * 0.18, 0, Math.PI * 2); g.stroke();
+        g.fillStyle = 'rgba(180,235,255,0.5)';
+        g.font = 'bold 10px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText('H', x + w * 0.5, y + h * 0.5);
+      }
+      g.restore();
+      return;
+    }
     if (k === 'hospital') {
       g.fillStyle = '#e8eeee';
       g.fillRect(x + w * 0.5 - 12, y + h * 0.5 - 3, 24, 6);
@@ -919,7 +983,7 @@
   Renderer.prototype.buildLights = function () {
     if (!this.world) return;
     if (!this.quality.lights) { this.lightCanvas = null; return; }
-    var scale = 0.5;
+    var scale = 0.25;
     var c = document.createElement('canvas');
     c.width = Math.max(1, Math.round(WORLD_W * scale));
     c.height = Math.max(1, Math.round(WORLD_H * scale));
@@ -1008,7 +1072,7 @@
   Renderer.prototype.initRain = function () {
     this.rain = [];
     var count = this.settings.weatherFx ? Math.round((this.w * this.h) / 18000 * (this.quality.particles || 1) * 2) : 0;
-    count = Math.min(170, count);
+    count = Math.min(120, count);
     for (var i = 0; i < count; i++) {
       this.rain.push({
         x: Math.random() * this.w, y: Math.random() * this.h,
@@ -1285,6 +1349,28 @@
         ctx.beginPath(); ctx.ellipse(u.x + 3, u.y + 5, L * 0.44, Wd * 0.52, angle, 0, Math.PI * 2); ctx.fill();
       }
       ctx.restore();
+      // 远景 LOD：地图缩小时只画色块+灯条，避免 28 辆车逐辆画细节拖慢帧率
+      if (this.cam.zoom < 0.7 && !u.flying) {
+        ctx.save();
+        ctx.translate(u.x, u.y);
+        ctx.rotate(angle);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        rr(ctx, -L / 2 + 2, -Wd / 2 + 3, L, Wd, 3); ctx.fill();
+        ctx.fillStyle = def.color;
+        rr(ctx, -L / 2, -Wd / 2, L, Wd, 3); ctx.fill();
+        ctx.fillStyle = def.accent;
+        ctx.fillRect(-L * 0.22, -Wd / 2 + 2, L * 0.34, Wd - 4);
+        if (active) {
+          ctx.fillStyle = def.service === 'medical' ? '#ff6b7a' : def.service === 'fire' ? '#ffb15c' : '#5aaaff';
+          ctx.fillRect(-4, -Wd / 2 - 1.5, 8, 3);
+        }
+        ctx.restore();
+        if (selected) {
+          ctx.save(); ctx.strokeStyle = 'rgba(103,220,255,0.9)'; ctx.lineWidth = 1.6; ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.arc(u.x, u.y, Math.max(12, L * 0.62), 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+        }
+        return;
+      }
       // 车顶警灯的地面光晕
       if (active) {
         var flash = (Math.sin(t * 7.5 + u.id.charCodeAt(1) * 1.7) + 1) * 0.5;
@@ -1369,8 +1455,10 @@
         ctx.beginPath(); ctx.ellipse(0, 0, 28, 9, t * 8 + Math.PI / 2, 0, Math.PI * 2); ctx.stroke();
         ctx.fillStyle = 'rgba(20,30,40,0.5)';
         ctx.fillRect(-2, 8, 4, 12);
+        var fireHeli = u.type === 'heli_fire';
         var hg = ctx.createLinearGradient(0, -Wd * 0.4, 0, Wd * 0.4);
-        hg.addColorStop(0, '#f4f8f9'); hg.addColorStop(1, '#b9c9cf');
+        hg.addColorStop(0, fireHeli ? '#ffb15c' : '#f4f8f9');
+        hg.addColorStop(1, fireHeli ? '#b94a2e' : '#b9c9cf');
         ctx.fillStyle = hg;
         rr(ctx, -L * 0.32, -Wd * 0.32, L * 0.5, Wd * 0.64, 7); ctx.fill();
         ctx.fillStyle = def.accent;
@@ -1391,6 +1479,24 @@
           ctx.save(); ctx.strokeStyle = 'rgba(103,220,255,0.9)'; ctx.lineWidth = 1.6; ctx.setLineDash([3, 3]);
           ctx.beginPath(); ctx.arc(u.x, u.y, Math.max(20, L * 0.7), 0, Math.PI * 2); ctx.stroke(); ctx.restore();
         }
+        return;
+      }
+
+      if (u.type === 'boat') {
+        // 救援艇：尖头船体 + 舷外机
+        ctx.beginPath();
+        ctx.moveTo(L * 0.5, 0);
+        ctx.quadraticCurveTo(L * 0.1, -Wd * 0.55, -L * 0.42, -Wd * 0.38);
+        ctx.lineTo(-L * 0.42, Wd * 0.38);
+        ctx.quadraticCurveTo(L * 0.1, Wd * 0.55, L * 0.5, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#eaf4f7'; ctx.fill();
+        ctx.strokeStyle = 'rgba(20,40,55,0.7)'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = '#d63b4f'; ctx.fillRect(-L * 0.28, -Wd * 0.05, L * 0.30, Wd * 0.1);
+        ctx.fillStyle = '#2f6f94'; ctx.fillRect(-L * 0.36, -Wd * 0.3, L * 0.10, Wd * 0.6);
+        ctx.fillStyle = '#1a2a36'; ctx.fillRect(-L * 0.5, -2.5, 4, 5);
+        ctx.restore();
+        if (selected) { ctx.save(); ctx.strokeStyle = 'rgba(103,220,255,0.9)'; ctx.lineWidth = 1.6; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(u.x, u.y, Math.max(16, L * 0.5), 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
         return;
       }
 
@@ -1423,6 +1529,36 @@
         ctx.fillRect(-L * 0.06, -Wd / 2 + 2, L * 0.08, Wd - 4);
         ctx.fillStyle = 'rgba(255,255,255,0.55)';
         ctx.fillRect(-L * 0.30, -Wd / 2 + 2.5, L * 0.12, 1.5);
+        lightbar(-Wd * 0.34, true);
+        headlights(L / 2);
+      } else if (u.type === 'interceptor') {
+        // 高速追捕车：低矮车身、推杆、双色警灯
+        body(def.color);
+        ctx.fillStyle = '#1e3b65'; ctx.fillRect(-L * 0.44, -Wd / 2 + 2, L * 0.58, Wd - 4);
+        ctx.fillStyle = 'rgba(245,250,252,0.9)'; ctx.fillRect(L * 0.08, -Wd / 2 + 2, L * 0.28, Wd - 4);
+        windshield(L * 0.0, L * 0.10);
+        ctx.fillStyle = '#0d141b'; ctx.fillRect(L / 2 - 1, -Wd * 0.38, 3, Wd * 0.76);
+        lightbar(-Wd * 0.36, true);
+        headlights(L / 2);
+      } else if (u.type === 'command') {
+        // 应急指挥车：方舱 + 天线 + 卫星锅
+        body(def.color);
+        ctx.fillStyle = 'rgba(225,235,240,0.55)'; ctx.fillRect(-L * 0.40, -Wd / 2 + 2, L * 0.56, Wd - 4);
+        windshield(L * 0.17, L * 0.12);
+        ctx.strokeStyle = 'rgba(230,240,245,0.8)'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(-L * 0.12, 0); ctx.lineTo(-L * 0.12, -Wd * 0.45); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-L * 0.12, -Wd * 0.45, 3, 0, Math.PI * 2); ctx.stroke();
+        lightbar(-Wd * 0.34, true);
+        headlights(L / 2);
+      } else if (u.type === 'forest') {
+        // 森林消防车：军绿车身 + 大水箱
+        body('#4d5d36');
+        ctx.fillStyle = '#c96a32'; ctx.fillRect(L * 0.16, -Wd / 2, L * 0.34, Wd);
+        windshield(L * 0.22, L * 0.12);
+        ctx.fillStyle = 'rgba(210,220,205,0.55)'; ctx.fillRect(-L * 0.40, -Wd / 2 + 2, L * 0.52, Wd - 4);
+        ctx.strokeStyle = 'rgba(25,35,25,0.6)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-L * 0.30, -Wd / 2 + 4); ctx.lineTo(-L * 0.30, Wd / 2 - 4); ctx.stroke();
+        compartments(2);
         lightbar(-Wd * 0.34, true);
         headlights(L / 2);
       } else if (u.type === 'swat') {
@@ -1835,7 +1971,12 @@
         ctx.fillText(d.name, p.x, p.y);
         ctx.font = '500 10px ' + FONT;
         ctx.fillStyle = 'rgba(160,190,205,0.2)';
-        ctx.fillText(d.id === 'airport' ? 'LINJIANG AIRPORT' : d.id === 'prison' ? 'BAIYAN PRISON' : d.id === 'country' ? 'DAOXIANG' : d.id === 'industrial' ? 'INDUSTRIAL ZONE' : 'DOWNTOWN', p.x, p.y + 18);
+        var en = {
+          airport: 'ZHIMU AIRPORT', prison: 'BAIYAN PRISON', country: 'DAOXIANG',
+          industrial: 'INDUSTRIAL ZONE', gov: 'GOVERNMENT DISTRICT',
+          mountain: 'ZHIMU MOUNTAIN', coast: 'ZHIMU BAY'
+        }[d.id] || 'DOWNTOWN';
+        ctx.fillText(en, p.x, p.y + 18);
       }, this);
       ctx.restore();
     }

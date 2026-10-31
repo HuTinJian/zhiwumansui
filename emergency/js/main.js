@@ -37,7 +37,7 @@
     lobbyJoining: false,
     lobbyError: '',
     myPlayerId: 'p1',
-    coopDifficulty: 'normal',
+    coopDifficulty: 'real',
     netPing: 0,
     netSynced: false,
     _closingNet: false,
@@ -59,13 +59,13 @@
     App.stats = U.store.get(D.STATS_KEY, {}) || {};
     App.achievements = loadAchievements();
     App.leaderboard = loadLeaderboard();
-    App.coopDifficulty = App.settings.difficulty || 'normal';
+    App.coopDifficulty = 'real';
     App.renderer = new EM.render.Renderer(document.getElementById('world'));
     App.renderer.setSettings(App.settings);
     EM.ui.init(App);
     EM.ui.syncSettingsClasses();
     EM.ui.showScreen('menu');
-    EM.ui.loading(true, '正在建立临江市…');
+    EM.ui.loading(true, '正在建立织雾市…');
     bindInput();
     bindVisibility();
     // 延迟一帧，让加载层先绘制出来
@@ -96,7 +96,7 @@
     var saved = U.store.get(D.SETTINGS_KEY, null);
     var s = U.deepMerge(D.DEFAULT_SETTINGS, saved || {});
     if (!D.QUALITY[s.quality]) s.quality = 'high';
-    if (!D.DIFFICULTY[s.difficulty]) s.difficulty = 'normal';
+    if (!D.DIFFICULTY[s.difficulty]) s.difficulty = 'real';
     if (!['auto', '0.75', '1', '1.25'].includes(s.renderScale)) s.renderScale = 'auto';
     if (!['low', 'medium', 'high'].includes(s.particles)) s.particles = 'high';
     if (![30, 60, 120, 0].includes(Number(s.fpsCap))) s.fpsCap = 60;
@@ -114,7 +114,7 @@
     if (typeof c.shiftIndex !== 'number' || c.shiftIndex < 0) return null;
     if (!Array.isArray(c.upgrades)) c.upgrades = [];
     if (!c.totals) c.totals = { score: 0, deaths: 0, resolved: 0, failed: 0, shifts: 0 };
-    if (!c.difficulty || !D.DIFFICULTY[c.difficulty]) c.difficulty = 'normal';
+    if (!c.difficulty || !D.DIFFICULTY[c.difficulty]) c.difficulty = 'real';
     if (!c.seed) c.seed = (U.hashString(String(Date.now())) >>> 0);
     c.version = c.version || 1;
     return c;
@@ -259,7 +259,7 @@
         shiftIndex: 0,
         funds: D.SHIFTS[0].startFunds,
         upgrades: [],
-        difficulty: App.settings.difficulty,
+        difficulty: 'real',
         seed: (Math.random() * 1e9) >>> 0,
         totals: { score: 0, deaths: 0, resolved: 0, failed: 0, shifts: 0 },
         completed: false,
@@ -277,7 +277,7 @@
     App.netRole = null;
     App.lobbyState = null;
     var config = Object.assign({}, D.ENDLESS, {
-      difficultyId: App.settings.difficulty,
+      difficultyId: 'real',
       seed: (Math.random() * 1e9) >>> 0,
       name: '无尽值班',
       intro: '没有交班时间。警情会一波比一波密，撑得越久，分数越高。',
@@ -287,7 +287,7 @@
       mode: 'endless',
       funds: 0,
       upgrades: [],
-      difficulty: D.DIFFICULTY[App.settings.difficulty] || D.DIFFICULTY.normal,
+      difficulty: D.DIFFICULTY.real,
       seed: config.seed,
       players: [{ id: 'p1', name: '指挥官', color: EM.net ? EM.net.COLORS[0] : '#67dcff' }]
     });
@@ -310,7 +310,7 @@
       mode: 'campaign',
       funds: camp.funds,
       upgrades: camp.upgrades.slice(),
-      difficulty: D.DIFFICULTY[camp.difficulty] || D.DIFFICULTY.normal,
+      difficulty: D.DIFFICULTY.real,
       seed: base.seed,
       players: [{ id: 'p1', name: '指挥官', color: EM.net ? EM.net.COLORS[0] : '#67dcff' }],
       brief: true
@@ -859,23 +859,16 @@
     });
   };
 
-  App.setCoopDifficulty = function (v) {
-    if (!D.DIFFICULTY[v]) v = 'normal';
-    App.coopDifficulty = v;
-    if (App.lobbyState) App.lobbyState.difficulty = v;
-    if (App.screen === 'lobby') EM.ui.setLobbyState(App.lobbyState);
-    if (!App.net) return;
-    if (App.netRole === 'host') {
-      App.net.broadcast({ t: 'lobbyconfig', difficulty: v });
-    } else if (App.netRole === 'guest') {
-      App.net.sendCommand({ cmd: 'difficulty', value: v });
-    }
+  // 已删除难度选择：联机固定真实难度，保留空函数兼容旧调用。
+  App.setCoopDifficulty = function () {
+    App.coopDifficulty = 'real';
+    if (App.lobbyState) App.lobbyState.difficulty = 'real';
   };
 
   App.startCoop = function () {
     if (!App.net || App.net.role !== 'host' || App.net.state !== 'lobby') return;
     var players = App.net.publicPlayers();
-    var difficultyId = App.coopDifficulty || App.settings.difficulty || 'normal';
+    var difficultyId = 'real';
     var shift = Object.assign({}, D.COOP, {
       name: '联合行动',
       difficultyId: difficultyId,
@@ -883,7 +876,7 @@
       startFunds: 0,
       maxDeaths: 20,
       duration: 600,
-      intro: '共享同一座临江市。房主主持时间与模拟，所有调度员共享分数与警情。'
+      intro: '共享同一座织雾市。房主主持时间与模拟，所有调度员共享分数与警情。'
     });
     var payload = {
       seed: (Math.random() * 1e9) >>> 0,
@@ -903,11 +896,11 @@
     }
     App.busy = true;
     EM.ui.closeModal();
-    EM.ui.loading(true, remote ? '正在同步临江市…' : '正在布置联合行动…');
+    EM.ui.loading(true, remote ? '正在同步织雾市…' : '正在布置联合行动…');
     setTimeout(function () {
       try {
         var world = EM.map.generate(payload.seed >>> 0);
-        var difficulty = D.DIFFICULTY[payload.difficultyId] || D.DIFFICULTY.normal;
+        var difficulty = D.DIFFICULTY.real;
         var players = payload.players && payload.players.length ? payload.players : [{ id: 'p1', name: '指挥官', color: '#67dcff' }];
         var sim = new EM.sim.Simulation({
           world: world,
@@ -970,12 +963,7 @@
   App.handleNetCommand = function (playerId, msg) {
     // 大厅阶段允许队友提议难度，房主最终生效
     if (msg.cmd === 'difficulty') {
-      if (App.netRole !== 'host' || !D.DIFFICULTY[msg.value]) return;
-      App.coopDifficulty = msg.value;
-      if (App.lobbyState) App.lobbyState.difficulty = msg.value;
-      if (App.net) App.net.broadcast({ t: 'lobbyconfig', difficulty: msg.value });
-      if (App.screen === 'lobby') EM.ui.setLobbyState(App.lobbyState);
-      EM.ui.toast('房主将难度设为：' + D.DIFFICULTY[msg.value].name, 'good');
+      // 难度已固定真实，忽略旧客户端的难度指令。
       return;
     }
     var s = App.sim;

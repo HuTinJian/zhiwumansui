@@ -1,6 +1,6 @@
 /* =========================================================================
    临界 · 紧急调度 — 游戏数据（数值、警情、单位、班次、升级、文案）
-   说明：全部内容为原创虚构，临江市与所有警情均为游戏设定，不构成真实救援指导。
+   说明：全部内容为原创虚构，织雾市与所有警情均为游戏设定，不构成真实救援指导。
    回退办法：删除 emergency/ 目录或 revert 对应提交即可；本文件不读写任何外部数据。
    ========================================================================= */
 (function (root) {
@@ -8,7 +8,7 @@
   var EM = root.EM = root.EM || {};
 
   var D = EM.data = {};
-  D.VERSION = '1.0.0';
+  D.VERSION = '2.0.0';
   D.TITLE = '临界 · 紧急调度';
   D.SETTINGS_KEY = 'emergency112.settings.v1';
   D.SAVE_KEY = 'emergency112.campaign.v1';
@@ -18,16 +18,16 @@
   D.BOARD_KEY = 'emergency112.leaderboard.v1';
 
   D.WORLD = { W: 140, H: 100, TILE: 32 };
-  D.WORLD_NAME = '临江市';
+  D.WORLD_NAME = '织雾市';
   D.MAX_PLAYERS = 4;
 
   /* ---------------- 区域 ---------------- */
   D.DISTRICTS = [
     { id: 'city', name: '中心城区', short: '城区', x: 3, y: 3, w: 64, h: 47, tone: '#2a3340', labelXY: { x: 0.5, y: 0.32 } },
-    { id: 'industrial', name: '临江工业区', short: '工业区', x: 72, y: 3, w: 65, h: 45, tone: '#33342f', labelXY: { x: 0.5, y: 0.35 } },
+    { id: 'industrial', name: '织雾工业区', short: '工业区', x: 72, y: 3, w: 65, h: 45, tone: '#33342f', labelXY: { x: 0.5, y: 0.35 } },
     { id: 'country', name: '稻香乡', short: '乡下', x: 3, y: 60, w: 56, h: 37, tone: '#27362b', labelXY: { x: 0.5, y: 0.45 } },
     { id: 'prison', name: '白岩监狱', short: '监狱', x: 62, y: 74, w: 21, h: 22, tone: '#2f3238', labelXY: { x: 0.5, y: 0.3 } },
-    { id: 'airport', name: '临江国际机场', short: '机场', x: 88, y: 58, w: 49, h: 39, tone: '#30343c', labelXY: { x: 0.5, y: 0.3 } }
+    { id: 'airport', name: '织雾国际机场', short: '机场', x: 88, y: 58, w: 49, h: 39, tone: '#30343c', labelXY: { x: 0.5, y: 0.3 } }
   ];
 
   /* ---------------- 服务与能力 ---------------- */
@@ -110,10 +110,10 @@
     { id: 'fire_central', type: 'fire', name: '中央消防站', x: 24, y: 16, w: 5, h: 4, units: ['engine', 'engine', 'ladder'] },
     { id: 'fire_industrial', type: 'fire', name: '工业区消防站', x: 94, y: 16, w: 5, h: 4, units: ['engine', 'hazmat'] },
     { id: 'fire_airport', type: 'fire', name: '机场消防站', x: 122, y: 73, w: 4, h: 3, units: ['engine'] },
-    { id: 'hospital_main', type: 'medical', name: '临江市第一医院', x: 30, y: 30, w: 5, h: 4, units: ['ambulance', 'ambulance'], tag: 'hospital' },
+    { id: 'hospital_main', type: 'medical', name: '织雾市第一医院', x: 30, y: 30, w: 5, h: 4, units: ['ambulance', 'ambulance'], tag: 'hospital' },
     { id: 'ems_center', type: 'medical', name: '紧急医疗中心', x: 10, y: 38, w: 4, h: 3, units: ['ambulance', 'bike'] },
     { id: 'clinic_country', type: 'medical', name: '稻香乡卫生院', x: 11, y: 84, w: 4, h: 3, units: ['ambulance'] },
-    { id: 'police_hq', type: 'police', name: '临江市公安局', x: 16, y: 10, w: 5, h: 4, units: ['cruiser', 'cruiser', 'swat'], tag: 'police_hq' },
+    { id: 'police_hq', type: 'police', name: '织雾市公安局', x: 16, y: 10, w: 5, h: 4, units: ['cruiser', 'cruiser', 'swat'], tag: 'police_hq' },
     { id: 'police_industrial', type: 'police', name: '工业区派出所', x: 94, y: 24, w: 4, h: 3, units: ['cruiser'] },
     { id: 'police_airport', type: 'police', name: '机场警务站', x: 96, y: 73, w: 3, h: 2, units: ['cruiser'] }
   ];
@@ -148,14 +148,14 @@
 
   D.NAME_POOLS = {
     house: ['梧桐里', '青石巷', '望江新村', '河湾小院', '槐树胡同', '红砖楼', '铁西街', '船厂宿舍'],
-    apartment: ['临江公寓', '望江花园', '锦绣苑', '晨光小区', '滨河新村', '金桂家园', '江畔名居', '安康里'],
-    office: ['临江大厦', '城建大楼', '江城商务楼', '金穗金融中心', '航运大厦', '江北写字楼'],
-    shop: ['老陈杂货', '临江便利店', '巷口面馆', '晨光药房', '青禾超市', '惠民菜场', '发记五金', '转角咖啡'],
-    school: ['临江市第三中学', '城东小学', '临江职业技术学院', '滨河小学'],
-    factory: ['江城机械厂', '临江纺织三厂', '宏远电子厂', '江北水泥厂', '远东涂装厂', '红光造纸厂'],
-    warehouse: ['临江物流仓库', '三号保税仓', '冷链仓储中心', '工业区配送仓', '建材堆场'],
+    apartment: ['织雾公寓', '望江花园', '锦绣苑', '晨光小区', '滨河新村', '金桂家园', '江畔名居', '安康里'],
+    office: ['织雾大厦', '城建大楼', '江城商务楼', '金穗金融中心', '航运大厦', '江北写字楼'],
+    shop: ['老陈杂货', '织雾便利店', '巷口面馆', '晨光药房', '青禾超市', '惠民菜场', '发记五金', '转角咖啡'],
+    school: ['织雾市第三中学', '城东小学', '织雾职业技术学院', '滨河小学'],
+    factory: ['江城机械厂', '织雾纺织三厂', '宏远电子厂', '江北水泥厂', '远东涂装厂', '红光造纸厂'],
+    warehouse: ['织雾物流仓库', '三号保税仓', '冷链仓储中心', '工业区配送仓', '建材堆场'],
     tank: ['危险品储罐区', '化工罐区', '液氨储罐'],
-    chemical: ['临江化工厂', '江东化工联合装置', '精细化工车间'],
+    chemical: ['织雾化工厂', '江东化工联合装置', '精细化工车间'],
     farmhouse: ['稻香村李家', '王家院', '河湾农舍', '张家老屋', '柳树屯'],
     barn: ['稻香谷仓', '农机库', '村办粮站', '秸秆收储点'],
     field: ['稻田', '油菜田', '麦田', '蔬菜大棚', '晒场'],
@@ -165,11 +165,11 @@
     tower: ['机场塔台'],
     prison_block: ['白岩监狱 A 区', '白岩监狱 B 区', '白岩监狱 C 区', '监区综合楼'],
     prison_yard: ['白岩监狱放风场'],
-    police_hq: ['临江市公安局'],
+    police_hq: ['织雾市公安局'],
     fire_station: ['消防站'],
-    hospital: ['临江市第一医院'],
-    mall: ['临江广场', '万象城', '滨江购物中心'],
-    rail_station: ['临江站', '临江北站']
+    hospital: ['织雾市第一医院'],
+    mall: ['织雾广场', '万象城', '滨江购物中心'],
+    rail_station: ['织雾站', '织雾北站']
   };
 
   /* ---------------- 天气与光照 ---------------- */
@@ -189,18 +189,11 @@
   };
 
   /* ---------------- 难度 ---------------- */
+  // v2.0：删除难度选择，固定为“真实”。旧存档里的其它难度会在加载时迁移。
   D.DIFFICULTY = {
-    easy: {
-      id: 'easy', name: '轻松', desc: '更多缓冲、更少伤亡；适合第一次值班。',
-      windowScale: 1.22, spawnScale: 1.22, harmScale: 0.65, repBonus: 8, maxDeaths: 16
-    },
-    normal: {
-      id: 'normal', name: '标准', desc: '推荐难度。资源会紧张，但一切都有解。',
-      windowScale: 1.0, spawnScale: 1.0, harmScale: 1.0, repBonus: 0, maxDeaths: 12
-    },
-    hard: {
-      id: 'hard', name: '硬核', desc: '警情更频繁、窗口更短、伤亡更重。',
-      windowScale: 0.88, spawnScale: 0.86, harmScale: 1.3, repBonus: -6, maxDeaths: 8
+    real: {
+      id: 'real', name: '真实', desc: '固定真实难度：窗口、伤亡与资源都按设计值，不提供轻松/硬核档。',
+      windowScale: 1.0, spawnScale: 1.0, harmScale: 1.0, repBonus: 0, maxDeaths: null
     }
   };
 
@@ -411,7 +404,7 @@
       zones: ['city'], spotTags: ['train_station'], kinds: ['rail_station'],
       needs: { fire: 2, rescue: 2, medical: 2, police: 1 }, window: 260, work: 60, harm: 3, damage: 1000,
       code: '列车',
-      desc: '一列货运列车在临江站进站时脱轨，车厢倾覆并压住站台，有人员被困。',
+      desc: '一列货运列车在织雾站进站时脱轨，车厢倾覆并压住站台，有人员被困。',
       tip: '消防与救援必须同时到场破拆，医疗组在外围待命。'
     },
     {
@@ -419,7 +412,7 @@
       zones: ['city'], spotTags: ['train_station'], kinds: ['rail_station'],
       needs: { police: 2, medical: 2 }, window: 160, work: 38, harm: 2, damage: 150,
       code: '踩踏',
-      desc: '临江站候车厅因列车晚点发生拥挤，楼梯口有人摔倒，现场开始混乱。',
+      desc: '织雾站候车厅因列车晚点发生拥挤，楼梯口有人摔倒，现场开始混乱。',
       tip: '警力分流人群，医疗组处理挤压伤；两组都要到。'
     },
     {
@@ -613,7 +606,7 @@
     weatherFx: true,
     screenShake: true,
     fpsCap: 60,
-    scanlines: true,
+    scanlines: false,
     showLabels: true,
     edgePan: false,
     volumeMaster: 0.8,
@@ -621,7 +614,7 @@
     volumeSfx: 0.8,
     volumeAmbience: 0.5,
     muted: false,
-    difficulty: 'normal',
+    difficulty: 'real',
     speedDefault: 1,
     reducedMotion: false,
     colorblind: false,
@@ -631,8 +624,8 @@
   D.QUALITY = {
     low: { id: 'low', name: '低', baseScale: 1, dprCap: 1, particles: 0.3, windows: 0.35, lights: false, traffic: 8, shadows: false, fog: false },
     medium: { id: 'medium', name: '中', baseScale: 1, dprCap: 1, particles: 0.6, windows: 0.7, lights: true, traffic: 16, shadows: true, fog: true },
-    high: { id: 'high', name: '高', baseScale: 1, dprCap: 1, particles: 1, windows: 1, lights: true, traffic: 26, shadows: true, fog: true },
-    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 1.25, particles: 1.3, windows: 1.2, lights: true, traffic: 36, shadows: true, fog: true }
+    high: { id: 'high', name: '高', baseScale: 1, dprCap: 0.9, particles: 1, windows: 1, lights: true, traffic: 20, shadows: true, fog: true },
+    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 1.1, particles: 1.2, windows: 1.2, lights: true, traffic: 30, shadows: true, fog: true }
   };
 
   /* 给 UI 显示的按键表 */

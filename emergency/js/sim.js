@@ -21,7 +21,7 @@
     this.world = opts.world;
     this.config = opts.config;
     this.mode = opts.mode || 'campaign';
-    this.difficulty = opts.difficulty || D.DIFFICULTY.normal;
+    this.difficulty = opts.difficulty || D.DIFFICULTY.real;
     this.upgrades = opts.upgrades || [];
     this.players = opts.players || [{ id: 'p1', name: '指挥官', color: '#67dcff' }];
     this.remote = !!opts.remote;
@@ -208,7 +208,7 @@
 
   Simulation.prototype.spawnIncident = function (def, spot, opt) {
     opt = opt || {};
-    var diff = this.difficulty || D.DIFFICULTY.normal;
+    var diff = this.difficulty || D.DIFFICULTY.real;
     var windowScale = (this.config.windowScale || 1) * diff.windowScale * (opt.windowScale || 1);
     var inc = {
       id: 'i' + (this.nextIncidentId++),
@@ -597,8 +597,31 @@
     }
     u.status = 'resting';
     u.path = null;
-    u.cooldown = (u.def.restock || 12) * this.buffs.restock;
+    // 加油站/空中加油站加成：返场整备时间缩短，靠近油站的站点受益。
+    var refuel = this.fuelBoost(u);
+    u.cooldown = (u.def.restock || 12) * this.buffs.restock * (refuel ? (u.flying ? 0.55 : 0.68) : 1);
+    u.refueled = refuel;
     u.incidentId = null;
+  };
+
+  Simulation.prototype.fuelBoost = function (u) {
+    if (!this.world) return false;
+    var tag = u.flying ? 'air_fuel' : 'gas_station';
+    var list = [];
+    if (this.world.buildings) list = list.concat(this.world.buildings);
+    if (this.world.props) list = list.concat(this.world.props);
+    var home = this.world.stations.find(function (s) { return s.id === u.homeStationId; });
+    var hx = home && home.building ? home.building.cx : u.x;
+    var hy = home && home.building ? home.building.cy : u.y;
+    var maxD = 40 * (this.world.TILE || 32);
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i];
+      if (!b || b.tag !== tag) continue;
+      var bx = b.cx != null ? b.cx : (b.x + (b.w || 1) / 2) * (this.world.TILE || 32);
+      var by = b.cy != null ? b.cy : (b.y + (b.h || 1) / 2) * (this.world.TILE || 32);
+      if (Math.sqrt((bx - hx) * (bx - hx) + (by - hy) * (by - hy)) <= maxD) return true;
+    }
+    return false;
   };
 
   Simulation.prototype.updateUnits = function (dt) {

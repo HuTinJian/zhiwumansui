@@ -553,7 +553,7 @@
       '<small>' + statusText(u.status) + ' · ' + esc(u.homeStationName || '') + '</small></div></div>' +
       '<div class="ih-desc">' + esc(u.def.desc) + '</div>' +
       '<div style="margin-top:9px;display:flex;gap:5px;flex-wrap:wrap">' + caps + '</div>' +
-      (u.status === 'resting' ? '<div class="dispatch-note">整备剩余 ' + Math.ceil(u.cooldown) + ' 秒。</div>' : '') +
+      (u.status === 'resting' ? '<div class="dispatch-note">整备剩余 ' + Math.ceil(u.cooldown) + ' 秒' + (u.refueled ? '（就近加油站 / 航空加油站加成）' : '') + '。</div>' : '') +
       '</div>';
     if (inc) {
       html += '<div class="detail-sec"><div class="detail-sec-head"><h3>当前任务</h3></div>' +
@@ -688,11 +688,11 @@
         switchRow('muted', '全部静音', '关闭所有声音', st.muted) +
         '</div><p class="dispatch-note">声音在第一次点击/触摸后才会启动；切到后台会自动压低。</p>',
       game: '<div class="set-group"><h3>玩法</h3>' +
-        seg('difficulty', '默认难度', [['easy', '轻松'], ['normal', '标准'], ['hard', '硬核']], st.difficulty) +
+        '<div class="set-row"><div class="set-label"><b>难度：真实（固定）</b><small>不再提供轻松/标准/硬核选择；窗口、伤亡与资源按设计值运行。</small></div></div>' +
         seg('speedDefault', '开局速度', [['1', '1×'], ['2', '2×'], ['4', '4×']], String(st.speedDefault)) +
         switchRow('edgePan', '鼠标边缘拖屏', '把鼠标移到屏幕边缘平移视角', st.edgePan) +
         switchRow('autoPauseOnCritical', '大事件自动暂停', '接到 P1 / 大事件时暂停，给你时间判断', st.autoPauseOnCritical) +
-        '</div><p class="dispatch-note">难度在下一局/新生涯生效；生涯中途不会改变已保存的难度。</p>',
+        '</div><p class="dispatch-note">真实难度在生涯、无尽与联机中统一生效。</p>',
       help: '<div class="set-group"><h3>操作与帮助</h3>' +
         '<div class="help-block">' + keyTable() + '</div>' +
         '<div class="set-row"><div class="set-label"><b>玩法说明</b><small>目标、机制与联机说明</small></div><button class="btn ghost small" data-open-help>打开</button></div>' +
@@ -723,9 +723,9 @@
     showModal('<div class="modal-card wide" data-modal="help">' +
       '<div class="modal-head"><div><h2>玩法说明</h2><span class="sub">临界 · 紧急调度</span></div><button class="modal-close" data-close="1">×</button></div>' +
       '<div class="modal-body"><div class="help-grid">' +
-      '<div class="help-block"><h3>你在做什么</h3><p>你是临江市 911 指挥中心的值班长。接警、判断、派车、盯住倒计时。单位到达现场且能力覆盖需求后，处置进度才会推进；凑不齐能力，倒计时不会停。</p><p>警情失败会带来伤亡、财产损失与声望下降。声望降到 0，或单班伤亡超过上限，行动失败。</p></div>' +
+      '<div class="help-block"><h3>你在做什么</h3><p>你是织雾市 911 指挥中心的值班长。接警、判断、派车、盯住倒计时。单位到达现场且能力覆盖需求后，处置进度才会推进；凑不齐能力，倒计时不会停。</p><p>警情失败会带来伤亡、财产损失与声望下降。声望降到 0，或单班伤亡超过上限，行动失败。</p></div>' +
       '<div class="help-block"><h3>能力与单位</h3><p>警力：封控、谈判、防暴；灭火：压制火势；医疗：急救与转运；危化：泄漏与毒气；救援：破拆、云梯、高空。</p><p>云梯车同时提供灭火与救援；危化车提供危化 + 少量灭火；直升机无视道路直飞现场。</p></div>' +
-      '<div class="help-block"><h3>五个区域</h3><p>中心城区：警情最密；临江工业区：危化与储罐；稻香乡：农舍、谷仓与农田；白岩监狱：监区冲突与暴动；临江机场：航站楼、跑道与航班迫降。</p></div>' +
+      '<div class="help-block"><h3>五个区域</h3><p>中心城区：警情最密；织雾工业区：危化与储罐；稻香乡：农舍、谷仓与农田；白岩监狱：监区冲突与暴动；织雾机场：航站楼、跑道与航班迫降。</p></div>' +
       '<div class="help-block"><h3>联机合作</h3><p>房主创建房间拿到六位编号，队友输入编号加入同一座城市。房主主持模拟与时间，所有调度员共享城市和分数。P2P 直连，不需要服务器；网络受限时可能连不上。</p></div>' +
       '<div class="help-block"><h3>按键</h3>' + keyTable() + '</div>' +
       '<div class="help-block"><h3>建议</h3><p>先派警力封控，再让医疗/消防进场；高层优先云梯；乡下先看距离。一键派遣是兜底，手动搭配更快。</p></div>' +
@@ -806,7 +806,7 @@
       '<div class="modal-head"><div><h2>关于</h2><span class="sub">临界 · 紧急调度 v' + D.VERSION + '</span></div><button class="modal-close" data-close="1">×</button></div>' +
       '<div class="modal-body"><p class="dispatch-note" style="font-size:12px;line-height:1.9">一款在浏览器里运行的城市应急调度游戏：单人五班生涯、无尽值班、六位编号联机合作，以及本机成就与 Top 10 排行榜。地图、建筑、车辆、火焰与音效全部由 Canvas / WebAudio 实时生成，没有外部图片和音频素材。</p>' +
       '<p class="dispatch-note" style="font-size:12px;line-height:1.9">联机使用 PeerJS 公共信令 + WebRTC 直连，房间编号只是临时房间名，不会上传存档。感谢 PeerJS（MIT）提供的开源客户端。</p>' +
-      '<p class="dispatch-note" style="font-size:12px;line-height:1.9">临江市、白岩监狱、临江机场与所有人物/警情均为虚构。若你正在经历真实紧急情况，请拨打当地紧急电话。</p></div>' +
+      '<p class="dispatch-note" style="font-size:12px;line-height:1.9">织雾市、白岩监狱、织雾机场与所有人物/警情均为虚构。若你正在经历真实紧急情况，请拨打当地紧急电话。</p></div>' +
       '<div class="modal-foot"><button class="btn primary" data-close="1">关闭</button></div></div>');
   };
 
@@ -1031,7 +1031,7 @@
   /* ============================== 简报 ============================== */
   UI.showBriefing = function (shift, opts) {
     opts = opts || {};
-    var diff = D.DIFFICULTY[shift.difficultyId || app.settings.difficulty] || D.DIFFICULTY.normal;
+    var diff = D.DIFFICULTY.real;
     var weather = D.WEATHERS[shift.weather] || D.WEATHERS.rain;
     var tips = shift.index === 0 ? [
       '先看警情，再派车：警情卡片上写着需要的能力。',
@@ -1101,7 +1101,7 @@
       var note = '';
       if (won && mode === 'campaign') {
         var hasNext = app.campaign && app.campaign.shiftIndex < D.SHIFTS.length;
-        note = hasNext ? '本班收入已计入资金。前往补给站，为下一班做准备。' : '五个班次全部完成。临江市记住了你的声音。';
+        note = hasNext ? '本班收入已计入资金。前往补给站，为下一班做准备。' : '五个班次全部完成。织雾市记住了你的声音。';
       } else if (won && mode === 'endless') {
         note = '本轮积分 ' + summary.score + '。' + (ctx.newBest ? '新纪录！' : '继续挑战更高分。');
       } else if (won && mode === 'coop') {
@@ -1150,10 +1150,10 @@
     var nextShift = D.SHIFTS[camp.shiftIndex];
     if (el['shop-next-brief'] && nextShift) {
       el['shop-next-brief'].innerHTML = '<span class="snext-tag">下一班</span><b>' + esc(nextShift.name) + '</b> · ' +
-        esc(D.WEATHERS[nextShift.weather].name) + ' · 预计 ' + Math.round(nextShift.duration / 60) + ' 分钟 · 难度系数 ' + nextShift.difficulty.toFixed(2) +
+        esc(D.WEATHERS[nextShift.weather].name) + ' · 预计 ' + Math.round(nextShift.duration / 60) + ' 分钟 · 真实难度' +
         '<br><span style="color:var(--muted)">' + esc(nextShift.intro || '') + '</span>';
     }
-    if (el['shop-shop-sub']) el['shop-shop-sub'].textContent = '采购立即生效，资金会保留到下一班。当前难度：' + (D.DIFFICULTY[camp.difficulty] || D.DIFFICULTY.normal).name;
+    if (el['shop-shop-sub']) el['shop-shop-sub'].textContent = '采购立即生效，资金会保留到下一班。难度固定：真实。';
     if (el['shop-grid']) {
       el['shop-grid'].innerHTML = D.UPGRADES.map(function (up) {
         var owned = camp.upgrades.indexOf(up.id) >= 0;
