@@ -8,7 +8,7 @@
   var EM = root.EM = root.EM || {};
 
   var D = EM.data = {};
-  D.VERSION = '2.2.1';
+  D.VERSION = '2.2.2';
   D.TITLE = '临界 · 紧急调度';
   D.SETTINGS_KEY = 'emergency112.settings.v1';
   D.SAVE_KEY = 'emergency112.campaign.v1';
@@ -517,7 +517,7 @@
     { id: 'up_bike', icon: '🏍️', name: '增援 · 急救摩托', cost: 500, kind: 'unit', unit: 'bike', station: 'ems_center', desc: '最快的医疗单元，适合城区短窗口警情。' },
     { id: 'up_cruiser', icon: '🚓', name: '增援 · 巡逻车', cost: 700, kind: 'unit', unit: 'cruiser', station: 'police_hq', desc: '市公安局增加 1 辆巡逻车（警力 +1）。' },
     { id: 'up_swat', icon: '🚐', name: '增援 · 特警装甲车', cost: 1250, kind: 'unit', unit: 'swat', station: 'police_hq', desc: '重案与暴动的主力（警力 +3）。' },
-    { id: 'up_heli', icon: '🚁', name: '增援 · 医疗直升机', cost: 3000, kind: 'unit', unit: 'heli', station: 'hospital_main', desc: '直飞现场，医疗 +2、救援 +1；整备时间长。' },
+    { id: 'up_heli', icon: '🚁', name: '增援 · 医疗直升机', cost: 3000, kind: 'unit', unit: 'heli', station: 'top_hospital', desc: '只部署在最高人民医院；直飞现场，医疗 +2、救援 +1；整备时间长。' },
     { id: 'up_speed', icon: '🏁', name: '车队调度优化', cost: 750, kind: 'buff', buff: 'speed', desc: '所有车辆行驶速度 +12%。' },
     { id: 'up_firepower', icon: '💦', name: '现场处置手册 · 消防篇', cost: 950, kind: 'buff', buff: 'firepower', desc: '灭火、危化与救援效率 +15%。' },
     { id: 'up_medical', icon: '🩺', name: '现场处置手册 · 医疗篇', cost: 900, kind: 'buff', buff: 'medical', desc: '医疗处置效率 +15%。' },

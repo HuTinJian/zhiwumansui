@@ -576,9 +576,22 @@
     var path = this.world && this.world.highwayPath;
     if (!path || path.length < 3) return;
     function trace() {
+      // 用圆角折线：直道保持直，转弯处用二次曲线过渡，避免“直角矩形”感
+      var pts = path.slice(0, path.length - 1);
+      var n = pts.length;
+      if (n < 3) return;
+      function len(a, b) { return Math.hypot(b.x - a.x, b.y - a.y) || 1; }
+      function dir(a, b) { var d = len(a, b); return { x: (b.x - a.x) / d, y: (b.y - a.y) / d }; }
       g.beginPath();
-      g.moveTo(path[0].x, path[0].y);
-      for (var i = 1; i < path.length; i++) g.lineTo(path[i].x, path[i].y);
+      for (var i = 0; i < n; i++) {
+        var cur = pts[i], prev = pts[(i - 1 + n) % n], next = pts[(i + 1) % n];
+        var r = Math.min(TILE * 2.8, len(prev, cur) / 2, len(cur, next) / 2);
+        var d1 = dir(prev, cur), d2 = dir(cur, next);
+        var a = { x: cur.x - d1.x * r, y: cur.y - d1.y * r };
+        var b = { x: cur.x + d2.x * r, y: cur.y + d2.y * r };
+        if (i === 0) g.moveTo(a.x, a.y); else g.lineTo(a.x, a.y);
+        g.quadraticCurveTo(cur.x, cur.y, b.x, b.y);
+      }
       g.closePath();
     }
     g.save();

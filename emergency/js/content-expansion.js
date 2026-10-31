@@ -101,12 +101,12 @@
   var NEW_STATIONS = [
     {
       id: 'top_police', type: 'police', name: '最高人民警察局',
-      x: 164, y: 16, w: 5, h: 4, units: ['interceptor', 'swat'], tag: 'top_police'
+      x: 164, y: 16, w: 5, h: 4, units: ['interceptor', 'swat', 'police_heli'], tag: 'top_police'
     },
     {
       id: 'top_fire', type: 'fire', name: '最高人民消防局',
-      // command 随消防局首发：四种能力各 1 点，用于政务区多部门联动现场。
-      x: 176, y: 16, w: 5, h: 4, units: ['forest', 'engine', 'command'], tag: 'top_fire'
+      // 直升机只在最高级局：command/forest/engine 之外，消防直升机常驻这里。
+      x: 176, y: 16, w: 5, h: 4, units: ['forest', 'engine', 'command', 'heli_fire'], tag: 'top_fire'
     },
     {
       id: 'top_hospital', type: 'medical', name: '最高人民医院',
@@ -114,8 +114,8 @@
     },
     {
       id: 'fire_mountain', type: 'fire', name: '山区消防站',
-      // heli_fire 常驻山区：盘山公路太慢，消防直升机是山火的第一响应。
-      x: 40, y: 120, w: 4, h: 3, units: ['forest', 'engine', 'heli_fire']
+      // 山区站只有地面森林消防力量；消防直升机必须从最高人民消防局起飞。
+      x: 40, y: 120, w: 4, h: 3, units: ['forest', 'engine']
     },
     {
       id: 'coast_guard', type: 'fire', name: '海岸救援站',
@@ -132,9 +132,7 @@
     var exists = D.STATIONS.some(function (s) { return s.id === st.id; });
     if (!exists) D.STATIONS.push(st);               // 幂等：重复加载不会重复加站点
   });
-  // 机场警务站增配警用直升机（不新增站点，避免挤占机场空间）
-  var airportPolice = D.STATIONS.find && D.STATIONS.find(function (s) { return s.id === 'police_airport'; });
-  if (airportPolice && airportPolice.units.indexOf('police_heli') < 0) airportPolice.units.push('police_heli');
+  // 警用直升机只在最高人民警察局，普通机场警务站不配直升机。
 
   /* =======================================================================
      三、新建筑规格（D.BUILDING_SPECS）
