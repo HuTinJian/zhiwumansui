@@ -78,7 +78,7 @@
     if (this.world && !this.base) this.buildBase();
     if (this.world && this.quality.lights && !this.lightCanvas) this.buildLights();
     this.resize();
-    if (oldQ !== settings.quality) this.initTraffic();
+    if (oldQ !== settings.quality) { this.initTraffic(); this.initPedestrians(); }
     this.initRain();
   };
 
@@ -110,6 +110,10 @@
     this.prepareWorld();
     this.buildLights();
     this.initTraffic();
+    this.initPedestrians();
+    this.initAirliner();
+    this.initTrains();
+    this.initBoats();
     this.initRain();
     var d = D.DISTRICTS[0];
     this.focusOn((d.x + d.w / 2) * TILE, (d.y + d.h / 2) * TILE, Math.max(0.5, this.fitZoom() * 1.55), true);
@@ -1126,6 +1130,275 @@
     return dirs;
   };
 
+  /* 街道行人：沿普通街道走动的环境人物，不参与任务结算；暂停时冻结。 */
+  Renderer.prototype.initPedestrians = function () {
+    this.peds = [];
+    if (!this.world) return;
+    var n = this.quality.peds || 60;
+    var cells = this.world.roadCells || [];
+    var rng = U.mulberry32(this.world.seed + 913);
+    var colors = ['#d9b38c', '#c7a27b', '#e6d3b3', '#a98b6e', '#d0c0a8', '#8f7761', '#e4c9a8'];
+    var guard = 0;
+    while (this.peds.length < n && guard++ < n * 6) {
+      var cell = cells[Math.floor(rng() * cells.length)];
+      var cx = cell % W, cy = (cell / W) | 0;
+      if (this.world.road[cell] > 2 || this.world.bridge[cell]) continue;
+      if (String(this.world.roadName[cell] || '').indexOf('高速') >= 0) continue;
+      var dirs = this.pedDirs(cx, cy);
+      if (!dirs.length) continue;
+      var dir = dirs[Math.floor(rng() * dirs.length)];
+      this.peds.push({
+        x: cx * TILE + TILE / 2 + (rng() - 0.5) * TILE * 0.7,
+        y: cy * TILE + TILE / 2 + (rng() - 0.5) * TILE * 0.7,
+        cx: cx, cy: cy, tx: cx + dir[0], ty: cy + dir[1],
+        speed: 10 + rng() * 12, color: colors[Math.floor(rng() * colors.length)],
+        phase: rng() * Math.PI * 2
+      });
+    }
+  };
+
+  Renderer.prototype.pedDirs = function (cx, cy) {
+    var dirs = [], w = this.world;
+    var opts = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    for (var i = 0; i < opts.length; i++) {
+      var nx = cx + opts[i][0], ny = cy + opts[i][1];
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      var ni = ny * W + nx;
+      if (w.road[ni] > 0 && w.road[ni] <= 2) dirs.push(opts[i]);
+    }
+    return dirs;
+  };
+
+  Renderer.prototype.updatePedestrians = function (dt) {
+    if (!this.peds) return;
+    for (var i = 0; i < this.peds.length; i++) {
+      var p = this.peds[i];
+      var tx = p.tx * TILE + TILE / 2, ty = p.ty * TILE + TILE / 2;
+      var dx = tx - p.x, dy = ty - p.y;
+      var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      var step = p.speed * dt;
+      if (step >= d) {
+        var fx = p.cx, fy = p.cy;
+        p.cx = p.tx; p.cy = p.ty;
+        p.x = tx; p.y = ty;
+        var dirs = this.pedDirs(p.cx, p.cy);
+        var backX = fx - p.cx, backY = fy - p.cy;
+        var forward = dirs.filter(function (dd) { return !(dd[0] === backX && dd[1] === backY); });
+        var pick = forward.length ? forward[Math.floor(Math.random() * forward.length)] : (dirs.length ? dirs[Math.floor(Math.random() * dirs.length)] : [1, 0]);
+        p.tx = p.cx + pick[0]; p.ty = p.cy + pick[1];
+        if (p.tx < 0 || p.ty < 0 || p.tx >= W || p.ty >= H) { p.tx = p.cx; p.ty = p.cy; }
+      } else {
+        p.x += (dx / d) * step;
+        p.y += (dy / d) * step;
+      }
+    }
+  };
+
+  Renderer.prototype.drawPedestrians = function () {
+    if (!this.peds || this.cam.zoom < 0.3) return;
+    var ctx = this.ctx;
+    for (var i = 0; i < this.peds.length; i++) {
+      var p = this.peds[i];
+      if (!this.isVisible(p.x, p.y, 10)) continue;
+      var bob = Math.sin(this.time * 7 + p.phase) * 0.8;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y + bob, this.cam.zoom > 1.1 ? 2.4 : 1.6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(30,35,40,0.65)';
+      ctx.beginPath(); ctx.arc(p.x, p.y - 1.6 + bob, 1, 0, Math.PI * 2); ctx.fill();
+    }
+  };
+
+  /* 空中客机：只做城市上空的背景航班，不参与警情；暂停时冻结。 */
+  Renderer.prototype.initAirliner = function () {
+    this.airliner = {
+      a: Math.PI * 0.15,
+      cx: WORLD_W * 0.5,
+      cy: WORLD_H * 0.48,
+      rx: WORLD_W * 0.36,
+      ry: WORLD_H * 0.30,
+      speed: 0.018
+    };
+  };
+
+  Renderer.prototype.updateAirliner = function (dt) {
+    if (!this.airliner) return;
+    this.airliner.a += dt * this.airliner.speed;
+  };
+
+  Renderer.prototype.drawAirliner = function () {
+    var a = this.airliner;
+    if (!a) return;
+    var x = a.cx + Math.cos(a.a) * a.rx;
+    var y = a.cy + Math.sin(a.a) * a.ry;
+    if (!this.isVisible(x, y, 160)) return;
+    var ctx = this.ctx;
+    var ang = Math.atan2(Math.cos(a.a) * a.ry, -Math.sin(a.a) * a.rx);
+    // 尾迹
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220,235,245,0.16)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - Math.cos(ang) * 18, y - Math.sin(ang) * 18);
+    ctx.lineTo(x - Math.cos(ang) * 130, y - Math.sin(ang) * 130);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    rr(ctx, -40, 4, 76, 12, 10); ctx.fill();
+    var g = ctx.createLinearGradient(0, -8, 0, 8);
+    g.addColorStop(0, '#f7fbfd'); g.addColorStop(1, '#b9cad4');
+    ctx.fillStyle = g;
+    // 机身
+    ctx.beginPath(); ctx.ellipse(0, 0, 36, 7, 0, 0, Math.PI * 2); ctx.fill();
+    // 主翼
+    ctx.fillStyle = '#c7d6df';
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(-12, -34); ctx.lineTo(-2, -34); ctx.lineTo(14, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(-12, 34); ctx.lineTo(-2, 34); ctx.lineTo(14, 0); ctx.closePath(); ctx.fill();
+    // 尾翼
+    ctx.fillStyle = '#9fb3bf';
+    ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-36, -16); ctx.lineTo(-30, -16); ctx.lineTo(-20, 0); ctx.closePath(); ctx.fill();
+    // 发动机
+    ctx.fillStyle = '#6f8795';
+    ctx.fillRect(4, -18, 10, 5);
+    ctx.fillRect(4, 13, 10, 5);
+    // 舷窗灯
+    ctx.fillStyle = 'rgba(255,225,150,0.8)';
+    ctx.fillRect(20, -2, 2, 2);
+    ctx.restore();
+    // 航行灯闪烁
+    ctx.save();
+    ctx.globalAlpha = 0.55 + 0.45 * Math.sin(this.time * 6);
+    ctx.fillStyle = '#ff5b5b';
+    ctx.beginPath(); ctx.arc(x - Math.cos(ang) * 34, y - Math.sin(ang) * 34, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  };
+
+  /* 铁路列车：沿南北向铁路往返，暂停时冻结。 */
+  Renderer.prototype.initTrains = function () {
+    this.trains = [];
+    var rail = this.world && this.world.rail;
+    if (!rail) return;
+    this.trains.push({ p: 0.18, dir: 1, speed: 0.035, cars: 4 });
+  };
+
+  Renderer.prototype.updateTrains = function (dt) {
+    if (!this.trains) return;
+    for (var i = 0; i < this.trains.length; i++) {
+      var t = this.trains[i];
+      t.p += t.dir * t.speed * dt;
+      if (t.p > 0.9) { t.p = 0.9; t.dir = -1; }
+      if (t.p < 0.08) { t.p = 0.08; t.dir = 1; }
+    }
+  };
+
+  Renderer.prototype.drawTrains = function () {
+    if (!this.trains || !this.world || !this.world.rail) return;
+    var rail = this.world.rail;
+    var ctx = this.ctx;
+    var x = rail.x * TILE + TILE / 2;
+    for (var i = 0; i < this.trains.length; i++) {
+      var t = this.trains[i];
+      var y = (rail.y1 + t.p * (rail.y2 - rail.y1)) * TILE + TILE / 2;
+      if (!this.isVisible(x, y, 90)) continue;
+      var dir = t.dir;
+      ctx.save();
+      ctx.translate(x, y);
+      // 车身沿铁路方向排列
+      for (var c = 0; c < t.cars; c++) {
+        var cy = (c - (t.cars - 1) / 2) * 26;
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        rr(ctx, -12, cy - 10, 24, 22, 5); ctx.fill();
+        ctx.fillStyle = c === 0 ? '#c8d4dc' : '#465a6a';
+        rr(ctx, -11, cy - 10, 22, 21, 4); ctx.fill();
+        ctx.fillStyle = 'rgba(180,225,240,0.45)';
+        for (var w = 0; w < 3; w++) ctx.fillRect(-7, cy - 6 + w * 6, 14, 2);
+        ctx.fillStyle = 'rgba(20,30,38,0.8)';
+        ctx.fillRect(-15, cy - 8, 4, 4);
+        ctx.fillRect(-15, cy + 4, 4, 4);
+      }
+      // 车头灯/尾灯
+      var frontY = ((t.cars - 1) / 2) * 26 + 12;
+      var backY = -((t.cars - 1) / 2) * 26 - 12;
+      if (dir < 0) { var tmpY = frontY; frontY = backY; backY = tmpY; }
+      ctx.fillStyle = 'rgba(255,235,170,0.9)';
+      ctx.beginPath(); ctx.arc(0, frontY, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,90,80,0.9)';
+      ctx.beginPath(); ctx.arc(0, backY, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  };
+
+  /* 水面游船 + 玩水的人：河、山间湖、海湾各一条，暂停时冻结。 */
+  Renderer.prototype.initBoats = function () {
+    this.boats = [
+      { kind: 'river', t: 0.2, speed: 0.022, cx: 74, cy: 54.4, rx: 42, ry: 0 },
+      { kind: 'lake', t: 0.55, speed: 0.035, cx: 31.5, cy: 130, rx: 5, ry: 4 },
+      { kind: 'sea', t: 0.7, speed: 0.018, cx: 210, cy: 132, rx: 4, ry: 7 }
+    ];
+  };
+
+  Renderer.prototype.updateBoats = function (dt) {
+    if (!this.boats) return;
+    for (var i = 0; i < this.boats.length; i++) {
+      this.boats[i].t += dt * this.boats[i].speed;
+      if (this.boats[i].t > 1) this.boats[i].t -= 1;
+    }
+  };
+
+  Renderer.prototype.drawBoats = function () {
+    if (!this.boats || this.cam.zoom < 0.35) return;
+    var ctx = this.ctx;
+    for (var i = 0; i < this.boats.length; i++) {
+      var b = this.boats[i];
+      var a = b.t * Math.PI * 2;
+      var x = b.cx * TILE + Math.cos(a) * b.rx * TILE;
+      var y = b.cy * TILE + Math.sin(a) * b.ry * TILE;
+      if (!this.isVisible(x, y, 40)) continue;
+      var ang = Math.atan2(Math.cos(a) * b.ry, -Math.sin(a) * b.rx) + Math.PI / 2;
+      if (b.kind === 'river') ang = b.t < 0.5 ? 0 : Math.PI;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(ang);
+      // 尾迹
+      ctx.strokeStyle = 'rgba(190,235,245,0.28)';
+      ctx.lineWidth = 1.2;
+      for (var w = 1; w <= 3; w++) {
+        ctx.beginPath();
+        ctx.moveTo(-12 - w * 7, -w * 3);
+        ctx.quadraticCurveTo(-22 - w * 7, 0, -12 - w * 7, w * 3);
+        ctx.stroke();
+      }
+      // 船体
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      rr(ctx, -13, 3, 28, 7, 4); ctx.fill();
+      ctx.fillStyle = '#e9eef2';
+      ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(10, -6); ctx.lineTo(16, 0); ctx.lineTo(10, 6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = b.kind === 'sea' ? '#4b8fb0' : '#c9a35a';
+      ctx.beginPath(); ctx.moveTo(-3, -4); ctx.lineTo(8, -2); ctx.lineTo(8, 2); ctx.lineTo(-3, 4); ctx.closePath(); ctx.fill();
+      // 船上的人
+      ctx.fillStyle = '#e0b28a';
+      ctx.beginPath(); ctx.arc(-2, -2, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(2, 1, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2f4652';
+      ctx.fillRect(-3, -5, 2, 2); ctx.fillRect(1, -1, 2, 2);
+      ctx.restore();
+      // 船边玩水的人（水面小点 + 涟漪）
+      ctx.save();
+      ctx.strokeStyle = 'rgba(150,225,235,0.28)';
+      ctx.lineWidth = 1;
+      for (var s = 0; s < 2; s++) {
+        var sx = x + Math.cos(this.time * 0.8 + s * 2.2 + i) * (16 + s * 5);
+        var sy = y + Math.sin(this.time * 1.1 + s * 1.7 + i) * (10 + s * 3);
+        ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = s ? '#e6b98d' : '#d9a77d';
+        ctx.beginPath(); ctx.arc(sx, sy, 1.2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+  };
+
   Renderer.prototype.initRain = function () {
     this.rain = [];
     var count = this.settings.weatherFx ? Math.round((this.w * this.h) / 18000 * (this.quality.particles || 1) * 2) : 0;
@@ -1787,6 +2060,10 @@
 
     this.emitFireParticles(sim, dt);
     this.updateTraffic(dt);
+    this.updatePedestrians(dt);
+    this.updateAirliner(dt);
+    this.updateTrains(dt);
+    this.updateBoats(dt);
 
     if (this.settings.weatherFx) {
       var rain = weather.rain || 0;
@@ -2126,12 +2403,16 @@
     this.drawNightMask(light);
     this.drawStaticLights(light);
     this.drawTraffic(light);
+    this.drawPedestrians();
     this.drawStations(light);
+    this.drawTrains();
+    this.drawBoats();
     this.drawIncidentGround(sim);
     this.drawPeople(sim);
     this.drawRoutes(sim);
     this.drawParticles();
     this.drawUnits(sim);
+    this.drawAirliner();
     ctx.restore();
     this.drawWeather(sim);
     this.drawLabels(sim);
@@ -2173,6 +2454,10 @@
     this.drawNightMask(this.menuLight);
     this.drawStaticLights(this.menuLight);
     this.drawTraffic(this.menuLight);
+    this.drawPedestrians();
+    this.drawTrains();
+    this.drawBoats();
+    this.drawAirliner();
     ctx.restore();
     this.drawWeather(null);
     this.drawLabels(null);

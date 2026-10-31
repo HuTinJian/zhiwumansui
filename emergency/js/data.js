@@ -8,7 +8,7 @@
   var EM = root.EM = root.EM || {};
 
   var D = EM.data = {};
-  D.VERSION = '2.2.2';
+  D.VERSION = '2.2.3';
   D.TITLE = '临界 · 紧急调度';
   D.SETTINGS_KEY = 'emergency112.settings.v1';
   D.SAVE_KEY = 'emergency112.campaign.v1';
@@ -628,10 +628,10 @@
   };
 
   D.QUALITY = {
-    low: { id: 'low', name: '低', baseScale: 1, dprCap: 1, particles: 0.3, windows: 0.35, lights: false, traffic: 8, shadows: false, fog: false },
-    medium: { id: 'medium', name: '中', baseScale: 1, dprCap: 1, particles: 0.6, windows: 0.7, lights: true, traffic: 16, shadows: true, fog: true },
-    high: { id: 'high', name: '高', baseScale: 1, dprCap: 0.9, particles: 1, windows: 1, lights: true, traffic: 20, shadows: true, fog: true },
-    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 1.1, particles: 1.2, windows: 1.2, lights: true, traffic: 30, shadows: true, fog: true }
+    low: { id: 'low', name: '低', baseScale: 1, dprCap: 1, particles: 0.3, windows: 0.35, lights: false, traffic: 18, peds: 40, shadows: false, fog: false },
+    medium: { id: 'medium', name: '中', baseScale: 1, dprCap: 1, particles: 0.6, windows: 0.7, lights: true, traffic: 42, peds: 80, shadows: true, fog: true },
+    high: { id: 'high', name: '高', baseScale: 1, dprCap: 0.9, particles: 1, windows: 1, lights: true, traffic: 72, peds: 120, shadows: true, fog: true },
+    ultra: { id: 'ultra', name: '极高', baseScale: 1, dprCap: 1.1, particles: 1.2, windows: 1.2, lights: true, traffic: 96, peds: 160, shadows: true, fog: true }
   };
 
   /* 给 UI 显示的按键表 */
