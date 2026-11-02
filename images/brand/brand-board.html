@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>织雾满穗 · 品牌标志系统 / ZhiMist Identity</title>
+<style>
+  :root{
+    --paper:#F5F0E6; --paper-2:#EFE8DC; --card:#FFFCF6;
+    --ink:#221C16; --ink-2:#544A3E; --muted:#786B5B;
+    --line:#DCD2C0; --line-2:#C3B49B;
+    --red:#A62E22; --red-deep:#7E1C13; --gold:#B08A3E; --gold-2:#D8B566; --gold-bg:#F7F0DF;
+    --green:#4F7A5A;
+    --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","SimSun","STSong",serif;
+    --sans:"Segoe UI","PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--paper)}
+  body{
+    margin:0;color:var(--ink);background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 12% 6%, rgba(176,138,62,.06), transparent 38%),
+      repeating-linear-gradient(90deg, rgba(34,28,22,.035) 0 1px, transparent 1px 3px);
+    font-family:var(--sans);font-size:15px;line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:34px 42px 80px}
+  .masthead{display:flex;justify-content:space-between;align-items:center;gap:20px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--muted);
+    padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .masthead b{font-weight:400;color:var(--ink)}
+  .hero{display:grid;grid-template-columns:420px minmax(0,1fr);gap:54px;align-items:center;
+    padding:64px 0 58px;border-bottom:1px solid var(--line)}
+  .hero-mark{width:390px;height:390px;display:block;filter:drop-shadow(0 24px 38px rgba(52,38,24,.16))}
+  .kicker{display:inline-flex;align-items:center;gap:9px;padding:5px 12px;border:1px solid rgba(166,46,34,.28);
+    border-radius:999px;color:var(--red);font:600 10px/1 var(--mono);letter-spacing:.18em;background:rgba(166,46,34,.035)}
+  .kicker i{width:5px;height:5px;border-radius:50%;background:var(--red);display:block}
+  h1{font-family:var(--serif);font-weight:700;font-size:68px;line-height:1.1;letter-spacing:.06em;margin:20px 0 14px}
+  .hero-sub{font-family:var(--serif);font-size:25px;letter-spacing:.08em;color:var(--ink-2);margin:0 0 18px}
+  .hero-desc{max-width:520px;color:var(--muted);margin:0;font-size:14px;line-height:1.95}
+  .hero-creed{margin:16px 0 0;padding-left:14px;border-left:2px solid var(--red);font-size:13px;line-height:1.9;color:var(--ink-2)}
+  .hero-creed b{color:var(--red);font-weight:600}
+  .hero-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:26px;font:10px/1.6 var(--mono);letter-spacing:.18em;color:var(--muted)}
+  .hero-meta b{display:block;color:var(--ink);font-weight:400;letter-spacing:.08em}
+
+  .section{padding:56px 0 0}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+  .section-head .idx{font:10px/1 var(--mono);letter-spacing:.2em;color:var(--gold)}
+  .section-head h2{font-family:var(--serif);font-size:27px;letter-spacing:.1em;margin:0;font-weight:700}
+  .section-head .en{font:9px/1 var(--mono);letter-spacing:.32em;color:var(--muted);text-transform:uppercase}
+  .section-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+  .concept{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .concept-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px 22px;position:relative;overflow:hidden}
+  .concept-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--red),rgba(166,46,34,0))}
+  .concept-card .no{font:10px/1 var(--mono);letter-spacing:.18em;color:var(--gold)}
+  .concept-card h3{font-family:var(--serif);font-size:22px;letter-spacing:.18em;margin:10px 0 6px;font-weight:700}
+  .concept-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.9}
+
+  .variants{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .variant{border-radius:18px;padding:30px 34px;display:flex;align-items:center;justify-content:flex-start;min-height:170px}
+  .variant.light{background:var(--card);border:1px solid var(--line)}
+  .variant.dark{background:#14110E;border:1px solid #3A3228}
+  .variant-cap{font:10px/1 var(--mono);letter-spacing:.2em;color:var(--muted);margin-bottom:16px}
+  .variant.dark .variant-cap{color:#9C8F7C}
+  .lockup{display:block;width:100%;max-width:420px;height:auto}
+
+  .sizes{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap;padding:26px 28px;border:1px solid var(--line);border-radius:18px;background:var(--card)}
+  .size{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .size svg{display:block}
+  .size span{font:9px/1 var(--mono);letter-spacing:.12em;color:var(--muted)}
+  .tabmock{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--paper-2);border:1px solid var(--line);border-radius:10px 10px 0 0;padding:9px 14px;min-width:210px}
+  .tabmock svg{width:16px;height:16px}
+  .tabmock b{font:600 11px/1 var(--sans);font-weight:600;color:var(--ink-2)}
+  .tabmock .dots{display:flex;gap:4px;margin-left:auto}
+  .tabmock .dots i{width:5px;height:5px;border-radius:50%;background:var(--line-2);display:block}
+
+  .construction{display:grid;grid-template-columns:440px 1fr;gap:48px;align-items:center}
+  .construction svg{width:100%;height:auto;display:block}
+  .spec{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+  .spec li{display:grid;grid-template-columns:74px 1fr;gap:16px;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+  .spec li:last-child{border-bottom:0;padding-bottom:0}
+  .spec b{font:600 10px/1.4 var(--mono);letter-spacing:.12em;color:var(--red);font-weight:600}
+  .spec p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+  .spec strong{color:var(--ink);font-weight:600}
+
+  .palette{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .swatch{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .swatch .chip{height:92px}
+  .swatch .meta{padding:11px 13px 13px}
+  .swatch b{display:block;font-family:var(--serif);font-size:15px;letter-spacing:.12em;font-weight:700}
+  .swatch span{display:block;font:9px/1.5 var(--mono);letter-spacing:.08em;color:var(--muted);margin-top:4px}
+
+  .type{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:end;margin-top:18px}
+  .type .specimen{font-family:var(--serif);font-size:76px;line-height:1.05;letter-spacing:.06em;font-weight:700;margin:0}
+  .type .small{font-family:var(--serif);font-size:23px;letter-spacing:.14em;color:var(--ink-2);margin:10px 0 0}
+  .type .latin{font:600 10px/1.8 var(--mono);letter-spacing:.4em;color:var(--gold);margin:14px 0 0}
+  .type-notes{display:grid;gap:14px;font-size:12px;color:var(--muted);line-height:1.8}
+  .type-notes b{color:var(--ink);font-weight:600}
+
+  .apps{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
+  .app-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:190px}
+  .app-card .cap{font:9px/1 var(--mono);letter-spacing:.2em;color:var(--muted)}
+  .navbar{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,var(--paper),var(--paper-2));border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .navbar .logo{width:26px;height:26px;flex-shrink:0}
+  .navbar .name{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.1em}
+  .navbar .links{margin-left:auto;display:flex;gap:6px}
+  .navbar .links i{display:block;height:18px;width:36px;border-radius:99px;background:rgba(34,28,22,.06);border:1px solid var(--line)}
+  .navbar .links i.on{background:var(--red);border-color:var(--red);width:44px}
+  .avatar{width:96px;height:96px;border-radius:24px;overflow:hidden;box-shadow:0 12px 26px rgba(52,38,24,.18)}
+  .avatar svg{width:100%;height:100%;display:block}
+  .stamp{width:158px;height:auto;display:block}
+
+  .rules{display:grid;grid-template-columns:1.1fr 0.9fr 1fr;gap:22px}
+  .rule{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+  .rule h4{font-family:var(--serif);font-size:17px;letter-spacing:.14em;margin:0 0 9px;font-weight:700}
+  .rule p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.9}
+  .don'ts{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .dont{width:84px;text-align:center;font:8px/1.5 var(--mono);color:var(--muted);letter-spacing:.06em}
+  .dont .box{height:64px;border:1px solid var(--line);border-radius:8px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:6px}
+  .dont .box svg{width:44px !important;height:44px !important}
+  .dont.bad .box{position:relative}
+  .dont.bad .box::after{content:'×';position:absolute;right:4px;top:2px;color:var(--red);font:700 11px/1 var(--sans)}
+
+  .footer{margin-top:70px;padding-top:28px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .footer .motto{display:flex;align-items:center;gap:18px}
+  .footer .motto p{margin:0;font-family:var(--serif);font-size:14px;letter-spacing:.22em;color:var(--ink-2)}
+  .footer .meta{font:9px/1.8 var(--mono);letter-spacing:.16em;color:var(--muted);text-align:right}
+
+  @media (max-width:980px){
+    .page{padding:26px 24px 60px}
+    .hero{grid-template-columns:1fr;gap:30px}
+    .hero-mark{width:280px;height:280px;margin:0 auto}
+    h1{font-size:54px}
+    .concept,.palette{grid-template-columns:1fr 1fr}
+    .variants,.construction,.type,.apps,.rules{grid-template-columns:1fr}
+    .sizes{gap:24px}
+    .tabmock{margin-left:0}
+  }
+</style>
+</head>
+<body>
+
+<!-- 全部 SVG 的渐变与符号只在这里定义一次，页面里重复引用，保证标记完全一致 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gSeal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B5432F"/><stop offset=".55" stop-color="#A62E22"/><stop offset="1" stop-color="#7E1C13"/>
+    </linearGradient>
+    <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8C878"/><stop offset="1" stop-color="#B08A3E"/>
+    </linearGradient>
+    <linearGradient id="gCream" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF7E6"/><stop offset="1" stop-color="#E7D6B8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 主标：一穗低头，金线如雾 -->
+  <symbol id="mark" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="15" fill="url(#gSeal)"/>
+    <rect x="4.4" y="4.4" width="55.2" height="55.2" rx="10.8" fill="none" stroke="url(#gGold)" stroke-opacity=".5"/>
+    <g transform="rotate(14 32 54)">
+      <path d="M32 54 C32 45 32 36 32 26 C32 22 32 19 32 16" fill="none" stroke="url(#gCream)" stroke-width="2.4" stroke-linecap="round"/>
+      <g fill="url(#gCream)">
+        <path d="M32 36 C28.4 35.6 25.8 33.2 24.8 29.8 C28.4 30.4 31 32.2 32 35 Z"/>
+        <path d="M32 29.5 C28.4 29.1 25.8 26.7 24.8 23.3 C28.4 23.9 31 25.7 32 28.5 Z"/>
+        <path d="M32 23 C28.4 22.6 25.8 20.2 24.8 16.8 C28.4 17.4 31 19.2 32 22 Z"/>
+        <path d="M32 36 C35.6 35.6 38.2 33.2 39.2 29.8 C35.6 30.4 33 32.2 32 35 Z"/>
+        <path d="M32 29.5 C35.6 29.1 38.2 26.7 39.2 23.3 C35.6 23.9 33 25.7 32 28.5 Z"/>
+        <path d="M32 23 C35.6 22.6 38.2 20.2 39.2 16.8 C35.6 17.4 33 19.2 32 22 Z"/>
+      </g>
+      <path d="M32 16.5 C30.4 13.8 30.4 10.4 32 7.6 C33.6 10.4 33.6 13.8 32 16.5 Z" fill="url(#gGold)"/>
+    </g>
+    <path d="M12.5 45 C18 41.2 24 41.2 29.8 45 C35.6 48.8 41.8 48.8 50.5 42.8" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M16 50.2 C21.4 47.6 26.6 47.6 31 50.2 C35.8 53 41.2 53 47.4 49.2" fill="none" stroke="#F5F0E6" stroke-width="1.05" stroke-linecap="round" opacity=".26"/>
+    <path d="M11 55 H53 M11 57.4 H53" stroke="#F5F0E6" stroke-width=".55" opacity=".10"/>
+  </symbol>
+
+  <!-- favicon：去掉外框和细节，穗放大，16px 也认得出 -->
+  <symbol id="markFavicon" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="15" fill="url(#gSeal)"/>
+    <g transform="translate(32 34) scale(1.12) translate(-32 -34)">
+      <g transform="rotate(14 32 54)">
+        <path d="M32 54 C32 45 32 36 32 26 C32 22 32 19 32 16" fill="none" stroke="url(#gCream)" stroke-width="2.8" stroke-linecap="round"/>
+        <g fill="url(#gCream)">
+          <path d="M32 36 C28.4 35.6 25.8 33.2 24.8 29.8 C28.4 30.4 31 32.2 32 35 Z"/>
+          <path d="M32 29.5 C28.4 29.1 25.8 26.7 24.8 23.3 C28.4 23.9 31 25.7 32 28.5 Z"/>
+          <path d="M32 23 C28.4 22.6 25.8 20.2 24.8 16.8 C28.4 17.4 31 19.2 32 22 Z"/>
+          <path d="M32 36 C35.6 35.6 38.2 33.2 39.2 29.8 C35.6 30.4 33 32.2 32 35 Z"/>
+          <path d="M32 29.5 C35.6 29.1 38.2 26.7 39.2 23.3 C35.6 23.9 33 25.7 32 28.5 Z"/>
+          <path d="M32 23 C35.6 22.6 38.2 20.2 39.2 16.8 C35.6 17.4 33 19.2 32 22 Z"/>
+        </g>
+        <path d="M32 16.5 C30.4 13.8 30.4 10.4 32 7.6 C33.6 10.4 33.6 13.8 32 16.5 Z" fill="url(#gGold)"/>
+      </g>
+    </g>
+    <path d="M13.5 46 C19 42.4 24.6 42.4 30.2 46 C35.8 49.6 41.6 49.6 49.5 43.6" fill="none" stroke="url(#gGold)" stroke-width="2.6" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- 为人民服务 · 印章 -->
+  <symbol id="motto" viewBox="0 0 124 34">
+    <rect width="124" height="34" rx="3.5" fill="url(#gSeal)"/>
+    <rect x="3" y="3" width="118" height="28" rx="2" fill="none" stroke="#FFF7E6" stroke-opacity=".5"/>
+    <text x="62" y="22.6" text-anchor="middle" font-family="Songti SC, SimSun, serif" font-size="13.5" font-weight="700" letter-spacing="2.6" fill="#FFF7E6">为人民服务</text>
+  </symbol>
+</svg>
+
+<div class="page">
+
+  <div class="masthead">
+    <span><b>ZHIMIST</b> · BRAND MARK</span>
+    <span>织雾满穗 · 品牌标志系统 · 2026</span>
+  </div>
+
+  <!-- ============ 封面 ============ -->
+  <section class="hero">
+    <svg class="hero-mark" viewBox="0 0 64 64" role="img" aria-label="织雾满穗标志"><use href="#mark"/></svg>
+    <div>
+      <span class="kicker"><i></i>满穗钤印 · 2026</span>
+      <h1>织雾满穗</h1>
+      <p class="hero-sub">一穗低头，万粒归仓。</p>
+      <p class="hero-desc">
+        织的是雾，收的是穗。<br>
+        把找到的每一首歌、每一个工具，交到需要的人手里——<br>
+        这是「织雾满穗」的名字，也是这枚标志的全部意思。
+      </p>
+      <p class="hero-creed"><b>为人民服务</b>——让每一首歌都能被找到，每一个工具都能打开。</p>
+      <div class="hero-meta">
+        <div><b>ZhiMist</b>织雾满穗</div>
+        <div><b>zhiwumansui.pages.dev</b>线上站点</div>
+        <div><b>为人民服务</b>品牌信条</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 概念 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">01</span><h2>标志里的三件事</h2><span class="en">Concept</span></div>
+    <div class="concept">
+      <article class="concept-card">
+        <div class="no">01 · 穗</div>
+        <h3>越饱满，头越低</h3>
+        <p>熟透的稻穗不会昂着头。它把重量垂向土地，把收成留给别人。这是「满穗」，也是「为人民服务」最朴素的姿态。</p>
+      </article>
+      <article class="concept-card">
+        <div class="no">02 · 雾</div>
+        <h3>一条线，穿过去</h3>
+        <p>金线从穗下穿过，像雾，也像一条把人和歌连起来的路。网站做的事，就是让陌生人在雾里找到彼此。</p>
+      </article>
+      <article class="concept-card">
+        <div class="no">03 · 印</div>
+        <h3>朱砂一钤，是承诺</h3>
+        <p>方印是中国人最重的信用。每一首歌、每一个工具、每一次修改，都盖同一个章：免费、可用、不糊弄。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 横版 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">02</span><h2>横版字标</h2><span class="en">Lockup</span></div>
+    <div class="variants">
+      <div class="variant light">
+        <div>
+          <div class="variant-cap">浅色 / LIGHT</div>
+          <svg class="lockup" viewBox="0 0 360 96" role="img" aria-label="织雾满穗横版标志">
+            <use href="#mark" x="8" y="8" width="80" height="80"/>
+            <line x1="101" y1="25" x2="101" y2="73" stroke="#B08A3E" stroke-opacity=".45"/>
+            <text x="116" y="53" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="33" font-weight="700" letter-spacing="3.2" fill="#221C16">织雾满穗</text>
+            <text x="118" y="70" font-family="Segoe UI, sans-serif" font-size="8.2" font-weight="600" letter-spacing="4.3" fill="#8A5A1C">ZHIMIST</text>
+            <text x="118" y="86" font-family="Songti SC, SimSun, serif" font-size="9.2" letter-spacing="1.8" fill="#786B5B">用知识照亮世界</text>
+          </svg>
+        </div>
+      </div>
+      <div class="variant dark">
+        <div>
+          <div class="variant-cap">深色 / DARK</div>
+          <svg class="lockup" viewBox="0 0 360 96" role="img" aria-label="织雾满穗横版标志">
+            <use href="#mark" x="8" y="8" width="80" height="80"/>
+            <line x1="101" y1="25" x2="101" y2="73" stroke="#D8B566" stroke-opacity=".35"/>
+            <text x="116" y="53" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="33" font-weight="700" letter-spacing="3.2" fill="#F0E8D8">织雾满穗</text>
+            <text x="118" y="70" font-family="Segoe UI, sans-serif" font-size="8.2" font-weight="600" letter-spacing="4.3" fill="#E3C47C">ZHIMIST</text>
+            <text x="118" y="86" font-family="Songti SC, SimSun, serif" font-size="9.2" letter-spacing="1.8" fill="#C8BCA8">用知识照亮世界</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 尺寸 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">03</span><h2>尺寸与 favicon</h2><span class="en">Scale</span></div>
+    <div class="sizes">
+      <div class="size"><svg width="128" height="128" viewBox="0 0 64 64"><use href="#mark"/></svg><span>128</span></div>
+      <div class="size"><svg width="64" height="64" viewBox="0 0 64 64"><use href="#mark"/></svg><span>64</span></div>
+      <div class="size"><svg width="48" height="48" viewBox="0 0 64 64"><use href="#mark"/></svg><span>48</span></div>
+      <div class="size"><svg width="32" height="32" viewBox="0 0 64 64"><use href="#markFavicon"/></svg><span>32</span></div>
+      <div class="size"><svg width="24" height="24" viewBox="0 0 64 64"><use href="#markFavicon"/></svg><span>24</span></div>
+      <div class="size"><svg width="16" height="16" viewBox="0 0 64 64"><use href="#markFavicon"/></svg><span>16</span></div>
+      <div class="tabmock">
+        <svg viewBox="0 0 64 64"><use href="#markFavicon"/></svg>
+        <b>织雾满穗</b>
+        <span class="dots"><i></i><i></i><i></i></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 构造 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">04</span><h2>构造</h2><span class="en">Construction</span></div>
+    <div class="construction">
+      <svg viewBox="0 0 64 64" role="img" aria-label="标志构造">
+        <rect width="64" height="64" rx="15" fill="url(#gSeal)"/>
+        <rect x="4.4" y="4.4" width="55.2" height="55.2" rx="10.8" fill="none" stroke="url(#gGold)" stroke-opacity=".5"/>
+        <g transform="rotate(14 32 54)">
+          <path d="M32 54 C32 45 32 36 32 26 C32 22 32 19 32 16" fill="none" stroke="url(#gCream)" stroke-width="2.4" stroke-linecap="round"/>
+          <g fill="url(#gCream)">
+            <path d="M32 36 C28.4 35.6 25.8 33.2 24.8 29.8 C28.4 30.4 31 32.2 32 35 Z"/>
+            <path d="M32 29.5 C28.4 29.1 25.8 26.7 24.8 23.3 C28.4 23.9 31 25.7 32 28.5 Z"/>
+            <path d="M32 23 C28.4 22.6 25.8 20.2 24.8 16.8 C28.4 17.4 31 19.2 32 22 Z"/>
+            <path d="M32 36 C35.6 35.6 38.2 33.2 39.2 29.8 C35.6 30.4 33 32.2 32 35 Z"/>
+            <path d="M32 29.5 C35.6 29.1 38.2 26.7 39.2 23.3 C35.6 23.9 33 25.7 32 28.5 Z"/>
+            <path d="M32 23 C35.6 22.6 38.2 20.2 39.2 16.8 C35.6 17.4 33 19.2 32 22 Z"/>
+          </g>
+          <path d="M32 16.5 C30.4 13.8 30.4 10.4 32 7.6 C33.6 10.4 33.6 13.8 32 16.5 Z" fill="url(#gGold)"/>
+        </g>
+        <path d="M12.5 45 C18 41.2 24 41.2 29.8 45 C35.6 48.8 41.8 48.8 50.5 42.8" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-linecap="round"/>
+        <g stroke="#FFF7E6" stroke-opacity=".55" stroke-width=".35" stroke-dasharray="1.1 1.1" fill="none">
+          <circle cx="32" cy="32" r="24.5"/>
+          <line x1="32" y1="2" x2="32" y2="62"/>
+          <line x1="32" y1="54" x2="47" y2="15"/>
+          <line x1="24" y1="44" x2="50" y2="44"/>
+        </g>
+      </svg>
+      <ul class="spec">
+        <li><b>外印</b><p><strong>64 × 64</strong>，圆角 15；内缩 4.4 的金线是「装裱线」，把方印收住。</p></li>
+        <li><b>穗</b><p>三对谷粒 + 一枚金穗，整体<strong>右倾 14°</strong>。这个角度让穗头低下来，但不至于倒伏。</p></li>
+        <li><b>雾</b><p>一条金线从穗下穿过，一条纸白细线在更下方呼应；两条线一实一虚，像雾的层次。</p></li>
+        <li><b>留白</b><p>印面四周留出<strong>4.4 单位</strong>呼吸位；任何缩小、反白、单色都先保这条边。</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 颜色 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">05</span><h2>颜色</h2><span class="en">Palette</span></div>
+    <div class="palette">
+      <div class="swatch"><div class="chip" style="background:#F5F0E6"></div><div class="meta"><b>宣纸</b><span>#F5F0E6 · PAPER</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#221C16"></div><div class="meta"><b>墨</b><span>#221C16 · INK</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#A62E22"></div><div class="meta"><b>朱砂</b><span>#A62E22 · CINNABAR</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#B08A3E"></div><div class="meta"><b>金</b><span>#B08A3E · GOLD</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#4F7A5A"></div><div class="meta"><b>竹青</b><span>#4F7A5A · BAMBOO</span></div></div>
+    </div>
+    <div class="type">
+      <div>
+        <p class="specimen">织雾满穗</p>
+        <p class="small">一穗低头，万粒归仓</p>
+        <p class="latin">Z H I M I S T</p>
+      </div>
+      <div class="type-notes">
+        <div><b>字标</b>：宋体，字距 0.1em。中文的书卷气来自衬线，不靠粗细。</div>
+        <div><b>拉丁</b>：无衬线，字距 0.35em。只做辅助，不抢中文。</div>
+        <div><b>正文</b>：无衬线，行高 1.7。信息层要清楚，不跟标志抢戏。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 应用 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">06</span><h2>应用</h2><span class="en">Application</span></div>
+    <div class="apps">
+      <div class="app-card">
+        <div class="cap">导航栏 / 26PX</div>
+        <div class="navbar">
+          <svg class="logo" viewBox="0 0 64 64"><use href="#mark"/></svg>
+          <span class="name">织雾满穗</span>
+          <span class="links"><i></i><i class="on"></i><i></i><i></i></span>
+        </div>
+        <p style="margin:0;font-size:11px;color:var(--muted)">站点顶栏只出现方印 + 字标；26px 以下不再带金线细节。</p>
+      </div>
+      <div class="app-card">
+        <div class="cap">应用图标 / 96PX</div>
+        <div class="avatar"><svg viewBox="0 0 64 64"><use href="#mark"/></svg></div>
+        <p style="margin:0;font-size:11px;color:var(--muted)">社交头像、桌面快捷方式用方印；圆角由容器裁切。</p>
+      </div>
+      <div class="app-card">
+        <div class="cap">为人民服务 / 印章</div>
+        <svg class="stamp" viewBox="0 0 124 34" role="img" aria-label="为人民服务印章"><use href="#motto"/></svg>
+        <p style="margin:0;font-size:11px;color:var(--muted)">品牌信条单独做一枚小印，用在页脚、海报角落，不塞进主标。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 规则 ============ -->
+  <section class="section">
+    <div class="section-head"><span class="idx">07</span><h2>使用规则</h2><span class="en">Usage</span></div>
+    <div class="rules">
+      <div class="rule">
+        <h4>留白</h4>
+        <p>标志四周至少留出「金线宽度 × 4」的空。任何文字、按钮、边框都不许压进这个范围。</p>
+      </div>
+      <div class="rule">
+        <h4>最小尺寸</h4>
+        <p>带金线的完整标志不小于 24px；16px 用简化 favicon。低于 16px 不要用，改用纯色方块。</p>
+      </div>
+      <div class="rule">
+        <h4>不要这样用</h4>
+        <div class="don'ts">
+          <div class="dont bad"><div class="box"><svg viewBox="0 0 64 64" style="transform:rotate(24deg)"><use href="#mark"/></svg></div>别旋转</div>
+          <div class="dont bad"><div class="box"><svg viewBox="0 0 64 64" style="transform:scaleX(1.45)"><use href="#mark"/></svg></div>别拉伸</div>
+          <div class="dont bad"><div class="box"><svg viewBox="0 0 64 64" style="filter:hue-rotate(150deg)"><use href="#mark"/></svg></div>别换色</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="motto">
+      <svg class="stamp" style="width:136px" viewBox="0 0 124 34" role="img" aria-label="为人民服务"><use href="#motto"/></svg>
+      <p>织雾满穗 · 用知识照亮世界</p>
+    </div>
+    <div class="meta">ZHIMIST · BRAND MARK<br>2026 · MADE FOR PEOPLE</div>
+  </div>
+
+</div>
+</body>
+</html>
