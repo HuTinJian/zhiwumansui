@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 170" width="760" height="170" role="img" aria-labelledby="t">
   <title id="t">织雾满穗 · 浅色横版品牌</title>
-  <desc>方印 + 织雾满穗 + ZHIMIST + Roblox 音乐 ID 宝库 · 在线小工具 + 用知识照亮世界 · 免费 · 无广告 + 为人民服务印章 + 网址</desc>
+  <desc>方印 + 织雾满穗 + ZHIMIST + 资料库 · 在线小工具 · 认真整理 · 持续生长 + 用知识照亮世界 · 免费 · 无广告 + 为人民服务印章 + 网址</desc>
 
   <defs>
     <linearGradient id="gSeal" x1="0" y1="0" x2="1" y2="1">
@@ -41,7 +41,7 @@
   </symbol>
   <use href="#mark" x="16" y="21" width="128" height="128"/>
   <line x1="166" y1="38" x2="166" y2="132" stroke="#B08A3E" stroke-opacity=".42"/>
-  <text x="190" y="43" font-family="'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" font-weight="600" letter-spacing="2.4" fill="#8A5A1C">ROBLOX 音乐 ID 宝库 · 在线小工具</text>
+  <text x="190" y="43" font-family="'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" font-weight="600" letter-spacing="2.4" fill="#8A5A1C">资料库 · 在线小工具 · 认真整理 · 持续生长</text>
   <text x="188" y="94" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC','SimSun','STSong',serif" font-size="48" font-weight="700" letter-spacing="5.5" fill="#221C16">织雾满穗</text>
   <text x="192" y="117" font-family="'Segoe UI',sans-serif" font-size="10" font-weight="600" letter-spacing="5.5" fill="#8A5A1C">Z H I M I S T</text>
   <text x="192" y="141" font-family="'Songti SC','SimSun',serif" font-size="12.5" letter-spacing="2.2" fill="#786B5B">用知识照亮世界 · 免费 · 无广告</text>

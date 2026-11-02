@@ -1,6 +1,6 @@
 # 织雾满穗（ZhiMist）
 
-一个纯静态的 Roblox 音乐 ID 宝库站点 + Cloudflare Pages Functions 后端（D1 数据库）。
+一个纯静态的个人资料库与在线工具站点（含 Roblox 音乐 ID 宝库）+ Cloudflare Pages Functions 后端（D1 数据库）。
 静态页面由浏览器直接打开，所有动态能力（歌曲增删、无效音乐ID上报与下架、鸣谢、热门统计、
 访问渠道统计、后台登录）都由 `functions/api/` 下的函数提供。
 
