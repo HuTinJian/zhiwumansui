@@ -1254,6 +1254,15 @@
 
   <!-- ==================== 页脚（结构与 index.html 一致） ==================== -->
   <footer class="footer">
+
+    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <p class="footer-legal">
       隐私说明：你填写的昵称、反馈内容与联系方式会保存到本站数据库，只用于排查问题和回复你；联系方式不会公开展示。<br>

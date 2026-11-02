@@ -58,13 +58,15 @@
   .concept-card h3{font-family:var(--serif);font-size:22px;letter-spacing:.18em;margin:10px 0 6px;font-weight:700}
   .concept-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.9}
 
-  .variants{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .variant{border-radius:18px;padding:30px 34px;display:flex;align-items:center;justify-content:flex-start;min-height:170px}
+  .variants{display:grid;grid-template-columns:1fr;gap:18px}
+  .variant{border-radius:18px;padding:30px 34px;display:flex;align-items:center;justify-content:center;min-height:170px}
+  .variant > div{width:100%;max-width:760px}
   .variant.light{background:var(--card);border:1px solid var(--line)}
   .variant.dark{background:#14110E;border:1px solid #3A3228}
   .variant-cap{font:10px/1 var(--mono);letter-spacing:.2em;color:var(--muted);margin-bottom:16px}
   .variant.dark .variant-cap{color:#9C8F7C}
-  .lockup{display:block;width:100%;max-width:420px;height:auto}
+  .lockup{display:block;width:100%;max-width:760px;height:auto}
+  .lockup-note{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.8}
 
   .sizes{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap;padding:26px 28px;border:1px solid var(--line);border-radius:18px;background:var(--card)}
   .size{display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -99,8 +101,10 @@
   .type-notes{display:grid;gap:14px;font-size:12px;color:var(--muted);line-height:1.8}
   .type-notes b{color:var(--ink);font-weight:600}
 
-  .apps{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
+  .apps{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .app-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:190px}
+  .qq-row{display:flex;align-items:center;gap:16px}
+  .qq-avatar{width:96px;height:96px;border-radius:50%;display:block;flex-shrink:0;box-shadow:0 10px 22px rgba(52,38,24,.18)}
   .app-card .cap{font:9px/1 var(--mono);letter-spacing:.2em;color:var(--muted)}
   .navbar{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,var(--paper),var(--paper-2));border:1px solid var(--line);border-radius:8px;padding:8px 10px}
   .navbar .logo{width:26px;height:26px;flex-shrink:0}
@@ -155,6 +159,29 @@
       <stop offset="0" stop-color="#FFF7E6"/><stop offset="1" stop-color="#E7D6B8"/>
     </linearGradient>
   </defs>
+
+  <!-- QQ 群头像：无字圆印，聊天列表里也认得出 -->
+  <symbol id="qqAvatar" viewBox="0 0 512 512">
+    <rect width="512" height="512" fill="url(#gSeal)"/>
+    <circle cx="256" cy="256" r="238" fill="none" stroke="url(#gGold)" stroke-width="4" opacity=".62"/>
+    <circle cx="256" cy="256" r="224" fill="none" stroke="#F5F0E6" stroke-width="2" opacity=".13"/>
+    <g transform="translate(256 256) scale(7.3) translate(-32 -32)">
+      <g transform="rotate(14 32 54)">
+        <path d="M32 54 C32 45 32 36 32 26 C32 22 32 19 32 16" fill="none" stroke="url(#gCream)" stroke-width="2.4" stroke-linecap="round"/>
+        <g fill="url(#gCream)">
+          <path d="M32 36 C28.4 35.6 25.8 33.2 24.8 29.8 C28.4 30.4 31 32.2 32 35 Z"/>
+          <path d="M32 29.5 C28.4 29.1 25.8 26.7 24.8 23.3 C28.4 23.9 31 25.7 32 28.5 Z"/>
+          <path d="M32 23 C28.4 22.6 25.8 20.2 24.8 16.8 C28.4 17.4 31 19.2 32 22 Z"/>
+          <path d="M32 36 C35.6 35.6 38.2 33.2 39.2 29.8 C35.6 30.4 33 32.2 32 35 Z"/>
+          <path d="M32 29.5 C35.6 29.1 38.2 26.7 39.2 23.3 C35.6 23.9 33 25.7 32 28.5 Z"/>
+          <path d="M32 23 C35.6 22.6 38.2 20.2 39.2 16.8 C35.6 17.4 33 19.2 32 22 Z"/>
+        </g>
+        <path d="M32 16.5 C30.4 13.8 30.4 10.4 32 7.6 C33.6 10.4 33.6 13.8 32 16.5 Z" fill="url(#gGold)"/>
+      </g>
+      <path d="M12.5 45 C18 41.2 24 41.2 29.8 45 C35.6 48.8 41.8 48.8 50.5 42.8" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M16 50.2 C21.4 47.6 26.6 47.6 31 50.2 C35.8 53 41.2 53 47.4 49.2" fill="none" stroke="#F5F0E6" stroke-width="1.05" stroke-linecap="round" opacity=".26"/>
+    </g>
+  </symbol>
 
   <!-- 主标：一穗低头，金线如雾 -->
   <symbol id="mark" viewBox="0 0 64 64">
@@ -261,29 +288,42 @@
     <div class="variants">
       <div class="variant light">
         <div>
-          <div class="variant-cap">浅色 / LIGHT</div>
-          <svg class="lockup" viewBox="0 0 360 96" role="img" aria-label="织雾满穗横版标志">
-            <use href="#mark" x="8" y="8" width="80" height="80"/>
-            <line x1="101" y1="25" x2="101" y2="73" stroke="#B08A3E" stroke-opacity=".45"/>
-            <text x="116" y="53" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="33" font-weight="700" letter-spacing="3.2" fill="#221C16">织雾满穗</text>
-            <text x="118" y="70" font-family="Segoe UI, sans-serif" font-size="8.2" font-weight="600" letter-spacing="4.3" fill="#8A5A1C">ZHIMIST</text>
-            <text x="118" y="86" font-family="Songti SC, SimSun, serif" font-size="9.2" letter-spacing="1.8" fill="#786B5B">用知识照亮世界</text>
+          <div class="variant-cap">页脚主展示 · 760×170 · 浅色</div>
+          <svg class="lockup" viewBox="0 0 760 170" role="img" aria-label="织雾满穗横版品牌">
+            <use href="#mark" x="16" y="21" width="128" height="128"/>
+            <line x1="166" y1="38" x2="166" y2="132" stroke="#B08A3E" stroke-opacity=".42"/>
+            <text x="190" y="43" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="11" font-weight="600" letter-spacing="2.4" fill="#8A5A1C">ROBLOX 音乐 ID 宝库 · 在线小工具</text>
+            <text x="188" y="94" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="48" font-weight="700" letter-spacing="5.5" fill="#221C16">织雾满穗</text>
+            <text x="192" y="117" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" letter-spacing="5.5" fill="#8A5A1C">Z H I M I S T</text>
+            <text x="192" y="141" font-family="Songti SC, SimSun, serif" font-size="12.5" letter-spacing="2.2" fill="#786B5B">用知识照亮世界 · 免费 · 无广告</text>
+            <line x1="548" y1="34" x2="548" y2="136" stroke="#B08A3E" stroke-opacity=".30"/>
+            <use href="#motto" x="574" y="35" width="160" height="44"/>
+            <text x="654" y="103" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" letter-spacing="3" fill="#8A5A1C">EST. 2026</text>
+            <text x="654" y="124" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8.6" letter-spacing="1.4" fill="#786B5B">zhiwumansui.pages.dev</text>
+            <path d="M574 146 H734" stroke="#B08A3E" stroke-opacity=".22"/>
           </svg>
         </div>
       </div>
       <div class="variant dark">
         <div>
-          <div class="variant-cap">深色 / DARK</div>
-          <svg class="lockup" viewBox="0 0 360 96" role="img" aria-label="织雾满穗横版标志">
-            <use href="#mark" x="8" y="8" width="80" height="80"/>
-            <line x1="101" y1="25" x2="101" y2="73" stroke="#D8B566" stroke-opacity=".35"/>
-            <text x="116" y="53" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="33" font-weight="700" letter-spacing="3.2" fill="#F0E8D8">织雾满穗</text>
-            <text x="118" y="70" font-family="Segoe UI, sans-serif" font-size="8.2" font-weight="600" letter-spacing="4.3" fill="#E3C47C">ZHIMIST</text>
-            <text x="118" y="86" font-family="Songti SC, SimSun, serif" font-size="9.2" letter-spacing="1.8" fill="#C8BCA8">用知识照亮世界</text>
+          <div class="variant-cap">页脚主展示 · 760×170 · 深色</div>
+          <svg class="lockup" viewBox="0 0 760 170" role="img" aria-label="织雾满穗横版品牌">
+            <use href="#mark" x="16" y="21" width="128" height="128"/>
+            <line x1="166" y1="38" x2="166" y2="132" stroke="#D8B566" stroke-opacity=".35"/>
+            <text x="190" y="43" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="11" font-weight="600" letter-spacing="2.4" fill="#E3C47C">ROBLOX 音乐 ID 宝库 · 在线小工具</text>
+            <text x="188" y="94" font-family="Songti SC, Noto Serif SC, Source Han Serif SC, SimSun, STSong, serif" font-size="48" font-weight="700" letter-spacing="5.5" fill="#F0E8D8">织雾满穗</text>
+            <text x="192" y="117" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" letter-spacing="5.5" fill="#E3C47C">Z H I M I S T</text>
+            <text x="192" y="141" font-family="Songti SC, SimSun, serif" font-size="12.5" letter-spacing="2.2" fill="#C8BCA8">用知识照亮世界 · 免费 · 无广告</text>
+            <line x1="548" y1="34" x2="548" y2="136" stroke="#D8B566" stroke-opacity=".30"/>
+            <use href="#motto" x="574" y="35" width="160" height="44"/>
+            <text x="654" y="103" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" letter-spacing="3" fill="#E3C47C">EST. 2026</text>
+            <text x="654" y="124" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8.6" letter-spacing="1.4" fill="#C8BCA8">zhiwumansui.pages.dev</text>
+            <path d="M574 146 H734" stroke="#D8B566" stroke-opacity=".22"/>
           </svg>
         </div>
       </div>
     </div>
+    <p class="lockup-note">页脚使用富信息版；屏幕宽度 ≤640px 时自动换 360×96 紧凑版（方印 + 字标 + 一句标语）。</p>
   </section>
 
   <!-- ============ 尺寸 ============ -->
@@ -381,6 +421,13 @@
         <div class="cap">应用图标 / 96PX</div>
         <div class="avatar"><svg viewBox="0 0 64 64"><use href="#mark"/></svg></div>
         <p style="margin:0;font-size:11px;color:var(--muted)">社交头像、桌面快捷方式用方印；圆角由容器裁切。</p>
+      </div>
+      <div class="app-card">
+        <div class="cap">QQ 群头像 / 512</div>
+        <div class="qq-row">
+          <svg class="qq-avatar" viewBox="0 0 512 512" role="img" aria-label="QQ 群头像"><use href="#qqAvatar"/></svg>
+          <p style="margin:0;font-size:11px;color:var(--muted);line-height:1.8">无字版，聊天列表小尺寸也认得出；群名由 QQ 显示。</p>
+        </div>
       </div>
       <div class="app-card">
         <div class="cap">为人民服务 / 印章</div>

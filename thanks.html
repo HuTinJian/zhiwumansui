@@ -164,6 +164,15 @@
        页脚【内部】加回三行（法律定位 / 隐私说明 / 联系站长），四个页面同步；
        页脚【下面】依然什么都没有（老约束没破）。 -->
   <footer class="footer">
+
+    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <!-- 法律定位 + 隐私说明 + 联系站长（2026-10-09 加，理由见 index.html 同处注释）：
          只提供跳转 Roblox 官方页面的链接、不存储不传播音频；

@@ -660,6 +660,15 @@
   <!-- ==================== 页脚 ==================== -->
   <!-- 说明：与其它四个页面保持同一套内容（法律定位 / 隐私说明 / 联系站长）。 -->
   <footer class="footer">
+
+    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>

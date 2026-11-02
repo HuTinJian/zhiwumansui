@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" width="360" height="96" role="img" aria-labelledby="t">
-  <title id="t">织雾满穗 · 浅色横版</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 170" width="760" height="170" role="img" aria-labelledby="t">
+  <title id="t">织雾满穗 · 浅色横版品牌</title>
+  <desc>方印 + 织雾满穗 + ZHIMIST + Roblox 音乐 ID 宝库 · 在线小工具 + 用知识照亮世界 · 免费 · 无广告 + 为人民服务印章 + 网址</desc>
 
   <defs>
     <linearGradient id="gSeal" x1="0" y1="0" x2="1" y2="1">
@@ -12,10 +13,10 @@
       <stop offset="0" stop-color="#FFF7E6"/><stop offset="1" stop-color="#E7D6B8"/>
     </linearGradient>
   </defs>
+
   <symbol id="mark" viewBox="0 0 64 64">
     <rect width="64" height="64" rx="15" fill="url(#gSeal)"/>
     <rect x="4.4" y="4.4" width="55.2" height="55.2" rx="10.8" fill="none" stroke="url(#gGold)" stroke-opacity=".5"/>
-
     <g transform="rotate(14 32 54)">
       <path d="M32 54 C32 45 32 36 32 26 C32 22 32 19 32 16" fill="none" stroke="url(#gCream)" stroke-width="2.4" stroke-linecap="round"/>
       <g fill="url(#gCream)">
@@ -28,13 +29,25 @@
       </g>
       <path d="M32 16.5 C30.4 13.8 30.4 10.4 32 7.6 C33.6 10.4 33.6 13.8 32 16.5 Z" fill="url(#gGold)"/>
     </g>
-
     <path d="M12.5 45 C18 41.2 24 41.2 29.8 45 C35.6 48.8 41.8 48.8 50.5 42.8" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-linecap="round"/>
     <path d="M16 50.2 C21.4 47.6 26.6 47.6 31 50.2 C35.8 53 41.2 53 47.4 49.2" fill="none" stroke="#F5F0E6" stroke-width="1.05" stroke-linecap="round" opacity=".26"/>
-    <path d="M11 55 H53 M11 57.4 H53" stroke="#F5F0E6" stroke-width=".55" opacity=".10"/></symbol>
-  <use href="#mark" x="8" y="8" width="80" height="80"/>
-  <line x1="101" y1="25" x2="101" y2="73" stroke="#B08A3E" stroke-opacity=".45"/>
-  <text x="116" y="53" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC','SimSun','STSong',serif" font-size="33" font-weight="700" letter-spacing="3.2" fill="#221C16">织雾满穗</text>
-  <text x="118" y="70" font-family="'Segoe UI',sans-serif" font-size="8.4" font-weight="600" letter-spacing="4.2" fill="#8A5A1C">ZHIMIST</text>
-  <text x="118" y="86" font-family="'Songti SC','SimSun',serif" font-size="9.4" letter-spacing="1.8" fill="#786B5B">用知识照亮世界</text>
+    <path d="M11 55 H53 M11 57.4 H53" stroke="#F5F0E6" stroke-width=".55" opacity=".10"/>
+  </symbol>
+
+  <symbol id="motto" viewBox="0 0 124 34">
+    <rect width="124" height="34" rx="3.5" fill="url(#gSeal)"/>
+    <rect x="3" y="3" width="118" height="28" rx="2" fill="none" stroke="#FFF7E6" stroke-opacity=".5"/>
+    <text x="62" y="22.6" text-anchor="middle" font-family="'Songti SC','SimSun',serif" font-size="13.5" font-weight="700" letter-spacing="2.6" fill="#FFF7E6">为人民服务</text>
+  </symbol>
+  <use href="#mark" x="16" y="21" width="128" height="128"/>
+  <line x1="166" y1="38" x2="166" y2="132" stroke="#B08A3E" stroke-opacity=".42"/>
+  <text x="190" y="43" font-family="'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" font-weight="600" letter-spacing="2.4" fill="#8A5A1C">ROBLOX 音乐 ID 宝库 · 在线小工具</text>
+  <text x="188" y="94" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC','SimSun','STSong',serif" font-size="48" font-weight="700" letter-spacing="5.5" fill="#221C16">织雾满穗</text>
+  <text x="192" y="117" font-family="'Segoe UI',sans-serif" font-size="10" font-weight="600" letter-spacing="5.5" fill="#8A5A1C">Z H I M I S T</text>
+  <text x="192" y="141" font-family="'Songti SC','SimSun',serif" font-size="12.5" letter-spacing="2.2" fill="#786B5B">用知识照亮世界 · 免费 · 无广告</text>
+  <line x1="548" y1="34" x2="548" y2="136" stroke="#B08A3E" stroke-opacity=".30"/>
+  <use href="#motto" x="574" y="35" width="160" height="44"/>
+  <text x="654" y="103" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="10" font-weight="600" letter-spacing="3" fill="#8A5A1C">EST. 2026</text>
+  <text x="654" y="124" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="8.6" letter-spacing="1.4" fill="#786B5B">zhiwumansui.pages.dev</text>
+  <path d="M574 146 H734" stroke="#B08A3E" stroke-opacity=".22"/>
 </svg>

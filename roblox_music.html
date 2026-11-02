@@ -1649,6 +1649,15 @@
        Roblox ID 宝库的」，于是这一页的分享入口（工具栏那组 + 这里）全部撤掉，
        页脚又只剩版权行。要分享去首页 / 鸣谢那两页（反馈页 2026-10-05 已删除）。 -->
   <footer class="footer">
+
+    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
     <!-- 2026-10-09 站主要求（合规加固）：「你看情况帮我改，能改的都改了，以安全为主」——
          页脚【内部】补三行，四个页面同步；页脚【下面】依然什么都没有（老约束没破）。
