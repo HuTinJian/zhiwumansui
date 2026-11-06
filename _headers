@@ -28,7 +28,8 @@
 # ------------------------------------------------------------
 # 这里的目标只有一个：**让「改了代码却不生效」这件事不再发生**。
 #
-# 唯一的例外是歌曲数据，它比较大，缓存久一点更划算。
+# 2026-11-06：页面 HTML / CSS / JS / 图片 / 数据统一 5 分钟（原因见下面各段注释）。
+# 只由服务器兜底的动态接口（/api/*）不在这里配，走各自响应里的 no-store。
 
 # 歌曲主数据：5 分钟缓存。
 # 你改了 data/roblox_music.json 推上去之后，访客最多 5 分钟就能看到新版。
@@ -47,47 +48,45 @@
 /tools/*
   X-Robots-Tag: noindex, nofollow
 
-/data/roblox_music.json
+# CSS / JS：缓存 5 分钟（2026-11-06 由 60 秒上调；改完想立刻看到：Ctrl + F5）。
+# 2026-10-05 性能补丁：加 stale-while-revalidate —— 过期后浏览器先用手里的旧文件渲染，
+# 同时后台校验；2026-11-06 实测：静态资源（CSS/JS）过期后确实会带 ETag 走 304，
+# 但每次仍要一次往返（实测 ~220ms），而它们又是渲染阻塞资源，所以把有效期一起放宽到 5 分钟。
+# ⚠️ 代价说清：SWR 生效时访客这一次看到的仍是旧文件，要**再打开一次**才是新版 ——
+# 「改完看不到效果」的窗口是「5 分钟 + 一次导航」，要立刻看到就 Ctrl + F5。
+/css/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# CSS / JS：缓存 60 秒（这条不变，方便你改完就看到效果）。
-# 2026-10-05 性能补丁：加上 stale-while-revalidate —— 60 秒过后浏览器
-# 会用手里那份旧的**立刻渲染**，同时在后台问一句「有没有变」：
-# 变了下次导航就是新版、没变就 304。
-# ⚠️ 说清代价（之前这段注释写得不准）：SWR 生效时访客这一次看到的仍是旧文件，
-# 要**再打开一次**才是新版 —— 所以「改完看不到效果」的窗口不是精确的 60 秒，
-# 而是「60 秒 + 一次导航」。要立刻看到就 Ctrl + F5。
-/css/*
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
-
 /js/*
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # 图片：5 分钟（同样加 stale-while-revalidate，换了图标最多等 5 分钟，或 Ctrl + F5）
 /images/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # ------------------------------------------------------------
-# HTML 页面：2026-10-05 新增「短缓存 + 后台校验」
+# HTML 页面：短缓存（2026-10-05 加缓存，2026-11-06 从 60 秒调到 5 分钟）
 # ------------------------------------------------------------
 # 背景（性能审计实测）：Cloudflare Pages 给 HTML 的响应里**既没有 ETag 也没有
 # Last-Modified**，所以「浏览器问一句有没有变、没变回 304」这条路根本走不通 ——
 # 不设缓存就意味着**每次点开页面都要把整份 HTML 重新下一遍**（宝库页 32KB、首页 12KB，
 # 外加一次 250~460ms 的 TTFB）。这是重复访问里最大的一笔固定开销。
 #
-# 折中：只缓存 60 秒，且用 stale-while-revalidate —— 回头客立刻拿到页面（零等待），
-# 后台同时校验；你改了 HTML 最多 60 秒 + 一次导航对外生效（想立刻看到：Ctrl + F5）。
+# 2026-11-06 实测补充：`stale-while-revalidate` 对**顶层页面导航**不生效 ——
+# 60 秒到期后再点一次页面，浏览器仍是同步重下整份 HTML（实测宝库页 65 秒后重新下载
+# 69,326B、FCP 988ms）。所以把有效期放宽到 5 分钟：正常一次浏览会话里来回点，
+# 页面都直接来自缓存；改 HTML 最多 5 分钟 + 一次导航对外生效（想立刻看到：Ctrl + F5）。
 # 注意：HTML 里内联了各页自己的 CSS/JS，所以这条同时也决定了「页面结构改动」的生效速度。
 /
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /*.html
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # 说明：2026-10-05 之前这里写的是「HTML 不设缓存、必须每次拿最新」，
 # 原因是当时以为浏览器能靠 ETag/Last-Modified 走 304 —— 实测 Cloudflare Pages
 # 的 HTML 响应两者都没有，于是「不设缓存」变成了「每次都整份重下」。
-# 现在改成上面那两条 60 秒规则：新鲜度只差 60 秒，但重复访问快了一个来回。
+# 现在改成上面那两条 5 分钟规则：新鲜度只差 5 分钟，但重复访问快了一个来回。
 
 # ------------------------------------------------------------
 # 怀旧版（legacy/2026-08-25/）：2026-10-26 新增
@@ -103,7 +102,7 @@
 # 页面缓存 · 干净 URL（2026-11-06 性能修复）
 # ------------------------------------------------------------
 # 实测背景：Cloudflare Pages 会先把 /xxx.html **308 重定向**到 /xxx，浏览器最终停在
-# **不带扩展名**的地址上；而上面只写了 `/` 和 `/*.html`，于是只有首页真正吃到 60 秒缓存。
+# **不带扩展名**的地址上；而上面只写了 `/` 和 `/*.html`，于是只有首页真正吃到 HTML 缓存。
 # 其余页面每次导航都要重新下载整份 HTML（实测宝库页暖加载仍传输 68,726B、FCP 788ms，
 # 点一次「宝库」从点击到歌单出现 1.8~1.9 秒）。
 #
@@ -112,30 +111,30 @@
 # 一并改成干净 URL，所以点站内链接不会再经过 308。
 # 【回退办法】删掉这一段 + 把页面里的 href 改回 *.html，即恢复原状（会慢回原样）。
 /roblox_music
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /admin
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /thanks
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /law
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /suggest
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /feedback
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /404
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # 游戏页（emergency/）是目录首页，最终地址是 /emergency/
 /emergency/
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # 怀旧版目录首页
 /legacy/2026-08-25/
-  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
