@@ -98,3 +98,44 @@
 # ------------------------------------------------------------
 /legacy/*
   X-Robots-Tag: noindex, nofollow
+
+# ------------------------------------------------------------
+# 页面缓存 · 干净 URL（2026-11-06 性能修复）
+# ------------------------------------------------------------
+# 实测背景：Cloudflare Pages 会先把 /xxx.html **308 重定向**到 /xxx，浏览器最终停在
+# **不带扩展名**的地址上；而上面只写了 `/` 和 `/*.html`，于是只有首页真正吃到 60 秒缓存。
+# 其余页面每次导航都要重新下载整份 HTML（实测宝库页暖加载仍传输 68,726B、FCP 788ms，
+# 点一次「宝库」从点击到歌单出现 1.8~1.9 秒）。
+#
+# 这里把每个页面的「干净 URL」逐条显式列出（Cloudflare 的 _headers 按**请求路径**匹配，
+# 不会自动把 /roblox_music 折算成 /roblox_music.html）。站内链接也已在 2026-11-06
+# 一并改成干净 URL，所以点站内链接不会再经过 308。
+# 【回退办法】删掉这一段 + 把页面里的 href 改回 *.html，即恢复原状（会慢回原样）。
+/roblox_music
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/admin
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/thanks
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/law
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/suggest
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/feedback
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+/404
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+# 游戏页（emergency/）是目录首页，最终地址是 /emergency/
+/emergency/
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400
+
+# 怀旧版目录首页
+/legacy/2026-08-25/
+  Cache-Control: public, max-age=60, stale-while-revalidate=86400

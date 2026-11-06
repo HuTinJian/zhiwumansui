@@ -311,10 +311,12 @@
   </p>
 
   <div class="actions">
-    <a class="btn btn-primary" id="homeLink" href="../index.html">🏠 返回首页</a>
+    <!-- 2026-11-06：站内链接统一走「干净 URL」（Cloudflare Pages 不带 .html），
+         404 可能出现在任意深度，所以这里直接用站点根路径，下面 applyBase 还会按部署目录修正。 -->
+    <a class="btn btn-primary" id="homeLink" href="/">🏠 返回首页</a>
     <button type="button" class="btn btn-secondary" id="backBtn">↩ 返回上一页</button>
     <!-- 2026-10-05：原反馈按钮随反馈页一起删掉（站主决定反馈功能下线） -->
-    <a class="btn btn-secondary" id="thanksLink" href="../thanks.html">❤️ 鸣谢</a>
+    <a class="btn btn-secondary" id="thanksLink" href="/thanks">❤️ 鸣谢</a>
   </div>
 
   <!-- 2026-10-05：原来这里有一行「如果确信是错误，欢迎在反馈页告诉我们」，
@@ -354,8 +356,10 @@
          404 页可能出现在任意深度、也可能部署在子目录（如 GitHub Pages 的 /repo/），
          因此从当前路径逐级向上探测，找到真正存在 images/favicon.svg 的那一级作为站点根。 */
       var links = {
-        homeLink: 'index.html',
-        thanksLink: 'thanks.html'
+        /* 2026-11-06：跟站内导航一致改成干净 URL（不能再写 index.html / thanks.html，
+           否则每次点击都要先吃一次 308 重定向）。homeLink 的空串表示站点根目录本身。 */
+        homeLink: '',
+        thanksLink: 'thanks'
         /* 2026-10-05：原来那两条指向反馈页的映射（按钮那条 + 正文链接那条）
            随反馈页一起删除，这里不再保留 —— 所以下面 applyBase 也不会再去设置它们 */
       };

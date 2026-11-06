@@ -542,6 +542,16 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
   原来「HTML 不设缓存」等于**每次点开页面都整份重下**（宝库页 32KB + 250~460ms 的 TTFB），
   这是重复访问里最大的一笔固定开销。现在 `/` 与 `/*.html` 走
   `max-age=60, stale-while-revalidate=86400`。改 HTML 后最多 60 秒 + 一次导航生效。
+- **干净 URL 缓存补漏（2026-11-06）**：上面那条其实只覆盖了首页。Cloudflare Pages 会先把
+  `/xxx.html` **308 重定向**到 `/xxx`，浏览器最终停在**不带扩展名**的地址上，而 `/*.html`
+  匹配不到它们 —— 实测宝库页暖加载仍要重下 68,726B HTML、FCP 788ms，点一次「宝库」
+  从点击到歌单出现 1.8~1.9 秒。这次做了三件事：
+  · `_headers` 里把每个页面的干净 URL（`/roblox_music`、`/thanks`、`/admin`…）逐条补上
+    同样的 60 秒缓存；
+  · 站内链接从 `xxx.html` 改成干净 URL，点击不再吃一次 308（实测每次省 183~222ms）；
+  · 页面离场过渡的等待从 200ms 压到 80ms（实测点击→开始导航原来固定 204ms）。
+  本地双击 `index.html` 仍然可用：`js/common.js` 只在 `file:` 协议下把链接还原成 `.html`。
+  ⚠️ 改 `_headers` 或链接后照样是「60 秒 + 一次导航」生效，Ctrl + F5 可立即看到。
 - **两个「统计类」公开只读接口进了 60 秒缓存（2026-10-05）**：`/api/hot/list` 与
   `/api/visit/stats` 的响应加了 `Cache-Control: public, max-age=60, stale-while-revalidate=600`。
   ⚠️ 配套关键：**前端必须去掉 `?t=Date.now()`**（URL 一变缓存永远不命中）——宝库页那两处已经去掉了；
@@ -561,9 +571,10 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
     （`window.__zmMainData`），下载与 CSS/JS 并行，页面底部的 `loadData()` 直接复用这个
     promise —— 原来要等页面底部脚本执行、再等 `DOMContentLoaded` 才开始下载。
   · 宝库页的三个辅助接口（已下架快照 / `/api/quarantine/list` / `/api/songs/list`）
-    加了 1.5 秒上限：**超时先按主数据把列表画出来**，等它们回来再悄悄重绘一次
-    （`keepPage`，不会把你甩回第 1 页）；风险版本号、更新公告也不再挡在首屏前面，
-    热门榜改成点「🔥 热门推荐」时才拉。
+    加了 **0.7 秒**上限（`AUX_TIMEOUT`）：**超时先按主数据把列表画出来**，等它们回来再悄悄重绘一次
+    （`keepPage`，不会把你甩回第 1 页）；风险版本号、更新公告也不再挡在首屏前面。
+    2026-11-06：这三个请求 + 热门榜改成在 `<head>` 里就跟主数据一起发出（`__zmAuxPre` /
+    `__zmHotPre`），不再等 97KB 内联脚本解析完才发 —— 暖加载时歌单因此能少等一个接口往返。
 
 ### 三、弹窗优化
 

@@ -33,8 +33,25 @@
     (function () {
       try {
         window.__zmMainData = fetch('data/roblox_music.json').catch(function () { return null; });
+        /* 2026-11-06 性能：辅助数据（已下架快照 / 下架接口 / D1 新歌 / 热门榜）也从 <head> 里
+           提前发出去，并顺手解析成 JSON（纯数据，不是 Response —— 这样首屏超时后的
+           「迟到补画」再调一次 loadAuxLists() 也不会重复读同一个响应体）。
+           原先它们在页面底部 loadData() 才发，而整页有 97KB 内联脚本要先解析完，
+           等于白等一个「解析耗时 + 一个接口 RTT」；实测暖加载时歌单要等这串接口 ~700ms。
+           失败一律 resolve 成 null，不产生未处理的 rejection。
+           【回退办法】删掉 __zmAuxPre / __zmHotPre 这两行即可（功能不变，只是慢回原样）。 */
+        window.__zmAuxPre = Promise.all([
+          fetch('data/admin_quarantine.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+          fetch('/api/quarantine/list?t=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+          fetch('/api/songs/list?t=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+        ]).catch(function () { return null; });
+        window.__zmHotPre = fetch('/api/hot/list?limit=500')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
       } catch (e) {
         window.__zmMainData = null;
+        window.__zmAuxPre = null;
+        window.__zmHotPre = null;
       }
     })();
   </script>
@@ -1669,7 +1686,7 @@
          ③ 隐私说明 —— 《个人信息保护法》第 17 条的告知义务；本站只存随机 ID、IP 不落库。 -->
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
-      完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law.html">⚖️ 法律与风险提示</a>。<br>
+      完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law">⚖️ 法律与风险提示</a>。<br>
       隐私说明：本站只在你的浏览器本地保存一个<b>随机 ID</b>，不收集姓名、手机号等个人信息，服务端不保存 IP。<br>
       联系站长（权利人有异议、要求下架内容请直接找我；<b>收到通知后我们会立即断开相关链接</b>）：<a href="mailto:2560803486@qq.com">2560803486@qq.com</a> · QQ：2560803486
     </p>
@@ -1677,7 +1694,7 @@
 
   <!-- 左下角常驻「返回首页」（2026-10-04 用户要求）：
        导航栏取消之后，这一页唯一的路口就是它。 -->
-  <a class="back-home-fab" href="index.html" aria-label="返回首页">🏠 返回首页</a>
+  <a class="back-home-fab" href="./" aria-label="返回首页">🏠 返回首页</a>
 
   <div class="modal" id="riskModal">
     <div class="modal-content">
@@ -1689,7 +1706,7 @@
            正文往上翻的时候它一直停在顶部看得见。
            同日稍后站主又要求：「我要点击跳转是在页面里面跳转，而不是换了一个新标签」
            → 已去掉 target="_blank" / rel，改成普通站内链接（当前页跳转）。 -->
-      <a class="risk-law-link" href="law.html">
+      <a class="risk-law-link" href="law">
         <span class="ico" aria-hidden="true">⚖️</span>
         <span class="txt">
           <b>完整法律条文都在这里</b>
@@ -1739,7 +1756,7 @@
       <div class="redirect-notice">即将打开 Roblox 官方页面</div>
       <!-- 同上：二次确认弹窗也把「完整法条」入口放在最上面、且在滚动区外面；
            同样是站内跳转（不新开标签）。 -->
-      <a class="risk-law-link" href="law.html">
+      <a class="risk-law-link" href="law">
         <span class="ico" aria-hidden="true">⚖️</span>
         <span class="txt">
           <b>完整法律条文都在这里</b>
@@ -2224,9 +2241,16 @@
            2026-10-05 性能：去掉 `?t=` 与 cache:'no-store' —— 服务端已经给这个接口
            配了 `public, max-age=60`，URL 每次不同的话缓存永远不命中，等于白配。
            热门榜晚 60 秒无所谓。 */
-        const res = await fetch('/api/hot/list?limit=500');
-        if (!res.ok) return;
-        const data = await res.json();
+        /* 2026-11-06 性能：<head> 里已经把请求和 JSON 解析都做完了（__zmHotPre 是纯数据），
+           这里直接复用；旧缓存页面没有这个变量时按原样现拉一次。 */
+        let data;
+        if (window.__zmHotPre) {
+          data = await window.__zmHotPre;
+        } else {
+          const res = await fetch('/api/hot/list?limit=500');
+          if (!res.ok) return;
+          data = await res.json();
+        }
         if (data && data.ok && Array.isArray(data.data)) {
           hotMap.clear();
           data.data.forEach(item => {
@@ -2261,55 +2285,51 @@ const AUX_TIMEOUT = 700;
          用户正在点的按钮会被换掉（实测「信息出错」弹窗点不开）。
          放进这个 Promise.all 就只渲染一次，代价是首屏多等一个并行请求（有 0.7s 超时兜底）。
          【回退办法】删掉下面这一行 loadHotList() 即可。 */
-      const [staticQRes, qRes, extraRes] = await Promise.all([
-        /* 已下架的静态快照：后台「📤 导出」出来写进 data/ 目录的那份。
-           它是固定的静态文件，走 CDN 缓存（_headers 给 /data/*.json 配了 5 分钟），
-           比每次问接口快；接口那份仍然会读，两边取并集，保证刚下架的 ID 也立刻生效。 */
-        fetch('data/admin_quarantine.json').catch(() => null),
-        /* 2026-10-05：这两个接口**故意不缓存**（服务端 no-store）——
-           管理员刚下架 / 刚加的歌必须在下一次加载就生效。
-           我一度为了省一次 D1 往返给它们配了 60 秒缓存，结果被端到端验收 E34 当场证伪：
-           「后台确认下架 → 重新加载宝库页」时浏览器命中缓存、没再拉这个接口，那条 ID 依旧在。
-           所以这里继续带 `?t=`（URL 每次唯一，任何缓存都不可能命中），慢的那 600ms
-           交给上面那句 1.5 秒超时兜底：超时先画主数据，回来了再补一次重绘。 */
-        fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
-        fetch('/api/songs/list?t=' + Date.now()).catch(() => null),
-        /* ⚠️ 2026-10-18 踩过的坑：必须放在**最后** —— 上面解构只取前 3 个，
-           放进前面会把 /api/songs/list 的结果挤掉，D1 里的歌就全没了。 */
-        loadHotList().catch(() => null)
-      ]);
+      /* 2026-11-06 性能：三个辅助请求已在 <head> 里提前发出（window.__zmAuxPre），
+         这里优先复用；只有在旧缓存页面（没有 __zmAuxPre）时才按老办法现发。
+         热门榜仍走 loadHotList()（内部同样复用 __zmHotPre），保证 hotMap 的正常填充。 */
+      /* 两个接口故意带 `?t=` 且服务端 no-store：管理员刚下架 / 刚加的歌必须在
+         下一次加载就生效（2026-10-05 端到端验收 E34 证伪过「给 60 秒缓存」的写法）。
+         静态快照 data/admin_quarantine.json 仍走 CDN 的 5 分钟缓存，与接口结果取并集。 */
+      const hotP = loadHotList().catch(() => null);
+
+      /* <head> 的预加载已经把 JSON 解析好（__zmAuxPre 里是纯数据，不是 Response）——
+         这样 loadAuxLists 就算被调用两次（首屏超时后的「迟到补画」），也不会出现
+         「同一个 Response 被读两次」的错误。没有 __zmAuxPre 的旧缓存页面走下面的兜底现发。 */
+      let staticData = null, qData = null, extraData = null, usedPre = false;
+      if (window.__zmAuxPre) {
+        try {
+          const pre = await window.__zmAuxPre;
+          if (Array.isArray(pre)) {
+            staticData = pre[0]; qData = pre[1]; extraData = pre[2];
+            usedPre = true;
+          }
+        } catch (e) {}
+      }
+      if (!usedPre) {
+        const [staticQRes, qRes, extraRes] = await Promise.all([
+          fetch('data/admin_quarantine.json').catch(() => null),
+          fetch('/api/quarantine/list?t=' + Date.now()).catch(() => null),
+          fetch('/api/songs/list?t=' + Date.now()).catch(() => null)
+        ]);
+        try { staticData = staticQRes && staticQRes.ok ? await staticQRes.json() : null; } catch (e) {}
+        try { qData = qRes && qRes.ok ? await qRes.json() : null; } catch (e) {}
+        try { extraData = extraRes && extraRes.ok ? await extraRes.json() : null; } catch (e) {}
+      }
+      await hotP;
 
       /* 先收静态快照里的，再用接口结果补充 */
-      let adminQuarantine = [];
-      if (staticQRes && staticQRes.ok) {
-        try {
-          const sData = await staticQRes.json();
-          if (Array.isArray(sData)) adminQuarantine = sData;
-        } catch (e) {}
-      }
-      if (qRes && qRes.ok) {
-        try {
-          const qData = await qRes.json();
-          if (qData && qData.ok && Array.isArray(qData.data)) {
-            const seenIds = new Set(adminQuarantine.map(i => String(i.id)));
-            qData.data.forEach(item => {
-              if (item && item.id !== undefined && !seenIds.has(String(item.id))) {
-                adminQuarantine.push(item);
-              }
-            });
+      let adminQuarantine = Array.isArray(staticData) ? staticData : [];
+      if (qData && qData.ok && Array.isArray(qData.data)) {
+        const seenIds = new Set(adminQuarantine.map(i => String(i.id)));
+        qData.data.forEach(item => {
+          if (item && item.id !== undefined && !seenIds.has(String(item.id))) {
+            adminQuarantine.push(item);
           }
-        } catch (e) {}
+        });
       }
 
-      let extraSongs = [];
-      if (extraRes && extraRes.ok) {
-        try {
-          const eData = await extraRes.json();
-          if (eData && eData.ok && Array.isArray(eData.data)) {
-            extraSongs = eData.data;
-          }
-        } catch (e) {}
-      }
+      let extraSongs = (extraData && extraData.ok && Array.isArray(extraData.data)) ? extraData.data : [];
 
       return { adminQuarantine, extraSongs };
     }

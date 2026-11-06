@@ -998,7 +998,11 @@ function initShareTriggers() {
       if (url.pathname === location.pathname && url.search === location.search) return;
 
       e.preventDefault();
-      document.body.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+      /* 2026-11-06 性能：离场过渡从 0.22s / 等待 200ms 压到 0.14s / 等待 80ms。
+         实测这 200ms 是**每次站内点击都要先等**的固定开销（点击→开始导航 = 204ms），
+         在本来就要等网络的情况下纯属雪上加霜；80ms 仍然看得到淡出，但不会拖慢跳转。
+         【回退办法】把 0.14s 改回 0.22s、80 改回 200。 */
+      document.body.style.transition = 'opacity 0.14s ease, transform 0.14s ease';
       document.body.style.opacity = '0';
       document.body.style.transform = 'translateY(-6px)';
 
@@ -1008,7 +1012,7 @@ function initShareTriggers() {
         navigated = true;
         location.href = url.href;
       };
-      setTimeout(go, 200);
+      setTimeout(go, 80);
 
       /* 安全兜底：若跳转因故未发生（例如目标不存在被拦截），恢复页面可见 */
       setTimeout(() => {
@@ -1017,6 +1021,34 @@ function initShareTriggers() {
           document.body.style.transform = '';
         }
       }, 1400);
+    });
+  }
+
+  /* ============================================================
+     5.4b 本地双击（file://）兜底：干净 URL → .html
+     ------------------------------------------------------------
+     2026-11-06：站内链接从 `xxx.html` 改成 Cloudflare Pages 的干净 URL（xxx），
+     换来的是每次点击少一次 308 往返。但这样一来，**双击 index.html 用 file://
+     打开时**，`./`、`thanks` 这些地址在磁盘上并不存在，纯本地只读浏览会点不动。
+     这里只在 file: 协议下把 href 还原成对应的 .html；线上 http(s) 完全不执行。
+     【回退办法】删掉 initLocalFileLinks 函数及 initUI 里那一行调用即可。
+     ============================================================ */
+  function initLocalFileLinks() {
+    if (location.protocol !== 'file:') return;
+    const map = {
+      './': 'index.html',
+      'roblox_music': 'roblox_music.html',
+      'thanks': 'thanks.html',
+      'law': 'law.html',
+      'suggest': 'suggest.html',
+      'feedback': 'feedback.html',
+      'admin': 'admin.html',
+      'emergency/': 'emergency/index.html',
+      'legacy/2026-08-25/': 'legacy/2026-08-25/index.html'
+    };
+    document.querySelectorAll('a[href]').forEach(a => {
+      const h = a.getAttribute('href');
+      if (Object.prototype.hasOwnProperty.call(map, h)) a.setAttribute('href', map[h]);
     });
   }
 
@@ -1252,6 +1284,7 @@ function initShareTriggers() {
     initScrollUI();
     initRipple();
     initReveal();
+    initLocalFileLinks();   /* 仅 file:// 下生效：把干净 URL 还原成 .html，保住本地双击浏览 */
     initPageTransition();
 
     /* 2026-10-05 站主要求：「把公告弹窗删除了，但是公告保留」——
