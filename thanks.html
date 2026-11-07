@@ -38,7 +38,7 @@
       padding: 12px 20px 12px 12px;
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 0; /* 站主要求：方正，不要圆角 */
       box-shadow: var(--shadow-sm);
       font-family: var(--font);
       font-size: inherit;
@@ -52,11 +52,13 @@
     .thanks-sponsor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-light); }
     .thanks-sponsor-card:active { transform: translateY(0) scale(0.98); }
     .thanks-sponsor-card:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; }
+    /* 站主要求「方正」：全站按钮胶囊化规则带 !important，这里用 id 提高优先级把圆角压回 0 */
+    #thanksSponsorBtn { border-radius: 0 !important; }
     /* 左边方块：内联爱心 SVG + 「爱发电」字标，颜色走 --gold-ink，深浅主题自动变 */
     .thanks-sponsor-mark {
       width: 76px; height: 76px; flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-      border-radius: 10px; background: var(--bg-tint); border: 1px solid var(--border);
+      border-radius: 0; background: var(--bg-tint); border: 1px solid var(--border);
       color: var(--gold-ink);
     }
     .thanks-sponsor-mark svg { width: 30px; height: 30px; display: block; }
@@ -82,6 +84,21 @@
     .thanks-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
     .thanks-sponsor-cost-got b { color: var(--success); }
     .thanks-sponsor-stats-date { letter-spacing: 0.2px; }
+
+    /* 赞助弹窗：所有赞助者权益相同（不分金额），只列两条通用权益 + 去爱发电 / 去登记 */
+    .thanks-sponsor-modal { max-width: 520px; text-align: left; }
+    .thanks-sponsor-modal h2 { margin: 0 0 8px; font-size: 1.15rem; }
+    .thanks-sponsor-modal-sub { margin: 0; color: var(--text-light); font-size: 0.9rem; line-height: 1.7; }
+    .thanks-sponsor-benefits {
+      margin: 14px 0 18px; padding: 12px 16px;
+      background: var(--bg-tint); border: 1px solid var(--border);
+    }
+    .thanks-sponsor-benefits-t { margin: 0; font-size: 0.86rem; font-weight: 700; color: var(--text); }
+    .thanks-sponsor-benefits ul { margin: 8px 0 0; padding: 0; list-style: none; }
+    .thanks-sponsor-benefits li { font-size: 0.88rem; line-height: 1.95; color: var(--text); }
+    .thanks-sponsor-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .thanks-sponsor-actions .btn { flex: 1 1 200px; }
+    .thanks-sponsor-close { width: 100%; margin-top: 10px; }
 
     /* ≤768px：金额块换到下一行，竖虚线改横虚线（跟原卡一致） */
     @media (max-width: 768px) {
@@ -110,12 +127,12 @@
         gap: 10px 14px;
         width: 100%;
         padding: 14px;
-        border-radius: 18px;
+        border-radius: 0;
         background: linear-gradient(160deg, var(--bg-card) 0%, var(--gold-bg) 100%);
         border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
         white-space: normal;
       }
-      .thanks-sponsor-mark { width: 70px; height: 70px; border-radius: 8px; }
+      .thanks-sponsor-mark { width: 70px; height: 70px; border-radius: 0; }
       .thanks-sponsor-mark svg { width: 26px; height: 26px; }
       .thanks-sponsor-mark-t { font-size: 0.58rem; }
       .thanks-sponsor-txt { min-width: 0; }
@@ -279,6 +296,29 @@
 
     </section>
   </main>
+
+  <!-- 赞助弹窗：点鸣谢页赞助卡打开。权益不分金额大小，所有赞助者都只有下面两条；
+       真正付钱去爱发电，登记去 /support，不在这里收钱。 -->
+  <div class="modal" id="sponsorEntryModal" role="dialog" aria-modal="true"
+       aria-labelledby="sponsorEntryTitle" aria-hidden="true">
+    <div class="modal-content thanks-sponsor-modal">
+      <h2 id="sponsorEntryTitle">☕ 请我喝一杯</h2>
+      <p class="thanks-sponsor-modal-sub">这个站是业余时间一个人做的，AI 调用费都是自己掏的。赞助走爱发电，钱不经过本站。</p>
+      <div class="thanks-sponsor-benefits">
+        <p class="thanks-sponsor-benefits-t">所有赞助者（不分金额大小）都会得到：</p>
+        <ul>
+          <li>· 加入感谢名单，公开鸣谢</li>
+          <li>· 加入专属社区</li>
+        </ul>
+      </div>
+      <div class="thanks-sponsor-actions">
+        <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电赞助</a>
+        <a class="btn btn-secondary" href="support">✅ 我赞助过了，去登记</a>
+      </div>
+      <button type="button" class="btn btn-secondary thanks-sponsor-close"
+              onclick="closeModal('sponsorEntryModal')">关闭</button>
+    </div>
+  </div>
 
   <!-- ==================== 页脚 ==================== -->
   <footer class="footer">
@@ -616,14 +656,14 @@
   </script>
 
   <script>
-    /* 点鸣谢页赞助卡 → 直接在新窗口打开爱发电（不再弹窗；所有档位权益相同）。
+    /* 点鸣谢页赞助卡 → 打开赞助弹窗（两条通用权益 + 去爱发电 + 去登记）。
        卡片本身的 HTML 和样式一个字没动，还是原来那种方正的白卡。
        【回退办法】删掉这段脚本即可（卡片会变成点了没反应的按钮）。 */
     (function openThanksSponsor() {
       var btn = document.getElementById('thanksSponsorBtn');
       if (!btn) return;
       btn.addEventListener('click', function () {
-        window.open('https://afdian.com/a/HuTinJianZW', '_blank', 'noopener');
+        window.openModal('sponsorEntryModal');
       });
     })();
   </script>

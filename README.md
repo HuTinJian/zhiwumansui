@@ -476,7 +476,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:`。**⚠️ 2026-10-10：`roblox_music.html` 里那两处「收录 2900+ 个」早就过时了，已改成 `4799+`（对应当时 `data/roblox_music.json` 的条数）** —— 数据条数变了就顺手把这两个数字一起改。**别用 JS 动态改 `og:description`**：微信 / QQ / Twitter / Facebook 的分享卡片抓取器不执行 JS，动态写进去它们看不到，对搜索与分享有效的只有写死的静态值 |
 | **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在鸣谢页赞助卡右边的金额块里显示**（`.thanks-sponsor-stats`，占位属性 `data-site-cost` / `data-site-cost-date`；2026-11-07 赞助卡从首页 hero 挪到鸣谢页时一起搬过来的）。要改数字就改 `amount` 这一行，顺便把 `checkedAt` 改成核对当天的日期，HTML 里那份没脚本时的兜底也一起改。历年核对记录见本节末尾的流水。 |
 | **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 鸣谢页赞助卡右边那笔「收到赞助」（占位属性 `data-sponsor-total`），**每次打开现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准。接口挂掉时保留 HTML 里写死的兜底数字。 |
-| **赞助入口（爱发电）/ 想换收款方式** | `thanks.html` 的 `#thanksSponsorCard` + `js/common.js` | **2026-11-07 站主要求：赞助入口挪到鸣谢页「👑 赞助者」名单上面，且样式跟首页原来那张卡一样**（首页 hero 那条已整个删除）。卡片是 `.thanks-sponsor-card`（白底、边长 76px 的爱发电标 + 两笔账，手机上排成两栏网格），点它直接在新窗口打开 `https://afdian.com/a/HuTinJianZW`（2026-11-07 晚取消弹窗）；**换地址只改 `thanks.html` 里这处地址**。二维码图 `images/sponsor-qrcode*.png` 仍在仓库里，只是不再被任何页面引用。 |
+| **赞助入口（爱发电）/ 想换收款方式** | `thanks.html` 的 `#thanksSponsorCard` + `js/common.js` | **2026-11-07 站主要求：赞助入口挪到鸣谢页「👑 赞助者」名单上面，且样式跟首页原来那张卡一样**（首页 hero 那条已整个删除）。卡片是 `.thanks-sponsor-card`（白底、边长 76px 的爱发电标 + 两笔账，手机上排成两栏网格），点它打开赞助弹窗（两条所有赞助者通用的权益 + 去爱发电 + 去登记）；**换地址只改 `thanks.html` 里这处地址**。二维码图 `images/sponsor-qrcode*.png` 仍在仓库里，只是不再被任何页面引用。 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
 | **赞助权益说明（已下线）** | 原 `sponsor.html` | **2026-11-07 站主说「不用了」，整页删除**；原入口（首页/鸣谢弹窗里的「看完整条款」）一并去掉。现在没有档位表：赞助卡直接跳爱发电；`/support` 只登记昵称、订单号、金额（选填）和两句话。想找回旧条款：`git show 58b4ad9:sponsor.html`（删除前最后一版）。 |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里**三个切换：👑 赞助者 / 🎮 Roblox ID 宝库 / 🙏 玩家感谢**（第三个是 2026-10-05 站主要求新增的；入口一直只在顶部导航栏，页脚链接已按站主要求删掉）。深链：`?tab=sponsors`（默认）/ `?tab=roblox` / `?tab=players`。宝库页原来那个鸣谢弹窗直接跳到这个页面，不再单独弹。 |
@@ -1643,20 +1643,20 @@ D1 里那两张表不会因为删代码自己消失 —— 去 Cloudflare → D1
 **③ 赞助卡挪到鸣谢页（站主说「不要太明显」）**
 
 - 首页 hero 那块赞助卡**整个删掉**，首页现在没有任何赞助入口。
-- 鸣谢页「👑 赞助者」分组上面加了一条：上下虚线、无背景、小字，
-  文案是「喜欢这个站？请我喝一杯 / 赞助走爱发电 · 点我去爱发电支持」，点击直接新窗口去爱发电；
+- 鸣谢页「👑 赞助者」分组上面是一张**方正的白色赞助卡**（圆角 0，站主 2026-11-07 晚要求），
+  文案是「喜欢这个站？请我喝一杯 / 赞助走爱发电 · 点我去爱发电支持」；
   下面一行小字是「共花费 ¥283.03 · 收到赞助 ¥xx · 截至 2026-11-07」。
   金额仍由 `js/common.js` 的 `fillSiteCost` / `fillSponsorTotal` 回填，HTML 里只是没脚本时的兜底。
-- （2026-11-07 晚第三次改口径：站主把所有档位权益统一后，`#sponsorEntryModal` 整个删掉，
-  点卡片直接跳爱发电；登记入口改为直接访问 `/support`。）
+- 点卡片打开 `#sponsorEntryModal`：只列**所有赞助者（不分金额）都有的两条权益**（加入感谢名单公开鸣谢 / 加入专属社区），
+  加「☕ 去爱发电赞助」外链、「✅ 我赞助过了，去登记」→ `/support`、关闭。
 
 **④ 验收（真跑）**
 
-- 单测 `.verify/_test-sponsor-20261107.mjs`：node:sqlite 假 D1 直接调三个接口，**24/24** ——
+- 单测 `.verify/_test-sponsor-20261107.mjs`：node:sqlite 假 D1 直接调三个接口，**26/26** ——
   正常登记 / 重复订单 409 / 订单号格式 / 昵称尖括号抹除 / 未登录 401 / 统计 /
   确认写 thanks 且金额 ¥25.00 / 重复确认 409 不重复插 / 自定义金额必填 /
   全角「￥88.5」→「¥88.50」/ reject·restore·delete / 删除登记不影响已入账的鸣谢 / 404 / 400。
-- 端到端 `.verify/_e2e-sponsor-20261107.mjs`：本地 mock 服务器 + headless Edge，**24/24** ——
+- 端到端 `.verify/_e2e-sponsor-20261107.mjs`：本地 mock 服务器 + headless Edge，**26/26** ——
   鸣谢页赞助卡位置（在赞助者上面）、金额与日期回填、弹窗开 / 关、390px 与 320px 无横向溢出；
   `/support` 非法订单号被拦、合法登记真的进了后端；后台列表 / 统计、确认弹窗默认金额、
   确认后统计变化、**鸣谢名单里真的多出这个人的名字**；首页确认没有赞助入口；**0 条 JS 报错**。
@@ -1695,3 +1695,12 @@ D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare →
 - `/support`：删掉「赞助档位」下拉，改成「赞助金额（元，选填）」数字输入（`#regAmount`）；原有留言改名「想对站主说的话」（私信，不公开），新增「想对大家说的话（选填）」文本框（`#regPublicMessage`，最多 200 字，确认后显示在鸣谢页）。
 - 后端：`sponsor_regs` 新增 `public_message` 列；登记时 `amount` 自报金额可空（服务端统一成 `¥x.xx`）；确认入账时公开留言优先取 `public_message`，私信永不写入 `thanks`。
 - 单测与 E2E 同步改成新口径；E2E 用拦截 `window.open` 的方式验证跳转地址，并断言鸣谢页只出现公开留言。
+
+**⑩ 同日第四次调整：弹窗加回（两条通用权益）+ 卡片改方正 + D1 迁移已执行**
+
+站主原话：「小卡片弄成方正的！」「点击按钮后，搞个弹窗，里面有『加入感谢名单，公开鸣谢』『加入专属社区』这 2 个所有赞助者（不分金额大小）都有的功能，然后在弹窗里面弄个登记按钮」「D1我不是给您API了吗？」。
+
+- `.thanks-sponsor-card` / `.thanks-sponsor-mark` 圆角全部改成 0；因为全站「按钮胶囊化」规则带 `!important`，所以在 `thanks.html` 里用 `#thanksSponsorBtn { border-radius: 0 !important; }` 压回来（没有改公共 `css/style.css`，避免和另一个会话的改动混在一起）。
+- `#sponsorEntryModal` 加回：内容只有两条所有赞助者（不分金额）通用的权益——加入感谢名单公开鸣谢、加入专属社区；再加「☕ 去爱发电赞助」外链、「✅ 我赞助过了，去登记」→ `/support`、关闭。点卡片走 `openModal`，不再直接跳转。
+- D1 第 7 组已由 AI 用 Cloudflare API 直接执行（账号/库 ID 在 `.verify/cf-targets.json`，令牌在 `E:\.dsh\.credentials.yaml` 的 `refs.CLOUDFLARE_API_TOKEN`）：`sponsor_regs` 表 + 两条索引已建，`page_updates` 里的 sponsor 旧公告行已清。线上 `POST /api/sponsor/register` 实测返回 `{"ok":true}`，测试行随后已删除。
+- 验收：单测 26/26；E2E 26/26（新增「卡片圆角为 0」「弹窗两条权益」「去登记入口」断言），0 条 JS 报错。
