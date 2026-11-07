@@ -1,27 +1,10 @@
-/* ============================================================
-   织雾满穗 · 后台管理
-   卡片管理（歌曲 / 无效音乐ID管理）、
-   鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计
-   ------------------------------------------------------------
-   2026-10-01 用户要求：
-     · 每个列表面板都配上「📊 数据统计」，卡片内容各归各位
-       （「开发者隔离区」那张卡从歌曲管理搬到隔离区自己那儿，
-        歌曲管理这边换成「D1 歌曲数量」）；
-     · 标题后面那些灰色数字徽章全部删掉（数字只看统计卡）；
-     · 「📥 导入」改名「➕ 添加歌曲 / ➕ 添加隔离歌曲」，跟鸣谢名单的叫法对齐。
-   2026-10-05 站主要求（契约 .verify/SPEC-invalid-20261005.md）：
-     · 「💬 反馈管理」整块下线 —— 标签、面板、弹窗、统计卡、所有反馈 JS 一起删；
-     · 原「⛔ 开发者隔离区」并入新的「🚫 无效音乐ID管理」（待处理上报 / 已忽略 /
-       已下架 三段 + 统计卡 + 分页 + 批量操作 + 导出 + 清空已忽略）；
-     · 鸣谢类别新增「网站创新家」，该类别的描述由站主手写、绝不自动代写。
-   ============================================================ */
+/* 织雾满穗 · 后台管理：卡片管理（歌曲 / 无效音乐ID管理）、鸣谢名单（👑 赞助者 + 🎮 Roblox ID 宝库）、数据统计。 */
 
-/* 「💡 网站创新家」这个类别的名字跟数据口径绑着（D1 里存的就是带图标的这七个字符），别改。
-   2026-10-05 站主明确：这一栏的描述他自己手写，所以代码里写死「绝不自动代写」。
-   2026-10-05 补：站主说「网站创新家前面也要有个图标」→ 类别名统一带上 💡
-   （跟别的类别 `🎬 ID公益UP主/作者` / `💬 反馈贡献者` 一样，前面的图标属于名字的一部分，
-   后台下拉、D1、鸣谢页显示的是同一个字符串）。判断用 indexOf 宽松匹配，
-   这样以前存成不带图标的「网站创新家」的老数据（如果以后有）也照样算数。 */
+/* 「💡 网站创新家」这个类别名跟数据口径绑着（D1 里存的就是带图标的这七个字符），别改。
+   图标属于名字的一部分（跟其他类别 `🎬 ID公益UP主/作者` / `💬 反馈贡献者` 一样），
+   后台下拉、D1、鸣谢页显示的是同一个字符串。
+   这一类的描述一律手写，代码里写死「绝不自动代写」。
+   判断用 indexOf 宽松匹配，不带图标的老数据也照样算数。 */
 const MANUAL_NOTE_CATEGORY = '💡 网站创新家';
 const MANUAL_NOTE_KEYWORD = '网站创新家';
 
@@ -35,24 +18,15 @@ function isInnovatorCategory(cat) {
   return String(cat === undefined || cat === null ? '' : cat).indexOf(MANUAL_NOTE_KEYWORD) !== -1;
 }
 
-/* ============================================================
-   🙏 玩家感谢（2026-10-05 站主要求新增）
-   ------------------------------------------------------------
-   站主原话：「鸣谢名单加一个『玩家感谢』，里面把 Roblox 里面的网站创新家弄到这里来，
-   后台依旧跟 Roblox 一样可以自定义」。
-   · 鸣谢页多了第三个切换「🙏 玩家感谢」；「💡 网站创新家」从 Roblox 那栏搬过来；
-   · 后台多了个子面板「🙏 玩家感谢」，跟 Roblox 那一栏一样能增 / 改 / 删、能导出。
-   ⚠️ 2026-10-05 站主后来又说「把后台的所有关于自定义类别的都删除了」——
-      所以后台**没有**自由起名的入口了：类别只能从下拉里现有的项里选
-      （固定几项 + D1 里出现过的类别，后者由 syncThanksCategoryOptions 自动补进列表）。
-      因此下面这套归属规则现在只用来「把已有类别分到对应那一栏」，不再有「新类别补前缀」那回事。
-   归属规则（**必须跟 thanks.html 里的 isPlayerThanks 一模一样，改一处要改两处**）：
+/* 🙏 玩家感谢 分区：类别归属规则
+   （**必须跟 thanks.html 里的 isPlayerThanks 一模一样，改一处要改两处**）：
      一个类别属于「玩家感谢」当且仅当 ——
        ① 名字里带 🙏
        ② 名字里含「玩家感谢」
-       ③ 名字里含「网站创新家」（就是搬过来的那一类，D1 里的名字没变，不用改库）
+       ③ 名字里含「网站创新家」（搬过来的那一类，D1 里的名字没变，不用改库）
      其余类别（除 👑 赞助者 / 🚫 已删除赞助者）都归「🎮 Roblox ID 宝库」。
-   ============================================================ */
+   后台没有自由起名的入口：类别只能从下拉里现有的项里选
+   （固定几项 + D1 里出现过的类别，后者由 syncThanksCategoryOptions 自动补进列表）。 */
 const PLAYER_THANKS_MARK = '🙏';
 const PLAYER_THANKS_KEYWORD = '玩家感谢';
 
@@ -65,8 +39,7 @@ function isPlayerThanksCategory(cat) {
 }
 
 /* 当前「添加 / 编辑鸣谢」弹窗是从哪一栏打开的：roblox / players。
-   只决定一件事：下拉里只列出归属这一栏的类别（applyThanksDropdownForPanel 用）。
-   2026-10-05 删掉自定义类别后，这里不再负责「保存时补 🙏 前缀」。 */
+   只决定一件事：下拉里只列出归属这一栏的类别（applyThanksDropdownForPanel 用）。 */
 let addThanksScope = 'roblox';
 
 /* 现在到底要不要「不自动代写」：勾选框勾着，或者类别就是网站创新家。
@@ -84,13 +57,8 @@ function setStatText(id, value) {
   if (el) el.textContent = value;
 }
 
-/* ============================================================
-   分页（2026-10-01 站主要求）
-   ------------------------------------------------------------
-   歌曲管理 / 开发者隔离区 / 鸣谢名单那两栏，都按「100 组/页」分页，
-   样式跟宝库页（roblox_music.html）那套一模一样 —— 宝库页那边是
-   .pager + pagerNumbers()，这里照搬过来，只是换成后台这几个列表用。
-   ============================================================ */
+/* 分页：歌曲管理 / 鸣谢名单那两栏按「100 组/页」分页，
+   样式跟宝库页（roblox_music.html）那套一模一样（.pager + pagerNumbers()），这里照搬过来给后台这几个列表用。 */
 const ADMIN_PAGE_SIZE = 100;
 
 function clampPage(page, total) {
@@ -201,8 +169,7 @@ function scrollListIntoView(el) {
          （打开后台时不加载，省掉几万字符的解析和一次网络请求）。
          这个函数是通用的，没有面板名单，也不写死任何 id：
          它只唤醒「当前可见的那条链」上的 iframe。
-         2026-09-29：合并工具搬去桌面本地版之后，后台里已经没有 iframe 了，
-         这句留着没坏处 —— 以后要嵌工具页，它照样按「用到才加载」的规矩工作。 */
+         现在后台没有 iframe，这句留着没坏处 —— 以后要嵌工具页，它照样按「用到才加载」的规矩工作。 */
       if (typeof window.__zmLoadPanelIframes === 'function') {
         window.__zmLoadPanelIframes(panel);
       }
@@ -218,27 +185,22 @@ function scrollListIntoView(el) {
         window.ensureSponsors();
       }
 
-      /* 2026-11-07：📬 建议/反馈收件箱后台面板已删除（页面、接口、D1 一并删），
-         这里不再有对应的懒加载分支。 */
     });
   });
 
   loadRobloxStats();
   loadSongs();
-  loadSubmissions();   /* 2026-10-07：D1歌曲管理下面的「📥 玩家投稿」 */
+  loadSubmissions();   /* 📥 玩家投稿：D1 歌曲管理下面那一块 */
   loadThanks();
-  /* 2026-10-05：卡片管理是默认打开的面板，所以无效音乐ID管理一进来就拉一次；
-     （原来这里第一行拉的是反馈列表，反馈面板整块下线后换成 loadInvalid()） */
+  /* 卡片管理是默认打开的面板，所以无效音乐ID管理一进来就拉一次。 */
   loadInvalid();
-  // 注：2026-09-29 起后台没有「更新管理」了（公告改由 AI 写 data/updates.json），
   // 所以这里也不需要为任何更新面板做初始化。
 
-  /* 🚫 无效音乐ID管理：工具条 / 三段切换 / 批量操作（2026-10-05 新增）
-     —— 原来这里是「➕ 添加隔离歌曲」弹窗的三条绑定，那个弹窗随旧隔离区面板删了。 */
+  /* 🚫 无效音乐ID管理：工具条 / 分段切换 / 批量操作 */
   bindInvalidPanel();
 
-  /* 🎶 歌曲管理的搜索框（2026-10-05 站主要求）：输入停 150ms 再重画，页码回到第 1 页；
-     ESC 一键清空（跟宝库页搜索框一个手感）。 */
+  /* 🎶 歌曲管理的搜索框：输入停 150ms 再重画，页码回到第 1 页；
+       ESC 一键清空（跟宝库页搜索框一个手感）。 */
   const songSearchEl = document.getElementById('songSearch');
   if (songSearchEl) {
     const applySongSearch = debounce(() => {
@@ -256,12 +218,11 @@ function scrollListIntoView(el) {
     });
   }
 
-  /* 歌曲管理按钮（2026-09-29 用户要求把「➕ 添加歌曲」和「📤 导出」两个按钮拿掉，
-     只服务于它们的弹窗和处理函数也一并删了；「📥 导入」是在 admin.html 的内联脚本里
-     单独绑的，跟这里无关）。所以这一块现在只剩「🧹 清空」一条绑定。 */
+  /* 歌曲管理按钮区：只剩「🧹 清空」一条绑定
+       （「📥 导入」是在 admin.html 的内联脚本里单独绑的，跟这里无关）。 */
   document.getElementById('clearSongsBtn').onclick = handleClearSongs;
 
-  /* 📥 玩家投稿（2026-10-07）：D1歌曲管理里那一块的「🔄 刷新」 */
+  /* 📥 玩家投稿：D1 歌曲管理里那一块的「🔄 刷新」 */
   const refreshSubmissionsBtn = document.getElementById('refreshSubmissionsBtn');
   if (refreshSubmissionsBtn) refreshSubmissionsBtn.onclick = async () => {
     refreshSubmissionsBtn.disabled = true;
@@ -272,7 +233,7 @@ function scrollListIntoView(el) {
     showToast('✅ 已刷新玩家投稿');
   };
 
-  /* 📤 导出按钮（2026-09-29 用户要求：「卡片管理」和「鸣谢名单」各加一键导出） */
+  /* 📤 导出按钮：「卡片管理」和「鸣谢名单」各一键导出 */
   const exportSongsBtn = document.getElementById('exportSongsBtn');
   if (exportSongsBtn) exportSongsBtn.onclick = handleExportSongs;
   const exportThanksBtn = document.getElementById('exportThanksBtn');
@@ -289,8 +250,6 @@ function scrollListIntoView(el) {
     resetSponsorForm();
   };
   document.getElementById('confirmAddSponsor').onclick = handleAddSponsor;
-  /* 2026-09-26：原来这里还给「🔄 刷新」按钮绑了 loadSponsors，
-     用户要求把那个按钮去掉（与「🎮 Roblox ID 宝库」面板一致），绑定一并移除。 */
 
   /* 切到「👑 赞助者」子标签时才去拉一次（ensureSponsors 自带「只拉一次」的闸，
      所以和一级标签那层的懒加载不会重复请求） */
@@ -320,29 +279,27 @@ function scrollListIntoView(el) {
     opt.classList.add('active');
     opt.setAttribute('aria-selected', 'true');
 
-    /* 2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」：
-       这里原来有一段「选中『✏️ 自定义类别…』就露出输入框自己起名字」的逻辑，已删除。
-       现在点哪一项就是哪一项的类别名，只能从下拉里现有的类别选。 */
+    /* 点哪一项就是哪一项的类别名，只能从下拉里现有的类别选（没有自定义起名入口）。 */
     document.getElementById('addThanksSelectedCat').textContent = opt.textContent;
     addThanksTrigger.classList.add('selected');
     setAddThanksOpen(false);
-    /* 2026-10-05：类别定了就同步「✍️ 描述由我手写」——
-       类别 = 网站创新家 时必然勾上（那一栏是站主手写的），
-       从它切到别的类别时把「刚才是系统帮勾的」那一下撤掉（管理员自己勾的不动）。 */
+    /* 类别定了就同步「✍️ 描述由我手写」——
+           类别 = 网站创新家 时必然勾上（那一类由管理员手写），
+           从它切到别的类别时把「刚才是系统帮勾的」那一下撤掉（管理员自己勾的不动）。 */
     syncManualNoteWithCategory();
     addThanksTrigger.focus();
     refreshThanksNote();   /* 类别定了，名字也填了的话，顺手把描述补上 */
   }
 
   /* ============================================================
-     ✍️ 「描述由我手写（不自动代写）」（2026-10-05 站主要求）
-     ------------------------------------------------------------
-     勾上之后，描述框里写什么就原样存什么，一个字都不代写。
-     · 类别 = 网站创新家 → 默认勾上；refreshThanksNote / handleAddThanks 都不代写
-       （站主明确说这一类他自己写）。这一下是「系统帮勾的」，
-       切到别的类别时会自动撤掉；管理员自己点的勾永远不动。
-     · 判断统一走上面的 isManualThanksNote()，别在这里另写一套。
-     ============================================================ */
+       ✍️ 「描述由我手写（不自动代写）」
+       ------------------------------------------------------------
+       勾上之后，描述框里写什么就原样存什么，一个字都不代写。
+       · 类别 = 网站创新家 → 默认勾上；refreshThanksNote / handleAddThanks 都不代写
+         （这一类的描述一律由管理员手写）。这一下是「系统帮勾的」，
+         切到别的类别时会自动撤掉；管理员自己点的勾永远不动。
+       · 判断统一走上面的 isManualThanksNote()，别在这里另写一套。
+       ============================================================ */
   function manualNoteEl() {
     return document.getElementById('addThanksManualNote');
   }
@@ -368,11 +325,11 @@ function scrollListIntoView(el) {
     });
   }
 
-  /* 把 D1 里已经存在的鸣谢类别补进下拉（2026-10-04 加，2026-10-05 起更重要的用途）：
-     站主删掉「自定义类别」之后，管理员**只能从下拉里选**已有的类别 ——
-     所以「以前自建过的类别照样选得到、历史数据不会丢」全靠这一段。
-     这个函数放在 IIFE 里，是因为它要用上面的 selectAddThanksOption 来绑事件；
-     外面 loadThanks() 拿到数据后通过 window.syncThanksCategoryOptions 调用。 */
+  /* 把 D1 里已经存在的鸣谢类别补进下拉：
+       管理员只能从下拉里选已有的类别，所以「以前自建过的类别照样选得到、
+       历史数据不会丢」全靠这一段。
+       这个函数放在 IIFE 里，是因为它要用上面的 selectAddThanksOption 来绑事件；
+       外面 loadThanks() 拿到数据后通过 window.syncThanksCategoryOptions 调用。 */
   window.syncThanksCategoryOptions = function (groups) {
     if (!addThanksDropdown) return;
 
@@ -391,8 +348,8 @@ function scrollListIntoView(el) {
       const opt = document.createElement('div');
       opt.className = 'select-option';
       opt.dataset.value = name;
-      /* 2026-10-05：D1 里已有的类别按归属规则自动分栏 ——
-         新面板打开时只列出属于自己那一栏的类别（applyThanksDropdownForPanel 会过滤）。 */
+      /* D1 里已有的类别按归属规则自动分栏 ——
+               新面板打开时只列出属于自己那一栏的类别（applyThanksDropdownForPanel 会过滤）。 */
       opt.dataset.scope = isPlayerThanksCategory(name) ? 'players' : 'roblox';
       opt.textContent = name;
       opt.tabIndex = 0;
@@ -409,9 +366,9 @@ function scrollListIntoView(el) {
     });
   };
 
-  /* 按当前是哪一栏过滤下拉选项（2026-10-05）：
-     scope 为 players 的只在「🙏 玩家感谢」里出现，roblox 的只在「🎮 Roblox ID 宝库」里出现。
-     顺带把上一次的选择清干净，免得串栏。 */
+  /* 按当前是哪一栏过滤下拉选项：
+       scope 为 players 的只在「🙏 玩家感谢」里出现，roblox 的只在「🎮 Roblox ID 宝库」里出现。
+       顺带把上一次的选择清干净，免得串栏。 */
   function applyThanksDropdownForPanel() {
     if (!addThanksDropdown) return;
     addThanksDropdown.querySelectorAll('.select-option').forEach(o => {
@@ -439,8 +396,7 @@ function scrollListIntoView(el) {
     openModal('addThanksModal');
   };
 
-  /* 「➕ 添加玩家感谢」（玩家感谢那一栏，2026-10-05 新增）——
-     跟上面那颗同一个弹窗，只是限定在「玩家感谢」这一栏的类别里选。 */
+  /* 「➕ 添加玩家感谢」——跟上面那颗同一个弹窗，只是限定在「玩家感谢」这一栏的类别里选。 */
   const openAddPlayerBtn = document.getElementById('openAddPlayerBtn');
   if (openAddPlayerBtn) openAddPlayerBtn.onclick = () => {
     addThanksScope = 'players';
@@ -481,14 +437,14 @@ function scrollListIntoView(el) {
   });
 
   /* ============================================================
-     ✍️ 描述留空 → 自动代写（2026-09-29 用户要求，两个加人弹窗都这样）
-     ------------------------------------------------------------
-     lastAutoNote 记住「上一次是我自动填的那句」：
-       · 描述框是空的 → 填建议句；
-       · 里面还是我上次填的那句 → 跟着新名字/类别/平台更新；
-       · 管理员自己改过（值不等于 lastAutoNote）→ 一个字都不碰。
-     触发点：选完类别、名字框失焦、平台框失焦。提交时还有一次兜底。
-     ============================================================ */
+       ✍️ 描述留空 → 自动代写（两个加人弹窗都这样）
+       ------------------------------------------------------------
+       lastAutoNote 记住「上一次是我自动填的那句」：
+         · 描述框是空的 → 填建议句；
+         · 里面还是我上次填的那句 → 跟着新名字 / 类别 / 平台更新；
+         · 管理员自己改过（值不等于 lastAutoNote）→ 一个字都不碰。
+       触发点：选完类别、名字框失焦、平台框失焦。提交时还有一次兜底。
+       ============================================================ */
   let lastAutoNote = '';
 
   function autoFillNote(inputId, builder) {
@@ -503,8 +459,8 @@ function scrollListIntoView(el) {
   }
 
   /* 添加鸣谢：类别 + 名字都有了才写（名字参与挑句子，两个人不会撞同一句）。
-     类别统一走 currentThanksCategory()。
-     2026-10-05：勾了「✍️ 描述由我手写」就一句话都不代写（网站创新家必然如此）。 */
+       类别统一走 currentThanksCategory()。
+       勾了「✍️ 描述由我手写」就一句话都不代写（网站创新家必然如此）。 */
   function refreshThanksNote() {
     if (isManualThanksNote()) return;
     const cat = currentThanksCategory();
@@ -534,8 +490,7 @@ function scrollListIntoView(el) {
 /* ============================================================
    ✍️ 描述留空时自动代写（「➕ 添加鸣谢」和「➕ 添加赞助者」共用）
    ------------------------------------------------------------
-   用户要求（2026-09-29）：往鸣谢名单里加人时，描述那一栏留空就自己写一句，
-   别让名单上出现空白；两个加人弹窗都这样。
+   往鸣谢名单里加人时，描述留空就自己写一句，别让名单上出现空白；两个加人弹窗都这样。
    做法：名字 / 类别 / 平台填好后，只要描述框还是空的（或还是上一次自动写的那句），
    就把建议句填进去 —— 提交前就看得见、想改直接改，改过就不再覆盖。
    提交时如果仍是空的，再兜一次底。纯前端规则，不联网，≤200 字。
@@ -555,9 +510,9 @@ function buildSmartThanksNote(category, name, platform) {
   const plat = String(platform || '').trim();
   const at = plat ? '在' + plat : '';
 
-  /* 2026-10-05 站主要求：类别 = 网站创新家 时描述由站主手写，一个字都不许代写。
-     这里再兜一道 —— 万一以后哪里漏了判断，也会返回空串（调用方拿到空串就不填）。
-     用关键字宽松判断：类别名带不带 💡 都算（见 MANUAL_NOTE_KEYWORD 的注释）。 */
+  /* 类别 = 网站创新家 时描述一律手写，一个字都不许代写。
+       这里再兜一道 —— 万一以后哪里漏了判断，也会返回空串（调用方拿到空串就不填）。
+       用关键字宽松判断：类别名带不带 💡 都算（见 MANUAL_NOTE_KEYWORD 的注释）。 */
   if (isInnovatorCategory(cat)) return '';
 
   let options;
@@ -605,11 +560,8 @@ function buildSmartSponsorNote(name) {
 /* ============================================================
    Roblox 数据（歌曲管理那三张统计卡）
    ------------------------------------------------------------
-   2026-10-01 用户要求：
-     · 歌曲管理的统计卡 = 总 ID 数 / 歌曲组数 / **D1 歌曲数量**（新加）。
-   2026-10-05：原来这里还顺带渲染「开发者隔离区」列表和统计，
-     那段随旧面板一起删了 —— 待处理 / 已忽略 / 已下架 现在全归
-     下面的「🚫 无效音乐ID管理」管。
+   统计卡 = 总 ID 数 / 歌曲组数 / **D1 歌曲数量**。
+   无效 / 下架数据归下面的「🚫 无效音乐ID管理」管。
    ============================================================ */
 async function loadRobloxStats() {
   try {
@@ -651,20 +603,19 @@ async function loadRobloxStats() {
 }
 
 /* ============================================================
-   🚫 无效音乐ID管理（2026-10-05 新增，替代原「⛔ 开发者隔离区」）
+   🚫 无效音乐ID管理
    ------------------------------------------------------------
    数据口径（契约 .verify/SPEC-invalid-20261005.md 第 3 节，别自己改）：
-     · 待处理 / 已忽略 → GET /api/invalid/list（按 music_id 聚合，响应里带 summary）
-     · 待处理 → GET /api/invalid/list
-                  （按 music_id 聚合；响应里带 summary：待处理 ID / 累计上报 / 其中信息出错 / 已下架）
+     · 待处理          → GET /api/invalid/list
+                         （按 music_id 聚合；响应里带 summary：
+                          待处理 ID / 累计上报 / 其中信息出错 / 已下架）
      · 已下架          → GET /api/quarantine/list
                          （quarantine_admin 这张旧表沿用不改名，界面文案统一叫「已下架」）
      · 操作            → POST /api/invalid/handle { ids, action }
          remove          确认无效 → 从全站下架
-         delete-records  这条上报不作数 → 标成**已审核**（2026-10-07 取代原来的 ignore；
-                          2026-10-17 从「真删行」改成软删 noted，好让上报者查得到审核结果）
+         delete-records  这条上报不作数 → 标成**已审核**
+                         （软删 noted，好让上报者查得到审核结果）
          restore         撤销下架重新上架（已下架 → 🔓 恢复上架）
-         （原来的 ignore / clear-ignored 已随「已忽略」那一段一起下线）
      · handle 返回的 changed 只是「受影响行数」（重复执行 remove 也还是 1），
        所以这里一律以列表接口给回来的 status 为准，不拿 changed 当「处理过」的凭据。
    导出：跟 data/admin_quarantine.json 完全一致 —— [{id, name, category}] 数组，
@@ -673,7 +624,7 @@ async function loadRobloxStats() {
 
 /* 两段各自的缓存与页码：切段 / 翻页只重画，不重新发请求（点「🔄 刷新」才重拉） */
 let invalidPendingCache = [];
-/* 两段各自的缓存与页码（2026-10-07「已忽略」下线后不再有 invalidIgnoredCache） */
+/* 两段各自的缓存与页码 */
 let invalidRemovedCache = [];
 let invalidPendingPage = 1;
 let invalidRemovedPage = 1;
@@ -681,16 +632,14 @@ let invalidRemovedPage = 1;
 /* 已下架那一栏的加载错误（拉到一半失败时，列表里要说人话，不能假装是空的） */
 let invalidRemovedError = '';
 
-/* 当前在哪一段：pending / removed，跟着两段按钮上的 data-seg 走
-   （2026-10-07 站主要求去掉「已忽略」那一段） */
+/* 当前在哪一段：pending / removed，跟着两段按钮上的 data-seg 走 */
 let invalidSeg = 'pending';
 
-/* 2026-10-05 站主要求：分类各自搜索自己的（互不影响）。
-   空串 = 这一段不过滤；匹配 ID / 歌名 / 分类 / 来源，忽略大小写。
-   2026-10-07：「已忽略」下线 → 搜索词只剩两段。 */
+/* 分类各自搜索自己的（互不影响）。
+   空串 = 这一段不过滤；匹配 ID / 歌名 / 分类 / 来源，忽略大小写。 */
 const invalidSearch = { pending: '', removed: '' };
 
-/* ✏️ 信息出错管理那一栏自己的搜索词与页码（2026-10-07 新增） */
+/* ✏️ 信息出错管理那一栏自己的搜索词与页码 */
 let invalidInfoSearch = '';
 let invalidInfoPage = 1;
 
@@ -755,8 +704,8 @@ async function loadInvalid() {
           count: Number(it && it.count) || 0,
 
           status: 'pending',
-          /* 2026-10-07：一条 ID 可能既被报「无效」又被报「信息出错」，
-             接口给了最近一条的类型与条数，这里带进渲染。 */
+          /* 一条 ID 可能既被报「无效」又被报「信息出错」，
+                       接口给了最近一条的类型与条数，这里带进渲染。 */
           type: (it && it.type) === 'info' ? 'info' : 'invalid',
           infoCount: Number(it && it.infoCount) || 0,
           invalidCount: Number(it && it.invalidCount) || 0,
@@ -818,18 +767,14 @@ async function loadInvalid() {
   setStatText('statInfoReports', invalidStatNum(infoPending.reduce((n, it) => n + (it.infoCount || 0), 0)));
 }
 
-/* 按当前段把列表画出来（两段各自分页；「已忽略」2026-10-07 下线） */
+/* 按当前段把列表画出来（两段各自分页） */
 function renderInvalidSegment() {
   if (invalidSeg === 'removed') renderInvalidRemoved();
   else renderInvalidPending();
 }
 
 /* ① 待处理上报：勾选若干条 → 批量下架 / 批量标记已审核
-   2026-10-07：每行还带一个「✅ 标记已审核」（没问题的上报直接处理掉，不是下架）。
-   2026-10-17：文案从「🗑️ 删除记录」改成「✅ 标记已审核」——行为也跟着变：
-   行留在库里、状态标 noted，上报者能查到审核结果（见 handle.js 的 delete-records）。
-   ⚠️ 元素 id 一直是 invalidBatchIgnore / btn-invalid-delete。
-   （2026-10-17 备注：当天我一度把文案改成「✅ 标记已审核」，站主指出那是他没要求的改动 → 已还原。）
+   ⚠️ 元素 id 一直是 invalidBatchIgnore / btn-invalid-delete（名字是旧的，别按名字猜语义）。
    ⚠️ 这里只画**无效上报**（invalidCount > 0）；纯「信息出错」的去「✏️ 信息出错管理」那一栏，
       两个面板各管各的，站长不用在一堆混合数据里挑。 */
 function renderInvalidPending() {
@@ -909,16 +854,12 @@ function renderInvalidPending() {
   updateInvalidPickInfo();
 }
 
-/* ② 已忽略：2026-10-07 站主要求整段删除（「没有问题的上报的 ID 直接删除后台记录就行」）——
-   原来这里的 renderInvalidIgnored() 整块跟着那一段一起删掉；
-   现在「没问题」= 在待处理里点「✅ 标记已审核」（handleInvalidAction 的 delete-records）。 */
 
-/* ②.5 ✏️ 信息出错管理（2026-10-07 站主要求新增，跟「🚫 无效音乐ID管理」并列的第二个子面板）
+/* ②.5 ✏️ 信息出错管理（跟「🚫 无效音乐ID管理」并列的第二个子面板）
    ------------------------------------------------------------
    数据来源跟待处理同一份缓存（invalidPendingCache），这里只画 infoCount > 0 的；
-   每行把**玩家改好的歌名 / 分类**和说明摆出来，站长照着改完点「✏️ 修改信息」保存就收工
-   （保存会顺带把这条标成已审核）；不想改信息、只想处理掉这条，就点「✅ 标记已审核」；
-   要是这个 ID 根本没声音，就直接「🚫 确认无效并下架」。 */
+   每行把**玩家改好的歌名 / 分类**和说明摆出来，管理员照着改完点「✏️ 修改信息」保存就收工
+   （保存会顺带把这条标成已审核）；不想改信息、只想处理掉这条，就点「✅ 标记已审核」。 */
 function renderInvalidInfo() {
   const container = document.getElementById('invalidInfoList');
   const pager = document.getElementById('invalidInfoPager');
@@ -998,9 +939,7 @@ function renderInvalidInfo() {
       note: btn.dataset.note || ''
     }));
   });
-  /* 2026-10-18：这里原来还有 .btn-invalid-remove 的绑定（确认无效并下架），
-     随那颗按钮一起删了 —— 这一栏不再提供下架操作。
-     2026-10-26：这一栏的「❌ 无效反馈」只处理 type='info'，别误伤同 ID 的无效上报。 */
+  /* 这一栏的「❌ 无效反馈」只处理 type='info'，别误伤同 ID 的无效上报。 */
   container.querySelectorAll('.btn-invalid-delete').forEach(btn => {
     btn.addEventListener('click', () => confirmInvalidDelete([btn.dataset.id], 'info'));
   });
@@ -1044,10 +983,8 @@ function renderInvalidRemoved() {
   pageItems.forEach(item => {
     const el = document.createElement('div');
     el.className = 'list-item';
-    /* 2026-10-27 站主核对：确认无效并下架 = 上报者的反馈属实，
-       上报者隔离区显示「✅ 反馈成功」；后台这一栏原来却写「❌ 拒绝」，
-       而且那行注释写在模板字符串里，浏览器会把「拒绝」当文字显示出来，已一并改正。
-       手动下架（不是访客上报）没有反馈结果，就不显示成功标签。 */
+    /* 确认无效并下架 = 上报者的反馈属实 → 上报者隔离区显示「✅ 反馈成功」。
+           手动下架（不是访客上报）没有反馈结果，就不显示成功标签。 */
     el.innerHTML = `
       <div class="row1">
         <span class="name">${escapeHtml(item.name)}</span>
@@ -1097,13 +1034,12 @@ function updateInvalidPickInfo() {
 }
 
 /* ============================================================
-   ✏️ 修改信息（2026-10-17 站主要求新增）
+   ✏️ 修改信息
    ------------------------------------------------------------
-   站主原话（问题 1）：「使用信息出错后，在后台提示的是是否加入隔离区而不是修改信息」。
-   也就是说：玩家在宝库页报「✏️ 信息出错」（歌名 / 分类不对）时，
+   玩家在宝库页报「✏️ 信息出错」（歌名 / 分类不对）时，
    后台「✏️ 信息出错管理」里该给的**主操作是「修改信息」**，
    而不是一上来就问他「要不要加入隔离区（下架）」。
-   所以这里补一颗按钮 + 一个弹窗：
+   所以这里给一颗按钮 + 一个弹窗：
      · 弹窗预填玩家报上来的「正确的歌名 / 分类」和说明，站长可以再改；
      · 点「✅ 保存并生效」→ POST /api/songs/add（本来就是 upsert：同一个 ID 只更新歌名 / 分类）
        → 再走 handleInvalidAction(..., 'delete-records') 把这条上报清掉并通知上报者；
@@ -1177,15 +1113,15 @@ async function handleInfoEdit() {
     return;
   }
 
-  /* 2026-10-26 站主定死语义：修改信息成功 = 反馈属实 → 上报者隔离区显示「✅ 反馈成功」。
-     所以这里调 fix-info（新状态 fixed），不再用 delete-records（那个表示「无效反馈」）。
-     【回退办法】把 'fix-info' 改回 'delete-records'（会显示成「无效反馈」，是旧错误行为）。 */
+  /* 修改信息成功 = 反馈属实 → 上报者隔离区显示「✅ 反馈成功」。
+       所以这里调 fix-info（新状态 fixed），不再用 delete-records（那个表示「无效反馈」）。
+       【回退办法】把 'fix-info' 改回 'delete-records'（会显示成「无效反馈」，是旧错误行为）。 */
   try {
     await handleInvalidAction([id], 'fix-info');
   } catch (err) { /* handleInvalidAction 自己会提示失败；保存本身已经成功 */ }
 
   closeModal('infoEditModal');
-  /* 2026-10-18 站主要求：这个 ID 如果在隔离区，保存了也不会在宝库页显示，得说一声。 */
+  /* 这个 ID 如果在隔离区，保存了也不会在宝库页显示，得说一声。 */
   if (saved.quarantined) {
     showToast('✅ 已保存，但该 ID 处在隔离区（已被下架），宝库页不会显示；要恢复请去「✅ 已下架」点「🔓 恢复上架」');
   } else {
@@ -1201,34 +1137,32 @@ async function confirmInvalidRemove(ids) {
   if (list.length === 0) { showToast('请先勾选要下架的 ID'); return; }
 
   const preview = list.slice(0, 10).join('、') + (list.length > 10 ? ' …' : '');
-  /* 2026-10-24 站主要求：后台不做无谓确认。下架是**可恢复**的（「✅ 已下架」里能恢复上架），
-     所以直接执行，用 toast 把「可以反悔」告诉站长就够。
-     【回退办法】把上面那段 showConfirm 加回来。 */
+  /* 后台不做无谓确认：下架是**可恢复**的（「✅ 已下架」里能恢复上架），
+       所以直接执行，用 toast 把「可以反悔」告诉站长就够。
+       【回退办法】把上面那段 showConfirm 加回来。 */
   handleInvalidAction(list, 'remove');
 }
 
 /* 标记「无效反馈」（单个 / 批量）。
-   2026-10-26 站主定死语义：这就是「这条反馈不成立、ID 其实没问题」，
-   上报者隔离区会显示「❌ 无效反馈」。
+   语义：这条反馈不成立、ID 其实没问题，上报者隔离区会显示「❌ 无效反馈」。
    type 必须传：
      · 后台「🚫 待处理上报」那一栏 → 'invalid'
      · 后台「✏️ 信息出错管理」那一栏 → 'info'
    不传时兼容旧行为（一个 ID 下 pending 全标，容易误伤另一类，别这么调）。
-   ⚠️ 不再真删行：状态标成 noted，上报者能查到审核结果。
+   ⚠️ 不真删行：状态标成 noted，上报者能查到审核结果。
    【回退办法】把 type 参数和 handleInvalidAction 里的 body.type 去掉即可恢复旧行为。 */
 async function confirmInvalidDelete(ids, type) {
   const list = (ids || []).filter(Boolean);
   if (list.length === 0) { showToast('请先勾选要处理的上报'); return; }
 
-  /* 2026-10-24：无效反馈只是「标记」，不改歌、可改回，所以不弹确认。 */
+  /* 无效反馈只是「标记」，不改歌、可改回，所以不弹确认。 */
   handleInvalidAction(list, 'delete-records', type === 'info' ? 'info' : 'invalid');
 }
 
 /* ============================================================
-   ➕ 手动下架 ID（2026-10-05 补回「站主自己下架」的能力）
+   ➕ 手动下架 ID
    ------------------------------------------------------------
-   为什么要有这条：旧的「⛔ 开发者隔离区」删掉之后，站主自己发现某个 ID 不能用
-   （但没有任何访客上报）就没了下架入口 —— 这条把它补回来。
+   用途：站长自己发现某个 ID 不能用（但没有任何访客上报）时的下架入口。
    走 POST /api/quarantine/import（source 写「手动下架」）：只写「已下架」名单，
    不进 invalid_reports，所以「待处理上报 / 累计上报」的数字不受影响。
    解析刻意写得很笨：只认 ID + 可选歌名，不碰 admin.html 那套智能分类。
@@ -3256,14 +3190,14 @@ async function loadSponsorRegs() {
     el.innerHTML =
       '<div class="row1">' +
         '<span class="name">' + escapeHtml(r.nickname || '(没写昵称)') + '</span>' +
-        '<span class="type-tag gold">' + escapeHtml(regTierLabel(r.tier)) + '</span>' +
         regStatusTag(r.status) +
       '</div>' +
       '<div class="meta">订单号 ' + escapeHtml(r.order_no || '') +
         ' · 登记于 ' + escapeHtml(adminTime(r.created_at)) +
-        (r.amount ? ' · 实收 ' + escapeHtml(adminMoney(r.amount)) : '') +
+        (r.amount ? (r.status === 'confirmed' ? ' · 实收 ' : ' · 登记金额 ') + escapeHtml(adminMoney(r.amount)) : '') +
       '</div>' +
-      (r.message ? '<div class="message">' + escapeHtml(r.message) + '</div>' : '') +
+      (r.message ? '<div class="message">🔒 对站主说：' + escapeHtml(r.message) + '</div>' : '') +
+      (r.public_message ? '<div class="message">📣 对大家说：' + escapeHtml(r.public_message) + '</div>' : '') +
       '<div class="actions">' + actions + '</div>';
 
     container.appendChild(el);
@@ -3288,11 +3222,13 @@ function openRegConfirm(id) {
 
   editingRegId = Number(id);
   document.getElementById('sponsorConfirmWho').textContent =
-    row.nickname + ' · 订单号 ' + row.order_no + ' · ' + regTierLabel(row.tier) +
-    (row.message ? ' · 留言：' + row.message : '');
+    row.nickname + ' · 订单号 ' + row.order_no +
+    (row.message ? ' · 私信：' + row.message : '');
+  /* 档位已经取消：金额先用访客登记时自报的数（可能为空），站主按爱发电实际到账改 */
   document.getElementById('sponsorConfirmAmount').value =
-    row.tier && row.tier !== 'custom' ? adminMoney(row.tier) : '';
-  document.getElementById('sponsorConfirmMessage').value = row.message || '';
+    row.amount ? adminMoney(row.amount) : '';
+  /* 弹窗里编辑的是「对大家说的话」，默认用登记时填的公开留言 */
+  document.getElementById('sponsorConfirmMessage').value = row.public_message || '';
   openModal('sponsorConfirmModal');
 }
 

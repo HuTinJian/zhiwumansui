@@ -19,27 +19,12 @@
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- ============================================================
-       2026-10-05 · 鸣谢页局部样式：已清空
-       ------------------------------------------------------------
-       这里原来有一整套「只服务『网站创新家』这一个类别」的样式：
-       整块横跨栅格 + 💡 圆徽标标题 + 每位一条独立卡片 + 描述用
-       「高亮底 + 左侧色条」的引用块（保留手写换行），
-       目的是让那一类的描述跟别的类别一眼区分开。
-       站主后来改主意：「算了吧，网站创新家等内容的格式还是跟之前赞助者那些一样吧」
-       —— 于是整套删掉，它现在跟其它类别、跟赞助者完全同一种写法
-       （.thanks-person 里那行「名字 · 平台 · 描述」内联文字）。
-       历史实现见 git 提交 d2d4158 / 257662a，需要时能照着加回来。 -->
 
   <style>
-    /* ========== 赞助入口（2026-11-07 站主要求挪到这里） ==========
-       站主原话：「不是，样式跟以前一样，但是是移动到鸣谢名单里面去了！」
-       —— 所以这里沿用首页那张赞助卡的全部外观（76px 方块标 + 两笔账），
-       只把位置换到鸣谢页「赞助者」名单上方；点它开 #sponsorEntryModal。
-       尺寸断点跟原卡一致：76px → ≤768px 62px → ≤600px 70px 两栏网格。
-       【回退办法】删掉 .thanks-sponsor-* 这段样式 + #thanksSponsorCard 那块 HTML +
-       #sponsorEntryModal + 底部 openThanksSponsor 的 IIFE；
-       想搬回首页：git show 58b4ad9^:index.html 有整套原样。 */
+    /* ========== 赞助入口 ==========
+       沿用首页那张赞助卡的外观（76px 方块标 + 两笔账），放在「👑 赞助者」名单上方；
+       点它直接在新窗口打开爱发电（所有档位权益相同，不再弹窗）。尺寸断点：76px → ≤768px 62px → ≤600px 70px 两栏网格。
+       【回退办法】删掉 .thanks-sponsor-* 这段样式 + #thanksSponsorCard 那块 HTML + 底部 openThanksSponsor 的 IIFE。 */
     .thanks-sponsor-wrap {
       display: flex;
       justify-content: center;
@@ -156,44 +141,6 @@
       .thanks-sponsor-stats-date { text-align: right; font-size: 0.66rem; }
     }
 
-    /* ========== 赞助方式弹窗（从 index.html 原样搬来） ==========
-       外层 .modal / .modal-content 是全站共用的（js/common.js 管开关）。 */
-    .sponsor-entry-modal { max-width: 520px; }
-    .sponsor-entry-lead {
-      margin: 0 0 4px;
-      color: var(--text-light);
-      line-height: 1.8;
-      font-size: 0.9rem;
-    }
-    .sponsor-entry-tiers {
-      list-style: none;
-      margin: 16px 0 0;
-      padding: 0;
-      display: grid;
-      gap: 8px;
-    }
-    .sponsor-entry-tiers li {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 9px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg-tint);
-      font-size: 0.86rem;
-      line-height: 1.6;
-    }
-    .sponsor-entry-tiers b { flex: 0 0 92px; color: var(--gold-ink); }
-    .sponsor-entry-tiers span { color: var(--text-light); }
-    .sponsor-entry-note {
-      margin: 14px 0 0;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
-    .sponsor-entry-note a { color: var(--gold-ink); }
-    .sponsor-entry-actions { flex-wrap: wrap; }
-    .sponsor-entry-close { margin-top: 12px; width: 100%; }
   </style>
 
   <!-- 主题引导：在样式渲染前确定明暗，避免闪白 -->
@@ -202,11 +149,10 @@
       try {
         var t = null;
         try { t = localStorage.getItem('zm_theme'); } catch (e) {}
-        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
+        /* 手机系统浏览器里 localStorage 可能读不到（无痕 / 隐私 / 被清理），
            这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
            【回退办法】把这个 if 块整段删掉、并把上面那行改回
-           var t = localStorage.getItem('zm_theme');
-           备份：.verify/backup-theme-20261107/本文件名 */
+           var t = localStorage.getItem('zm_theme'); */
         if (t !== 'dark' && t !== 'light') {
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
@@ -231,70 +177,46 @@
       <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
       <span class="brand-text">织雾满穗</span>
     </a>
-    <!-- 2026-10-05：反馈功能整体下线（反馈页文件已删除），导航里那个反馈入口一并删掉。
-         2026-10-09：站主说「在首页的时候，没看到『法律』的页面」「鸣谢也是」→ 三个带导航栏
-         的页面（首页 / 鸣谢 / 法律）统一加上 ⚖️ 法律 入口，指向 law.html。 -->
     <ul class="nav-links">
       <li><a href="./">🏠 首页</a></li>
       <li><a href="thanks" class="active" aria-current="page">❤️ 鸣谢</a></li>
       <li><a href="law">⚖️ 法律</a></li>
-      <!-- 2026-11-07 站主要求：建议、反馈两个页面连同接口 / D1 表 / 后台面板全部删除，
-           导航里这两项一并去掉（别再往回加）。 -->
     </ul>
   </nav>
 
   <!-- ==================== 主内容 ==================== -->
   <main class="container" id="main">
 
-    <!-- 页头：照首页「区块标题」的样子（.section-head + .hint），
-         2026-09-26 用户要求「格式像主页一样，别那么大」——
-         原来这里是居中的大标题（.thanks-head，最大 2.3rem），已经换成首页那套尺度。 -->
+    <!-- 页头：照首页「区块标题」的尺度（.section-head + .hint），不用居中大标题。 -->
     <div class="section-head center">
       <h1>❤️ 鸣谢名单</h1>
       <span class="hint">这个站能一直开着，靠的是这些人。</span>
     </div>
 
     <!-- ==================== 切换选择器 ====================
-         2026-09-26：原来挂在首页的「赞助者荣誉榜」搬到这里，
-         和「Roblox ID 宝库」的鸣谢名单合成一页，靠这个切换器换名单。
-         外观照后台 admin.html 的 .subtabs/.subtab（药丸 + 当前项有色底），
-         样式收在 css/style.css 的 .seg-tabs/.seg-tab 里。
+         外观照后台 admin.html 的 .subtabs/.subtab（药丸 + 当前项有色底），样式收在 css/style.css 的 .seg-tabs/.seg-tab。
          点击不刷新页面；?tab=sponsors（默认）/ ?tab=roblox 都能直接深链进来。 -->
     <div class="seg-tabs" role="tablist" aria-label="鸣谢名单分类">
       <button type="button" class="seg-tab active" id="tabSponsors" role="tab"
               data-tab="sponsors" aria-selected="true" aria-controls="panelSponsors">👑 赞助者</button>
       <button type="button" class="seg-tab" id="tabRoblox" role="tab"
               data-tab="roblox" aria-selected="false" aria-controls="panelRoblox">🎮 Roblox ID 宝库</button>
-      <!-- 2026-10-05 站主要求：新增第三个切换「🙏 玩家感谢」，
-           原来挂在「🎮 Roblox ID 宝库」里的「💡 网站创新家」搬到这一栏
-           （归属规则见下面 renderPlayers 上面的注释）。 -->
       <button type="button" class="seg-tab" id="tabPlayers" role="tab"
               data-tab="players" aria-selected="false" aria-controls="panelPlayers">🙏 玩家感谢</button>
     </div>
 
     <!-- ==================== 面板一：👑 赞助者 ====================
-         名单只有一处来源（2026-10-01 晚站主要求「删除就是删除了，不要搞什么隐藏」）：
-           D1 thanks 表里 category === '👑 赞助者' 的行 —— 后台那一栏加 / 改 / 删
-           就是最终结果，删掉就是真没了。
-         仓库里的 data/sponsors.json 不再参与显示，只当一份存档。 -->
+         名单只有一处来源：D1 thanks 表里 category === '👑 赞助者' 的行 —— 后台那一栏加 / 改 / 删就是最终结果。
+         仓库里的 data/sponsors.json 不参与显示，只当一份存档。 -->
     <section class="seg-panel active" id="panelSponsors" role="tabpanel"
              aria-labelledby="tabSponsors" tabindex="0">
-      <!-- 2026-09-26：原来这里是 ul.thanks-list 的卡片列表；
-           用户要求「赞助者模仿 Roblox 的鸣谢名单那样写人名」，
-           于是改成和右边那一档一模一样的结构：.thanks-group > .thanks-person。
-           容器用 .thanks-single（不是 .thanks-groups）—— 赞助者没有类别、只有一个块，
-           不需要 Roblox 那边的三列栅格。 -->
-      <!-- 2026-11-07：赞助入口从首页 hero 挪到这里，样式保持原样（站主两次要求：
-           先「不要太明显，放到鸣谢名单赞助者的上面」，再「样式跟以前一样」）。
-           位置：👑 赞助者名单正上方；点击开 #sponsorEntryModal（档位 + 去爱发电 + 去登记）。
-           数字仍由 js/common.js 回填：data-site-cost / data-site-cost-date /
-           data-sponsor-total；HTML 里的值只是没脚本时的兜底（改数字要一起改）。
-           【回退办法】删掉 #thanksSponsorCard 这块 + .thanks-sponsor-* 样式 +
-           弹窗 + 底部 IIFE，页面就回到「只留名单」。 -->
+      <!-- 赞助入口卡：位置在 👑 赞助者名单正上方；点击直接在新窗口打开爱发电（不再弹窗）。
+           数字由 js/common.js 回填：data-site-cost / data-site-cost-date / data-sponsor-total；
+           HTML 里的值只是没脚本时的兜底（改数字要一起改）。
+           【回退办法】删掉 #thanksSponsorCard 这块 + .thanks-sponsor-* 样式 + 底部 IIFE。 -->
       <div class="thanks-sponsor-wrap" id="thanksSponsorCard">
         <button type="button" class="thanks-sponsor-card" id="thanksSponsorBtn"
-                aria-haspopup="dialog" aria-controls="sponsorEntryModal"
-                aria-label="查看赞助方式（弹窗）">
+                aria-label="去爱发电支持本站（在新窗口打开）">
           <!-- 左边图标位：内联爱心 SVG（Feather heart），颜色走 currentColor -->
           <span class="thanks-sponsor-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
@@ -306,7 +228,7 @@
           <span class="thanks-sponsor-txt">
             <span class="thanks-sponsor-t">☕ 请我喝一杯</span>
             <span class="thanks-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
-            <span class="thanks-sponsor-h">点我看赞助方式</span>
+            <span class="thanks-sponsor-h">点我去爱发电支持</span>
           </span>
           <span class="thanks-sponsor-stats">
             <span class="thanks-sponsor-nums">
@@ -329,17 +251,7 @@
       </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
 
-      <!-- 2026-09-29 用户要求：赞助者名单加一句「排名不分先后」
-           （列表顺序只是加入的先后，不代表金额多少或名次）。
-           2026-10-10 站主又要求把这句删掉（原话「把……『排名不分先后 ❤️』删除了」）→ 已删。
-           ⚠️ 别再往回加。 -->
 
-      <!-- 2026-09-30 用户要求：金额（本站一共花了多少）从这一页删掉，挪去首页 hero
-           单独显示 —— 那行 .thanks-cost 已经删掉，样式也一并清理。
-           2026-11-07 站主改主意：赞助小卡片从首页 hero 搬回这一页（见上面
-           #thanksSponsorCard），金额也跟着回来了，但只占一条细线下面那行小字。
-           跟赞助码有关的东西（「☕ 请我喝一杯」+ 赞赏码小图）早在 2026-09-26
-           按用户要求删掉；现在回来的是爱发电入口，没有二维码。 -->
     </section>
 
     <!-- ==================== 面板二：🎮 Roblox ID 宝库 ==================== -->
@@ -350,18 +262,14 @@
       </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
 
-      <!-- 2026-10-10 站主要求：删掉原来挂在宝库名单下面的那句
-           「这些人是在 Roblox ID 宝库 帮过忙的。」 → 已删。 -->
       <p class="thanks-foot-actions">
         <a class="btn btn-secondary" href="roblox_music">🎮 去逛逛宝库 →</a>
       </p>
     </section>
 
-    <!-- ==================== 面板三：🙏 玩家感谢（2026-10-05 新增） ====================
-         站主要求：把原来挂在 Roblox 那一栏的「网站创新家」搬到这个新栏里；
-         归属规则写在脚本里（isPlayerThanks）：类别名以 🙏 开头、或含「玩家感谢」、
-         或含「网站创新家」的，都归这一栏 —— 所以后台在「🙏 玩家感谢」子面板里新增的
-         自定义类别也会自动落到这里，不用改代码。 -->
+    <!-- ==================== 面板三：🙏 玩家感谢 ====================
+         归属规则写在脚本里（isPlayerThanks）：类别名以 🙏 开头、或含「玩家感谢」、或含「网站创新家」的，
+         都归这一栏 —— 后台在「🙏 玩家感谢」子面板里新增的自定义类别也会自动落到这里，不用改代码。 -->
     <section class="seg-panel" id="panelPlayers" role="tabpanel"
              aria-labelledby="tabPlayers" tabindex="0" hidden>
       <div class="thanks-groups" id="playerGroups" aria-busy="true">
@@ -369,52 +277,13 @@
       </div>
       <noscript><p class="thanks-empty">名单要靠 JavaScript 才能显示，开一下就能看到 ❤️</p></noscript>
 
-      <!-- 2026-10-10 站主要求：这一栏下面那句「谢谢这些为网站出过主意的玩家。」
-           与那颗「🎮 去看看宝库 →」按钮都删掉（空掉的 .thanks-foot-actions 容器一并移除）。
-           ⚠️ 别往回加。 -->
     </section>
   </main>
 
-  <!-- ==================== 赞助方式弹窗（2026-11-07 从 index.html 搬来） ====================
-       点名单上方那条「喜欢这个站？请我喝一杯」打开，脚本在页面最底部。
-       里面只做三件事：把档位说清楚、给出爱发电外链、给已赞助的人一个登记入口。
-       ⚠️ 本站不收钱：钱只在爱发电那边走；这里只是「登记订单号 → 站主核对」。
-       【回退办法】删掉整个 div + 底部 openThanksSponsor 脚本 + 头部 .sponsor-entry-* 样式。 -->
-  <div class="modal" id="sponsorEntryModal" aria-labelledby="sponsorEntryTitle">
-    <div class="modal-content sponsor-entry-modal">
-      <h2 id="sponsorEntryTitle">☕ 请我喝一杯</h2>
-      <p class="sponsor-entry-lead">这个站是业余时间一个人做的，AI 调用费都是自己掏的。赞助走爱发电，钱不经过本站。</p>
-
-      <ul class="sponsor-entry-tiers">
-        <li><b>自定义金额</b><span>加入鸣谢名单</span></li>
-        <li><b>5 / 10 元</b><span>鸣谢名单 + 专属社区</span></li>
-        <li><b>25 元</b><span>再加 1 个与你自己有关的网站功能</span></li>
-        <li><b>50 元</b><span>再加 3 个功能，或 1 个页面</span></li>
-      </ul>
-
-      <p class="sponsor-entry-note">
-        提需求权益只包含在 25 / 50 元档；每个订单计 1 次，不按月累加。
-      </p>
-
-      <div class="modal-actions sponsor-entry-actions">
-        <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电赞助</a>
-        <a class="btn btn-secondary" href="support">✅ 已赞助，去登记</a>
-      </div>
-
-      <button class="btn btn-secondary sponsor-entry-close" type="button"
-              onclick="closeModal('sponsorEntryModal')">关闭</button>
-    </div>
-  </div>
-
   <!-- ==================== 页脚 ==================== -->
-  <!-- 2026-10-04 站主要求：导航链接和分享入口都从页脚删掉（「任何页面的页脚都不要有分享链接」），
-       四个页面的页脚统一只剩版权行。
-       2026-10-09 站主要求（合规加固）：「你看情况帮我改，能改的都改了，以安全为主」——
-       页脚【内部】加回三行（法律定位 / 隐私说明 / 联系站长），四个页面同步；
-       页脚【下面】依然什么都没有（老约束没破）。 -->
   <footer class="footer">
 
-    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+    <!-- 页脚主展示用横版品牌；浅 / 深两套，≤640px 换紧凑版。
          【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
     <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
       <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
@@ -423,9 +292,8 @@
       <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
     </div>
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
-    <!-- 法律定位 + 隐私说明 + 联系站长（2026-10-09 加，理由见 index.html 同处注释）：
-         只提供跳转 Roblox 官方页面的链接、不存储不传播音频；
-         本地只存随机 ID、IP 不落库；有异议可直接写信。 -->
+    <!-- 法律定位 + 隐私说明 + 联系站长：
+         只提供跳转 Roblox 官方页面的链接、不存储不传播音频；本地只存随机 ID、IP 不落库；有异议可直接写信。 -->
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
       完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law">⚖️ 法律与风险提示</a>。<br>
@@ -453,31 +321,23 @@
       /* D1 里赞助者用的类别名，固定这个字符串（别改，后台也按它存） */
       var SPONSOR_CATEGORY = '👑 赞助者';
 
-      /* 2026-10-01：后台「删除」底档里的赞助者时，会在 D1 存一条隐藏标记
-         （类别就是下面这个字符串）。看到它，就把同名的人从名单里去掉。
-         ⚠️ 同样是数据口径，改它要跟后台 js/admin.js 一起改。 */
+      /* 后台「删除」底档里的赞助者时，会在 D1 存一条隐藏标记（类别就是下面这个字符串）。
+         看到它，就把同名的人从名单里去掉。
+         ⚠️ 这是数据口径，改它要跟后台 js/admin.js 一起改。 */
       var SPONSOR_HIDDEN_CATEGORY = '🚫 已删除赞助者';
 
       /* ============================================================
-         2026-10-05 站主要求：新增「🙏 玩家感谢」这一栏，把原本挂在
-         「🎮 Roblox ID 宝库」里的「💡 网站创新家」搬过来。
-         ------------------------------------------------------------
          归属规则（页面 + 后台 js/admin.js 必须完全一致，改一处要改两处）：
            一个类别属于「玩家感谢」当且仅当满足任一条 ——
-             ① 名字以 🙏 开头（后台在玩家感谢那一栏新增/自定义时自动补这个前缀）
+             ① 名字以 🙏 开头（后台在玩家感谢那一栏新增 / 自定义时自动补这个前缀）
              ② 名字里含「玩家感谢」
-             ③ 名字里含「网站创新家」（就是这次搬过来的那一类；
-                D1 里存的仍然是「💡 网站创新家」，所以**不用改数据库**）
+             ③ 名字里含「网站创新家」（D1 里存的仍然是「💡 网站创新家」，所以不用改数据库）
            其余类别（除 👑 赞助者 与那个隐藏标记）都归「🎮 Roblox ID 宝库」。
          ============================================================ */
       var PLAYER_THANKS_MARK = '🙏';
       var PLAYER_THANKS_KEYWORD = '玩家感谢';
       var INNOVATOR_KEYWORD = '网站创新家';
 
-      /* 2026-10-07 站主要求：把「💬 反馈贡献者」整个类别删掉（反馈功能早就下线了）。
-         页面这边**先挡住**：即使 D1 里还留着那几行（站主还没跑 migrations.sql 第 3 组的清理语句），
-         页面上也不再出现这一类 —— 这样「删掉」立刻生效，清库只是补最后一刀。
-         后台下拉里那一项也一起删了（admin.html）。 */
       var REMOVED_CATEGORY = '💬 反馈贡献者';
 
       function isPlayerThanks(cat) {
@@ -756,14 +616,14 @@
   </script>
 
   <script>
-    /* 2026-11-07：点「喜欢这个站？请我喝一杯」那条 → 打开上面的 #sponsorEntryModal。
-       openModal / closeModal 由 js/common.js 提供（弹窗只能点按钮关，没绑遮罩）。
-       【回退办法】删掉这段脚本 + #thanksSponsorCard 那块 HTML 即可。 */
+    /* 点鸣谢页赞助卡 → 直接在新窗口打开爱发电（不再弹窗；所有档位权益相同）。
+       卡片本身的 HTML 和样式一个字没动，还是原来那种方正的白卡。
+       【回退办法】删掉这段脚本即可（卡片会变成点了没反应的按钮）。 */
     (function openThanksSponsor() {
       var btn = document.getElementById('thanksSponsorBtn');
       if (!btn) return;
       btn.addEventListener('click', function () {
-        if (typeof window.openModal === 'function') window.openModal('sponsorEntryModal');
+        window.open('https://afdian.com/a/HuTinJianZW', '_blank', 'noopener');
       });
     })();
   </script>

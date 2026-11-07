@@ -33,6 +33,8 @@
 ├── roblox_music.html          卡片1 · Roblox ID 宝库（搜索 / 分页 / 随机 / 复制 / 收藏 / 无效处理上报）
 ├── thanks.html                ❤️ 鸣谢名单（页内三个切换：👑 赞助者 / 🎮 Roblox ID 宝库 / 🙏 玩家感谢）
 ├── admin.html                 后台管理页（需登录，标签栏 3 个标签：卡片 / 鸣谢 / 数据统计）
+├── law.html                   ⚖️ 法律页（站点定位 / 隐私说明 / 联系方式）
+├── support.html               赞助登记页（填爱发电订单号，等站主核对）
 ├── 404.html                   找不到页面时显示的页面（Cloudflare Pages 会自动使用它）
 ├── css/                       样式
 │   ├── style.css              全站共用样式（颜色、按钮、弹窗、主题、精简模式）
@@ -47,22 +49,24 @@
 │   ├── roblox_music.json      站点内置的歌曲数据（静态、只读）
 │   ├── sponsors.json          👑 赞助者底档（静态、只读；后台加的那些存在 D1 里）
 │   ├── thanks.json            🎮 Roblox ID 宝库（鸣谢名单）的本地档案（静态、只读；结构同 GET /api/thanks）
+│   ├── thanks-players.json    🙏 玩家感谢的本地档案（静态、只读）
+│   ├── device-models.json     设备型号对照表（前端识别机型用，静态、只读）
 │   ├── updates.json           站点更新公告（由 AI 直接写这个文件，页面读它）
 │   └── admin_quarantine.json  已下架（原开发者隔离区）的静态快照（由后台「🚫 无效音乐ID管理 → 📤 导出」得到）
-├── tools/
-│   ├── rollback.bat           版本回退小工具（本地双击运行，和网站本身无关）
-│   └── rollback.ps1           上面那个小工具的实现
 ├── images/                    图片资源
 ├── functions/
 │   └── api/                   Cloudflare Pages Functions（后端 API）
 │       ├── _middleware.js     /api/* 专用：突发限速 + 请求体上限 + 安全响应头（2026-10-05 新增）
 │       ├── _utils.js          共享工具：响应封装、Cookie、会话签名、限速、同源校验、Turnstile 校验
+│       ├── _time.js           时间格式化小工具
 │       ├── auth/              login.js（登录）/ check.js（登录态）/ logout.js（退出）
-│       ├── songs/             list.js / add.js / delete.js / clear.js / export.js
+│       ├── songs/             list.js / add.js / delete.js / clear.js / export.js / submit.js / submissions.js
 │       ├── quarantine/        list.js / import.js / delete.js（已下架名单，界面上叫「已下架」）
-│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销自己的上报）/ list.js（后台看）/ handle.js（下架·删记录·恢复）/ **verify.js（体检 ID 存不存在，2026-10-17 新增）**
-│       ├── hot/               list.js（公开榜单）/ report.js（上报）
+│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销上报）/ list.js / mine.js / handle.js / **verify.js（体检 ID 存不存在）**
+│       ├── hot/               list.js（公开榜单）/ report.js（上报）/ delete.js（后台清榜）
 │       ├── visit/             stats.js（渠道统计）/ report.js（上报）
+│       ├── notices/           mine.js（后台公告）
+│       ├── sponsor/           list.js / register.js（登记订单）/ handle.js（核对）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
 │       ├── updates.js         版本公告（GET 公开，写需登录；**页面已改读 data/updates.json，这里只当备胎**）
 │       └── risk.js            风险弹窗版本
@@ -70,6 +74,7 @@
 ├── migrations.sql             D1 增量迁移（**老库补字段**跑这个，见第五节）
 ├── d1-drop-blog.sql           老库清理用：删掉早期遗留的五张表（全新部署不需要）
 ├── _headers                   Cloudflare Pages 静态资源响应头（安全头 + 缓存策略）
+├── _redirects                 旧地址跳转：/sponsor → 鸣谢页（301）
 ├── robots.txt                 「请勿抓取」声明（挡规矩的 AI 采集爬虫，2026-10-05 新增）
 ├── .gitignore                 忽略 .dev.vars（本地密钥）等
 └── README.md                  本文件
@@ -301,26 +306,26 @@ Cloudflare 会保存**每一次**部署，所以线上出问题时：
 线上立刻就切回那个版本，不用等重新构建，也不用碰代码。
 （注意：只有**生产部署**能作为回滚目标，预览部署不行。）
 
-**② 治本（让仓库里的代码也退回去）：双击 `tools/rollback.bat`**
+**② 治本（让仓库里的代码也退回去）：在仓库根目录用 Git 命令**
 
 面板回滚只是把线上切回旧版，仓库里的代码还是坏的 —— 下次一 push，
-坏版本又会被部署上去。所以彻底修复要走 Git，直接**双击 `tools/rollback.bat`**，
-按菜单提示操作：
+坏版本又会被部署上去。所以要彻底修复，得让仓库也退回去。
+（原来的 `tools/rollback.bat` 菜单工具已经不在了，直接敲下面这几条命令。）
 
-| 菜单 | 什么时候用 |
+| 想做的事 | 命令 |
 | --- | --- |
-| 【1】查看历史 | 看看最近都改了什么、有哪些安全点 |
-| 【2】撤销最近一次提交 | **最常见**：刚推的那版坏了，一键退回去 |
-| 【3】撤销指定的某一次提交 | 坏的只是中间某一次改动 |
-| 【4】整体回到某个安全点 | 想整体退回到某个已知良好的状态 |
-| 【5】打一个安全点 | **大改动之前先打一个**，以后随时能回来 |
-| 【6】把本地改动提交并推送 | 以后直接用 Git 管理，不必再走网页上传 |
-| 【7】从 GitHub 拉取最新 | 换电脑或在网页上改过之后，先把最新代码同步下来 |
+| 看最近改了什么 | `git log --oneline -10` |
+| **撤销最近一次提交（最常见）** | `git revert --no-edit HEAD` |
+| 撤销指定的某一次提交 | 先 `git log` 找到哈希，再 `git revert --no-edit <哈希>` |
+| 打一个安全点 | `git tag safe-YYYYMMDD && git push --tags` |
+| 整体回到某个安全点 | `git revert --no-edit <安全点>..HEAD`（把区间内的提交一次撤销） |
+| 提交并推送本地改动 | `git add -A && git commit -m "说明" && git push` |
+| 从 GitHub 拉取最新 | `git pull` |
 
-它背后用的是 `git revert`：**生成一个「反向提交」，把那次改动原样撤销掉**，
+`git revert` 会**生成一个「反向提交」，把那次改动原样撤销掉**，
 然后推送到 GitHub，Cloudflare 自动重新部署回正常版本。
-`git revert` **不会改写历史**，所以它永远安全、不会丢东西 ——
-这也是它比 `git reset --hard` 更适合新手的原因。
+它**不会改写历史**，所以永远安全、不会丢东西 —— 这也是它比 `git reset --hard`
+更适合新手的原因（`reset --hard` 会丢本地改动，别用）。
 
 > 第一次推送时可能会弹出 GitHub 登录窗口，登录一次之后就不用再登了。
 > 想更省事的话，也可以装 **GitHub Desktop**，用图形界面做同样的事。
@@ -380,8 +385,7 @@ GitHub Pages 只能托管静态文件（HTML / CSS / JS / JSON / 图片），它
   后台「🚫 无效音乐ID管理」里的**下架**只影响本站展示与合并结果，不等于从游戏里删除任何东西。
 - **D1 数据**：没有导出/备份接口给访客；建议定期在 Cloudflare 控制台用 D1 的
   Export 功能备份数据库，或执行 `npx wrangler d1 export zhimist-db --remote --output backup.sql`。
-  （2026-09-29 起这四个工具已经不在网站上了，改为桌面本地版：见附一第 11 节 ⑤。
-  剩下的 `tools/rollback.*` 是本地回退小工具，跟线上无关。）
+  （2026-09-29 起这四个工具已经不在网站上了，改为桌面本地版：见附一第 11 节 ⑤。）
 
 ### 免费防护（2026-10-05 新增）
 
@@ -472,9 +476,9 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **网站标题 / 分享时的描述** | 各 HTML 的 `<head>` | 搜 `<meta name="description"` 和 `<meta property="og:`。**⚠️ 2026-10-10：`roblox_music.html` 里那两处「收录 2900+ 个」早就过时了，已改成 `4799+`（对应当时 `data/roblox_music.json` 的条数）** —— 数据条数变了就顺手把这两个数字一起改。**别用 JS 动态改 `og:description`**：微信 / QQ / Twitter / Facebook 的分享卡片抓取器不执行 JS，动态写进去它们看不到，对搜索与分享有效的只有写死的静态值 |
 | **「到目前一共花了多少钱」这个数字** | `js/common.js` 最上面的 `SITE_COST` | 这个数字现在**只在鸣谢页赞助卡右边的金额块里显示**（`.thanks-sponsor-stats`，占位属性 `data-site-cost` / `data-site-cost-date`；2026-11-07 赞助卡从首页 hero 挪到鸣谢页时一起搬过来的）。要改数字就改 `amount` 这一行，顺便把 `checkedAt` 改成核对当天的日期，HTML 里那份没脚本时的兜底也一起改。历年核对记录见本节末尾的流水。 |
 | **「收到多少赞助」这个数字** | `js/common.js` 里的 `fillSponsorTotal()`（**不用手改**） | 鸣谢页赞助卡右边那笔「收到赞助」（占位属性 `data-sponsor-total`），**每次打开现算**：`/api/thanks` 里 `category = '👑 赞助者'` 的 `platform` 金额 + 底档 `data/sponsors.json` 的 `amount`，按名字去重、同名以 D1 为准。接口挂掉时保留 HTML 里写死的兜底数字。 |
-| **赞助入口（爱发电）/ 想换收款方式** | `thanks.html` 的 `#thanksSponsorCard` + `js/common.js` | **2026-11-07 站主要求：赞助入口挪到鸣谢页「👑 赞助者」名单上面，且样式跟首页原来那张卡一样**（首页 hero 那条已整个删除）。卡片是 `.thanks-sponsor-card`（白底、边长 76px 的爱发电标 + 两笔账，手机上排成两栏网格），点开 `#sponsorEntryModal`。弹窗里「☕ 去爱发电赞助」指向 `https://afdian.com/a/HuTinJianZW`；**换地址只改这一处 `href`**。二维码图 `images/sponsor-qrcode*.png` 仍在仓库里，只是不再被任何页面引用。 |
+| **赞助入口（爱发电）/ 想换收款方式** | `thanks.html` 的 `#thanksSponsorCard` + `js/common.js` | **2026-11-07 站主要求：赞助入口挪到鸣谢页「👑 赞助者」名单上面，且样式跟首页原来那张卡一样**（首页 hero 那条已整个删除）。卡片是 `.thanks-sponsor-card`（白底、边长 76px 的爱发电标 + 两笔账，手机上排成两栏网格），点它直接在新窗口打开 `https://afdian.com/a/HuTinJianZW`（2026-11-07 晚取消弹窗）；**换地址只改 `thanks.html` 里这处地址**。二维码图 `images/sponsor-qrcode*.png` 仍在仓库里，只是不再被任何页面引用。 |
 | **老访客看不到新版新人弹窗** | `js/common.js` | 那个弹窗每个浏览器只弹一次。想让它对所有人再弹一遍，把 `PREVIEW_NOTICE_VERSION` 的版本号 **+1**（现在是 `'4'`，改成 `'5'` 即可） |
-| **赞助权益说明（已下线）** | 原 `sponsor.html` | **2026-11-07 站主说「不用了」，整页删除**；原入口（首页/鸣谢弹窗里的「看完整条款」）一并去掉。现在档位口径只写在鸣谢页的赞助弹窗里：自定义金额 / 5·10 / 25 / 50 四档，提需求权益只给 25 / 50 元档。想找回旧条款：`git show 58b4ad9:sponsor.html`（删除前最后一版）。 |
+| **赞助权益说明（已下线）** | 原 `sponsor.html` | **2026-11-07 站主说「不用了」，整页删除**；原入口（首页/鸣谢弹窗里的「看完整条款」）一并去掉。现在没有档位表：赞助卡直接跳爱发电；`/support` 只登记昵称、订单号、金额（选填）和两句话。想找回旧条款：`git show 58b4ad9:sponsor.html`（删除前最后一版）。 |
 | **鸣谢名单（❤️ 独立页面）** | `thanks.html` + 后台「❤️ 鸣谢名单」 | 页面里**三个切换：👑 赞助者 / 🎮 Roblox ID 宝库 / 🙏 玩家感谢**（第三个是 2026-10-05 站主要求新增的；入口一直只在顶部导航栏，页脚链接已按站主要求删掉）。深链：`?tab=sponsors`（默认）/ `?tab=roblox` / `?tab=players`。宝库页原来那个鸣谢弹窗直接跳到这个页面，不再单独弹。 |
 | **「🙏 玩家感谢」这一栏怎么归类的** | `thanks.html` 的 `isPlayerThanks()` + `js/admin.js` 的 `isPlayerThanksCategory()` | 站主 2026-10-05：「鸣谢名单加一个『玩家感谢』，里面把 Roblox 里面的网站创新家弄到这里来」。**归属规则（两处必须完全一致，改一处要改两处）**：类别名**带 🙏**、或**含「玩家感谢」**、或**含「网站创新家」**的，属于「玩家感谢」栏；其余（除 👑 赞助者 / 🚫 已删除赞助者）留在「🎮 Roblox ID 宝库」。所以 `💡 网站创新家` 不用改数据库就自动搬过去了。当天稍后站主又要求删掉「自定义类别」，所以后台**不再**有「新类别自动补 🙏 前缀」那回事——归属规则现在只负责把已有类别分到对应那一栏。 |
 | **鸣谢页的排版：每个类别里的「人」分 3 列向下排** | `css/style.css` 的 `.thanks-groups` / `.thanks-people` / `.thanks-person`（+ `thanks.html` 渲染） | 站主 2026-10-05 前后提了三次，**以最后一次为准**：<br>① 「每个栏目的距离能不能增大一点？」→ 当时还是「类别并排成列」，列间距短暂改成 44px；<br>② 「roblox 感谢那一块，每个人的间距大一点」→ `.thanks-groups .thanks-person { padding: 8px 0 }`（原来 3px）：**同列人跟人之间 6px → 16px**（这条保留）；<br>③ **最终版**：「鸣谢名单的所有内容包括但不限于 Roblox ID 宝库、赞助者等，里面的人都要分为 3 列向下排，如果是像 🎬 ID公益UP主/作者 这样的，就按这个类型为一列向下排，每一列之间的间距要大」→<br>　· 每个类别（或赞助者那一整块）**自己占满一整行**、类别之间上下堆叠（`.thanks-groups { display:block }` + 相邻类别 `margin-top: 38px`）；<br>　· 块内的人用 CSS 多列 **`column-count: 3`**（多列的填充顺序天生就是「先往下、再往右」，正是站主要的「向下排」），**`column-gap: 56px`** 让三列一眼分得开，`break-inside: avoid` 保证一个人不会被拆到两列；<br>　· 窄屏降级：`≤900px` 2 列（gap 32px）、`≤480px` 1 列；<br>　· 赞助者那一栏（`.thanks-single`）同样是 3 列 —— 为此 `renderSponsors()` 补了一层 `.thanks-people` 包住人员行，**并且去掉了原来 640px 的限宽**（限宽会把 3 列挤成一团）。<br>⚠️ 后台的鸣谢列表用的是它自己的 `.list-item`，这一套与后台无关。 |
@@ -1626,7 +1630,7 @@ D1 里那两张表不会因为删代码自己消失 —— 去 Cloudflare → D1
 
 | 位置 | 内容 |
 | --- | --- |
-| D1 表 | `sponsor_regs`（昵称 / 订单号 / 档位 / 留言 / 状态 / 实收金额 / thanks_id / 时间）；`order_no` 唯一索引，一张订单只能登记一次；`status` 索引给后台排序用 |
+| D1 表 | `sponsor_regs`（昵称 / 订单号 / 对站主说的私信 / 对大家说的公开留言 / 访客自报金额 / 状态 / 实收金额 / thanks_id / 时间）；`order_no` 唯一索引，一张订单只能登记一次；`status` 索引给后台排序用 |
 | 接口 | `functions/api/sponsor/register.js`（公开 POST，同源检查 + 每 IP 10 次 / 10 分钟限速 + 可选 Turnstile；重复订单号回 409）<br>`functions/api/sponsor/list.js`（后台 GET，要登录；返回列表 + 待核对 / 已入账 / 已无效三个统计）<br>`functions/api/sponsor/handle.js`（后台 POST，要登录 + 同源；confirm / reject / restore / delete） |
 | 页面 | `support.html`（干净 URL `/support`）：表单 + 「怎么找订单号」说明；成功后表单收起、显示「登记好了」 |
 | 后台 | 鸣谢名单 → 新子标签 **「✅ 赞助登记」**：三张统计卡 + 列表 + 确认弹窗（实收金额 + 公开感谢语）+ 刷新 |
@@ -1640,13 +1644,11 @@ D1 里那两张表不会因为删代码自己消失 —— 去 Cloudflare → D1
 
 - 首页 hero 那块赞助卡**整个删掉**，首页现在没有任何赞助入口。
 - 鸣谢页「👑 赞助者」分组上面加了一条：上下虚线、无背景、小字，
-  文案是「喜欢这个站？请我喝一杯 / 赞助走爱发电 · 点开看档位与权益」，
-  下面一行小字是「共花费 ¥283.03 · 收到赞助 ¥xx · 截至 2026-11-07 · 赞助权益说明」。
+  文案是「喜欢这个站？请我喝一杯 / 赞助走爱发电 · 点我去爱发电支持」，点击直接新窗口去爱发电；
+  下面一行小字是「共花费 ¥283.03 · 收到赞助 ¥xx · 截至 2026-11-07」。
   金额仍由 `js/common.js` 的 `fillSiteCost` / `fillSponsorTotal` 回填，HTML 里只是没脚本时的兜底。
-- 点这条细线弹 `#sponsorEntryModal`：四档（自定义 / 5·10 / 25 / 50）+「☕ 去爱发电赞助」+
-  「✅ 已赞助，去登记」（→ `/support`）+ 关闭。
-  （2026-11-07 同日站主说「赞助的说明删除了，不用了」，`sponsor.html` 已整页删除，
-  弹窗里那颗「📄 看完整条款」也一并去掉。）
+- （2026-11-07 晚第三次改口径：站主把所有档位权益统一后，`#sponsorEntryModal` 整个删掉，
+  点卡片直接跳爱发电；登记入口改为直接访问 `/support`。）
 
 **④ 验收（真跑）**
 
@@ -1665,13 +1667,12 @@ D1 里那两张表不会因为删代码自己消失 —— 去 Cloudflare → D1
 D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare → D1 → Console 跑 `migrations.sql` 第 7 组
 （`CREATE TABLE IF NOT EXISTS sponsor_regs ...` + 两条 `CREATE INDEX`）。跑之前 `/support` 提交会报
 「table missing」，后台登记面板也会提示表不存在；跑完就正常，重复跑不会报错。
+表结构已含 `public_message` 列；如果你早先建过旧表，先跑 `ALTER TABLE sponsor_regs ADD COLUMN public_message TEXT;` 再跑索引。
 
-**⑥ 两处要站主拍板（和钱有关，我没擅自改）**
+**⑥ 档位口径（2026-11-07 晚已由站主拍板）**
 
-1. 爱发电实际档位是 **¥5 / ¥10 / ¥20 / ¥50**，弹窗写的是 **¥25** —— 必须统一：
-   要么把爱发电那档改成 ¥25，要么把弹窗里的 25 全改成 20。**不统一会出现「按 25 档付钱但只有 20 档」的争议。**
-2. 「每个订单计 1 次权益，不按月累加」和「月订阅」在字面上有点打架，
-   建议口径改成「一次付款周期算 1 次」，避免有人以为每月续费就每月都能提需求。
+1. 站主已把所有档位权益弄成一样，页面不再写档位数字：点赞助卡直接跳爱发电，`/support` 只填金额（选填）。
+2. 「每个订单计 1 次权益」的口径保留；站主核对订单时按爱发电实际到账填金额。
 
 **⑦ 回退办法**
 
@@ -1684,3 +1685,13 @@ D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare →
 
 - `thanks.html` 的赞助卡从「细线低调版」改回首页 hero 原来的整张卡样式（`.thanks-sponsor-card`：白底、76px 爱发电标、两笔账；≤768px 金额换行，≤600px 两栏网格），位置仍在 `#panelSponsors` 内、`#sponsorGroups` 之前。
 - 更新弹窗：`data/updates.json` 的 `index` 与 `thanks` 两个键升到 `V3.3.0` / `2026-11-07`，正文汇总本轮改动（爱发电、`/support` 登记、卡片搬家、删赞助说明、删建议反馈、累计花费 ¥283.03）。访客浏览器按 `pageVersion_<页面>` 里上次看到的版本号决定弹不弹；想重新弹给所有人就改 `version`。
+
+**⑨ 同日第三次调整：点卡片直接跳爱发电 / 取消档位改金额 / 私信与公开留言**
+
+站主原话：「我把不同的挡位的不同的权益都弄成一样的了，所以点击按钮就跳转！」「赞助挡位不用填写」
+「想对站主说的话（选填），再加一个想对大家说的话（选填）（这个是展示在鸣谢页的）」「赞助挡位改成赞助金额」。
+
+- 鸣谢页赞助卡：按钮 HTML/样式一字未改（站主强调「按钮跟以前一样」，仍是方正白卡），只是点击后 `window.open` 直接打开爱发电；`#sponsorEntryModal` 与 `.sponsor-entry-*` 样式整段删除。
+- `/support`：删掉「赞助档位」下拉，改成「赞助金额（元，选填）」数字输入（`#regAmount`）；原有留言改名「想对站主说的话」（私信，不公开），新增「想对大家说的话（选填）」文本框（`#regPublicMessage`，最多 200 字，确认后显示在鸣谢页）。
+- 后端：`sponsor_regs` 新增 `public_message` 列；登记时 `amount` 自报金额可空（服务端统一成 `¥x.xx`）；确认入账时公开留言优先取 `public_message`，私信永不写入 `thanks`。
+- 单测与 E2E 同步改成新口径；E2E 用拦截 `window.open` 的方式验证跳转地址，并断言鸣谢页只出现公开留言。

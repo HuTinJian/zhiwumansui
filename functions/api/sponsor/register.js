@@ -42,8 +42,8 @@ import {
 /* 同一 IP 10 分钟最多登记 10 条：正常人一次就够，刷子也写不爆 D1 */
 const limiter = createRateLimiter(10, 10 * 60 * 1000);
 
-/* 允许的档位：与鸣谢页「请我喝一杯」弹窗里的四档保持一致。
-   'custom' = 自定义金额（只含鸣谢，不含提需求权益）。 */
+/* 档位不再由访客填写（所有档位权益相同）：缺省一律按 'custom' 存；
+   旧数据 / 手动提交带了 tier 就照收，非法值仍然拒绝。 */
 const TIERS = ['5', '10', '25', '50', 'custom'];
 
 /* 订单号：爱发电的订单号是数字串（通常 16~20 位），这里放宽到字母数字 _-
@@ -53,6 +53,15 @@ const ORDER_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
 /* 把用户输入里的尖括号抹掉（防止把 HTML 当昵称存进去，后台/鸣谢页会原样渲染） */
 function stripTags(value) {
   return String(value == null ? '' : value).replace(/[<>]/g, '').trim();
+}
+
+/* 访客自报的赞助金额：接受 1~1000000 的数字，归一成 ¥x.xx；空串返回 null。
+   最终实收仍以站主核对后填的为准，这里只是给站主一个参考。 */
+function normalizeDeclaredAmount(value) {
+  if (!value) return null;
+  const n = Number(String(value).replace(/[¥￥,，\s元]/g, ''));
+  if (!isFinite(n) || n <= 0 || n > 1000000) return null;
+  return '¥' + n.toFixed(2);
 }
 
 export async function onRequestPost(context) {
@@ -76,20 +85,25 @@ export async function onRequestPost(context) {
 
   const nickname = stripTags(body.nickname);
   const orderNo = String(body.orderNo == null ? '' : body.orderNo).replace(/[\s\u3000]/g, '');
-  const tier = String(body.tier == null ? '' : body.tier).trim();
+  const tier = String(body.tier == null ? '' : body.tier).trim() || 'custom';
   const message = stripTags(body.message);
+  const publicMessage = stripTags(body.publicMessage);
+  const amountRaw = String(body.amount == null ? '' : body.amount).trim();
+  const amount = normalizeDeclaredAmount(amountRaw);
 
   if (!nickname) return json({ ok: false, error: 'missing nickname' }, 400);
   if (nickname.length > 40) return json({ ok: false, error: 'nickname too long' }, 400);
   if (!ORDER_PATTERN.test(orderNo)) return json({ ok: false, error: 'bad order' }, 400);
   if (TIERS.indexOf(tier) === -1) return json({ ok: false, error: 'bad tier' }, 400);
   if (message.length > 200) return json({ ok: false, error: 'message too long' }, 400);
+  if (publicMessage.length > 200) return json({ ok: false, error: 'message too long' }, 400);
+  if (amountRaw && !amount) return json({ ok: false, error: 'bad amount' }, 400);
 
   try {
     await env.DB.prepare(
-      `INSERT INTO sponsor_regs (nickname, order_no, tier, message, status)
-       VALUES (?, ?, ?, ?, 'pending')`
-    ).bind(nickname, orderNo, tier, message || null).run();
+      `INSERT INTO sponsor_regs (nickname, order_no, tier, message, public_message, amount, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')`
+    ).bind(nickname, orderNo, tier, message || null, publicMessage || null, amount).run();
 
     return json({ ok: true });
   } catch (err) {

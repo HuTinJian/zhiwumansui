@@ -162,13 +162,18 @@ CREATE TABLE IF NOT EXISTS sponsor_regs (
   nickname TEXT NOT NULL,
   order_no TEXT NOT NULL,
   tier TEXT NOT NULL DEFAULT 'custom',
-  message TEXT,
+  message TEXT,          -- 想对站主说的话（只给站主看）
+  public_message TEXT,   -- 想对大家说的话（确认后写到鸣谢页）
   status TEXT NOT NULL DEFAULT 'pending',
   amount TEXT,
   thanks_id INTEGER,
   created_at TEXT DEFAULT (datetime('now', 'localtime')),
   confirmed_at TEXT
 );
+
+-- ⚠️ 如果你在 2026-11-07 早些时候已经建过这张表（旧版没有 public_message 列），
+--    先单独跑这一句补列，再跑下面的索引（只会成功一次；报 duplicate column 说明已经补过）：
+--    ALTER TABLE sponsor_regs ADD COLUMN public_message TEXT;
 
 -- 同一张爱发电订单只能登记一次（服务端重复提交会返回 409，不会写两条）
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sponsor_reg_order ON sponsor_regs(order_no);

@@ -1,5 +1,5 @@
 /* ============================================================
-   织雾满穗 · 处理赞助登记（后台专用，2026-11-07 新增）
+   织雾满穗 · 处理赞助登记（后台专用）
    ------------------------------------------------------------
    动作（POST JSON { action, id, amount?, publicMessage? }）：
      confirm  确认入账：核对爱发电订单无误后，
@@ -9,11 +9,9 @@
      restore  撤销上一步：rejected 且尚未确认的，退回 pending 重新核对。
      delete   真删这条登记（thanks 表里已确认的那条不会跟着删，
               要删鸣谢名单请去「👑 赞助者」面板，两处互不牵连）。
-
    为什么确认时不自动写「感谢语」：
      鸣谢页允许空的感谢语；赞助者自己填过的话会带过来（后台弹窗里预填），
      站主可以改、也可以清空，最后存什么就是什么。
-
    【回退办法】删掉本文件；已确认的登记与鸣谢记录都留在 D1 里，不受影响。
      要撤销某次确认：在后台「👑 赞助者」里删掉那条鸣谢，再在「✅ 赞助登记」
      里对它点「↩️ 退回待核对」。两条链没有任何外键，互不阻塞。
@@ -84,7 +82,7 @@ async function confirm(context, id, body) {
   const { env } = context;
 
   const row = await env.DB.prepare(
-    'SELECT id, nickname, tier, message, status FROM sponsor_regs WHERE id = ?'
+    'SELECT id, nickname, tier, message, public_message, amount, status FROM sponsor_regs WHERE id = ?'
   ).bind(id).first();
 
   if (!row) return json({ ok: false, error: 'not found' }, 404);
@@ -92,16 +90,16 @@ async function confirm(context, id, body) {
     return json({ ok: false, error: 'already confirmed' }, 409);
   }
 
-  /* 自定义金额档必须让站主手填金额；固定档没填的话用档位本身（5/10/25/50） */
+  /* 金额优先级：站主在弹窗里填的 > 访客登记时自报的 > 旧数据的固定档位 */
   const amount = normalizeAmount(
     body.amount != null && String(body.amount).trim() !== ''
       ? body.amount
-      : (row.tier === 'custom' ? '' : row.tier)
+      : (row.amount || (row.tier === 'custom' ? '' : row.tier))
   );
   if (!amount) return json({ ok: false, error: 'bad amount' }, 400);
 
   const publicMessage = stripTags(
-    body.publicMessage != null ? body.publicMessage : row.message
+    body.publicMessage != null ? body.publicMessage : row.public_message
   );
   if (publicMessage.length > 200) {
     return json({ ok: false, error: 'message too long' }, 400);

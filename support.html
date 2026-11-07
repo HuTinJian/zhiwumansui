@@ -202,20 +202,22 @@
             </div>
 
             <div class="form-group">
-              <label for="regTier">赞助档位</label>
-              <select id="regTier" name="tier">
-                <option value="custom" selected>自定义金额（只含鸣谢）</option>
-                <option value="5">5 元档</option>
-                <option value="10">10 元档</option>
-                <option value="25">25 元档（含 1 次提需求）</option>
-                <option value="50">50 元档（含 3 个功能或 1 个页面）</option>
-              </select>
+              <label for="regAmount">赞助金额（元，选填）</label>
+              <input type="number" id="regAmount" name="amount" inputmode="decimal"
+                     min="0" step="0.01" max="1000000" placeholder="例如：10（不记得可以留空）">
+              <p class="reg-hint">填个大概就行，最终以爱发电实际到账为准；站主核对时会看订单。</p>
             </div>
 
             <div class="form-group">
               <label for="regMessage">想对站主说的话（选填）</label>
               <textarea id="regMessage" name="message" maxlength="200" placeholder="例如：谢谢你做的歌单，帮我找到好多歌"></textarea>
-              <p class="reg-hint">这段话会公开在鸣谢页（最多 200 字），不想公开就留空。</p>
+              <p class="reg-hint">只有站主能看到，不会公开（最多 200 字）。</p>
+            </div>
+
+            <div class="form-group">
+              <label for="regPublicMessage">想对大家说的话（选填）</label>
+              <textarea id="regPublicMessage" name="publicMessage" maxlength="200" placeholder="例如：这个站帮了我很多，继续加油！"></textarea>
+              <p class="reg-hint">这段会公开在鸣谢页（最多 200 字），不想公开就留空。</p>
             </div>
 
             <button class="btn btn-primary reg-submit" id="regSubmit" type="submit">✅ 提交登记</button>
@@ -245,7 +247,7 @@
           <ul class="reg-list">
             <li>订单号只用于核对，<b>不会公开</b>。</li>
             <li>确认后，<b>昵称</b>和「想说的话」会出现在<a href="thanks">鸣谢页</a>。</li>
-            <li>提需求权益只给 25 / 50 元档（档位看鸣谢页的赞助弹窗）。</li>
+            <li>所有档位权益相同；这里只做登记，具体权益以爱发电页面为准。</li>
             <li>核对不通过（订单号对不上 / 乱填）会被标记无效，不会上墙。</li>
           </ul>
 
@@ -309,7 +311,6 @@
       if (code === 'missing nickname') return '昵称不能为空。';
       if (code === 'nickname too long') return '昵称最多 40 个字。';
       if (code === 'bad order') return '订单号格式不对，检查一下有没有多复制空格或符号。';
-      if (code === 'bad tier') return '档位没选对，刷新页面再试。';
       if (code === 'message too long') return '留言最多 200 个字。';
       if (code === 'server error' || status >= 500) return '服务端出错了，稍后再试；一直失败就发邮件找站主。';
       if (/turnstile/i.test(code || '')) return '人机验证没通过，刷新页面再试。';
@@ -333,8 +334,9 @@
 
       var nickname = document.getElementById('regNickname').value.trim();
       var orderNo = document.getElementById('regOrderNo').value.replace(/[\s\u3000]/g, '');
-      var tier = document.getElementById('regTier').value;
+      var amount = document.getElementById('regAmount').value.trim();
       var message = document.getElementById('regMessage').value.trim();
+      var publicMessage = document.getElementById('regPublicMessage').value.trim();
 
       if (!nickname) { setStatus('请先填昵称。', 'err'); document.getElementById('regNickname').focus(); return; }
       if (nickname.length > 40) { setStatus('昵称最多 40 个字。', 'err'); return; }
@@ -344,11 +346,13 @@
         return;
       }
       if (message.length > 200) { setStatus('留言最多 200 个字。', 'err'); return; }
+      if (publicMessage.length > 200) { setStatus('公开留言最多 200 个字。', 'err'); return; }
+      if (amount && !/^\d+(\.\d{1,2})?$/.test(amount)) { setStatus('金额填数字就行，例如 10 或 9.9（也可以留空）。', 'err'); return; }
 
       submitBtn.disabled = true;
       setStatus('正在提交…', '');
 
-      send({ nickname: nickname, orderNo: orderNo, tier: tier, message: message })
+      send({ nickname: nickname, orderNo: orderNo, amount: amount, message: message, publicMessage: publicMessage })
         .then(function (res) {
           return res.json().catch(function () { return null; }).then(function (data) {
             return { res: res, data: data };
