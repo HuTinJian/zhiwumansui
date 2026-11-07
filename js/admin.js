@@ -218,10 +218,8 @@ function scrollListIntoView(el) {
         window.ensureSponsors();
       }
 
-      /* 2026-10-24：📬 建议/反馈收件箱 —— 同样是切过去才拉 */
-      if (tab.dataset.panel === 'panel-inbox' && typeof window.loadInbox === 'function') {
-        window.loadInbox();
-      }
+      /* 2026-11-07：📬 建议/反馈收件箱后台面板已删除（页面、接口、D1 一并删），
+         这里不再有对应的懒加载分支。 */
     });
   });
 
@@ -3149,178 +3147,10 @@ window.addSongToServer = addSongToServer;
 window.loadStatsPanel = loadStatsPanel;
 
 /* ============================================================
-   2026-10-24 · 📬 建议 / 反馈收件箱
-   ------------------------------------------------------------
-   数据来源：GET /api/inbox/list（需登录）
-   两个子标签共用一份数据，切换只改渲染，不重复请求。
-   【回退办法】删掉从下面 const inboxState 到 window.loadInbox 赋值的整段。
+   2026-11-07 站主要求：建议、反馈两个页面连同接口 / D1 表 / 后台面板全部删除。
+   这里原来是「📬 建议 / 反馈收件箱」整套前端逻辑（inboxState / renderInbox /
+   inboxAction / loadInbox / 子标签切换 / window.loadInbox），已整段移除。
+   接口 functions/api/inbox/* 也一并删除，别再往回加。
    ============================================================ */
-const inboxState = {
-  kind: 'suggestion',       /* suggestion | feedback */
-  data: { suggestions: [], feedback: [] },
-  loaded: false,
-  loading: false
-};
-
-function inboxRows() {
-  return inboxState.kind === 'suggestion' ? inboxState.data.suggestions : inboxState.data.feedback;
-}
-
-function escapeInbox(s) {
-  return escapeHtml(String(s === null || s === undefined ? '' : s));
-}
-
-function renderInbox() {
-  const box = document.getElementById('inboxList');
-  if (!box) return;
-
-  const rows = inboxRows();
-
-  /* 子标签上的计数 */
-  const sEl = document.getElementById('inboxCountS');
-  const fEl = document.getElementById('inboxCountF');
-  if (sEl) sEl.textContent = String(inboxState.data.suggestions.length);
-  if (fEl) fEl.textContent = String(inboxState.data.feedback.length);
-
-  /* 标签上的小红点（未读数） */
-  const badge = document.getElementById('inboxBadge');
-  if (badge) {
-    const unread = (inboxState.data.suggestions || []).filter(x => String(x.status) === 'new').length +
-                   (inboxState.data.feedback || []).filter(x => String(x.status) === 'new').length;
-    badge.hidden = unread === 0;
-    badge.textContent = String(unread);
-  }
-
-  /* 子标签高亮 */
-  const tabs = document.getElementById('inboxTabs');
-  if (tabs) {
-    tabs.querySelectorAll('[data-inbox]').forEach(b => {
-      const on = b.dataset.inbox === inboxState.kind;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-  }
-
-  if (!rows.length) {
-    box.innerHTML = '<div class="empty-state">' +
-      (inboxState.kind === 'suggestion'
-        ? '还没有收到建议。<br>玩家在「💡 建议」页提交后会出现在这里。'
-        : '还没有收到反馈。<br>玩家在「🐞 反馈」页提交后会出现在这里。') +
-      '</div>';
-    return;
-  }
-
-  box.innerHTML = rows.map(r => {
-    const isNew = String(r.status || '') === 'new';
-    return '<div class="list-item inbox-item' + (isNew ? ' is-new' : '') + '">' +
-      '<div class="row1">' +
-        '<span class="name">' + escapeInbox(r.nickname || '匿名') + '</span>' +
-        '<span><span class="type-tag ' + (isNew ? 'red' : '') + '">' + (isNew ? '🆕 未读' : '✅ 已读') + '</span></span>' +
-      '</div>' +
-      '<div class="message">' + escapeInbox(r.content).replace(/\n/g, '<br>') + '</div>' +
-      (r.contact ? '<div class="meta">📮 ' + escapeInbox(r.contact) + '</div>' : '') +
-      /* 2026-10-30 验收发现：D1 的 created_at 是 UTC，直接显示会差 8 小时。
-         这里和其它后台列表一样走 formatBeijingTime（没加载 common.js 时退回原值）。
-         【回退办法】改回 escapeInbox(r.created_at || '')。 */
-      '<div class="meta">🕒 ' + escapeInbox(
-        typeof formatBeijingTime === 'function'
-          ? (formatBeijingTime(r.created_at, 'full') || r.created_at || '')
-          : (r.created_at || '')
-      ) + '</div>' +
-      '<div class="actions">' +
-        (isNew ? '<button class="btn-inbox-read" data-inbox-id="' + Number(r.id) + '">✅ 标记已读</button>' : '') +
-        '<button class="btn-inbox-del" data-inbox-id="' + Number(r.id) + '">🗑️ 删除</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  /* 操作绑定 */
-  box.querySelectorAll('.btn-inbox-read').forEach(btn => {
-    btn.onclick = () => inboxAction('read', [Number(btn.dataset.inboxId)]);
-  });
-  box.querySelectorAll('.btn-inbox-del').forEach(btn => {
-    btn.onclick = () => inboxAction('delete', [Number(btn.dataset.inboxId)]);
-  });
-}
-
-async function inboxAction(action, ids) {
-  if (!ids.length) return;
-  if (action === 'delete') {
-    const ok = await showConfirm('删除这条记录',
-      '确定真删这 ' + ids.length + ' 条吗？\n\n删掉就从 D1 没了，无法恢复。');
-    if (!ok) return;
-  }
-  try {
-    const res = await fetch('/api/inbox/action', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kind: inboxState.kind, action, ids })
-    });
-    const data = await res.json().catch(() => null);
-    if (!data || data.ok !== true) {
-      showToast('操作失败：' + ((data && data.error) || ('HTTP ' + res.status)));
-      return;
-    }
-    showToast(action === 'delete' ? '🗑️ 已删除' : '✅ 已标记已读');
-    await loadInbox(true);
-  } catch (e) {
-    showToast('网络异常');
-  }
-}
-
-async function loadInbox(force) {
-  if (inboxState.loading) return;
-  if (inboxState.loaded && !force) { renderInbox(); return; }
-
-  const box = document.getElementById('inboxList');
-  if (box && !inboxState.loaded) box.innerHTML = '<div class="loading">加载中...</div>';
-
-  inboxState.loading = true;
-  try {
-    const res = await fetch('/api/inbox/list?limit=500', { cache: 'no-store', credentials: 'include' });
-    const data = await res.json().catch(() => null);
-    if (!data || data.ok !== true) {
-      if (box) box.innerHTML = '<div class="empty-state">加载失败：' +
-        escapeInbox((data && data.error) || ('HTTP ' + res.status)) + '</div>';
-      return;
-    }
-    inboxState.data = {
-      suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
-      feedback: Array.isArray(data.feedback) ? data.feedback : []
-    };
-    inboxState.loaded = true;
-    renderInbox();
-  } catch (e) {
-    if (box) box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
-  } finally {
-    inboxState.loading = false;
-  }
-}
-
-/* 子标签切换 + 刷新按钮（只绑一次） */
-(function bindInboxControls() {
-  const tabs = document.getElementById('inboxTabs');
-  if (tabs) {
-    tabs.addEventListener('click', e => {
-      const btn = e.target.closest ? e.target.closest('[data-inbox]') : null;
-      if (!btn || !tabs.contains(btn)) return;
-      inboxState.kind = btn.dataset.inbox === 'feedback' ? 'feedback' : 'suggestion';
-      renderInbox();
-    });
-  }
-  const refresh = document.getElementById('refreshInboxBtn');
-  if (refresh) {
-    refresh.addEventListener('click', async () => {
-      refresh.disabled = true;
-      refresh.textContent = '⏳ 刷新中...';
-      await loadInbox(true);
-      refresh.disabled = false;
-      refresh.textContent = '🔄 刷新';
-    });
-  }
-})();
-
-window.loadInbox = loadInbox;
 window.loadSponsors = loadSponsors;
 window.ensureSponsors = ensureSponsors;

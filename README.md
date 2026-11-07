@@ -446,7 +446,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **让预览版弹窗重新弹一次**（比如改了文案想让大家再看一遍） | `js/common.js` | 把 `PREVIEW_NOTICE_VERSION = '1'` 改成 `'2'`。数字一变，所有访客下次打开都会再看到一次 |
 | **不想让某个页面弹预览版弹窗** | 对应页面的第一行 | 在 `<html>` 标签里加 `data-notice="off"`（后台页已经这么设了） |
 | **首页的卡片** | `index.html` | 搜 `<div class="content-grid"`，卡片就写在里面，复制一整段 `<a class="card">…</a>` 就是新增一张 |
-| **导航栏的链接** | 每个页面里的 `<nav class="navbar">` | 首页 / 鸣谢 两个入口都在里面，加一个 `<li><a href="...">…</a></li>` 就是加一个入口（**反馈页 2026-10-05 已整页删除，别再往回加**）。**⚠️ 2026-10-04 起页脚里不再有任何导航链接**（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢 全删了，站主要求「所有页脚下面的如首页等内容都删掉」）—— 页脚只剩版权行（2026-10-04 晚起连分享入口也下线了），要跳页面只能走顶部导航栏。**例外：`roblox_music.html`（宝库页）整个导航栏也删掉了**，那一页只有左下角常驻的「🏠 返回首页」（`.back-home-fab`）；它的深色模式开关改挂在页头的 `[data-theme-slot]` 上 |
+| **导航栏的链接** | 每个页面里的 `<nav class="navbar">` | 首页 / 鸣谢 两个入口都在里面，加一个 `<li><a href="...">…</a></li>` 就是加一个入口（**反馈页 2026-10-05 删过一版；2026-11-07 起「建议 / 反馈」两页连同 D1 表、后台面板整块删除，导航里不要再加**）。**⚠️ 2026-10-04 起页脚里不再有任何导航链接**（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢 全删了，站主要求「所有页脚下面的如首页等内容都删掉」）—— 页脚只剩版权行（2026-10-04 晚起连分享入口也下线了），要跳页面只能走顶部导航栏。**例外：`roblox_music.html`（宝库页）整个导航栏也删掉了**，那一页只有左下角常驻的「🏠 返回首页」（`.back-home-fab`）；它的深色模式开关改挂在页头的 `[data-theme-slot]` 上 |
 | **主色 / 配色** | `css/style.css` 最上面的 `:root` | `--primary` 是主色，`--gold` 是金色点缀；深色模式在同文件的 `[data-theme="dark"]` |
 | **手机上关掉的特效** | `css/style.css` | 搜 `html.lite`；`js/common.js` 里的 `isLiteMode()` 决定什么时候进入精简模式 |
 | **宝库里的歌** | 后台「卡片管理」 | 增删都会写进 D1；也可以直接改 `data/roblox_music.json`（改完要重新部署） |
@@ -487,7 +487,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **首页最上面那条滚动公告** | `index.html`（位置 + 文案）+ `js/common.js`（弹窗本体 `showSiteNotice`） | 2026-10-04 起它就在**导航栏正下方**，是一条通栏走马灯：轨道里放两份一模一样的文案，CSS 动画左移 50% 做无缝循环（悬停暂停）。改文案要**两份一起改**（第二份带 `aria-hidden="true"`），否则接缝会露馅 |
 | **「分享本站」** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 凡是带 `data-invite` 属性的元素，点一下就会弹出分享弹窗。**入口现在只剩一处：首页 hero 的「🔗 分享本站」**（`.zb-invite`）。⚠️ 2026-10-04 站主最后明确「任何页面的页脚都不要有分享链接」，所以页脚那三个入口全部下线了，**别再加回页脚**；宝库页本来就不要分享。
 | **分享按钮的颜色** | `css/style.css` 的 `.zb-invite` | 2026-10-04 站主要求「贴主题 + 护眼」，所以走站点本来就有的**金色系**（和首页滚动公告、赞助入口块同一套变量）：浅色模式淡金底 `#fbf3e8` + 深金棕字 `#8a5a1c`（对比度 ≈5.4:1），深色模式暖褐底 `#2a2229` + 浅金字 `#eec48d`（≈9.5:1）。现在用它的地方：**只有首页 hero 那颗分享按钮**（`.zb-invite`）。它刻意比主按钮 `.btn-primary` 弱一档，不跟「🚀 开始逛逛」抢焦点；换色只改这一处。**页脚那套金色文字样式（`.footer .footer-links .zb-invite-link`）当前没有元素在用**，留着是因为站主随时可能又要页脚入口，写个 `<button class="zb-invite-link" data-invite>` 就能直接用 |
-| **~~反馈表单哪些必须填~~（已下线）** | ~~`feedback.html` + `functions/api/feedback.js`~~ | **2026-10-05：反馈功能整页下线** —— `feedback.html` 已删除，`functions/api/feedback.js` 与 `functions/api/feedback/` 整个目录已删除，后台「💬 反馈管理」面板、`js/common.js` 的反馈回执弹窗也一并删除。D1 里的 `feedback` 表**保留不删**（老数据留档，仅供考古）。它原来的用途（提意见、上报无效 ID）现在由「🚫 无效处理」承担（**批量入口 2026-10-05 已按站主要求删除**）；要联系站主走首页公告里的 QQ 群 |
+| **~~建议 / 反馈两页~~（整块已删）** | ~~`suggest.html` / `feedback.html`~~ | **2026-11-07 站主要求：「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」** —— 两个页面、`functions/api/suggest/`、`functions/api/feedback/`、`functions/api/inbox/`（后台列表接口）、后台「📬 建议/反馈」标签与整块面板、`js/admin.js` 的整套 inbox 逻辑、`data/updates.json` 的 `suggest` / `feedback` 两键、四个页面导航里的两个入口，**全部删除**。D1 用 `migrations.sql` 第 6 组清（`DROP TABLE IF EXISTS suggestions; DROP TABLE IF EXISTS site_feedback;` + 清公告行；**这一步要站主自己在 D1 Console 执行**）。2026-09 那版老 `feedback` 表默认不删（早已无代码读写，属历史数据；要删见第 6 组末尾注释）。旧站快照 `legacy/2026-08-25/` 里的那份反馈页属「时光机」展品，没动。 |
 | **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→ 对应子面板的「➕ 添加鸣谢 / ➕ 添加玩家感谢」 | 类别**只能从下拉里现有的项选**：固定几项（`💡 网站创新家` / `🎬 ID公益UP主/作者` / `📋 歌单整理者`）+ D1 里已经出现过的类别（`js/admin.js` 的 `syncThanksCategoryOptions()` 自动补进列表，所以历史数据、以前自建过的类别照样选得到）。**2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」**：原来下拉最后那一项「✏️ 自定义类别…」和它旁边那个输入框、以及「在玩家感谢栏保存时自动补 `🙏 ` 前缀」的逻辑，全部删掉（历史实现见 `git show 4e559d0 -- admin.html js/admin.js`）。**2026-10-07 站主要求删掉「💬 反馈贡献者」**：下拉里那一项已移除，`thanks.html` 加了一道 `REMOVED_CATEGORY` 过滤（D1 里那几行即使还没清也**不会显示**），数据用 `migrations.sql` 第 3 组的 `DELETE FROM thanks WHERE category = '💬 反馈贡献者';` 清。要加新类别：改 `admin.html` 下拉里的固定项（一行一个 `div.select-option`，记得写 `data-scope="roblox"` 或 `"players"`）。**2026-10-05 起下拉还按子面板过滤**：在「🎮 Roblox ID 宝库」里只列不属于玩家感谢的类别，在「🙏 玩家感谢」里只列属于它的。`thanks.html` 按类别名分块显示 |
 | **~~宝库页隔离区的反馈入口~~（已下线）** | ~~`roblox_music.html`（`#quarantineFeedbackBtn`）~~ | **2026-10-05：「⛔ 我的隔离区」弹窗整个删除**（连带那颗「💬 去反馈」），访客隔离区、批量隔离、每行的 ✕ 三条老路全部由「🚫 无效处理」取代（那颗「无效批量处理」按钮 2026-10-05 也按站主要求删了）；本地旧键 `roblox_quarantine_guest` 不再被读取（数据留在访客浏览器里，不主动删） |
 
@@ -1554,4 +1554,50 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 **⑤ 回退办法**
 
 删掉 `sponsor.html` + `index.html` 里那条 `.hero-sponsor-terms`（连同它上面那段注释、两条 CSS 规则一起删）；README 里删掉目录结构那一行、第六节那一行、本节即可。本页不参与接口与数据，删掉不影响任何页面。
+
+---
+
+### 18）2026-11-07：建议 / 反馈整块下线（页面 + 接口 + 后台 + D1）
+
+站主原话：「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」。
+
+**① 删掉了什么**
+
+| 位置 | 内容 |
+| --- | --- |
+| 页面 | `suggest.html`、`feedback.html`（整文件删除） |
+| 接口 | `functions/api/suggest/submit.js`、`functions/api/feedback/submit.js`、`functions/api/inbox/list.js`、`functions/api/inbox/action.js`（连目录一起删） |
+| 后台 | `admin.html` 的「📬 建议/反馈」一级标签 + `#panel-inbox` 整块面板；`js/admin.js` 的收件箱整段（inboxState / renderInbox / inboxAction / loadInbox / 子标签切换 / window.loadInbox）+ 切标签时的懒加载分支 |
+| 导航 | 首页 / 鸣谢 / 法律 / 赞助说明 四个页面的 `<li>建议</li>`、`<li>反馈</li>` 全删 |
+| 本地预览 | `js/common.js` 的 `initLocalFileLinks` 映射里 `suggest` / `feedback` 两条去掉 |
+| 公告数据 | `data/updates.json` 删掉 `suggest` / `feedback` 两个键；`functions/api/updates.js` 的退休名单改成 `['feedback', 'suggest']` |
+| D1 | `migrations.sql` 第 6 组：`DROP TABLE IF EXISTS suggestions;` / `site_feedback` + 清 `page_updates` 里两条公告行 |
+
+**② 顺带修掉一个真 BUG**
+
+这轮验收跑语法检查时撞见：`admin.html`、`roblox_music.html` 头部「主题引导」脚本里，cookie 兜底那段 `catch (e) {` 少写了一个 `{}` 和一层 `}` —— **整段内联脚本是语法错误、根本不会执行**（那两页首屏可能闪白 / 主题不生效）。已修成 `} catch (e) {}` 并补齐 `}`，两页现在都能正常跑（见验收里的内联脚本全过）。
+
+**③ 没动的**
+
+- `legacy/2026-08-25/` 里旧站快照（含当年那份 `feedback.html`）是「时光机」展品，首页那张卡还指着它，**没删**；要一起清掉说一声。
+- 2026-09 那版老 `feedback` 表**默认不删**（早无代码读写，属历史数据）。确认不要了，手动执行 `migrations.sql` 第 6 组末尾注释里的 `DROP TABLE IF EXISTS feedback;`（先导出）。
+- `functions/api/thanks.js` 里给老反馈留的 `feedback_id` 字段保留（只是字段，不影响任何页面）。
+
+**④ 验收（真跑）**
+
+`.verify/_check-removal-20261107.mjs` —— 本地 mock 服务器 + headless Edge，**24/24**：
+
+- 7 个页面（首页 / 鸣谢 / 法律 / 赞助说明 / 宝库 / 404 / 后台）**都没有指向 `suggest` / `feedback` 的 `<a>`**；
+- 后台标签只剩 `panel-cards / panel-thanks / panel-stats`，`#panel-inbox`、`#inboxList` 不存在；
+- 全局没有 `window.loadInbox`；三个接口目录确实已从文件系统消失；
+- 全部页面 **0 条未捕获 JS 报错**；
+- 内联脚本语法检查 **16/16 段全过**（含上面修好的两段）。
+
+**⑤ 需要站主手动做的一步**
+
+D1 里那两张表不会因为删代码自己消失 —— 去 Cloudflare → D1 → Console 跑 `migrations.sql` 第 6 组那三行（`DROP TABLE IF EXISTS suggestions;` / `DROP TABLE IF EXISTS site_feedback;` / `DELETE FROM page_updates WHERE page_key IN ('suggest','feedback');`），跑完数据才算清干净。
+
+**⑥ 回退办法**
+
+`git revert` 这次提交；被删文件都在 git 历史里（`git show <上一个提交>:suggest.html` 可取回）。D1 两张表如果还没 DROP，代码回退后照常能用；已经 DROP 的只能靠之前的导出备份恢复。
 

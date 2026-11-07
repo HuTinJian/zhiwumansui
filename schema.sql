@@ -3,24 +3,10 @@
 -- 用法：部署前在 Cloudflare D1 控制台执行一次
 -- ============================================================
 
--- 反馈表
--- 2026-10-05：反馈功能已整体下线（feedback.html、functions/api/feedback* 均已删除），
--- 这张表保留仅供考古 —— 不再有任何代码读写它，也不要 DROP（老数据留档）。
-CREATE TABLE IF NOT EXISTS feedback (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  type TEXT NOT NULL,
-  name TEXT NOT NULL,
-  email TEXT,
-  message TEXT NOT NULL,
-  want_thanks INTEGER DEFAULT 0,
-  upload_quarantine INTEGER DEFAULT 0,
-  quarantine_ids TEXT,
-  status TEXT DEFAULT 'pending',
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  client_id TEXT,
-  reply TEXT,
-  decided_at TEXT
-);
+-- 2026-11-07：站主要求「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」——
+-- 旧「反馈表」（2026-09 那版）不再纳入新库建表，索引也一并去掉。
+-- ⚠️ 已有老库里的 feedback 表/数据**没有删**（删了不可回退）；确定不要时按
+--    migrations.sql 第 6 组末尾那条「可选」DROP 手动执行。
 
 -- 2026-09-29：原来这里还有玩家社区（卡片2）的五张表 ——
 --   blog_users / blog_posts / blog_likes / blog_reports / blog_bans。
@@ -104,7 +90,6 @@ CREATE TABLE IF NOT EXISTS visit_sources (
 );
 
 -- 索引：加速常用查询
-CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(id DESC);
 CREATE INDEX IF NOT EXISTS idx_thanks_category ON thanks(category, id);
 CREATE INDEX IF NOT EXISTS idx_songs_line ON songs_extra(line_index);
 -- 2026-10-05：无效上报的唯一键（同一浏览器对同一个 ID 只算一条）+ 按状态取列表
@@ -112,46 +97,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id
 CREATE INDEX IF NOT EXISTS idx_invalid_status ON invalid_reports(status, music_id);
 
 -- ============================================================
--- 2026-10-24 · 访客「💡 建议」与「🐞 反馈」两张表
--- ------------------------------------------------------------
--- 对应接口：
---   POST /api/suggest/submit   → suggestions
---   POST /api/feedback/submit  → site_feedback
--- 字段口径两张表完全一致：
---   nickname   昵称（选填，接口限制 ≤20 字）
---   content    正文（必填，接口限制 ≤1000 字；入库前剔除 < > 字符）
---   contact    联系方式（选填，接口限制 ≤60 字，微信/QQ/邮箱都行）
---   client_id  浏览器本地随机身份（前端 getClientId()），用于后续排查，不做账号
---   created_at 写入时间（本地时间字符串，和站内其它表保持同一口径）
---   status     处理状态，默认 'new'（new 待看 | read 已看 | done 已处理 | spam 垃圾）
--- ⚠️ 这里只提供建表语句，不执行；部署前由站主在 D1 控制台跑一遍（IF NOT EXISTS 可重复执行）。
--- 【回退办法】
---   ① 代码回退：删掉本文件末尾从「2026-10-24 · 访客」这一行到 site_feedback 的 ); 为止的整段，
---      并删除两个 submit.js 与两个 HTML 页面即可；
---   ② 数据回退：已经建过表又确定不要数据时，才执行
---        DROP TABLE IF EXISTS suggestions;
---        DROP TABLE IF EXISTS site_feedback;
---      （会连同已收集内容一起删除，执行前先导出；不执行也不影响旧功能）
+-- 2026-11-07：原来的「💡 建议」与「🐞 反馈」两张表（suggestions / site_feedback）
+-- 连同两个页面、两个 submit 接口、/api/inbox 接口、后台「📬 建议/反馈」面板
+-- 已按站主要求【整块删除】，所以这里不再建表。
+-- 已有 D1 里那两张表请跑 migrations.sql 第 6 组（DROP TABLE）清掉。
 -- ============================================================
-
--- 「💡 建议」收集表
-CREATE TABLE IF NOT EXISTS suggestions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nickname TEXT,
-  content TEXT NOT NULL,
-  contact TEXT,
-  client_id TEXT NOT NULL DEFAULT '',
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  status TEXT DEFAULT 'new'
-);
-
--- 「🐞 反馈」收集表（字段与 suggestions 完全一致）
-CREATE TABLE IF NOT EXISTS site_feedback (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nickname TEXT,
-  content TEXT NOT NULL,
-  contact TEXT,
-  client_id TEXT NOT NULL DEFAULT '',
-  created_at TEXT DEFAULT (datetime('now', 'localtime')),
-  status TEXT DEFAULT 'new'
-);

@@ -73,7 +73,7 @@
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
             if (mc) t = mc[1];
-          } catch (e) {
+          } catch (e) {}
         }
         if (t !== 'dark' && t !== 'light') {
           t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';

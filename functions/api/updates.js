@@ -8,9 +8,9 @@ import { json, checkAuth, requireSameOrigin, safeParse } from './_utils.js';
 
 /* 2026-10-05：反馈页下线（feedback.html 已删），page_key 'feedback' 不再接受 ——
    单页查询直接 400，别再把访客引向已经删掉的页面。
-   注意：D1 里历史的 page_key='feedback' 公告行【不删】（考古资料，删了不可回退），
-   所以后台的 ?all=1 列表里仍然能看到它。 */
-const RETIRED_PAGES = ['feedback'];
+   2026-11-07：站主要求「建议、反馈页面全删（含 D1 与后台）」——'suggest' 一并退休。
+   历史公告行按站主要求已在 migrations.sql 第 6 组删除，这里只负责不再对外提供。 */
+const RETIRED_PAGES = ['feedback', 'suggest'];
 
 export async function onRequestGet(context) {
   const { request, env } = context;

@@ -135,3 +135,20 @@ CREATE INDEX IF NOT EXISTS idx_notice_reporter ON report_notices(reporter, seen)
 ALTER TABLE song_submissions ADD COLUMN note TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_song_sub_note ON song_submissions(note);
+
+
+-- ---------- 第 6 组：建议 / 反馈整块下线（2026-11-07 站主要求） ----------
+-- 站主原话：「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」。
+-- 这一组做三件事：
+--   ① 删掉两张收集表（表里是玩家提交的内容，删了不可恢复；执行前想留档先导出）；
+--   ② 清掉两张表对应的公告行（data/updates.json 里的 suggest / feedback 键已同步删除，
+--      functions/api/updates.js 也把这两个页面键列进了「退休名单」，不再对外提供）；
+--   ③ ⚠️ 老「feedback」表（2026-09 那版反馈）默认【不删】—— 它早就不被任何代码读写，
+--      属于历史数据；确实不要了再手动执行本组最后那条注释里的 DROP。
+-- 可重复执行：DROP IF EXISTS / DELETE 都不会报错。
+DROP TABLE IF EXISTS suggestions;
+DROP TABLE IF EXISTS site_feedback;
+DELETE FROM page_updates WHERE page_key IN ('suggest', 'feedback');
+
+-- 可选（默认不执行）：连 2026-09 的旧反馈表一起删。执行前务必先导出，删了不可恢复。
+-- DROP TABLE IF EXISTS feedback;

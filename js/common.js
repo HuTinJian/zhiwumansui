@@ -1094,12 +1094,11 @@ function initShareTriggers() {
       'roblox_music': 'roblox_music.html',
       'thanks': 'thanks.html',
       'law': 'law.html',
-      'suggest': 'suggest.html',
-      'feedback': 'feedback.html',
       'admin': 'admin.html',
       'emergency/': 'emergency/index.html',
       'legacy/2026-08-25/': 'legacy/2026-08-25/index.html'
     };
+    /* 2026-11-07：建议 / 反馈两页已整块删除，这里对应的两条本地路径映射一并去掉。 */
     document.querySelectorAll('a[href]').forEach(a => {
       const h = a.getAttribute('href');
       if (Object.prototype.hasOwnProperty.call(map, h)) a.setAttribute('href', map[h]);
