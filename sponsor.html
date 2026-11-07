@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🤝 赞助权益说明 · 织雾满穗</title>
+
+  <meta name="description" content="织雾满穗的赞助权益说明：赞助后可以提 3 个网站功能或 1 个网站页面（每个赞助订单计 1 次，仅限订阅方案），以及需求范围、处理方式与退款约定。">
+  <meta name="keywords" content="织雾满穗,赞助,爱发电,赞助权益,退款">
+  <meta name="author" content="HuTinJian">
+  <meta name="theme-color" content="#F5F0E6">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🤝 赞助权益说明 · 织雾满穗">
+  <meta property="og:description" content="赞助后可以提 3 个网站功能或 1 个网站页面；本页写清范围、处理方式和退款约定。">
+  <meta property="og:image" content="images/favicon.svg">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- ============================================================
+       2026-11-07 站主要求：把《赞助权益说明（最终版）》公开到站点上
+       （赞助入口当天刚从微信赞赏码换成爱发电主页）。
+       站主原话：「赞助权益说明（最终版，直接贴）」——所以下面正文
+       是站主给的那份**逐字**内容，一个字都不许改写、概括或润色；
+       要改原话，先问站主，别在这页自己发挥。
+       【回退办法】删掉本文件 + index.html 里那条 .hero-sponsor-terms 入口
+       + README 里对应的两处说明即可；本页不参与任何接口与数据，
+       删掉不会影响其它页面。
+       ============================================================ -->
+
+  <!-- 主题引导：在样式渲染前确定明暗，避免闪白（与其它页面同一段，别改） -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zm_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       本页局部样式（2026-11-07 新建）
+       ------------------------------------------------------------
+       只用 css/style.css 里的变量（颜色 / 圆角 / 阴影），所以深浅两套主题
+       自动跟随，不需要为暗色另写一份。
+       版式沿用「法律页」那套：顶部 hero + 一张张卡片，只是这里只有四节。
+       【回退办法】删掉整个 <style> 块 + 上面那个文件即可（本页无其它依赖）。
+       ============================================================ */
+    .terms-wrap { max-width: 860px; margin: 0 auto; padding: 0 4px; }
+
+    /* ---------- 顶部 hero ---------- */
+    .terms-hero {
+      position: relative;
+      overflow: hidden;
+      margin: 18px 0 18px;
+      padding: 30px 30px 26px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--header-grad-a), var(--header-grad-b));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .terms-hero h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      letter-spacing: 0.5px;
+      margin: 0 0 10px;
+      color: var(--text);
+    }
+    .terms-sub {
+      margin: 0;
+      max-width: 640px;
+      font-size: 0.92rem;
+      line-height: 1.85;
+      color: var(--text-light);
+    }
+    .terms-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .terms-chip {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      font-size: 0.78rem;
+      color: var(--text-light);
+      white-space: nowrap;
+    }
+
+    /* ---------- 四节正文卡片 ---------- */
+    .terms-card {
+      margin: 0 0 16px;
+      padding: 22px 24px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+    }
+    .terms-card h2 {
+      position: relative;
+      margin: 0 0 12px;
+      padding-left: 12px;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+    /* 标题左边那条金色竖条：跟法律页的节标题同一个做法 */
+    .terms-card h2::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.15em;
+      bottom: 0.15em;
+      width: 4px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-light));
+    }
+    .terms-card p {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      line-height: 1.9;
+      color: var(--text-light);
+    }
+    .terms-card p:last-child { margin-bottom: 0; }
+    .terms-list { margin: 0 0 10px; padding-left: 20px; }
+    .terms-list:last-child { margin-bottom: 0; }
+    .terms-list li {
+      margin: 4px 0;
+      font-size: 0.9rem;
+      line-height: 1.9;
+      color: var(--text-light);
+    }
+    .terms-list li::marker { color: var(--gold); }
+    .terms-list .terms-list { margin: 6px 0 0; }
+
+    /* ---------- 底部按钮 / 说明 ---------- */
+    .terms-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin: 24px 0 8px;
+    }
+    .terms-foot {
+      margin: 14px 0 26px;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .terms-hero { padding: 24px 20px 22px; border-radius: 18px; }
+      .terms-card { padding: 18px; }
+      .terms-chip { font-size: 0.74rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <!-- 与其它页面同一套（主题开关由 js/common.js 自动挂到 .nav-links 里） -->
+  <nav class="navbar has-brand" aria-label="站点导航">
+    <a class="nav-brand" href="./">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span class="brand-text">织雾满穗</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="./">🏠 首页</a></li>
+      <li><a href="thanks">❤️ 鸣谢</a></li>
+      <li><a href="law">⚖️ 法律</a></li>
+      <li><a href="suggest">💡 建议</a></li>
+      <li><a href="feedback">🐞 反馈</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" id="main">
+    <div class="terms-wrap">
+
+      <header class="terms-hero">
+        <h1>🤝 赞助权益说明</h1>
+        <p class="terms-sub">赞助之前，请先看完这一页 —— 它写清了能提什么需求、范围到哪里、做不到的时候怎么退。</p>
+        <div class="terms-chips">
+          <span class="terms-chip">📅 更新于 2026-11-07</span>
+          <span class="terms-chip">💳 只适用于订阅方案</span>
+          <span class="terms-chip">🔢 一个赞助订单计 1 次权益</span>
+        </div>
+      </header>
+
+      <!-- ============================================================
+           以下四节正文是站主 2026-11-07 给的《赞助权益说明（最终版）》，
+           逐字照搬（只做了换行分段与列表符号这类排版，字句与标点未改）。
+           ⚠️ 改之前先问站主；不要自己加解释、加例子、改数字。
+           ============================================================ -->
+
+      <section class="terms-card">
+        <h2>一、可以提出什么需求</h2>
+        <p>赞助之后，你可以向本站提出需求，以下二选一：</p>
+        <ul class="terms-list">
+          <li>3 个网站功能，或</li>
+          <li>1 个网站页面</li>
+        </ul>
+        <ul class="terms-list">
+          <li>每一个赞助订单计 1 次权益，按“3 个功能”或“1 个页面”二选一。无论这一个订单的赞助时长为多久，都只计 1 次，不会按月累加。</li>
+          <li>一次需求对应一个功能或一个页面，不能把同一件事拆成几份来累计次数。</li>
+          <li>本权益只适用于订阅方案的赞助，自选金额赞助不适用。</li>
+        </ul>
+      </section>
+
+      <section class="terms-card">
+        <h2>二、范围和上限</h2>
+        <p>需求须属于本站范围内的功能或页面，内容合法合规，不涉及他人隐私、不攻击他人、不违反平台规定。</p>
+        <p>其中，“1 个页面”指常规静态页面或简单交互页面，不含独立的用户系统、支付、数据库后台等；“1 个功能”指中小型功能。如果你的需求明显超出这个范围，我会先说明：能拆分的就分开计算，不能拆分的按第三条处理。</p>
+      </section>
+
+      <section class="terms-card">
+        <h2>三、具体做法，以及无法完成时的处理</h2>
+        <ul class="terms-list">
+          <li>请在付费当期把需求发给我，过期不提视为放弃。</li>
+          <li>我收到后 7 天内答复：能做、不能做，或者需要改小一点。</li>
+          <li>如果我答复不能做（包括因不合规而拒绝），或者答复能做但最终没能完成，你可以选择：
+            <ul class="terms-list">
+              <li>全额退还你实际支付的金额，或</li>
+              <li>把这次需求换成我们能做到的等量需求。</li>
+            </ul>
+          </li>
+          <li>退款在确认后 7 天内退回，走原支付渠道；平台不支持时双方另议方式。</li>
+          <li>退款完成即视为本次赞助的全部权益结清。</li>
+        </ul>
+      </section>
+
+      <section class="terms-card">
+        <h2>四、其他约定</h2>
+        <ul class="terms-list">
+          <li>以我答复“能做”并给出方案为确认点；确认后需求不再变更，要改就当新需求，消耗你的次数。</li>
+          <li>确认之前你来回调整，不额外消耗次数。</li>
+          <li>实际开发时间取决于需求复杂度，不承诺固定交付日期；答复时我会给你一个预期时间。</li>
+          <li>多人同时提需求时，按提出顺序处理。</li>
+          <li>有疑问请先私信问清楚再赞助。真正开始做时，以你和我当期确认的内容为准。</li>
+        </ul>
+      </section>
+
+      <div class="terms-cta">
+        <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电支持</a>
+        <a class="btn btn-secondary" href="./">🏠 回到首页</a>
+      </div>
+
+      <p class="terms-foot">本页内容与首页「☕ 请我喝一杯」那张卡片配套；赞助走爱发电，不经过本站收款。</p>
+
+    </div>
+  </main>
+
+  <!-- ==================== 页脚 ==================== -->
+  <!-- 与其它页面保持同一套内容（法律定位 / 隐私说明 / 联系站长） -->
+  <footer class="footer">
+
+    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
+         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
+    <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <p class="footer-legal">
+      本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
+      隐私说明：本站只在你的浏览器本地保存一个<b>随机 ID</b>，不收集姓名、手机号等个人信息，服务端不保存 IP。<br>
+      联系站长（权利人有异议、要求下架内容请直接找我；<b>收到通知后我们会立即断开相关链接</b>）：<a href="mailto:2560803486@qq.com">2560803486@qq.com</a> · QQ：2560803486
+    </p>
+  </footer>
+
+  <!-- 只引全站共用脚本（主题 / 弹窗 / 回到顶部）。
+       本页不读更新公告、不碰接口 —— 它是纯静态条款页，接口挂了也照常显示。 -->
+  <script src="js/common.js"></script>
+  <script>
+    /* 页脚年份：与其它页面一致（其它页把这一行写在页面内联脚本里） */
+    (function () {
+      var y = document.getElementById('year');
+      if (y) y.textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>

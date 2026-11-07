@@ -364,6 +364,23 @@
     /* 「收到赞助」那一块换个颜色：一眼分得清「花出去的」和「收到的」 */
     .hero-sponsor-cost-got b { color: var(--success); }
 
+    /* 赞助权益说明入口（2026-11-07 站主要求：最终版条款要能公开看到）。
+       放在赞助卡【正下方】一行小字 —— 不放进卡片里，因为整张卡片本身是外链，
+       链接里再套链接会互相抢点击。 */
+    .hero-sponsor-terms {
+      margin: 10px 0 0;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .hero-sponsor-terms a {
+      color: var(--gold-ink);
+      font-weight: 700;
+      text-decoration: none;
+      border-bottom: 1px dashed currentColor;
+    }
+    .hero-sponsor-terms a:hover { color: var(--primary-ink); }
+
     /* 2026-10-25 站主：「请我喝一杯」在手机上不好看。
        根因是全局「按钮胶囊化」把它也变成了超大圆角胶囊（999px）；
        这里恢复成方正的卡片，并在手机上重排：上一行图标 + 文案，
@@ -818,6 +835,12 @@
           <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-10-31</span></span>
         </span>
       </a>
+      <!-- 2026-11-07：赞助权益说明（最终版）已上架到独立页面 sponsor.html。
+           站主原话「赞助权益说明（最终版，直接贴）」——正文逐字照搬，不许改写。
+           入口只放在这里（首页赞助卡正下方）；【回退办法】删掉这个 p + 上面两条 CSS 规则即可。 -->
+      <p class="hero-sponsor-terms">
+        <a href="sponsor">📄 赞助前先看《赞助权益说明》</a>
+      </p>
     </section>
 
     <!-- ==================== 📺 关注我的哔哩哔哩（2026-10-05 站主新增） ====================
