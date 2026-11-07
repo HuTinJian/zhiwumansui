@@ -1294,6 +1294,10 @@
              鸣谢页上它是第三个切换，「网站创新家」从 Roblox 栏搬到了这里。
              （当天稍后站主又要求删掉「自定义类别」，所以这两栏的类别都只能从下拉里现有的项选。） -->
         <button class="subtab" data-subpanel="thanks-players">🙏 玩家感谢</button>
+        <!-- 2026-11-07 新增：赞助登记（爱发电没有回调，只能站内登记 + 人工核对）。
+             【回退办法】删掉这一行按钮 + 下面 #sponsor-reg-panel 整块 + admin.js 里
+             的四组函数 + #sponsorConfirmModal 即可。 -->
+        <button class="subtab" data-subpanel="sponsor-reg-panel">✅ 赞助登记</button>
       </div>
 
       <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
@@ -1394,6 +1398,46 @@
             <div class="loading">加载中...</div>
           </div>
           <nav class="pager" id="playersPager" aria-label="玩家感谢分页" hidden></nav>
+        </div>
+      </div>
+
+      <!-- 子面板 · ✅ 赞助登记（2026-11-07 新增）
+           流程：赞助者在 /support 填订单号 → 这里核对 → 点「确认入账」时后端才写进
+           鸣谢名单（category=👑 赞助者）。爱发电没有订单回调，所以这一步只能人工。
+           【回退办法】删掉这个 subpanel + 上面的子标签按钮 + js/admin.js 里
+           loadSponsorRegs / renderSponsorRegs / 四个动作函数 + #sponsorConfirmModal。 -->
+      <div class="subpanel" id="sponsor-reg-panel">
+        <div class="panel-card">
+          <h2>📈 数据统计</h2>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="num" id="statRegPending">-</div>
+              <div class="label">待核对</div>
+            </div>
+            <div class="stat-card">
+              <div class="num" id="statRegConfirmed">-</div>
+              <div class="label">已确认入账</div>
+            </div>
+            <div class="stat-card">
+              <div class="num" id="statRegRejected">-</div>
+              <div class="label">已标记无效</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h2>
+            <span class="head-actions">
+              <button class="btn btn-secondary" id="refreshSponsorRegsBtn">🔄 刷新</button>
+            </span>
+          </h2>
+          <p class="panel-desc">
+            存 D1 的 sponsor_regs 表。核对过爱发电的订单号再点「✅ 确认入账」——确认后会自动写进鸣谢名单；
+            「🚫 标记无效」只改状态、不上墙。
+          </p>
+          <div id="sponsorRegList">
+            <div class="loading">加载中...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1660,6 +1704,29 @@
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelAddSponsor">取消</button>
         <button class="btn btn-gold" id="confirmAddSponsor">✅ 确认添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2026-11-07 新增：确认一笔赞助登记的弹窗。
+       金额默认填登记时选的档位（自定义金额档必须手填）；感谢语默认用登记留言，
+       可改成只在鸣谢页公开的版本。
+       【回退办法】删掉这一整块 + js/admin.js 的 openRegConfirm/confirmReg 即可。 -->
+  <div class="modal" id="sponsorConfirmModal">
+    <div class="modal-content">
+      <h2 id="sponsorConfirmTitle">✅ 确认入账</h2>
+      <p class="panel-desc" id="sponsorConfirmWho"></p>
+      <div class="form-group">
+        <label for="sponsorConfirmAmount">实收金额（元）</label>
+        <input type="text" id="sponsorConfirmAmount" placeholder="例如：25 或 ¥25.00（保存后统一成两位小数）" maxlength="30">
+      </div>
+      <div class="form-group">
+        <label for="sponsorConfirmMessage">公开感谢语（选填，会显示在鸣谢页）</label>
+        <textarea id="sponsorConfirmMessage" placeholder="留空就用登记时写的留言" maxlength="200" style="min-height:80px;"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelSponsorConfirm">取消</button>
+        <button class="btn btn-gold" id="confirmSponsorConfirm">✅ 确认入账</button>
       </div>
     </div>
   </div>

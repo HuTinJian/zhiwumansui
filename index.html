@@ -282,166 +282,6 @@
       animation: fadeInUp 0.7s var(--ease-out) 0.32s backwards;
     }.hero-actions .btn { padding: 12px 30px; }
 
-    /* ========== 赞助入口小条（「开始逛逛」按钮下面那条） ==========
-       2026-11-07 站主要求：不再用微信赞赏码，改成「爱发电」主页链接
-       （https://afdian.com/a/HuTinJianZW）。原来是「点开看二维码大图」，
-       现在整条就是外链（新窗口打开），少一次点击，手机/电脑都一样。
-       金额（用户 2026-09-30 要求）：单独一小块挂在【右边】，
-       原文案不动；鸣谢页 thanks.html 那行金额同时删掉了，全站只此一处。
-       尺寸压得比按钮还小一号：它是补充信息，不该抢 hero 的焦点。
-       【回退办法】把这条改回 2026-11-07 之前的 <button class="hero-sponsor"
-       id="heroSponsor"> + <img class="hero-sponsor-qr"
-       src="images/sponsor-qrcode-small.png">，并把下面删掉的 #sponsorModal 弹窗、
-       脚本、css/style.css 的 .sponsor-modal-content 一起恢复
-       （原始代码：git show e22b59f:index.html；二维码图一直留在 images/ 里没删）。 */
-    .hero-sponsor {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 26px;
-      padding: 12px 20px 12px 12px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-sm);
-      font-family: var(--font);
-      text-align: left;
-      cursor: pointer;
-      /* 2026-11-07：从 <button> 改成 <a> 外链，这两行把链接的默认样式压掉 */
-      color: inherit;
-      text-decoration: none;
-      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
-      animation: fadeInUp 0.7s var(--ease-out) 0.38s backwards;
-    }
-    .hero-sponsor:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-light); }
-    .hero-sponsor:active { transform: translateY(0) scale(0.98); }
-    /* 左边那块方形图标位：原来是 76px 的二维码缩略图，
-       2026-11-07 换成「爱心 + 爱发电」字标（纯 CSS + 内联 SVG，不额外下载图片） */
-    .hero-sponsor-mark {
-      width: 76px; height: 76px; flex-shrink: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-      border-radius: 10px; background: var(--bg-tint); border: 1px solid var(--border);
-      color: var(--gold-ink);
-    }
-    .hero-sponsor-mark svg { width: 30px; height: 30px; display: block; }
-    .hero-sponsor-mark-t { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; line-height: 1; }
-    .hero-sponsor-txt { display: flex; flex-direction: column; gap: 2px; }
-    .hero-sponsor-t { font-size: 0.9rem; font-weight: 700; color: var(--text); }
-    .hero-sponsor-s { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
-    .hero-sponsor-s b { color: var(--primary-ink); font-weight: 800; }
-    .hero-sponsor-h { font-size: 0.74rem; color: var(--text-muted); }
-
-    /* 金额那一块：单独一块，贴在赞助入口右边（用户 2026-09-30 要求），
-       和左边那列文案用一条浅色竖虚线隔开。
-       2026-10-04 用户要求：在这块后面再加一笔「收到的赞助」，并且
-       「截至 xxxx-xx-xx」这个时间要【花费和赞助共用】——
-       所以现在是一整块里放两笔账 + 一行共用日期：
-         .hero-sponsor-stats       整块（左边那条竖虚线挂在它身上）
-           ├ .hero-sponsor-nums    两个数字并排（共花费 / 收到赞助）
-           └ .hero-sponsor-stats-date  共用的「截至 xxxx-xx-xx」
-       数字 / 日期都由 js/common.js 启动时回填：
-         · 花费 → fillSiteCost()，占位属性 data-site-cost / data-site-cost-date
-         · 赞助 → fillSponsorTotal()，占位属性 data-sponsor-total（按 D1 + 底档现算）
-       HTML 里写的那份只是没脚本时的兜底，改数字时记得一起改。 */
-    .hero-sponsor-stats {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      margin-left: 4px;
-      padding-left: 18px;
-      border-left: 1px dashed var(--border);
-      white-space: nowrap;
-    }
-    .hero-sponsor-nums {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-    .hero-sponsor-cost {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
-    }
-    .hero-sponsor-cost b {
-      font-size: 1.16rem;
-      font-weight: 800;
-      color: var(--gold-ink);
-      letter-spacing: -0.3px;
-    }
-    .hero-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
-    /* 共用的那一行日期：两笔账一起看，所以压在两个数字下面居中 */
-    .hero-sponsor-stats-date { letter-spacing: 0.2px; }
-    /* 「收到赞助」那一块换个颜色：一眼分得清「花出去的」和「收到的」 */
-    .hero-sponsor-cost-got b { color: var(--success); }
-
-    /* 赞助权益说明入口（2026-11-07 站主要求：最终版条款要能公开看到）。
-       放在赞助卡【正下方】一行小字 —— 不放进卡片里，因为整张卡片本身是外链，
-       链接里再套链接会互相抢点击。 */
-    .hero-sponsor-terms {
-      margin: 10px 0 0;
-      font-size: 0.78rem;
-      line-height: 1.7;
-      color: var(--text-muted);
-    }
-    .hero-sponsor-terms a {
-      color: var(--gold-ink);
-      font-weight: 700;
-      text-decoration: none;
-      border-bottom: 1px dashed currentColor;
-    }
-    .hero-sponsor-terms a:hover { color: var(--primary-ink); }
-
-    /* 2026-10-25 站主：「请我喝一杯」在手机上不好看。
-       根因是全局「按钮胶囊化」把它也变成了超大圆角胶囊（999px）；
-       这里恢复成方正的卡片，并在手机上重排：上一行图标 + 文案，
-       下一行两笔账 + 日期，不再挤成一条。 */
-    .hero-sponsor { border-radius: var(--radius-sm) !important; }
-    .site-announce { border-radius: 0 !important; }   /* 公告条是通栏，不该是胶囊 */
-    @media (max-width: 600px) {
-      /* 选择器前面加 .hero，是为了压过下面 768 档的旧规则（同优先级、后出现会赢） */
-      .hero .hero-sponsor {
-        display: grid;
-        grid-template-columns: 70px minmax(0, 1fr);
-        align-items: center;
-        gap: 10px 14px;
-        width: 100%;
-        margin-top: 22px;
-        padding: 14px;
-        border-radius: 18px !important;
-        background: linear-gradient(160deg, var(--bg-card) 0%, var(--gold-bg) 100%);
-        border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
-        text-align: left;
-        white-space: normal;
-      }
-      .hero .hero-sponsor-mark { width: 70px; height: 70px; border-radius: 8px; }
-      .hero .hero-sponsor-mark svg { width: 26px; height: 26px; }
-      .hero .hero-sponsor-mark-t { font-size: 0.58rem; }
-      .hero .hero-sponsor-txt { min-width: 0; }
-      .hero .hero-sponsor-t { font-size: 0.92rem; }
-      .hero .hero-sponsor-s { font-size: 0.78rem; line-height: 1.55; }
-      .hero .hero-sponsor-h { font-size: 0.7rem; line-height: 1.5; }
-      .hero .hero-sponsor-stats {
-        grid-column: 1 / -1;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 10px;
-        margin: 0;
-        padding: 10px 0 0;
-        border-left: none;
-        border-top: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--border));
-        white-space: normal;
-      }
-      .hero .hero-sponsor-nums { gap: 16px; }
-      .hero .hero-sponsor-cost { flex-direction: column; align-items: flex-start; gap: 1px; }
-      .hero .hero-sponsor-cost b { font-size: 1.08rem; }
-      .hero .hero-sponsor-stats-date { text-align: right; font-size: 0.66rem; }
-    }
-
     /* ========== 区块标题 ========== */
     .section-head {
       display: flex;
@@ -686,25 +526,6 @@
       .hero { padding: 46px 0 34px; }
       .hero .subtitle { font-size: 0.96rem; }
       .hero .hero-desc { font-size: 0.88rem; }.hero-actions .btn { flex: 1 1 140px; padding: 12px 20px; }
-      .hero-sponsor { display: flex; flex-wrap: wrap; width: 100%; margin-top: 20px; padding: 10px 14px 10px 10px; gap: 11px; }
-      .hero-sponsor-mark { width: 62px; height: 62px; }
-      .hero-sponsor-mark svg { width: 24px; height: 24px; }
-      /* 窄屏上金额块换到下一行：竖虚线改横虚线，免得把文案挤成一长条。
-         flex: 1 1 0 是必需的 —— 不加的话文案那列按「不换行有多宽」参与换行计算，
-         会被挤到自己单独一行（图标孤零零留在上面）。 */
-      .hero-sponsor-txt { flex: 1 1 0; min-width: 0; }
-      /* 整块（两笔账 + 共用日期）占满一行；两个数字并排、日期在下面居中 */
-      .hero-sponsor-stats {
-        flex: 1 1 100%;
-        margin-left: 0;
-        padding: 8px 0 2px;
-        border-left: none;
-        border-top: 1px dashed var(--border);
-        gap: 4px;
-      }
-      .hero-sponsor-nums { gap: 22px; }
-      .hero-sponsor-cost { flex-direction: row; align-items: baseline; gap: 8px; }
-      .hero-sponsor-cost b { font-size: 1.05rem; }
       .section-head { margin: 42px 0 16px; }
       .content-grid { grid-template-columns: 1fr; }
       .nav-brand .brand-text { display: none; }
@@ -790,68 +611,12 @@
         <button type="button" class="btn zb-invite" data-invite>🔗 分享本站</button>
       </div>
 
-      <!-- 赞助入口小条：位置就是这里（「开始逛逛」那排按钮下面）。
-           2026-11-07 站主要求：微信赞赏码 → 爱发电主页
-           （https://afdian.com/a/HuTinJianZW），所以整条直接是外链
-           （target="_blank"），不再有二维码、也没有「点开看大图」的弹窗。
-           金额【单独一小块，放在右边】（用户 2026-09-30 要求）：
-           数字和核对日期由 js/common.js 的 SITE_COST 回填，占位属性见
-           data-site-cost / data-site-cost-date；HTML 里写的那份只是没脚本时的兜底，
-           换数字时记得一起改（2026-11-07：兜底数字同步成 ¥283.03 / 2026-11-07，
-           与 js/common.js 的 SITE_COST 保持一致；回退：改回 ¥270.96 / 2026-10-31）。
-           2026-10-04（用户要求）：后面再加一块「收到的赞助」（data-sponsor-total），
-           数字不写死 —— 由 js/common.js 的 fillSponsorTotal() 按
-           D1（/api/thanks 的 👑 赞助者）+ 底档 data/sponsors.json 现算；
-           HTML 里那个 ¥25.00 是接口拿不到时的兜底（2026-10-05 起金额一律两位小数）。
-           【回退办法】恢复成 2026-11-07 之前的 <button class="hero-sponsor"
-           id="heroSponsor" aria-label="查看赞赏码大图"> + 二维码小图，并把 #sponsorModal
-           弹窗、它的脚本（index.html 底部）、css/style.css 的 .sponsor-modal-content
-           一起恢复（原文件见 git show e22b59f:index.html；二维码图仍在 images/ 下，没删）。 -->
-      <!-- 外链是新窗口打开，所以加 rel="noopener noreferrer"；
-           aria-label 把「去爱发电」和「新窗口」都说清楚，读屏用户不会点得莫名其妙。 -->
-      <a class="hero-sponsor" id="heroSponsor"
-         href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer"
-         aria-label="去爱发电支持本站（在新窗口打开）">
-        <!-- 左边图标位：原来是 76px 的二维码缩略图，2026-11-07 换成「爱心 + 爱发电」字标。
-             用内联 SVG（Feather 的 heart），不额外下载图片；颜色走 currentColor，
-             深浅两套主题自动跟着 --gold-ink 变。 -->
-        <span class="hero-sponsor-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-               stroke-linecap="round" stroke-linejoin="round" focusable="false">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          <span class="hero-sponsor-mark-t">爱发电</span>
-        </span>
-        <span class="hero-sponsor-txt">
-          <span class="hero-sponsor-t">☕ 请我喝一杯</span>
-          <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
-          <span class="hero-sponsor-h">点我去爱发电 · 新窗口打开</span>
-        </span>
-        <!-- 两笔账 + 一行【共用】的核对日期（2026-10-04 用户要求：
-             「截至」那个时间由花费和赞助共用，不再只挂在花费那一块上）。
-             结构：.hero-sponsor-stats = 整块（负责左边那条竖虚线）
-                     ├ .hero-sponsor-nums      两个数字并排（共花费 / 收到赞助）
-                     └ .hero-sponsor-stats-date 共用的「截至 xxxx-xx-xx」 -->
-        <span class="hero-sponsor-stats">
-          <span class="hero-sponsor-nums">
-            <span class="hero-sponsor-cost">
-              <b data-site-cost>¥283.03</b>
-              <span class="hero-sponsor-cost-d">共花费</span>
-            </span>
-            <span class="hero-sponsor-cost hero-sponsor-cost-got">
-              <b data-sponsor-total>¥25.00</b>
-              <span class="hero-sponsor-cost-d">收到赞助</span>
-            </span>
-          </span>
-          <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-11-07</span></span>
-        </span>
-      </a>
-      <!-- 2026-11-07：赞助权益说明（最终版）已上架到独立页面 sponsor.html。
-           站主原话「赞助权益说明（最终版，直接贴）」——正文逐字照搬，不许改写。
-           入口只放在这里（首页赞助卡正下方）；【回退办法】删掉这个 p + 上面两条 CSS 规则即可。 -->
-      <p class="hero-sponsor-terms">
-        <a href="sponsor">📄 赞助前先看《赞助权益说明》</a>
-      </p>
+      <!-- 2026-11-07 站主要求：赞助小卡片「不要太明显」，已从首页 hero
+           挪到鸣谢页（thanks.html 的 👑 赞助者名单上方，样式压成一条细线）。
+           首页现在不再放任何赞助入口。
+           【回退办法】git show 8ede9e5:index.html 里还是旧的 hero 卡片；
+           把那段 HTML + CSS + #sponsorEntryModal + openSponsorEntry 脚本搬回来即可，
+           反向操作说明也写在 thanks.html 的 .thanks-sponsor 注释里。 -->
     </section>
 
     <!-- ==================== 📺 关注我的哔哩哔哩（2026-10-05 站主新增） ====================
@@ -1089,12 +854,6 @@
           if (typeof window.openSiteNotice === 'function') window.openSiteNotice();
         });
       })();
-
-      /* 2026-11-07：原来这里有一段 sponsorQr() IIFE —— 点 hero 那条开
-         #sponsorModal 看二维码大图，并给「关闭」按钮挂 closeModal。
-         赞助入口改成爱发电外链后，<a> 自己就能跳转，弹窗和这段脚本一起删掉了。
-         【回退办法】把那段 IIFE 贴回来（原代码见 git show e22b59f:index.html），
-         并恢复 #sponsorModal 弹窗与 .sponsor-modal-content 样式即可。 */
 
       /* ---------- 副标题打字机 ---------- */
       (function typewriter() {

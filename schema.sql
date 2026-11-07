@@ -64,6 +64,21 @@ CREATE TABLE IF NOT EXISTS thanks (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+-- 2026-11-07：赞助登记（站内登记 + 站主后台人工核对，替代「爱发电没有回调」的空缺）
+-- 流程：/support 填昵称 + 爱发电订单号 → 这里 pending → 后台确认后才写进 thanks 表
+CREATE TABLE IF NOT EXISTS sponsor_regs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT NOT NULL,
+  order_no TEXT NOT NULL,
+  tier TEXT NOT NULL DEFAULT 'custom',
+  message TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  amount TEXT,
+  thanks_id INTEGER,
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  confirmed_at TEXT
+);
+
 -- 版本信息（page_key 必须 UNIQUE，ON CONFLICT 才能生效）
 CREATE TABLE IF NOT EXISTS page_updates (
   page_key TEXT PRIMARY KEY,
@@ -91,6 +106,9 @@ CREATE TABLE IF NOT EXISTS visit_sources (
 
 -- 索引：加速常用查询
 CREATE INDEX IF NOT EXISTS idx_thanks_category ON thanks(category, id);
+-- 2026-11-07：同一张爱发电订单只能登记一次（重复提交返回 409，不会写两条）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sponsor_reg_order ON sponsor_regs(order_no);
+CREATE INDEX IF NOT EXISTS idx_sponsor_reg_status ON sponsor_regs(status, id);
 CREATE INDEX IF NOT EXISTS idx_songs_line ON songs_extra(line_index);
 -- 2026-10-05：无效上报的唯一键（同一浏览器对同一个 ID 只算一条）+ 按状态取列表
 CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id, reporter);

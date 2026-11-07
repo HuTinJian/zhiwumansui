@@ -31,6 +31,98 @@
        （.thanks-person 里那行「名字 · 平台 · 描述」内联文字）。
        历史实现见 git 提交 d2d4158 / 257662a，需要时能照着加回来。 -->
 
+  <style>
+    /* ========== 赞助入口（2026-11-07 站主要求挪到这里） ==========
+       站主原话：「然后赞助的小卡片不要太明显，比如将它放到鸣谢名单，赞助者的上面」
+       —— 所以从首页 hero 搬到这儿，样式也压成一条细线：上下虚线、无背景、小字，
+       不再是一张抢眼的卡片。点它开 #sponsorEntryModal（档位 + 去爱发电 + 去登记）。
+       【回退办法】删掉 .thanks-sponsor 这段样式 + #thanksSponsorCard 那块 HTML +
+       #sponsorEntryModal + 下面 openThanksSponsor 的 IIFE，即可回到「这一页只留名单」；
+       想搬回首页的话，git show 8ede9e5:index.html 里有整套 hero 卡片原样。 */
+    .thanks-sponsor {
+      margin: 0 0 20px;
+      padding: 10px 2px 11px;
+      border-top: 1px dashed var(--border);
+      border-bottom: 1px dashed var(--border);
+    }
+    .thanks-sponsor-btn {
+      /* 2026-11-07：整条铺满时，箭头会被甩到最右边、文字看着像漂在左岸；
+         改成「只占内容宽度」，心 + 两行字 + 箭头挤在一起，更像一行安静的链接。 */
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 100%;
+      padding: 0;
+      background: none;
+      border: 0;
+      font: inherit;
+      color: var(--text-muted);
+      text-align: left;
+      cursor: pointer;
+    }
+    .thanks-sponsor-heart { color: var(--gold-ink); font-size: 1rem; line-height: 1; }
+    .thanks-sponsor-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .thanks-sponsor-text b { font-size: 0.88rem; font-weight: 600; color: var(--text-light); }
+    .thanks-sponsor-text span { font-size: 0.76rem; color: var(--text-muted); }
+    .thanks-sponsor-arrow { margin-left: 2px; color: var(--text-muted); transition: transform var(--dur) var(--ease-soft); }
+    .thanks-sponsor-btn:hover .thanks-sponsor-text b,
+    .thanks-sponsor-btn:hover .thanks-sponsor-arrow { color: var(--primary-ink); }
+    .thanks-sponsor-btn:hover .thanks-sponsor-arrow { transform: translateX(2px); }
+    .thanks-sponsor-btn:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 4px; border-radius: 4px; }
+    .thanks-sponsor-meta {
+      margin: 7px 0 0;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .thanks-sponsor-meta b { color: var(--gold-ink); font-weight: 700; }
+    .thanks-sponsor-meta a {
+      color: var(--gold-ink);
+      text-decoration: none;
+      border-bottom: 1px dashed currentColor;
+    }
+    .thanks-sponsor-meta a:hover { color: var(--primary-ink); }
+
+    /* ========== 赞助方式弹窗（从 index.html 原样搬来） ==========
+       外层 .modal / .modal-content 是全站共用的（js/common.js 管开关）。 */
+    .sponsor-entry-modal { max-width: 520px; }
+    .sponsor-entry-lead {
+      margin: 0 0 4px;
+      color: var(--text-light);
+      line-height: 1.8;
+      font-size: 0.9rem;
+    }
+    .sponsor-entry-tiers {
+      list-style: none;
+      margin: 16px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .sponsor-entry-tiers li {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-tint);
+      font-size: 0.86rem;
+      line-height: 1.6;
+    }
+    .sponsor-entry-tiers b { flex: 0 0 92px; color: var(--gold-ink); }
+    .sponsor-entry-tiers span { color: var(--text-light); }
+    .sponsor-entry-note {
+      margin: 14px 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .sponsor-entry-note a { color: var(--gold-ink); }
+    .sponsor-entry-actions { flex-wrap: wrap; }
+    .sponsor-entry-close { margin-top: 12px; width: 100%; }
+  </style>
+
   <!-- 主题引导：在样式渲染前确定明暗，避免闪白 -->
   <script>
     (function () {
@@ -119,6 +211,29 @@
            于是改成和右边那一档一模一样的结构：.thanks-group > .thanks-person。
            容器用 .thanks-single（不是 .thanks-groups）—— 赞助者没有类别、只有一个块，
            不需要 Roblox 那边的三列栅格。 -->
+      <!-- 2026-11-07：赞助入口从首页 hero 挪到这里（站主要求「不要太明显」）。
+           放在「👑 赞助者」名单上方：看名单的人顺手就能支持，但不抢名单本身。
+           数字仍由 js/common.js 回填：data-site-cost / data-site-cost-date /
+           data-sponsor-total；HTML 里的值只是没脚本时的兜底（改数字要一起改）。
+           【回退办法】删掉 #thanksSponsorCard 这块 + .thanks-sponsor 样式 +
+           弹窗 + 底部 IIFE，页面就回到「只留名单」。 -->
+      <div class="thanks-sponsor" id="thanksSponsorCard">
+        <button type="button" class="thanks-sponsor-btn" id="thanksSponsorBtn"
+                aria-haspopup="dialog" aria-controls="sponsorEntryModal">
+          <span class="thanks-sponsor-heart" aria-hidden="true">♡</span>
+          <span class="thanks-sponsor-text">
+            <b>喜欢这个站？请我喝一杯</b>
+            <span>赞助走爱发电 · 点开看档位与权益</span>
+          </span>
+          <span class="thanks-sponsor-arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="thanks-sponsor-meta">
+          共花费 <b data-site-cost>¥283.03</b> · 收到赞助 <b data-sponsor-total>¥25.00</b>
+          · 截至 <span data-site-cost-date>2026-11-07</span>
+          · <a href="sponsor">赞助权益说明</a>
+        </p>
+      </div>
+
       <div class="thanks-single" id="sponsorGroups" aria-busy="true">
         <div class="thanks-empty" id="sponsorLoading">名单加载中…</div>
       </div>
@@ -129,10 +244,12 @@
            2026-10-10 站主又要求把这句删掉（原话「把……『排名不分先后 ❤️』删除了」）→ 已删。
            ⚠️ 别再往回加。 -->
 
-      <!-- 2026-09-30 用户要求：金额（本站一共花了多少）挪去首页 hero 的赞赏码右边
-           单独显示，这一页不再写它 —— 那行 .thanks-cost 已经删掉，样式也一并清理。
-           跟赞助码有关的东西（原来是「☕ 请我喝一杯」+ 赞赏码小图）早在 2026-09-26
-           就按用户要求删掉了：这一页只留名单。 -->
+      <!-- 2026-09-30 用户要求：金额（本站一共花了多少）从这一页删掉，挪去首页 hero
+           单独显示 —— 那行 .thanks-cost 已经删掉，样式也一并清理。
+           2026-11-07 站主改主意：赞助小卡片从首页 hero 搬回这一页（见上面
+           #thanksSponsorCard），金额也跟着回来了，但只占一条细线下面那行小字。
+           跟赞助码有关的东西（「☕ 请我喝一杯」+ 赞赏码小图）早在 2026-09-26
+           按用户要求删掉；现在回来的是爱发电入口，没有二维码。 -->
     </section>
 
     <!-- ==================== 面板二：🎮 Roblox ID 宝库 ==================== -->
@@ -167,6 +284,39 @@
            ⚠️ 别往回加。 -->
     </section>
   </main>
+
+  <!-- ==================== 赞助方式弹窗（2026-11-07 从 index.html 搬来） ====================
+       点名单上方那条「喜欢这个站？请我喝一杯」打开，脚本在页面最底部。
+       里面只做三件事：把档位说清楚、给出爱发电外链、给已赞助的人一个登记入口。
+       ⚠️ 本站不收钱：钱只在爱发电那边走；这里只是「登记订单号 → 站主核对」。
+       【回退办法】删掉整个 div + 底部 openThanksSponsor 脚本 + 头部 .sponsor-entry-* 样式。 -->
+  <div class="modal" id="sponsorEntryModal" aria-labelledby="sponsorEntryTitle">
+    <div class="modal-content sponsor-entry-modal">
+      <h2 id="sponsorEntryTitle">☕ 请我喝一杯</h2>
+      <p class="sponsor-entry-lead">这个站是业余时间一个人做的，AI 调用费都是自己掏的。赞助走爱发电，钱不经过本站。</p>
+
+      <ul class="sponsor-entry-tiers">
+        <li><b>自定义金额</b><span>加入鸣谢名单</span></li>
+        <li><b>5 / 10 元</b><span>鸣谢名单 + 专属社区</span></li>
+        <li><b>25 元</b><span>再加 1 个与你自己有关的网站功能</span></li>
+        <li><b>50 元</b><span>再加 3 个功能，或 1 个页面</span></li>
+      </ul>
+
+      <p class="sponsor-entry-note">
+        提需求权益只包含在 25 / 50 元档；每个订单计 1 次，不按月累加。
+        完整口径见 <a href="sponsor">《赞助权益说明》</a>。
+      </p>
+
+      <div class="modal-actions sponsor-entry-actions">
+        <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电赞助</a>
+        <a class="btn btn-secondary" href="support">✅ 已赞助，去登记</a>
+        <a class="btn btn-secondary" href="sponsor">📄 看完整条款</a>
+      </div>
+
+      <button class="btn btn-secondary sponsor-entry-close" type="button"
+              onclick="closeModal('sponsorEntryModal')">关闭</button>
+    </div>
+  </div>
 
   <!-- ==================== 页脚 ==================== -->
   <!-- 2026-10-04 站主要求：导航链接和分享入口都从页脚删掉（「任何页面的页脚都不要有分享链接」），
@@ -514,6 +664,19 @@
       function renderPlayers(groups) {
         renderGroupList($('playerGroups'), groups, true, '暂无玩家感谢 ❤️');
       }
+    })();
+  </script>
+
+  <script>
+    /* 2026-11-07：点「喜欢这个站？请我喝一杯」那条 → 打开上面的 #sponsorEntryModal。
+       openModal / closeModal 由 js/common.js 提供（弹窗只能点按钮关，没绑遮罩）。
+       【回退办法】删掉这段脚本 + #thanksSponsorCard 那块 HTML 即可。 */
+    (function openThanksSponsor() {
+      var btn = document.getElementById('thanksSponsorBtn');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        if (typeof window.openModal === 'function') window.openModal('sponsorEntryModal');
+      });
     })();
   </script>
 </body>

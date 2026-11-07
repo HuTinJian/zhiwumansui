@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>✅ 赞助登记 · 织雾满穗</title>
+
+  <meta name="description" content="在爱发电赞助织雾满穗之后，在这里填昵称、订单号与想说的话；核对通过后会写进鸣谢名单。">
+  <meta name="keywords" content="织雾满穗,赞助登记,爱发电,鸣谢">
+  <meta name="author" content="HuTinJian">
+  <meta name="theme-color" content="#F5F0E6">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="✅ 赞助登记 · 织雾满穗">
+  <meta property="og:description" content="赞助后在这里登记订单号，核对通过会写进鸣谢名单。">
+  <meta property="og:image" content="images/favicon.svg">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- ============================================================
+       2026-11-07 新建：赞助登记页（/support）
+       ------------------------------------------------------------
+       为什么有这一页：
+         爱发电没有对外的「支付成功回调」，网站没法自动知道谁赞助了。
+         所以让赞助者把订单号填进来，先写 D1 的 sponsor_regs（pending），
+         站主在后台核对后点「确认入账」，才写进鸣谢名单。
+       ⚠️ 这一页只是**登记**，不收钱、不碰支付；钱只在爱发电那边走。
+       【回退办法】删掉本文件 + index.html 弹窗里那颗「已赞助，去登记」+
+       sponsor.html 底部那颗「已赞助，去登记」+ admin.html 的「✅ 赞助登记」
+       子标签即可；接口与 D1 表留着不影响任何现有页面。
+       ============================================================ -->
+
+  <!-- 主题引导：在样式渲染前确定明暗，避免闪白（与其它页面同一段，别改） -->
+  <script>
+    (function () {
+      try {
+        var t = null;
+        try { t = localStorage.getItem('zm_theme'); } catch (e) {}
+        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
+           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+           【回退办法】把这个 if 块整段删掉、并把上面那行改回
+           var t = localStorage.getItem('zm_theme');
+           备份：.verify/backup-theme-20261107/本文件名 */
+        if (t !== 'dark' && t !== 'light') {
+          try {
+            var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
+            if (mc) t = mc[1];
+          } catch (e) {}
+        }
+        if (t !== 'dark' && t !== 'light') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       本页局部样式（2026-11-07 新建）
+       ------------------------------------------------------------
+       只用 css/style.css 里的变量（颜色 / 圆角 / 阴影），深浅主题自动跟随。
+       .form-group 那套输入框样式是全站共用的，这里不再重复写。
+       【回退办法】删掉整个 <style> 块 + 本文件即可，本页没有别的依赖。
+       ============================================================ */
+    .reg-wrap { max-width: 960px; margin: 0 auto; padding: 0 4px; }
+
+    .reg-hero {
+      margin: 18px 0;
+      padding: 30px 30px 26px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--header-grad-a), var(--header-grad-b));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .reg-hero h1 {
+      margin: 0 0 12px;
+      font-family: "Songti SC", "Noto Serif SC", "SimSun", serif;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .reg-hero p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.85;
+    }
+
+    /* 两栏：左边表单，右边说明；≤820px 自动落成一栏 */
+    .reg-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 820px) { .reg-grid { grid-template-columns: minmax(0, 1fr); } }
+
+    .reg-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 24px 26px;
+    }
+    .reg-card h2 {
+      margin: 0 0 16px;
+      font-family: "Songti SC", "Noto Serif SC", "SimSun", serif;
+      font-size: 1.12rem;
+      color: var(--text);
+    }
+    .reg-card h2 + .reg-list { margin-top: -4px; }
+
+    .reg-side h2 { margin-top: 22px; }
+    .reg-side h2:first-child { margin-top: 0; }
+
+    .reg-list {
+      margin: 0 0 6px;
+      padding-left: 1.2em;
+      color: var(--text-muted);
+      line-height: 1.9;
+      font-size: 0.9rem;
+    }
+    .reg-list b { color: var(--text); }
+    .reg-list a { color: var(--gold-ink); }
+
+    .reg-hint {
+      margin: 8px 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .reg-submit {
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    /* 提交结果（成功 / 失败都写在这，role=status 会被读屏念出来） */
+    .reg-status {
+      margin: 14px 0 0;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      min-height: 1.4em;
+      word-break: break-word;
+    }
+    .reg-status.ok { color: #2e7d4f; }
+    .reg-status.err { color: #b3261e; }
+    [data-theme="dark"] .reg-status.ok { color: #7fd1a0; }
+    [data-theme="dark"] .reg-status.err { color: #ff9d94; }
+
+    /* 提交成功后把表单换成这块（表单整块隐藏，避免重复提交） */
+    .reg-done {
+      display: none;
+      text-align: center;
+      padding: 10px 0 4px;
+    }
+    .reg-done.show { display: block; }
+    .reg-done .big { font-size: 2.2rem; line-height: 1.2; }
+    .reg-done h2 { margin: 10px 0 8px; }
+    .reg-done p { color: var(--text-muted); line-height: 1.8; margin: 0 0 14px; }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- ==================== 顶部导航栏 ==================== -->
+  <nav class="navbar has-brand" aria-label="站点导航">
+    <a class="nav-brand" href="./">
+      <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
+      <span class="brand-text">织雾满穗</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="./">🏠 首页</a></li>
+      <li><a href="thanks">❤️ 鸣谢</a></li>
+      <li><a href="law">⚖️ 法律</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" id="main">
+    <div class="reg-wrap">
+
+      <header class="reg-hero">
+        <h1>✅ 赞助登记</h1>
+        <p>在爱发电赞助之后，把订单号填在这里。我核对完，会把你写进鸣谢名单 —— 核对之前不会公开任何信息。</p>
+      </header>
+
+      <div class="reg-grid">
+
+        <!-- ============ 左：登记表单 ============ -->
+        <section class="reg-card">
+          <h2>填写登记</h2>
+
+          <form id="sponsorRegForm" novalidate>
+            <div class="form-group">
+              <label for="regNickname">昵称（会显示在鸣谢名单）</label>
+              <input type="text" id="regNickname" name="nickname" maxlength="40" autocomplete="nickname" placeholder="例如：冰糖" required>
+            </div>
+
+            <div class="form-group">
+              <label for="regOrderNo">爱发电订单号</label>
+              <input type="text" id="regOrderNo" name="orderNo" maxlength="64" autocomplete="off" inputmode="text" placeholder="在爱发电「我的 → 订单」里复制" required>
+              <p class="reg-hint">只用来核对这笔赞助，不会公开；同一张订单只能登记一次。</p>
+            </div>
+
+            <div class="form-group">
+              <label for="regTier">赞助档位</label>
+              <select id="regTier" name="tier">
+                <option value="custom" selected>自定义金额（只含鸣谢）</option>
+                <option value="5">5 元档</option>
+                <option value="10">10 元档</option>
+                <option value="25">25 元档（含 1 次提需求）</option>
+                <option value="50">50 元档（含 3 个功能或 1 个页面）</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="regMessage">想对站主说的话（选填）</label>
+              <textarea id="regMessage" name="message" maxlength="200" placeholder="例如：谢谢你做的歌单，帮我找到好多歌"></textarea>
+              <p class="reg-hint">这段话会公开在鸣谢页（最多 200 字），不想公开就留空。</p>
+            </div>
+
+            <button class="btn btn-primary reg-submit" id="regSubmit" type="submit">✅ 提交登记</button>
+            <p class="reg-status" id="regStatus" role="status" aria-live="polite"></p>
+          </form>
+
+          <!-- 提交成功后的替代内容 -->
+          <div class="reg-done" id="regDone">
+            <div class="big">🎉</div>
+            <h2>登记好了</h2>
+            <p>我核对爱发电订单后，会把你加进鸣谢名单。<br>如果订单号对不上，这条会被标记为无效，不会公开。</p>
+            <a class="btn btn-secondary" href="thanks">❤️ 去鸣谢页看看</a>
+          </div>
+        </section>
+
+        <!-- ============ 右：说明 ============ -->
+        <aside class="reg-card reg-side">
+          <h2>怎么找订单号</h2>
+          <ol class="reg-list">
+            <li>在爱发电完成赞助；</li>
+            <li>打开爱发电 →「我的」→「订单」；</li>
+            <li>找到那笔赞助，复制订单号（一串数字）；</li>
+            <li>贴到左边，点「提交登记」。</li>
+          </ol>
+
+          <h2>核对与公开</h2>
+          <ul class="reg-list">
+            <li>订单号只用于核对，<b>不会公开</b>。</li>
+            <li>确认后，<b>昵称</b>和「想说的话」会出现在<a href="thanks">鸣谢页</a>。</li>
+            <li>提需求权益只给 25 / 50 元档，详见<a href="sponsor">《赞助权益说明》</a>。</li>
+            <li>核对不通过（订单号对不上 / 乱填）会被标记无效，不会上墙。</li>
+          </ul>
+
+          <p class="reg-hint" style="margin-top:16px;">还没赞助？<a href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">先去爱发电看看</a>（新窗口打开）。</p>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== 页脚 ==================== -->
+  <footer class="footer">
+    <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
+      <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
+      <img class="fb-compact fb-light" src="images/brand/logo-lockup-compact-light.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+      <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
+    </div>
+    <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
+    <p class="footer-legal">
+      本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
+      隐私说明：本站只在你的浏览器本地保存一个<b>随机 ID</b>，不收集姓名、手机号等个人信息，服务端不保存 IP。<br>
+      联系站长（权利人有异议、要求下架内容请直接找我；<b>收到通知后我们会立即断开相关链接</b>）：<a href="mailto:2560803486@qq.com">2560803486@qq.com</a> · QQ：2560803486
+    </p>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/turnstile.js"></script>
+
+  <script>
+  /* ============================================================
+     赞助登记：提交表单（2026-11-07 新增）
+     ------------------------------------------------------------
+     流程：前端校验 → POST /api/sponsor/register → 成功就把表单换成
+     「登记好了」。服务端还会再校验一遍（前端校验只为了少发无效请求）。
+     站点配了 Turnstile 时会自动带一次性通行证（ZMTurnstile.postJson）；
+     没配就直接 fetch，两边行为一致。
+     【回退办法】把本文件删掉/回滚到 git 上一版即可；接口本身独立，
+     不影响其它页面。
+     ============================================================ */
+  (function () {
+    var form = document.getElementById('sponsorRegForm');
+    var statusEl = document.getElementById('regStatus');
+    var doneEl = document.getElementById('regDone');
+    var submitBtn = document.getElementById('regSubmit');
+    var yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+    if (!form) return;
+
+    /* 订单号：与 functions/api/sponsor/register.js 的 ORDER_PATTERN 对齐 */
+    var ORDER_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
+
+    function setStatus(text, kind) {
+      statusEl.textContent = text || '';
+      statusEl.className = 'reg-status' + (kind ? ' ' + kind : '');
+    }
+
+    /* 服务端的英文错误码 → 人话 */
+    function errorText(code, status) {
+      if (code === 'duplicate') return '这张订单号已经登记过了，不用重复提交。';
+      if (code === 'too many requests') return '提交太频繁了，等几分钟再试。';
+      if (code === 'bad origin') return '来源校验没通过，刷新页面再试。';
+      if (code === 'missing nickname') return '昵称不能为空。';
+      if (code === 'nickname too long') return '昵称最多 40 个字。';
+      if (code === 'bad order') return '订单号格式不对，检查一下有没有多复制空格或符号。';
+      if (code === 'bad tier') return '档位没选对，刷新页面再试。';
+      if (code === 'message too long') return '留言最多 200 个字。';
+      if (code === 'server error' || status >= 500) return '服务端出错了，稍后再试；一直失败就发邮件找站主。';
+      if (/turnstile/i.test(code || '')) return '人机验证没通过，刷新页面再试。';
+      return '提交失败（HTTP ' + status + '），稍后再试。';
+    }
+
+    function send(payload) {
+      if (window.ZMTurnstile && typeof window.ZMTurnstile.postJson === 'function') {
+        return window.ZMTurnstile.postJson('/api/sponsor/register', payload, 'sponsor');
+      }
+      return fetch('/api/sponsor/register', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var nickname = document.getElementById('regNickname').value.trim();
+      var orderNo = document.getElementById('regOrderNo').value.replace(/[\s\u3000]/g, '');
+      var tier = document.getElementById('regTier').value;
+      var message = document.getElementById('regMessage').value.trim();
+
+      if (!nickname) { setStatus('请先填昵称。', 'err'); document.getElementById('regNickname').focus(); return; }
+      if (nickname.length > 40) { setStatus('昵称最多 40 个字。', 'err'); return; }
+      if (!ORDER_PATTERN.test(orderNo)) {
+        setStatus('订单号格式不对：应该是一串字母数字（4~64 位），别带空格。', 'err');
+        document.getElementById('regOrderNo').focus();
+        return;
+      }
+      if (message.length > 200) { setStatus('留言最多 200 个字。', 'err'); return; }
+
+      submitBtn.disabled = true;
+      setStatus('正在提交…', '');
+
+      send({ nickname: nickname, orderNo: orderNo, tier: tier, message: message })
+        .then(function (res) {
+          return res.json().catch(function () { return null; }).then(function (data) {
+            return { res: res, data: data };
+          });
+        })
+        .then(function (out) {
+          var data = out.data || {};
+          if (out.res.ok && data.ok) {
+            form.style.display = 'none';
+            doneEl.classList.add('show');
+            setStatus('', '');
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+            return;
+          }
+          setStatus('❌ ' + errorText(data.error, out.res.status), 'err');
+        })
+        .catch(function () {
+          setStatus('❌ 网络异常，请检查网络后重试。', 'err');
+        })
+        .then(function () {
+          submitBtn.disabled = false;
+        });
+    });
+  })();
+  </script>
+</body>
+</html>

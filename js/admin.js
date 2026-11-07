@@ -3154,3 +3154,293 @@ window.loadStatsPanel = loadStatsPanel;
    ============================================================ */
 window.loadSponsors = loadSponsors;
 window.ensureSponsors = ensureSponsors;
+
+/* ============================================================
+   ✅ 赞助登记（2026-11-07 新增）
+   ------------------------------------------------------------
+   爱发电没有订单回调，所以流程只能人工：
+     赞助者在 /support 填「昵称 + 订单号 + 档位 + 留言」
+       → 这里显示待核对
+       → 站主去爱发电核对订单号
+       → 点「✅ 确认入账」：后端把这条写进 thanks（类别 👑 赞助者）并标记 confirmed
+       → 鸣谢页过一会儿就能看到。
+   「🚫 标记无效」只改状态、不上墙；「🗑️ 删除」真删登记行（不动已写进 thanks 的那条）。
+   【回退办法】删掉本段 + admin.html 的 #sponsor-reg-panel / #sponsorConfirmModal /
+   子标签按钮，并删掉 functions/api/sponsor/ 三个接口与 support.html 即可。
+   ============================================================ */
+
+let sponsorRegCache = [];
+let editingRegId = 0;
+
+/* 档位显示：custom → 「自定义金额」，其余 → 「¥25.00 档」 */
+function regTierLabel(tier) {
+  if (!tier || tier === 'custom') return '自定义金额';
+  return adminMoney(tier) + ' 档';
+}
+
+/* 状态标签 */
+function regStatusTag(status) {
+  if (status === 'confirmed') return '<span class="type-tag gold">✅ 已入账</span>';
+  if (status === 'rejected') return '<span class="type-tag">🚫 已标记无效</span>';
+  return '<span class="type-tag blue">⏳ 待核对</span>';
+}
+
+/* 接口错误 → 人话 */
+function regErrorText(data, status) {
+  const code = data && data.error ? String(data.error) : '';
+  if (code === 'unauthorized') return '登录过期了，重新登录一次';
+  if (code === 'already confirmed') return '这条已经确认过了，刷新看看';
+  if (code === 'not found') return '这条登记不见了，刷新后再试';
+  if (code === 'bad amount') return '金额不对：填数字就行，例如 25 或 ¥25.00';
+  if (code === 'bad message') return '感谢语太长了（最多 200 字）';
+  if (code === 'bad action' || code === 'bad id') return '请求参数不对，刷新后再试';
+  if (code === 'table missing') return 'D1 还没建 sponsor_regs 表，先跑 migrations.sql 的第 7 组';
+  if (code === 'bad origin') return '来源校验没通过，刷新页面再试';
+  if (code) return code;
+  return 'HTTP ' + status;
+}
+
+/* 拉列表 + 统计 */
+async function loadSponsorRegs() {
+  const container = document.getElementById('sponsorRegList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  let data = null;
+  let httpStatus = 0;
+  try {
+    const res = await fetch('/api/sponsor/list?t=' + Date.now(), { credentials: 'include' });
+    httpStatus = res.status;
+    data = await res.json().catch(() => null);
+  } catch (err) {
+    data = null;
+  }
+
+  if (!data || !data.ok) {
+    sponsorRegCache = [];
+    setStatText('statRegPending', 0);
+    setStatText('statRegConfirmed', 0);
+    setStatText('statRegRejected', 0);
+    container.innerHTML = '<div class="empty-state">⚠️ 加载失败：' +
+      escapeHtml(regErrorText(data, httpStatus)) + '</div>';
+    return;
+  }
+
+  sponsorRegCache = Array.isArray(data.items) ? data.items : [];
+  const stats = data.stats || {};
+  setStatText('statRegPending', Number(stats.pending) || 0);
+  setStatText('statRegConfirmed', Number(stats.confirmed) || 0);
+  setStatText('statRegRejected', Number(stats.rejected) || 0);
+
+  if (sponsorRegCache.length === 0) {
+    container.innerHTML = '<div class="empty-state">还没有人登记。把 /support 这个网址给赞助者就行。</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  sponsorRegCache.forEach(function (r) {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+
+    let actions = '';
+    if (r.status === 'pending') {
+      actions += '<button class="btn-edit-sponsor" data-act="confirm" data-id="' + escapeHtml(String(r.id)) + '">✅ 确认入账</button>';
+      actions += '<button class="btn-delete" data-act="reject" data-id="' + escapeHtml(String(r.id)) + '">🚫 标记无效</button>';
+    } else if (r.status === 'confirmed') {
+      actions += '<button class="btn-restore-sponsor" data-act="restore" data-id="' + escapeHtml(String(r.id)) + '">↩️ 退回待核对</button>';
+    } else {
+      actions += '<button class="btn-restore-sponsor" data-act="restore" data-id="' + escapeHtml(String(r.id)) + '">↩️ 恢复待核对</button>';
+    }
+    actions += '<button class="btn-delete" data-act="delete" data-id="' + escapeHtml(String(r.id)) + '">🗑️ 删除登记</button>';
+
+    el.innerHTML =
+      '<div class="row1">' +
+        '<span class="name">' + escapeHtml(r.nickname || '(没写昵称)') + '</span>' +
+        '<span class="type-tag gold">' + escapeHtml(regTierLabel(r.tier)) + '</span>' +
+        regStatusTag(r.status) +
+      '</div>' +
+      '<div class="meta">订单号 ' + escapeHtml(r.order_no || '') +
+        ' · 登记于 ' + escapeHtml(adminTime(r.created_at)) +
+        (r.amount ? ' · 实收 ' + escapeHtml(adminMoney(r.amount)) : '') +
+      '</div>' +
+      (r.message ? '<div class="message">' + escapeHtml(r.message) + '</div>' : '') +
+      '<div class="actions">' + actions + '</div>';
+
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('[data-act]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const id = Number(btn.dataset.id);
+      const act = btn.dataset.act;
+      if (act === 'confirm') openRegConfirm(id);
+      else if (act === 'reject') rejectSponsorReg(id);
+      else if (act === 'restore') restoreSponsorReg(id);
+      else if (act === 'delete') deleteSponsorReg(id);
+    });
+  });
+}
+
+/* 打开「确认入账」弹窗：金额默认用档位，感谢语默认用留言 */
+function openRegConfirm(id) {
+  const row = sponsorRegCache.find(function (x) { return Number(x.id) === Number(id); });
+  if (!row) { showToast('这条登记不见了，刷新后再试'); return; }
+
+  editingRegId = Number(id);
+  document.getElementById('sponsorConfirmWho').textContent =
+    row.nickname + ' · 订单号 ' + row.order_no + ' · ' + regTierLabel(row.tier) +
+    (row.message ? ' · 留言：' + row.message : '');
+  document.getElementById('sponsorConfirmAmount').value =
+    row.tier && row.tier !== 'custom' ? adminMoney(row.tier) : '';
+  document.getElementById('sponsorConfirmMessage').value = row.message || '';
+  openModal('sponsorConfirmModal');
+}
+
+/* 提交「确认入账」 */
+async function confirmSponsorReg() {
+  const id = editingRegId;
+  if (!id) return;
+
+  const amountEl = document.getElementById('sponsorConfirmAmount');
+  const messageEl = document.getElementById('sponsorConfirmMessage');
+  const amount = adminMoney(String(amountEl.value || '').trim());
+  if (!amount) {
+    showToast('先填实收金额（数字就行，例如 25）');
+    amountEl.focus();
+    return;
+  }
+
+  const btn = document.getElementById('confirmSponsorConfirm');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch('/api/sponsor/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'confirm',
+        id: id,
+        amount: amount,
+        publicMessage: String(messageEl.value || '').trim()
+      })
+    });
+    const data = await res.json().catch(() => null);
+
+    if (data && data.ok) {
+      showToast('✅ 已确认入账，鸣谢名单已更新');
+      closeModal('sponsorConfirmModal');
+      editingRegId = 0;
+      loadSponsorRegs();
+      /* 鸣谢名单里多了一条：把「只拉一次」的闸重新打开再拉一遍，
+         否则站主切回「👑 赞助者」看不到新加的人。 */
+      sponsorsLoaded = false;
+      loadSponsors();
+    } else {
+      showToast('确认失败：' + regErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* 标记无效：先问一句 */
+async function rejectSponsorReg(id) {
+  const row = sponsorRegCache.find(function (x) { return Number(x.id) === Number(id); });
+  const label = row && row.nickname ? '「' + row.nickname + '」' : '这条登记';
+  const ok = await showConfirm('标记无效', '确定把' + label + '标记为无效吗？\n\n只改状态、不会写进鸣谢名单；以后还能点「恢复待核对」改回来。');
+  if (!ok) return;
+
+  try {
+    const res = await fetch('/api/sponsor/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reject', id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast('🚫 已标记无效');
+      loadSponsorRegs();
+    } else {
+      showToast('操作失败：' + regErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+/* 恢复待核对（从「已入账」退回来 / 从「无效」改回来） */
+async function restoreSponsorReg(id) {
+  try {
+    const res = await fetch('/api/sponsor/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'restore', id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast('↩️ 已恢复成待核对');
+      loadSponsorRegs();
+    } else {
+      showToast('操作失败：' + regErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+/* 删除登记（真删 sponsor_regs 这一行；已写进鸣谢名单的那条不会跟着删） */
+async function deleteSponsorReg(id) {
+  const row = sponsorRegCache.find(function (x) { return Number(x.id) === Number(id); });
+  const label = row && row.nickname ? '「' + row.nickname + '」' : '这条登记';
+  const ok = await showConfirm('删除登记', '确定删除' + label + '的登记吗？\n\n只删登记这一行；如果已经「确认入账」，鸣谢页那条还在，要去「👑 赞助者」里单独删。');
+  if (!ok) return;
+
+  try {
+    const res = await fetch('/api/sponsor/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast('🗑️ 已删除登记');
+      loadSponsorRegs();
+    } else {
+      showToast('删除失败：' + regErrorText(data, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+/* 子标签第一次点开时才拉数据（跟其它栏一样，不在页面加载时就发请求） */
+const sponsorRegTabBtn = document.querySelector('[data-subpanel="sponsor-reg-panel"]');
+if (sponsorRegTabBtn) {
+  sponsorRegTabBtn.addEventListener('click', function () {
+    loadSponsorRegs();
+  });
+}
+const refreshSponsorRegsBtn = document.getElementById('refreshSponsorRegsBtn');
+if (refreshSponsorRegsBtn) {
+  refreshSponsorRegsBtn.addEventListener('click', function () {
+    loadSponsorRegs();
+  });
+}
+const cancelSponsorConfirm = document.getElementById('cancelSponsorConfirm');
+if (cancelSponsorConfirm) {
+  cancelSponsorConfirm.addEventListener('click', function () {
+    closeModal('sponsorConfirmModal');
+    editingRegId = 0;
+  });
+}
+const confirmSponsorConfirm = document.getElementById('confirmSponsorConfirm');
+if (confirmSponsorConfirm) {
+  confirmSponsorConfirm.addEventListener('click', confirmSponsorReg);
+}
+
+window.loadSponsorRegs = loadSponsorRegs;

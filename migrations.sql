@@ -152,3 +152,26 @@ DELETE FROM page_updates WHERE page_key IN ('suggest', 'feedback');
 
 -- 可选（默认不执行）：连 2026-09 的旧反馈表一起删。执行前务必先导出，删了不可恢复。
 -- DROP TABLE IF EXISTS feedback;
+
+
+-- ---------- 第 7 组：赞助登记表（2026-11-07 新增） ----------
+-- 为什么要它：爱发电没有对外回调接口，网站没法自动知道谁赞助了。
+-- 于是 /support 让赞助者自己填「昵称 + 爱发电订单号」，先存这里等站主核对；
+-- 站主在后台「❤️ 鸣谢名单 → ✅ 赞助登记」点确认，才会写进 thanks 表（鸣谢页）。
+-- 可重复执行：CREATE IF NOT EXISTS / 索引同理，跑几次都不报错。
+CREATE TABLE IF NOT EXISTS sponsor_regs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT NOT NULL,
+  order_no TEXT NOT NULL,
+  tier TEXT NOT NULL DEFAULT 'custom',
+  message TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  amount TEXT,
+  thanks_id INTEGER,
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  confirmed_at TEXT
+);
+
+-- 同一张爱发电订单只能登记一次（服务端重复提交会返回 409，不会写两条）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sponsor_reg_order ON sponsor_regs(order_no);
+CREATE INDEX IF NOT EXISTS idx_sponsor_reg_status ON sponsor_regs(status, id);
