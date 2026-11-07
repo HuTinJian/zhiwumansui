@@ -122,6 +122,12 @@
 /law
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
+# 2026-11-07：新增的赞助登记页（support.html）也走 5 分钟 HTML 缓存，
+# 否则它会落到 Cloudflare 默认的 max-age=0，每次导航都整份重下。
+# 【回退办法】删掉下面这三行即可。
+/support
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
 /suggest
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
