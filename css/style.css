@@ -133,7 +133,15 @@
   --particle: rgb(140, 126, 108);
   --particle-glow: rgba(176, 138, 62, 0.25);
 
-  color-scheme: light;
+  /* 2026-11-07 手机切主题修复：这里原来只写 light。
+     部分手机浏览器（系统自带的、以及开了「强制深色/夜间模式」的）看到
+     color-scheme: light 就认定"这页不支持深色"，于是自己把整页颜色反转 ——
+     网页再怎么切 data-theme 都会被它盖回去，表现就是「点小太阳没反应」
+     或「只变一部分」。
+     写成 light dark = 告诉浏览器"两套我们自己都有"，它就不会再强制反转；
+     真正的当前主题仍由下面的 [data-theme] 段和 JS 的 color-scheme 内联样式决定。
+     【回退办法】改回 color-scheme: light; */
+  color-scheme: light dark;
 }
 
 /* ---------- 深色主题 ---------- */
@@ -484,6 +492,9 @@ body.modal-open .particles i { animation-play-state: paused; }
      【回退办法】改回原来的浅粉渐变 + #f0bccb 边框（备份见
        .verify/backup-theme-20261025/css/style.css）。 */
   background: linear-gradient(180deg, var(--bg-glass-strong) 0%, var(--bg-tint) 100%);
+  /* 2026-11-07：color-mix() 老内核不支持 → 先给普通颜色，再让新内核覆盖。
+     【回退办法】删掉带 color-mix 的那一行即可。 */
+  border-bottom: 1px solid var(--border);
   border-bottom: 1px solid color-mix(in srgb, var(--gold) 42%, var(--border));
   box-shadow: var(--shadow-sm);
   padding: 0 24px;
@@ -508,6 +519,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 [data-theme="dark"] .navbar {
   /* 深色下用墨夜底 + 一线暗金，别再用蓝黑渐变 */
   background: linear-gradient(180deg, var(--bg-glass-strong) 0%, var(--bg-soft) 100%);
+  border-bottom-color: var(--border);
   border-bottom-color: color-mix(in srgb, var(--gold) 30%, var(--border));
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
@@ -536,6 +548,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .navbar .nav-links a:hover {
   /* 导航条本身已经是粉色了，这里改用白色"磨砂"高亮，比再叠一层粉更清楚 */
   /* 2026-10-25：hover 用淡金，不再用白色磨砂（浅色底上会发灰） */
+  background: var(--gold-bg);
   background: color-mix(in srgb, var(--gold) 16%, transparent);
   color: var(--primary-ink);
   transform: translateY(-1px) scale(1.05);
@@ -642,12 +655,13 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text-on-accent);
   box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.28);
 }
-.btn-danger:hover { background: color-mix(in srgb, var(--danger) 84%, #000); transform: translateY(-1px); }
+.btn-danger:hover { background: var(--danger-solid); background: color-mix(in srgb, var(--danger) 84%, #000); transform: translateY(-1px); }
 
 /* 成功按钮 */
 .btn-success {
   background: var(--success-strong);
   color: var(--text-on-accent);
+  box-shadow: 0 6px 16px rgba(63, 107, 82, 0.30);
   box-shadow: 0 6px 16px color-mix(in srgb, var(--success-strong) 30%, transparent);
 }
 .btn-success:hover { transform: translateY(-1px); filter: brightness(1.14); }
@@ -1020,6 +1034,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-date {
   display: inline-block;
   font-size: 0.72rem;
+  color: var(--text-on-accent);
   color: color-mix(in srgb, var(--text-on-accent) 88%, transparent);
   font-weight: 400;
   white-space: nowrap;
@@ -1555,6 +1570,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .preview-notice-ver {
   font-size: 0.76rem;
   font-weight: 600;
+  color: var(--text-on-accent);
   color: color-mix(in srgb, var(--text-on-accent) 90%, transparent);
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -2161,10 +2177,12 @@ body {
 .song-group,
 .credits-card,
 .side-card {
+  border-color: var(--border);
   border-color: color-mix(in srgb, var(--gold) 22%, var(--border));
 }
 .song-group:hover,
 .credits-card:hover {
+  border-color: var(--border-strong);
   border-color: color-mix(in srgb, var(--gold) 42%, var(--border));
 }
 
@@ -2484,6 +2502,7 @@ a.btn:active,
   color: var(--primary-btn-a);
 }
 [data-theme="dark"] .id-number:hover {
+  color: var(--accent);
   color: color-mix(in srgb, var(--accent) 78%, var(--gold));
 }
 
@@ -2516,12 +2535,14 @@ a.btn,
 /* 导航项做成胶囊：默认透明，hover/当前页给浅底 */
 .navbar .nav-links a {
   border-radius: 999px;
+  background: var(--bg-tint);
   background: color-mix(in srgb, var(--text) 7%, transparent);
   padding-left: 12px;
   padding-right: 12px;
   transition: background-color 0.22s ease, color 0.22s ease;
 }
 .navbar .nav-links a:hover {
+  background: var(--bg-soft);
   background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .navbar .nav-links a.active {
@@ -2603,6 +2624,13 @@ a.btn,
   .navbar .nav-links { margin-left: 0; }
   .navbar .theme-toggle {
     position: fixed;
+    /* 2026-11-07 手机切主题修复：先给不会算 env()/max() 的老内核一组死值，
+       再让新内核用下面两行覆盖（带刘海屏安全区）。
+       原写法只有 env() 版本：老浏览器整条声明失效 → right/bottom 变 auto →
+       position:fixed 退回静态位置，按钮跑到导航栏里被挤出屏幕，用户点不到。
+       【回退办法】删掉 right:14px / bottom:88px 两行 */
+    right: 14px;
+    bottom: 88px;
     right: max(14px, env(safe-area-inset-right));
     bottom: calc(88px + env(safe-area-inset-bottom));
     width: 46px;
@@ -2610,6 +2638,7 @@ a.btn,
     margin: 0;
     z-index: 950;                 /* 高于回到顶部(900)，低于弹窗(999) */
     background: var(--bg-card);
+    border: 1px solid var(--border-strong);
     border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--border));
     box-shadow: var(--shadow);
     color: var(--accent);

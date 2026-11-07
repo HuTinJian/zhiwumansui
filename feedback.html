@@ -41,6 +41,17 @@
       'use strict';
       var t = null;
       try { t = localStorage.getItem('zm_theme'); } catch (e) {}
+      /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
+         这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+         【回退办法】把这个 if 块整段删掉、并把上面那行改回
+         var t = localStorage.getItem('zm_theme');
+         备份：.verify/backup-theme-20261107/本文件名 */
+      if (t !== 'dark' && t !== 'light') {
+        try {
+          var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
+          if (mc) t = mc[1];
+        } catch (e) {}
+      }
       if (t !== 'light' && t !== 'dark') {
         try {
           t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -1555,6 +1566,9 @@
         document.documentElement.setAttribute('data-theme', next);
         document.documentElement.style.colorScheme = next;
         try { localStorage.setItem('zm_theme', next); } catch (e) {}
+        /* 2026-11-07：localStorage 写不进时用 cookie 兜底，刷新后才不会弹回旧主题
+           【回退办法】删掉下面这一行 */
+        try { document.cookie = 'zm_theme=' + next + '; path=/; max-age=31536000; SameSite=Lax'; } catch (e) {}
         paint(next);
       });
     })();

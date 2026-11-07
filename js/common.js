@@ -14,8 +14,44 @@
      ============================================================ */
   const THEME_KEY = 'zm_theme';
 
+  /* ------------------------------------------------------------
+     2026-11-07 手机切主题出问题，存储层加固（站主反馈）
+     ------------------------------------------------------------
+     现象（站主在手机系统自带浏览器里）：点小太阳没反应 / 只变一部分 /
+     刷新或换页后又变回去。
+     根因之一：手机上 localStorage 并不可靠 —— 无痕模式、隐私设置、
+     系统清理都会让它读不到或写不进；原来只写 localStorage，写失败被
+     try/catch 吞掉，于是就「切了等于没切」。
+     改法：localStorage 和 cookie 两边都写、两边都读，谁能用就用谁。
+     cookie 用 path=/ 让全站共用，有效期一年。
+     【回退办法】把 readStoredTheme 换回上面那 3 行的旧写法、
+     writeStoredTheme 整段删掉、toggleTheme 里的 writeStoredTheme 换回
+     原来的 localStorage.setItem，即回到 2026-11-07 之前的行为；
+     备份在 .verify/backup-theme-20261107/common.js。
+     ------------------------------------------------------------ */
   function readStoredTheme() {
-    try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+    /* ① 先看 localStorage（最快，正常情况都走这里） */
+    try {
+      var v = localStorage.getItem(THEME_KEY);
+      if (v === 'dark' || v === 'light') return v;
+    } catch (e) {}
+    /* ② 读不到就用 cookie 兜底（手机上 localStorage 被禁时靠它） */
+    try {
+      var m = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
+      if (m) return m[1];
+    } catch (e) {}
+    return null;
+  }
+
+  /* 两边都写一遍。任何一边失败都不影响另一边，也不往上报错。
+     【回退办法】整个函数删掉，改回 localStorage.setItem 单写。 */
+  function writeStoredTheme(t) {
+    try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+    try {
+      /* max-age 一年；SameSite=Lax 防止跨站带上；不写 Secure，
+         否则本地 http 预览时写不进去 */
+      document.cookie = THEME_KEY + '=' + t + '; path=/; max-age=31536000; SameSite=Lax';
+    } catch (e) {}
   }
 
   function prefersDark() {
@@ -31,6 +67,15 @@
     /* 2026-10-25 中国色：浏览器状态栏跟随「宣纸 / 墨夜」，不再用粉色。
        【回退办法】改回 '#17121a' / '#fdf2f5'。 */
     if (meta) meta.setAttribute('content', t === 'dark' ? '#14110E' : '#F5F0E6');
+
+    /* 2026-11-07：切完强制刷一次样式与重排。
+       部分手机浏览器（带 GPU 合成层的浮动按钮、弹窗遮罩）只改 CSS 变量时
+       不会立刻重画，表现就是「颜色只变了一半」。读一次 offsetHeight 会把
+       挂起的样式/布局计算立刻跑完，新颜色当场生效。
+       【回退办法】删掉下面这个 if 块即可。 */
+    if (document.body) {
+      void document.body.offsetHeight;
+    }
 
     document.querySelectorAll('.theme-toggle').forEach(btn => {
       const isDark = t === 'dark';
@@ -48,11 +93,18 @@
   function toggleTheme() {
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     applyTheme(next);
-    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    /* 2026-11-07：改走 writeStoredTheme —— localStorage 写不进去时还有 cookie
+       【回退办法】换回 try { localStorage.setItem(THEME_KEY, next); } catch (e) {} */
+    writeStoredTheme(next);
   }
 
   function initTheme() {
-    applyTheme(readStoredTheme() || (prefersDark() ? 'dark' : 'light'));
+    var stored = readStoredTheme();
+    /* 2026-11-07：只要任一存储里有用户的选择，就把另一边补齐。
+       这样「手机上切过一次」的决定不会因为某一边被清掉而丢失。
+       【回退办法】删掉下面这个 if 块。 */
+    if (stored) writeStoredTheme(stored);
+    applyTheme(stored || (prefersDark() ? 'dark' : 'light'));
     if (window.matchMedia) {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
       const onChange = () => { if (!readStoredTheme()) applyTheme(prefersDark() ? 'dark' : 'light'); };

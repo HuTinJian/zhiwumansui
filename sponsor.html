@@ -9,6 +9,7 @@
   <meta name="keywords" content="织雾满穗,赞助,爱发电,赞助权益,退款">
   <meta name="author" content="HuTinJian">
   <meta name="theme-color" content="#F5F0E6">
+  <meta name="color-scheme" content="light dark">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="🤝 赞助权益说明 · 织雾满穗">
@@ -33,7 +34,19 @@
   <script>
     (function () {
       try {
-        var t = localStorage.getItem('zm_theme');
+        var t = null;
+        try { t = localStorage.getItem('zm_theme'); } catch (e) {}
+        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
+           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+           【回退办法】把这个 if 块整段删掉、并把上面那行改回
+           var t = localStorage.getItem('zm_theme');
+           备份：.verify/backup-theme-20261107/本文件名 */
+        if (t !== 'dark' && t !== 'light') {
+          try {
+            var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
+            if (mc) t = mc[1];
+          } catch (e) {}
+        }
         if (t !== 'dark' && t !== 'light') {
           t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
         }
@@ -116,6 +129,16 @@
       border-radius: 3px;
       background: linear-gradient(180deg, var(--gold), var(--gold-light));
     }
+    /* 节内小标题（档位名 / 说明 / 注意事项的分组）：
+       2026-11-07 第二版条款新增（第一版只有四节、没有小标题）。
+       字号比 h2 小一档、颜色用金色，和正文区分开但不像 h2 那样抢眼。 */
+    .terms-card h3 {
+      margin: 16px 0 6px;
+      font-size: 0.95rem;
+      letter-spacing: 0.2px;
+      color: var(--gold-ink);
+    }
+    .terms-card > h3:first-of-type { margin-top: 2px; }
     .terms-card p {
       margin: 0 0 10px;
       font-size: 0.9rem;
@@ -182,38 +205,67 @@
 
       <header class="terms-hero">
         <h1>🤝 赞助权益说明</h1>
-        <p class="terms-sub">赞助之前，请先看完这一页 —— 它写清了能提什么需求、范围到哪里、做不到的时候怎么退。</p>
+        <p class="terms-sub">赞助之前，请先看完这一页 —— 它写清了每一档能拿什么、范围到哪里、做不到的时候怎么退。</p>
         <div class="terms-chips">
           <span class="terms-chip">📅 更新于 2026-11-07</span>
-          <span class="terms-chip">💳 只适用于订阅方案</span>
-          <span class="terms-chip">🔢 一个赞助订单计 1 次权益</span>
+          <span class="terms-chip">💳 提需求仅限 25 / 50 元档</span>
         </div>
       </header>
 
       <!-- ============================================================
-           以下四节正文是站主 2026-11-07 给的《赞助权益说明（最终版）》，
+           以下五节正文是站主 2026-11-07 给的《赞助权益说明（最终版·档位版）》，
            逐字照搬（只做了换行分段与列表符号这类排版，字句与标点未改）。
            ⚠️ 改之前先问站主；不要自己加解释、加例子、改数字。
            ============================================================ -->
 
       <section class="terms-card">
-        <h2>一、可以提出什么需求</h2>
-        <p>赞助之后，你可以向本站提出需求，以下二选一：</p>
+        <h2>一、赞助档位与对应权益</h2>
+
+        <h3>自定义金额</h3>
         <ul class="terms-list">
-          <li>3 个网站功能，或</li>
-          <li>1 个网站页面</li>
+          <li>加入感谢名单，公开鸣谢</li>
         </ul>
+
+        <h3>5 元档 / 10 元档</h3>
         <ul class="terms-list">
-          <li>每一个赞助订单计 1 次权益，按“3 个功能”或“1 个页面”二选一。无论这一个订单的赞助时长为多久，都只计 1 次，不会按月累加。</li>
+          <li>加入感谢名单，公开鸣谢</li>
+          <li>加入专属社区</li>
+        </ul>
+
+        <h3>25 元档</h3>
+        <ul class="terms-list">
+          <li>加入感谢名单，公开鸣谢</li>
+          <li>加入专属社区</li>
+          <li>提出与你自己有关的 1 个网站功能</li>
+        </ul>
+
+        <h3>50 元档</h3>
+        <ul class="terms-list">
+          <li>加入感谢名单，公开鸣谢</li>
+          <li>加入专属社区</li>
+          <li>提出与你自己有关的 3 个网站功能，或与你自己有关的 1 个网站页面</li>
+        </ul>
+
+        <h3>说明</h3>
+        <ul class="terms-list">
+          <li>提需求权益只包含在 25 元档和 50 元档。</li>
+          <li>每个 25 / 50 元档的赞助订单计 1 次需求权益。无论这一单赞助多久，都只计 1 次，不会按月累加。</li>
+          <li>多个含需求的订单可以叠加，各自计 1 次。其余档位与自定义金额的订单不产生需求次数，也不能和其他档位合并折算。</li>
           <li>一次需求对应一个功能或一个页面，不能把同一件事拆成几份来累计次数。</li>
-          <li>本权益只适用于订阅方案的赞助，自选金额赞助不适用。</li>
+          <li>自定义金额只包含感谢名单，不含专属社区和提需求权益。</li>
         </ul>
       </section>
 
       <section class="terms-card">
-        <h2>二、范围和上限</h2>
+        <h2>二、可以提出什么需求</h2>
+        <ul class="terms-list">
+          <li>25 元档：提出与你自己有关的 1 个网站功能。</li>
+          <li>50 元档：提出与你自己有关的 3 个网站功能，或与你自己有关的 1 个网站页面（二选一）。</li>
+          <li>5 元档、10 元档、自定义金额：不含提需求权益。</li>
+        </ul>
+        <p>「与你自己有关」指的是：这个功能或页面为你自己的使用、你自己的内容或你自己的展示服务，不是替别人提的，也不是与本站无关的用途。</p>
         <p>需求须属于本站范围内的功能或页面，内容合法合规，不涉及他人隐私、不攻击他人、不违反平台规定。</p>
-        <p>其中，“1 个页面”指常规静态页面或简单交互页面，不含独立的用户系统、支付、数据库后台等；“1 个功能”指中小型功能。如果你的需求明显超出这个范围，我会先说明：能拆分的就分开计算，不能拆分的按第三条处理。</p>
+        <p>“1 个页面”指常规静态页面或简单交互页面，不含独立的用户系统、支付、数据库后台等；“1 个功能”指中小型功能。如果你的需求明显超出这个范围，我会先说明：能拆分的就分开计算，不能拆分的按第三条处理。</p>
       </section>
 
       <section class="terms-card">
@@ -233,7 +285,50 @@
       </section>
 
       <section class="terms-card">
-        <h2>四、其他约定</h2>
+        <h2>四、添加网站功能 · 注意事项</h2>
+
+        <h3>先分清「功能」还是「内容」</h3>
+        <ul class="terms-list">
+          <li>内容类（加歌、改文案、换图片、调链接）：不算功能，不消耗次数，直接说就行。</li>
+          <li>功能类（加筛选、加排序、加收藏、加计算器）：才需要占用一次需求。</li>
+        </ul>
+
+        <h3>本站能直接做的</h3>
+        <ul class="terms-list">
+          <li>页面上的展示与交互：卡片、列表、排序、筛选、搜索、分页、复制、本地收藏。</li>
+          <li>纯前端小工具：计算器、转换器、生成器（不需要服务器的都可以）。</li>
+          <li>读写数据库的简单功能：投票、计数、上报、榜单。</li>
+          <li>配色、布局、文案、图片、链接的调整。</li>
+        </ul>
+
+        <h3>本站目前没有、或会明显超出「1 个功能」的</h3>
+        <ul class="terms-list">
+          <li>注册登录、个人账号、会员体系 —— 本站只有站长的后台登录，没有访客账号系统。</li>
+          <li>在线支付、订单、购买记录。</li>
+          <li>图片 / 音频上传 —— 本站没有文件存储服务。</li>
+          <li>评论、聊天、私信 —— 需要审核和长期运营。</li>
+          <li>依赖第三方付费接口的功能（要申请 key，也可能要花钱）。</li>
+        </ul>
+
+        <h3>提需求时请带上这五项</h3>
+        <ul class="terms-list">
+          <li>功能叫什么。</li>
+          <li>放在哪个页面、哪一块。</li>
+          <li>给谁用、在什么场景用。</li>
+          <li>想达到什么效果（一句话就够）。</li>
+          <li>有参考的截图或链接更好（没有也可以）。</li>
+        </ul>
+
+        <h3>三种最常见的打回</h3>
+        <ul class="terms-list">
+          <li>太笼统：「帮我优化一下首页」—— 没法判断，会被要求重提。</li>
+          <li>一个需求塞五件事 —— 按 1 个功能算，拆开重提反而多花次数。</li>
+          <li>确认之后联系不上你 —— 方案定了要改，就得重新排队。</li>
+        </ul>
+      </section>
+
+      <section class="terms-card">
+        <h2>五、其他约定</h2>
         <ul class="terms-list">
           <li>以我答复“能做”并给出方案为确认点；确认后需求不再变更，要改就当新需求，消耗你的次数。</li>
           <li>确认之前你来回调整，不额外消耗次数。</li>

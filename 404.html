@@ -6,12 +6,25 @@
   <title>页面走丢了 - 织雾满穗</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#F5F0E6">
+  <meta name="color-scheme" content="light dark">
 
   <script>
     (function () {
       var root = document.documentElement;
       try {
-        var t = localStorage.getItem('zm_theme');
+        var t = null;
+        try { t = localStorage.getItem('zm_theme'); } catch (e) {}
+        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
+           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+           【回退办法】把这个 if 块整段删掉、并把上面那行改回
+           var t = localStorage.getItem('zm_theme');
+           备份：.verify/backup-theme-20261107/本文件名 */
+        if (t !== 'dark' && t !== 'light') {
+          try {
+            var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
+            if (mc) t = mc[1];
+          } catch (e) {}
+        }
         if (t !== 'dark' && t !== 'light') {
           t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
         }
@@ -95,7 +108,11 @@
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
-      color-scheme: light;
+      /* 2026-11-07：原来只写 light，手机浏览器（系统自带 / 开了强制深色的）
+         会认定本页不支持深色而自己反转颜色，跟我们切的 data-theme 打架。
+         写 light dark = 告诉浏览器两套我们都有，别强制反转。
+         【回退办法】改回 color-scheme: light; */
+      color-scheme: light dark;
     }
     /* 深色 · 墨夜（暖黑，不是蓝黑/纯黑）：同样只桥接全局令牌值，不另设计一套颜色 */
     [data-theme="dark"] {
