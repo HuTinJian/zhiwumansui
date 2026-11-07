@@ -6,11 +6,7 @@
 
 import { json, checkAuth, requireSameOrigin, safeParse } from './_utils.js';
 
-/* 2026-10-05：反馈页下线（feedback.html 已删），page_key 'feedback' 不再接受 ——
-   单页查询直接 400，别再把访客引向已经删掉的页面。
-   2026-11-07：站主要求「建议、反馈页面全删（含 D1 与后台）」——'suggest' 一并退休。
-   历史公告行按站主要求已在 migrations.sql 第 6 组删除，这里只负责不再对外提供。 */
-const RETIRED_PAGES = ['feedback', 'suggest'];
+const RETIRED_PAGES = ['feedback', 'suggest', 'sponsor'];
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -24,8 +20,6 @@ export async function onRequestGet(context) {
         return json({ ok: false, error: 'unauthorized' }, 401);
       }
 
-      /* 2026-10-05：'feedback' 那一支随反馈页下线删掉；历史行落到 ELSE 5，
-         仍会出现在 ?all=1 的结果里（只是排最后）。roblox 的序号不动，避免无谓的排序语义变动。 */
       const result = await env.DB.prepare(
         `SELECT page_key, version, date, updates, updated_at
          FROM page_updates
@@ -102,10 +96,7 @@ export async function onRequestPost(context) {
     if (!page || !version) {
       return json({ ok: false, error: 'missing fields' }, 400);
     }
-    /* 2026-09-29：'blog'（玩家社区）随社区功能删除；
-       2026-10-05：'feedback' 随反馈页下线，page_key 'feedback' 不再接受
-       （只拒收，库里历史的 feedback 公告行不删）；
-       另外页面现在读仓库里的 data/updates.json，这个接口只作为后备。 */
+    /* 页面优先读仓库里的 data/updates.json，这个接口只作为后备。 */
     if (!['index', 'roblox', 'thanks'].includes(page)) {
       return json({ ok: false, error: 'invalid page' }, 400);
     }
@@ -144,9 +135,9 @@ export async function onRequestPost(context) {
     return json({
       ok: false,
       error: 'server error',
-      /* 2026-10-18 安全修复：原来把 D1 的原始错误（会带表名 / SQL 片段）返回给前端。
-       详情继续留在上一行的 console.error 里，对外只给通用文案。
-       【回退办法】把下面这行改回 message: String((err && err.message) || err)。 */
+      /* 不要把 D1 的原始错误（会带表名 / SQL 片段）返回给前端。
+             详情继续留在上一行的 console.error 里，对外只给通用文案。
+             【回退办法】把下面这行改回 message: String((err && err.message) || err)。 */
     message: 'server error'
     }, 500);
   }

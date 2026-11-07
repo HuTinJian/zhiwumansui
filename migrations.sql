@@ -25,7 +25,6 @@
 --      需要先装 Node.js，然后在项目根目录执行：
 --        npx wrangler d1 execute <你的库名> --remote --file=./migrations.sql
 --
--- 【2026-09-29 大改动】
 --   原来第 2～5 组全是「玩家社区（卡片2）」的建表和加字段语句
 --   （blog_posts / blog_users / blog_likes / blog_reports / blog_bans、
 --     kind / avatar / edited_at …）。玩家社区已经整个删除：
@@ -33,7 +32,6 @@
 --   所以那些语句从这里一并删掉 —— 免得哪天照着重跑，又把表建回来。
 --   老库里已经建好的那五张表，按《d1-drop-blog.sql》里的语句 DROP 掉即可。
 --
--- 【2026-10-05 大改动】
 --   反馈功能整体下线：feedback.html、functions/api/feedback* 全部删除，
 --   feedback 表保留仅供考古（不读不写，也不要 DROP）。
 --   新增「无效音乐 ID 上报」链路 → 见文件最后的第 2 组（可重复执行，不会报错）。
@@ -55,7 +53,7 @@ ALTER TABLE feedback ADD COLUMN decided_at TEXT;
 CREATE INDEX IF NOT EXISTS idx_feedback_client ON feedback(client_id);
 
 
--- ---------- 第 2 组：无效音乐 ID 上报（2026-10-05 新增） ----------
+-- ---------- 第 2 组：无效音乐 ID 上报 ----------
 -- 这一组【可以整段重复执行】：全部是 IF NOT EXISTS，跑第二遍也不会报错，
 -- 所以网页版 D1 Console 里直接把下面四条一起粘进去执行就行。
 -- 表结构说明见 schema.sql 里的注释（status：pending / ignored / removed）。
@@ -75,7 +73,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id
 CREATE INDEX IF NOT EXISTS idx_invalid_status ON invalid_reports(status, music_id);
 
 
--- ---------- 第 3 组：上报分两类 + 玩家歌曲投稿（2026-10-07 新增） ----------
+-- ---------- 第 3 组：上报分两类 + 玩家歌曲投稿 ----------
 -- 站主这一轮的要求：
 --   ① 「问题上报」里要分「🚫 无效ID」和「✏️ 信息出错」两类 → 给 invalid_reports 加 type / note；
 --   ② 「已忽略」不要了（没问题的上报直接删记录）→ 顺手把历史 ignored 行清掉；
@@ -106,7 +104,7 @@ DELETE FROM thanks WHERE category = '💬 反馈贡献者';
 DELETE FROM page_updates WHERE page_key = 'feedback';
 
 
--- ---------- 第 4 组：给上报的人留个通知（2026-10-07 新增） ----------
+-- ---------- 第 4 组：给上报的人留个通知 ----------
 -- 站主原话：「我如果下架了歌曲ID或者是删除了记录，上报的人都会收到弹窗提示，弹窗是我们自己的」。
 -- 做法：站长在后台做「✅ 确认无效并下架」或「🗑️ 删除记录」时，顺手给**当时报过这个 ID 的人**
 -- 各写一条通知（下面这张表）；访客下次打开任意页面时，js/common.js 会拉一次未读通知，
@@ -125,7 +123,7 @@ CREATE TABLE IF NOT EXISTS report_notices (
 CREATE INDEX IF NOT EXISTS idx_notice_reporter ON report_notices(reporter, seen);
 
 
--- ---------- 第 5 组：玩家投稿可以带一句「说明」（2026-10-17 新增） ----------
+-- ---------- 第 5 组：玩家投稿可以带一句「说明」 ----------
 -- 站主原话：「选择类型不能有其它……但是这 2 个功能都可以描述」——
 -- 「➕ 添加歌曲ID」的分类改成只能从固定列表选之后，玩家还可以写一句话补充
 -- （例如「这是纯音乐版」「歌名可能记得不准」），存这一列。
@@ -137,7 +135,7 @@ ALTER TABLE song_submissions ADD COLUMN note TEXT;
 CREATE INDEX IF NOT EXISTS idx_song_sub_note ON song_submissions(note);
 
 
--- ---------- 第 6 组：建议 / 反馈整块下线（2026-11-07 站主要求） ----------
+-- ---------- 第 6 组：建议 / 反馈整块下线 ----------
 -- 站主原话：「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」。
 -- 这一组做三件事：
 --   ① 删掉两张收集表（表里是玩家提交的内容，删了不可恢复；执行前想留档先导出）；
@@ -154,7 +152,7 @@ DELETE FROM page_updates WHERE page_key IN ('suggest', 'feedback');
 -- DROP TABLE IF EXISTS feedback;
 
 
--- ---------- 第 7 组：赞助登记表（2026-11-07 新增） ----------
+-- ---------- 第 7 组：赞助登记表 ----------
 -- 为什么要它：爱发电没有对外回调接口，网站没法自动知道谁赞助了。
 -- 于是 /support 让赞助者自己填「昵称 + 爱发电订单号」，先存这里等站主核对；
 -- 站主在后台「❤️ 鸣谢名单 → ✅ 赞助登记」点确认，才会写进 thanks 表（鸣谢页）。
@@ -175,3 +173,6 @@ CREATE TABLE IF NOT EXISTS sponsor_regs (
 -- 同一张爱发电订单只能登记一次（服务端重复提交会返回 409，不会写两条）
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sponsor_reg_order ON sponsor_regs(order_no);
 CREATE INDEX IF NOT EXISTS idx_sponsor_reg_status ON sponsor_regs(status, id);
+
+-- 如果 page_updates 里还留着 sponsor 这行旧公告，一并清掉；没有就什么也不做。
+DELETE FROM page_updates WHERE page_key = 'sponsor';

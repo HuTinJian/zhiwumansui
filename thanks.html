@@ -33,55 +33,128 @@
 
   <style>
     /* ========== 赞助入口（2026-11-07 站主要求挪到这里） ==========
-       站主原话：「然后赞助的小卡片不要太明显，比如将它放到鸣谢名单，赞助者的上面」
-       —— 所以从首页 hero 搬到这儿，样式也压成一条细线：上下虚线、无背景、小字，
-       不再是一张抢眼的卡片。点它开 #sponsorEntryModal（档位 + 去爱发电 + 去登记）。
-       【回退办法】删掉 .thanks-sponsor 这段样式 + #thanksSponsorCard 那块 HTML +
-       #sponsorEntryModal + 下面 openThanksSponsor 的 IIFE，即可回到「这一页只留名单」；
-       想搬回首页的话，git show 8ede9e5:index.html 里有整套 hero 卡片原样。 */
-    .thanks-sponsor {
-      margin: 0 0 20px;
-      padding: 10px 2px 11px;
-      border-top: 1px dashed var(--border);
-      border-bottom: 1px dashed var(--border);
+       站主原话：「不是，样式跟以前一样，但是是移动到鸣谢名单里面去了！」
+       —— 所以这里沿用首页那张赞助卡的全部外观（76px 方块标 + 两笔账），
+       只把位置换到鸣谢页「赞助者」名单上方；点它开 #sponsorEntryModal。
+       尺寸断点跟原卡一致：76px → ≤768px 62px → ≤600px 70px 两栏网格。
+       【回退办法】删掉 .thanks-sponsor-* 这段样式 + #thanksSponsorCard 那块 HTML +
+       #sponsorEntryModal + 底部 openThanksSponsor 的 IIFE；
+       想搬回首页：git show 58b4ad9^:index.html 有整套原样。 */
+    .thanks-sponsor-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 2px 0 22px;
     }
-    .thanks-sponsor-btn {
-      /* 2026-11-07：整条铺满时，箭头会被甩到最右边、文字看着像漂在左岸；
-         改成「只占内容宽度」，心 + 两行字 + 箭头挤在一起，更像一行安静的链接。 */
+    .thanks-sponsor-card {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
       max-width: 100%;
-      padding: 0;
-      background: none;
-      border: 0;
-      font: inherit;
-      color: var(--text-muted);
+      padding: 12px 20px 12px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font);
+      font-size: inherit;
       text-align: left;
+      color: inherit;
       cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
     }
-    .thanks-sponsor-heart { color: var(--gold-ink); font-size: 1rem; line-height: 1; }
-    .thanks-sponsor-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .thanks-sponsor-text b { font-size: 0.88rem; font-weight: 600; color: var(--text-light); }
-    .thanks-sponsor-text span { font-size: 0.76rem; color: var(--text-muted); }
-    .thanks-sponsor-arrow { margin-left: 2px; color: var(--text-muted); transition: transform var(--dur) var(--ease-soft); }
-    .thanks-sponsor-btn:hover .thanks-sponsor-text b,
-    .thanks-sponsor-btn:hover .thanks-sponsor-arrow { color: var(--primary-ink); }
-    .thanks-sponsor-btn:hover .thanks-sponsor-arrow { transform: translateX(2px); }
-    .thanks-sponsor-btn:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 4px; border-radius: 4px; }
-    .thanks-sponsor-meta {
-      margin: 7px 0 0;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
-    .thanks-sponsor-meta b { color: var(--gold-ink); font-weight: 700; }
-    .thanks-sponsor-meta a {
+    .thanks-sponsor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-light); }
+    .thanks-sponsor-card:active { transform: translateY(0) scale(0.98); }
+    .thanks-sponsor-card:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; }
+    /* 左边方块：内联爱心 SVG + 「爱发电」字标，颜色走 --gold-ink，深浅主题自动变 */
+    .thanks-sponsor-mark {
+      width: 76px; height: 76px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      border-radius: 10px; background: var(--bg-tint); border: 1px solid var(--border);
       color: var(--gold-ink);
-      text-decoration: none;
-      border-bottom: 1px dashed currentColor;
     }
-    .thanks-sponsor-meta a:hover { color: var(--primary-ink); }
+    .thanks-sponsor-mark svg { width: 30px; height: 30px; display: block; }
+    .thanks-sponsor-mark-t { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; line-height: 1; }
+    .thanks-sponsor-txt { display: flex; flex-direction: column; gap: 2px; }
+    .thanks-sponsor-t { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .thanks-sponsor-s { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
+    .thanks-sponsor-h { font-size: 0.74rem; color: var(--text-muted); }
+    /* 右边金额块：和文案用一条竖虚线隔开，两笔账并排 + 一行共用的核对日期 */
+    .thanks-sponsor-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      margin-left: 4px;
+      padding-left: 18px;
+      border-left: 1px dashed var(--border);
+      white-space: nowrap;
+    }
+    .thanks-sponsor-nums { display: flex; align-items: center; gap: 18px; }
+    .thanks-sponsor-cost { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+    .thanks-sponsor-cost b { font-size: 1.16rem; font-weight: 800; color: var(--gold-ink); letter-spacing: -0.3px; }
+    .thanks-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
+    .thanks-sponsor-cost-got b { color: var(--success); }
+    .thanks-sponsor-stats-date { letter-spacing: 0.2px; }
+
+    /* ≤768px：金额块换到下一行，竖虚线改横虚线（跟原卡一致） */
+    @media (max-width: 768px) {
+      .thanks-sponsor-card { display: flex; flex-wrap: wrap; width: 100%; padding: 10px 14px 10px 10px; gap: 11px; }
+      .thanks-sponsor-mark { width: 62px; height: 62px; }
+      .thanks-sponsor-mark svg { width: 24px; height: 24px; }
+      .thanks-sponsor-txt { flex: 1 1 0; min-width: 0; }
+      .thanks-sponsor-stats {
+        flex: 1 1 100%;
+        margin-left: 0;
+        padding: 8px 0 2px;
+        border-left: none;
+        border-top: 1px dashed var(--border);
+        gap: 4px;
+      }
+      .thanks-sponsor-nums { gap: 22px; }
+      .thanks-sponsor-cost { flex-direction: row; align-items: baseline; gap: 8px; }
+      .thanks-sponsor-cost b { font-size: 1.05rem; }
+    }
+    /* ≤600px：两栏网格（图标 + 文案），金额块单独占满一行（原卡手机端也是这么排的） */
+    @media (max-width: 600px) {
+      .thanks-sponsor-card {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px 14px;
+        width: 100%;
+        padding: 14px;
+        border-radius: 18px;
+        background: linear-gradient(160deg, var(--bg-card) 0%, var(--gold-bg) 100%);
+        border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+        white-space: normal;
+      }
+      .thanks-sponsor-mark { width: 70px; height: 70px; border-radius: 8px; }
+      .thanks-sponsor-mark svg { width: 26px; height: 26px; }
+      .thanks-sponsor-mark-t { font-size: 0.58rem; }
+      .thanks-sponsor-txt { min-width: 0; }
+      .thanks-sponsor-t { font-size: 0.92rem; }
+      .thanks-sponsor-s { font-size: 0.78rem; line-height: 1.55; }
+      .thanks-sponsor-h { font-size: 0.7rem; line-height: 1.5; }
+      .thanks-sponsor-stats {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0;
+        padding: 10px 0 0;
+        border-left: none;
+        border-top: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--border));
+        white-space: normal;
+      }
+      .thanks-sponsor-nums { gap: 16px; }
+      .thanks-sponsor-cost { flex-direction: column; align-items: flex-start; gap: 1px; }
+      .thanks-sponsor-cost b { font-size: 1.08rem; }
+      .thanks-sponsor-stats-date { text-align: right; font-size: 0.66rem; }
+    }
 
     /* ========== 赞助方式弹窗（从 index.html 原样搬来） ==========
        外层 .modal / .modal-content 是全站共用的（js/common.js 管开关）。 */
@@ -211,27 +284,44 @@
            于是改成和右边那一档一模一样的结构：.thanks-group > .thanks-person。
            容器用 .thanks-single（不是 .thanks-groups）—— 赞助者没有类别、只有一个块，
            不需要 Roblox 那边的三列栅格。 -->
-      <!-- 2026-11-07：赞助入口从首页 hero 挪到这里（站主要求「不要太明显」）。
-           放在「👑 赞助者」名单上方：看名单的人顺手就能支持，但不抢名单本身。
+      <!-- 2026-11-07：赞助入口从首页 hero 挪到这里，样式保持原样（站主两次要求：
+           先「不要太明显，放到鸣谢名单赞助者的上面」，再「样式跟以前一样」）。
+           位置：👑 赞助者名单正上方；点击开 #sponsorEntryModal（档位 + 去爱发电 + 去登记）。
            数字仍由 js/common.js 回填：data-site-cost / data-site-cost-date /
            data-sponsor-total；HTML 里的值只是没脚本时的兜底（改数字要一起改）。
-           【回退办法】删掉 #thanksSponsorCard 这块 + .thanks-sponsor 样式 +
+           【回退办法】删掉 #thanksSponsorCard 这块 + .thanks-sponsor-* 样式 +
            弹窗 + 底部 IIFE，页面就回到「只留名单」。 -->
-      <div class="thanks-sponsor" id="thanksSponsorCard">
-        <button type="button" class="thanks-sponsor-btn" id="thanksSponsorBtn"
-                aria-haspopup="dialog" aria-controls="sponsorEntryModal">
-          <span class="thanks-sponsor-heart" aria-hidden="true">♡</span>
-          <span class="thanks-sponsor-text">
-            <b>喜欢这个站？请我喝一杯</b>
-            <span>赞助走爱发电 · 点开看档位与权益</span>
+      <div class="thanks-sponsor-wrap" id="thanksSponsorCard">
+        <button type="button" class="thanks-sponsor-card" id="thanksSponsorBtn"
+                aria-haspopup="dialog" aria-controls="sponsorEntryModal"
+                aria-label="查看赞助方式（弹窗）">
+          <!-- 左边图标位：内联爱心 SVG（Feather heart），颜色走 currentColor -->
+          <span class="thanks-sponsor-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="thanks-sponsor-mark-t">爱发电</span>
           </span>
-          <span class="thanks-sponsor-arrow" aria-hidden="true">→</span>
+          <span class="thanks-sponsor-txt">
+            <span class="thanks-sponsor-t">☕ 请我喝一杯</span>
+            <span class="thanks-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
+            <span class="thanks-sponsor-h">点我看赞助方式</span>
+          </span>
+          <span class="thanks-sponsor-stats">
+            <span class="thanks-sponsor-nums">
+              <span class="thanks-sponsor-cost">
+                <b data-site-cost>¥283.03</b>
+                <span class="thanks-sponsor-cost-d">共花费</span>
+              </span>
+              <span class="thanks-sponsor-cost thanks-sponsor-cost-got">
+                <b data-sponsor-total>¥25.00</b>
+                <span class="thanks-sponsor-cost-d">收到赞助</span>
+              </span>
+            </span>
+            <span class="thanks-sponsor-cost-d thanks-sponsor-stats-date">截至 <span data-site-cost-date>2026-11-07</span></span>
+          </span>
         </button>
-        <p class="thanks-sponsor-meta">
-          共花费 <b data-site-cost>¥283.03</b> · 收到赞助 <b data-sponsor-total>¥25.00</b>
-          · 截至 <span data-site-cost-date>2026-11-07</span>
-          · <a href="sponsor">赞助权益说明</a>
-        </p>
       </div>
 
       <div class="thanks-single" id="sponsorGroups" aria-busy="true">
@@ -304,13 +394,11 @@
 
       <p class="sponsor-entry-note">
         提需求权益只包含在 25 / 50 元档；每个订单计 1 次，不按月累加。
-        完整口径见 <a href="sponsor">《赞助权益说明》</a>。
       </p>
 
       <div class="modal-actions sponsor-entry-actions">
         <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电赞助</a>
         <a class="btn btn-secondary" href="support">✅ 已赞助，去登记</a>
-        <a class="btn btn-secondary" href="sponsor">📄 看完整条款</a>
       </div>
 
       <button class="btn btn-secondary sponsor-entry-close" type="button"
