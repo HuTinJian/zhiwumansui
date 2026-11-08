@@ -1137,16 +1137,20 @@ function initShareTriggers() {
                         删掉结尾「⚠️ 本站目前仍是预览版…自行二次确认。」那一段；
                         两张二维码下面的短说明恢复成原来的「提建议 / 报 BUG / 让我加歌单」那种写法
                         （站主：「2 个群的二维码下面改成像之前一样的那个『提建议/报 bug』等内容」）——
-                        卡片只留「进群干什么」，RP / 群规 / 不归我管这些在下面那段里说。 */
-  const SITE_NOTICE_VERSION = '8';
+                        卡片只留「进群干什么」，RP / 群规 / 不归我管这些在下面那段里说。
+     2026-11-08 v8 → v9：站主要求删掉「duck 的第三方 RP 群」的全部内容
+                        （二维码卡片、群号、以及「两个群分别是什么」那句对比说明），
+                        只剩站主自己的群；群说明段落同步收缩成一条。 */
+  const SITE_NOTICE_VERSION = '9';
 
   /* 公告的「日期」只有一个来源（2026-10-05 站主要求「滚动公告加个时间」时确立）：
      · 首页那条滚动公告右上角的日期章（index.html 的 [data-announce-date]）；
      · 公告弹窗顶部那枚日期（.preview-notice-ver）。
      两处都由 initUI → fillSiteNoticeDate() 用这个常量回填，**改内容就改这一行**，
      免得出现「滚动条上写一个日期、弹窗里写另一个日期」。
-     2026-10-05：公告内容是这天改的（删掉维护说明那段、重写两个群的说明），所以填今天。 */
-  const SITE_NOTICE_DATE = '2026-10-05';
+     2026-10-05：公告内容是这天改的（删掉维护说明那段、重写两个群的说明），所以填今天。
+     2026-11-08：删掉 duck 那个第三方 RP 群之后公告内容又变了，日期跟着改成今天。 */
+  const SITE_NOTICE_DATE = '2026-11-08';
 
   /* 把上面那个日期填进页面里所有 [data-announce-date] 占位处（没脚本时显示 HTML 里的兜底值） */
   function fillSiteNoticeDate(scope) {
@@ -1237,42 +1241,33 @@ function initShareTriggers() {
              后面会继续按自己的节奏补歌。想加歌、报 BUG、提建议，进我的群说一声就行。』删除了」）。
              别再顺手加回来 —— 这两句的意思上面「希望大家帮忙补歌」和下面的群说明里已经都有。 -->
 
-        <!-- 两个 QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
-             2026-10-05 站主要求：**加群之前就要让人知道这两个群分别是什么** ——
-             标题改成「先看清是哪个再进」，两张卡片的说明也各写清是干什么的、要不要守规矩。 -->
+        <!-- QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
+             2026-11-08 站主要求：把「duck 的第三方 RP 群」相关内容全部删掉 ——
+             第二张二维码卡片、群号、下面的对比说明一并删除，这里只剩站主自己的群。
+             【回退】备份在 .verify/backup-notice-group-20261108/js/common.js（含原版群图），
+             或 git show 父提交:js/common.js 取回原文件；改回来时把那张卡片和说明按备份贴回即可。 -->
         <div class="site-notice-groups">
-          <p class="site-notice-groups-title">📮 两个 QQ 群，先看清是哪个再进</p>
+          <p class="site-notice-groups-title">📮 我的 QQ 群</p>
           <div class="site-notice-group-list">
             <a class="site-notice-group" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener">
-              <!-- 2026-10-05 性能：这两张群图加起来 162KB，位置在公告弹窗的**下半部分**，
-                   多数访客不会往下滚 —— 加 loading="lazy" 后不滚就不下载（滚到了照常显示）。 -->
+              <!-- 2026-10-05 性能：群图在公告弹窗的**下半部分**，多数访客不会往下滚 ——
+                   加 loading="lazy" 后不滚就不下载（滚到了照常显示）。
+                   2026-11-08：另一个群的那张图（约 80KB）随该群内容一起删了，这里只剩一张。 -->
               <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592" loading="lazy" decoding="async">
               <span class="site-notice-group-name">ZhiMist（我的群）</span>
               <span class="site-notice-group-no">群号 1125311966</span>
               <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
             </a>
-            <a class="site-notice-group" href="images/qq-group-maple.jpg" target="_blank" rel="noopener">
-              <img src="images/qq-group-maple.jpg" alt="Roblox 枫叶医院 QQ 群二维码，群号 1076510312" width="520" height="592" loading="lazy" decoding="async">
-              <span class="site-notice-group-name">Roblox 枫叶医院（duck 的群）</span>
-              <span class="site-notice-group-no">群号 1076510312</span>
-              <span class="site-notice-group-desc">Roblox 枫叶医院 RP 群 · 最新最全的歌单在这边，想要就去拿</span>
-            </a>
           </div>
         </div>
 
-        <!-- 2026-09-29 站主要求加这一段：把「duck 那边不归我管」说清楚，
-              免得有人以为枫叶医院的群务 / 歌单维护是该找站主的。
-              2026-10-05 站主要求扩展成「两个群分别是什么」，让人**加群之前**就心里有数。
-              2026-10-05 稍后站主又要求顺序：**先写我的群，再写 duck 的群**
-              （跟上面两张卡片的顺序一致：ZhiMist 在前、枫叶医院在后）。 -->
+        <!-- 2026-11-08 站主要求：原来这段标题是「加群前先分清这两个群」，其中
+              duck 的第三方 RP 群那一条随该群内容一起删掉；
+              「我这边只负责本站（织雾满穗）的内容」是那条的尾巴，也一并删。
+              现在只剩站主自己的群，保留原来「守法前提下随便说、可以批评我」的说明。 -->
         <p class="preview-notice-body">
-          ℹ️ <strong>加群前先分清这两个群</strong>：<br>
-          · <strong>ZhiMist（我的群）</strong>：只要遵守法律法规，你想说什么都行 ——
-          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。<br>
-          · <strong>Roblox 枫叶医院（duck 的群）</strong>：那是 Roblox 枫叶医院 RP 的群，
-          里面有它自己的规则需要遵守；<strong>不归我管</strong> —— 群规、RP 玩法、歌单和一切群务
-          都是 duck 自己在维护，我既管不了也不参与，相关问题请直接找 duck。<br>
-          我这边只负责本站（织雾满穗）的内容。
+          ℹ️ <strong>我的群（ZhiMist）</strong>：只要遵守法律法规，你想说什么都行 ——
+          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。
         </p>
 
         <!-- 📺 求关注：2026-10-05 站主先说「顺便求个关注」加在这里，

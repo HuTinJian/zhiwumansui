@@ -1650,8 +1650,11 @@ body.modal-open .particles i { animation-play-state: paused; }
   .site-notice-apology-item { font-size: 0.84rem; }
 }
 
-/* ---------- 必读公告弹窗里的两个 QQ 群（2026-09-27 新增） ----------
-   两张二维码卡片并排；点卡片 = 新标签打开原图（手机上可长按识别）。 */
+/* ---------- 必读公告弹窗里的 QQ 群（2026-09-27 新增） ----------
+   点卡片 = 新标签打开原图（手机上可长按识别）。
+   2026-11-08 站主要求删掉另一个群后只剩一张卡片：改成居中 + 限宽，
+   否则 flex:1 会让这一张铺满整行、二维码孤零零悬在中间。
+   【回退】把 flex 改回 1 1 200px / 1 1 140px 即可恢复两卡并排的样子。 */
 .site-notice-groups { margin: 0 24px 18px; }
 .site-notice-groups-title {
   font-size: 0.9rem;
@@ -1659,9 +1662,9 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text);
   margin-bottom: 10px;
 }
-.site-notice-group-list { display: flex; gap: 12px; flex-wrap: wrap; }
+.site-notice-group-list { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .site-notice-group {
-  flex: 1 1 200px;
+  flex: 0 1 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1693,7 +1696,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 @media (max-width: 768px) {
   .site-notice-groups { margin: 0 16px 14px; }
   .site-notice-group-list { gap: 10px; }
-  .site-notice-group { flex: 1 1 140px; padding: 10px 8px; }
+  .site-notice-group { flex: 0 1 180px; padding: 10px 8px; }
   .site-notice-group img { max-width: 150px; }
 }
 
