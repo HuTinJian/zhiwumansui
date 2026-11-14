@@ -8,7 +8,7 @@
   <meta name="description" content="织雾满穗 —— 一个持续生长的个人站点：资料库、在线小工具，以及各种打开就能用的东西。">
   <meta name="keywords" content="织雾满穗,在线工具,资料库,个人网站">
   <meta name="author" content="HuTinJian">
-  <!-- 2026-10-25：主题色跟随宣纸/墨夜（common.js 切换主题时会覆盖） -->
+  <!-- 主题色跟随宣纸 / 墨夜（common.js 切换主题时会覆盖） -->
   <meta name="theme-color" content="#F5F0E6">
   <meta name="color-scheme" content="light dark">
 
@@ -26,11 +26,10 @@
       try {
         var t = null;
         try { t = localStorage.getItem('zm_theme'); } catch (e) {}
-        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
-           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
-           【回退办法】把这个 if 块整段删掉、并把上面那行改回
-           var t = localStorage.getItem('zm_theme');
-           备份：.verify/backup-theme-20261107/本文件名 */
+        /* localStorage 在手机系统浏览器（无痕 / 隐私 / 被清理）里可能读不到，
+                   这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+                   回退：删掉这个 if 块，并把上一行改回
+                   var t = localStorage.getItem('zm_theme'); */
         if (t !== 'dark' && t !== 'light') {
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
@@ -127,8 +126,8 @@
       100% { transform: scale(1) translateY(0); }
     }
 
-    /* 「预览版」三个字：2026-09-27 用户要求从弹窗挪到这句大标题后面。
-       标题 h1 是 inline-block，所以这个 span 会紧跟在「织雾满穗」右边同一行。 */
+    /* 「预览版」三个字跟在标题后面：标题 h1 是 inline-block，
+           所以这个 span 会紧挨在「织雾满穗」右边同一行。 */
     .hero-ver-badge {
       display: inline-block;
       vertical-align: middle;
@@ -147,12 +146,11 @@
       .hero-ver-badge { margin-left: 7px; padding: 2px 9px; font-size: 0.72rem; }
     }
 
-    /* ========== 📢 公告条（2026-09-27 新增；2026-10-04 改版） ==========
-       位置：紧跟 <nav> 之后（用户要求「弄到导航栏下面」），不再放在 main 里 ——
-             所以现在是一条通栏，左右不再有 container 的缩进。
-       显示：文字横向循环滚动（走马灯）。轨道里放两份一模一样的文案，
-             动画把轨道左移 50%：滚完一份的瞬间正好接上另一份，看不出接缝。
-       交互：鼠标悬停 / 键盘聚焦时暂停滚动，方便看清；点整条 = 重新打开那个必读公告弹窗。 */
+    /* ========== 📢 公告条 ==========
+           位置：紧跟 <nav> 之后，是一条通栏（不在 main / container 里，左右无缩进）。
+           显示：文字横向循环滚动（走马灯）。轨道里放两份一模一样的文案，
+                 动画把轨道左移 50%：滚完一份的瞬间正好接上另一份，看不出接缝。
+           交互：鼠标悬停 / 键盘聚焦时暂停滚动，方便看清；点整条 = 重新打开那个必读公告弹窗。 */
     .site-announce {
       display: flex;
       align-items: center;
@@ -179,19 +177,18 @@
       font-size: 0.76rem;
       font-weight: 800;
       letter-spacing: 1px;
-      /* 2026-10-25：金底必须配墨字（奶白字压金只有 3:1，看不清） */
+      /* 金底必须配墨字（奶白字压金只有 3:1，看不清） */
       color: var(--text-on-gold);
       background: var(--gold);
       padding: 4px 11px;
       border-radius: var(--radius-pill);
     }
     /* 金底墨字在深浅主题都成立（5.2:1 以上），不再单独覆盖 */
-    /* 2026-10-05 站主要求「滚动公告加个时间」：
-       在「📢 公告」后面钉一个小日期章（**不跟着滚**，一直看得见），
-       让人一眼知道这条公告是什么时候的。
-       日期只有一个来源：js/common.js 的 SITE_NOTICE_DATE ——
-       脚本启动时会把它填进所有 [data-announce-date] 占位处（公告弹窗顶部那个日期也是同一个值），
-       HTML 里写的那份只是没脚本时的兜底。改日期只改那一个常量。 */
+    /* 公告日期章钉在「📢 公告」后面，不跟着滚，一直看得见。
+           日期只有一个来源：js/common.js 的 SITE_NOTICE_DATE ——
+           脚本启动时会把它填进所有 [data-announce-date] 占位处
+           （公告弹窗顶部那个日期也是同一个值）；HTML 里写的那份只是没脚本时的兜底。
+           改日期只改那一个常量。 */
     .site-announce-date {
       flex-shrink: 0;
       font-size: 0.72rem;
@@ -282,6 +279,108 @@
       animation: fadeInUp 0.7s var(--ease-out) 0.32s backwards;
     }.hero-actions .btn { padding: 12px 30px; }
 
+    /* ========== ☕ 赞助卡（「开始逛逛」和 B 站横幅之间） ==========
+       站主要求：这张卡就放在 hero 按钮下面、B 站关注横幅上面，位置固定在这儿。
+       点它 = 打开 #sponsorEntryModal（两条通用权益 + 去爱发电 / 去登记），页面本身不收钱。
+       数字只有一个来源：js/common.js 的 SITE_COST / fillSponsorTotal 回填
+       data-site-cost / data-site-cost-date / data-sponsor-total，
+       HTML 里写的数字只是没脚本时的兜底（改数字记得一起改）。
+       回退：删掉 .hero-sponsor* 这几条样式 + #heroSponsorCard 那段 HTML + #sponsorEntryModal。 */
+    .hero-sponsor-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 26px;
+      animation: fadeInUp 0.7s var(--ease-out) 0.38s backwards;
+    }
+    .hero-sponsor {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 100%;
+      padding: 12px 20px 12px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0;                 /* 站主要求方正，不要圆角 */
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font);
+      font-size: inherit;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+    }
+    /* 全局「按钮胶囊化」规则带 !important，这里用 id 把圆角压回直角 */
+    #heroSponsorBtn { border-radius: 0 !important; }
+    .hero-sponsor:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-light); }
+    .hero-sponsor:active { transform: translateY(0) scale(0.98); }
+    .hero-sponsor:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; }
+    /* 左边方块：内联爱心 SVG + 「爱发电」字标，颜色走 --gold-ink，深浅主题自动变 */
+    .hero-sponsor-mark {
+      width: 76px; height: 76px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      background: var(--bg-tint); border: 1px solid var(--border);
+      color: var(--gold-ink);
+    }
+    .hero-sponsor-mark svg { width: 30px; height: 30px; display: block; }
+    .hero-sponsor-mark-t { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; line-height: 1; }
+    .hero-sponsor-txt { display: flex; flex-direction: column; gap: 2px; }
+    .hero-sponsor-t { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .hero-sponsor-s { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
+    .hero-sponsor-h { font-size: 0.74rem; color: var(--text-muted); }
+    /* 右边金额块：和文案用一条竖虚线隔开，两笔账并排 + 一行共用的核对日期 */
+    .hero-sponsor-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      margin-left: 4px;
+      padding-left: 18px;
+      border-left: 1px dashed var(--border);
+      white-space: nowrap;
+    }
+    .hero-sponsor-nums { display: flex; align-items: center; gap: 18px; }
+    .hero-sponsor-cost { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+    .hero-sponsor-cost b { font-size: 1.16rem; font-weight: 800; color: var(--gold-ink); letter-spacing: -0.3px; }
+    .hero-sponsor-cost-d { font-size: 0.7rem; color: var(--text-muted); }
+    .hero-sponsor-cost-got b { color: var(--success); }
+    .hero-sponsor-stats-date { letter-spacing: 0.2px; }
+    /* ≤768px：金额块换到下一行，竖虚线改横虚线（手机上不会被挤成一条长药丸） */
+    @media (max-width: 768px) {
+      .hero-sponsor { display: flex; flex-wrap: wrap; width: 100%; padding: 10px 14px 10px 10px; gap: 11px; }
+      .hero-sponsor-wrap { padding: 0 2px; }
+      .hero-sponsor-mark { width: 62px; height: 62px; }
+      .hero-sponsor-mark svg { width: 24px; height: 24px; }
+      .hero-sponsor-txt { flex: 1 1 0; min-width: 0; }
+      .hero-sponsor-stats {
+        flex: 1 1 100%;
+        margin-left: 0;
+        padding: 8px 0 2px;
+        border-left: none;
+        border-top: 1px dashed var(--border);
+        gap: 4px;
+      }
+      .hero-sponsor-nums { gap: 22px; }
+      .hero-sponsor-cost { flex-direction: row; align-items: baseline; gap: 8px; }
+      .hero-sponsor-cost b { font-size: 1.05rem; }
+    }
+
+    /* 赞助弹窗：权益不分金额大小，所有赞助者都只有两条；付钱去爱发电，登记去 /support */
+    .modal-content.sponsor-modal { max-width: 520px; text-align: left; }
+    .sponsor-modal h2 { margin: 0 0 8px; font-size: 1.15rem; }
+    .modal-content .sponsor-modal-sub { margin: 0; color: var(--text-light); font-size: 0.9rem; line-height: 1.7; }
+    .sponsor-benefits {
+      margin: 14px 0 18px; padding: 12px 16px;
+      background: var(--bg-tint); border: 1px solid var(--border);
+    }
+    .sponsor-benefits-t { margin: 0; font-size: 0.86rem; font-weight: 700; color: var(--text); }
+    .sponsor-benefits ul { margin: 8px 0 0; padding: 0; list-style: none; }
+    .sponsor-benefits li { font-size: 0.88rem; line-height: 1.95; color: var(--text); }
+    .sponsor-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .sponsor-actions .btn { flex: 1 1 200px; }
+    .sponsor-close { width: 100%; margin-top: 10px; }
+
     /* ========== 区块标题 ========== */
     .section-head {
       display: flex;
@@ -308,14 +407,12 @@
       background: linear-gradient(90deg, var(--border), transparent);
     }
 
-    /* ========== 📺 关注我的哔哩哔哩（2026-10-05 站主新增；当天又要求「弄小一点」） ==========
-       第一版是一张 800px 宽、两行说明的卡片，站主看了说「求关注的那一块弄小一点」——
-       现在收成**一条细横幅**：图标 + 标题 + 一句说明 + 小按钮，桌面上一行放得下。
-       主页地址不再明文铺在页面上（太占地方），改成挂在整块的 title 与按钮的无障碍标签上，
-       鼠标悬停能看到、读屏也能读；按钮照样直接跳过去。
-       约束（站主明确）：「所有页脚下面都没有任何东西，保持现状」——
-       这个入口只在 <main> 里，四个页面的页脚一个字都没动。
-       2026-10-05 稍后站主又要求：「公告里面不要有跟关注有关的」→ 公告里那段已删（见 js/common.js）。 */
+    /* ========== 📺 关注我的哔哩哔哩 ==========
+           一条细横幅：图标 + 标题 + 一句说明 + 小按钮，桌面上一行放得下。
+           主页地址不铺在页面上，挂在整块的 title 与按钮的无障碍标签上
+           （鼠标悬停能看到、读屏也能读）；按钮直接跳过去。
+           约束：所有页脚下面不许再放任何东西，保持现状 —— 这个入口只在 <main> 里。
+           公告里不要放跟关注有关的内容。 */
     .bili-follow {
       display: flex;
       align-items: center;
@@ -324,7 +421,6 @@
       max-width: 720px;
       padding: 9px 14px;
       background: var(--bg-card);
-      /* 2026-10-25：去掉 B 站粉，换成一线淡金，不抢主色 */
       border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
       border-radius: var(--radius-pill);
       box-shadow: var(--shadow);
@@ -355,7 +451,7 @@
       gap: 5px;
       padding: 6px 13px;
       border-radius: var(--radius-pill);
-      /* 2026-10-25：墨色小印（固定深墨，两种主题都配奶白字） */
+      /* 墨色小印：固定深墨，两种主题都配奶白字 */
       background: linear-gradient(135deg, #2C2721, #17130F);
       color: var(--text-on-accent);
       font-weight: 800;
@@ -422,7 +518,6 @@
     }
     .card:hover {
       box-shadow: var(--shadow-hover);
-      /* 2026-10-25：hover 用淡金描边，比粉色更稳 */
       border-color: color-mix(in srgb, var(--gold) 60%, var(--border));
     }
     .card:hover::before { opacity: 1; }
@@ -547,30 +642,24 @@
       <img class="brand-mark" src="images/favicon.svg" alt="" width="26" height="26">
       <span class="brand-text">织雾满穗</span>
     </a>
-    <!-- 2026-10-05：站主决定反馈功能整体下线（反馈页文件已删除），
-         所以导航栏里那个反馈入口也一并删掉，只剩首页 / 鸣谢。
-         2026-10-09：站主说「在首页的时候，没看到『法律』的页面」→ 这里加回一项
-         ⚖️ 法律（指向 law.html）。带导航栏的三个页面（首页 / 鸣谢 / 法律）保持一致。 -->
+    <!-- 带导航栏的三个页面（首页 / 鸣谢 / 法律）导航保持一致。 -->
     <ul class="nav-links">
       <li><a href="./" class="active" aria-current="page">🏠 首页</a></li>
       <li><a href="thanks">❤️ 鸣谢</a></li>
       <li><a href="law">⚖️ 法律</a></li>
-      <!-- 2026-11-07 站主要求：建议、反馈两个页面连同接口 / D1 表 / 后台面板全部删除，
-           导航里这两项一并去掉（别再往回加）。 -->
     </ul>
   </nav>
 
-  <!-- ==================== 📢 公告条（2026-09-27 新增；2026-10-04 移位改版） ====================
-       说明宝库歌单来源的变更。点它 = 重新打开「必读公告」弹窗
-       （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
-       之所以要单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。
-       ⚠ 位置：2026-10-04 按用户要求从 main 里搬到【导航栏正下方】，
-          并改成横向滚动（走马灯）；外面这份文案写两遍，
-          第二份是滚动用的复制品（aria-hidden，读屏软件不会读两次）。 -->
+  <!-- ==================== 📢 公告条 ====================
+         点它 = 重新打开「必读公告」弹窗
+         （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
+         之所以单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。
+         ⚠ 位置：导航栏正下方，横向滚动（走马灯）；外面这份文案写两遍，
+            第二份是滚动用的复制品（aria-hidden，读屏软件不会读两次）。 -->
   <button type="button" class="site-announce" id="siteAnnounce">
     <span class="site-announce-badge">📢 公告</span>
-    <!-- 2026-10-05 站主要求「滚动公告加个时间」：这枚日期章固定不动（不参与走马灯），
-         脚本会用 js/common.js 的 SITE_NOTICE_DATE 覆盖这里写的兜底日期。 -->
+    <!-- 这枚日期章固定不动（不参与走马灯），
+             脚本会用 js/common.js 的 SITE_NOTICE_DATE 覆盖这里写的兜底日期。 -->
     <span class="site-announce-date" data-announce-date title="这条公告最后更新于 2026-11-08">2026-11-08</span>
     <span class="site-announce-viewport">
       <span class="site-announce-track">
@@ -585,9 +674,6 @@
 
     <!-- Hero -->
     <section class="hero">
-      <!-- 2026-10-05：反馈功能下线（反馈页已删），
-           hero 那枚小徽标的文案「持续更新中 · 欢迎反馈」也不再提「反馈」——
-           只留「持续更新中」，不另造新的承诺。 -->
       <span class="hero-eyebrow"><span class="dot" aria-hidden="true"></span>持续更新中</span>
 
       <h1 id="mainTitle" title="点我三下有惊喜">织雾满穗</h1><span class="hero-ver-badge">预览版</span>
@@ -598,35 +684,57 @@
         这里会陆续放上各种资料库和在线小工具，不追求数量，只求打开就能用。
       </p><div class="hero-actions">
         <a class="btn btn-primary" href="#explore">🚀 开始逛逛</a>
-        <!-- 2026-10-04 站主要求：hero 里的「💬 提个意见」按钮删掉了。
-             2026-10-05 补记：反馈功能整体下线（反馈页已删），
-             当时那句「反馈入口还有顶部导航栏」里的导航入口也删了 ——
-             首页现在没有任何反馈入口。
-             分享按钮用专用的 .zb-invite（暖金色，见 css/style.css）：
-             颜色贴合站点的粉+金主题，也比主按钮柔和一些、不抢「开始逛逛」的焦点。
-             ⚠ 类名/属性刻意不叫 share —— 电脑上的广告拦截插件常按「class 里有没有 share」
-                隐藏元素，站主反馈过「手机端有、电脑端没有」；现在改成 zb-invite / data-invite，
-                JS 仍然兼容老的 [data-share]。
-             弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供。 -->
+        <!-- 分享按钮用专用的 .zb-invite（暖金色，见 css/style.css）：
+                     颜色贴合站点的粉 + 金主题，也比主按钮柔和一些、不抢「开始逛逛」的焦点。
+                     ⚠ 类名 / 属性刻意不叫 share —— 电脑上的广告拦截插件常按「class 里有没有 share」
+                        隐藏元素（曾出现「手机端有、电脑端没有」）；现在用 zb-invite / data-invite，
+                        JS 仍然兼容老的 [data-share]。
+                     弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供。 -->
         <button type="button" class="btn zb-invite" data-invite>🔗 分享本站</button>
       </div>
 
-      <!-- 2026-11-07 站主要求：赞助小卡片「不要太明显」，已从首页 hero
-           挪到鸣谢页（thanks.html 的 👑 赞助者名单上方，样式压成一条细线）。
-           首页现在不再放任何赞助入口。
-           【回退办法】git show 8ede9e5:index.html 里还是旧的 hero 卡片；
-           把那段 HTML + CSS + #sponsorEntryModal + openSponsorEntry 脚本搬回来即可，
-           反向操作说明也写在 thanks.html 的 .thanks-sponsor 注释里。 -->
+      <!-- ☕ 赞助卡：站主要求放在「开始逛逛」和 B 站关注横幅之间（2026-11-14）。
+           点它打开 #sponsorEntryModal（两条通用权益 + 去爱发电 / 去登记），页面不收钱。
+           数字由 js/common.js 回填，HTML 里的值是没脚本时的兜底。 -->
+      <div class="hero-sponsor-wrap" id="heroSponsorCard">
+        <button type="button" class="hero-sponsor" id="heroSponsorBtn"
+                aria-label="打开赞助说明（去爱发电支持本站）">
+          <!-- 左边图标位：内联爱心 SVG（Feather heart），颜色走 currentColor -->
+          <span class="hero-sponsor-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="hero-sponsor-mark-t">爱发电</span>
+          </span>
+          <span class="hero-sponsor-txt">
+            <span class="hero-sponsor-t">☕ 请我喝一杯</span>
+            <span class="hero-sponsor-s">这个站是业余时间一个人做的，AI 调用费都是自己掏的</span>
+            <span class="hero-sponsor-h">点开看看怎么支持 →</span>
+          </span>
+          <span class="hero-sponsor-stats">
+            <span class="hero-sponsor-nums">
+              <span class="hero-sponsor-cost">
+                <b data-site-cost>¥301.32</b>
+                <span class="hero-sponsor-cost-d">共花费</span>
+              </span>
+              <span class="hero-sponsor-cost hero-sponsor-cost-got">
+                <b data-sponsor-total>¥25.00</b>
+                <span class="hero-sponsor-cost-d">收到赞助</span>
+              </span>
+            </span>
+            <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-11-14</span></span>
+          </span>
+        </button>
+      </div>
+
     </section>
 
-    <!-- ==================== 📺 关注我的哔哩哔哩（2026-10-05 站主新增） ====================
-         站主原话：「我哔哩哔哩的个人主页：https://space.bilibili.com/1270782400
-                   我希望大家能给我点关注，因为关注到 Lv2 的时候可以解锁『合集』功能」，
-         随后又要求「求关注的那一块弄小一点，还有公告里面不要有跟关注有关的」——
-         所以这里收成一条细横幅（一行放得下），公告里那段已整段删除。
-         站主约束：「所有页脚下面都没有任何东西，保持现状」→ 只在 <main> 里，页脚一个字没动。
-         文案要点：① 说清「为什么值得关注」（粉丝到 Lv2 解锁合集 → 我把歌单整理成合集）；
-         ② 明说「不用投币」；③ 主页地址挂在 title 与按钮的无障碍标签上（悬停可见、读屏可读）。 -->
+    <!-- ==================== 📺 关注我的哔哩哔哩 ====================
+             一条细横幅（一行放得下）。
+             约束：所有页脚下面都没有任何东西，保持现状 → 只在 <main> 里，页脚不动。
+             文案要点：① 说清「为什么值得关注」（粉丝到 Lv2 解锁合集 → 歌单整理成合集）；
+             ② 明说「不用投币」；③ 主页地址挂在 title 与按钮的无障碍标签上（悬停可见、读屏可读）。 -->
     <section class="bili-follow reveal" aria-labelledby="biliFollowTitle"
              title="我的 B 站主页：space.bilibili.com/1270782400">
       <span class="bili-follow-icon" aria-hidden="true">📺</span>
@@ -643,16 +751,10 @@
          aria-label="在新标签页打开我的哔哩哔哩个人主页（space.bilibili.com/1270782400）">去 B 站关注 →</a>
     </section>
 
-    <!-- ==================== 📢 公告条（已上移） ====================
-         2026-10-04：这一条搬到导航栏正下方了（见文件上面 <nav> 后面那段），
-         并改成横向滚动。这里不再放公告 —— 别再加回来，否则首页会出现两条。 -->
+    <!-- 公告条只在导航栏正下方那一条；这里不再放公告 —— 别再加回来，否则首页会出现两条。 -->
 
-    <!-- ==================== 赞助者荣誉榜（已搬走） ====================
-         2026-09-26：这一整段（原来那张金色荣誉卡的标记与样式）搬去了独立的 thanks.html，
-         和「Roblox ID 宝库」的鸣谢名单合成一页（顶部用切换器换名单）。
-         首页从此不出现赞助者名单。
-         金额只出现在上面 hero 那条赞助入口右边（2026-09-30 起；2026-11-07 起入口改为爱发电外链），
-         数字的唯一来源还是 js/common.js 的 SITE_COST。 -->
+    <!-- 赞助者名单只在 thanks.html；首页从此不出现名单。
+             金额数字的唯一来源是 js/common.js 的 SITE_COST。 -->
 
     <!-- 内容卡片 -->
     <div class="section-head reveal" id="explore">
@@ -678,9 +780,9 @@
         </div>
       </a>
 
-      <!-- 2026-10-31 新增：网页游戏《临界 · 紧急调度》入口。
-           游戏是独立静态目录 emergency/，不依赖 Functions 或 D1，单人/联机都在浏览器里运行。
-           【回退办法】删掉这一整段 <a class="card"> 即可，其余代码与游戏目录都不用动。 -->
+      <!-- 网页游戏《临界 · 紧急调度》入口。
+                 游戏是独立静态目录 emergency/，不依赖 Functions 或 D1，单人 / 联机都在浏览器里运行。
+                 回退：删掉这一整段 <a class="card"> 即可，其余代码与游戏目录都不用动。 -->
       <a class="card" href="emergency/"
          data-title="临界 · 紧急调度"
          data-category="游戏"
@@ -697,10 +799,10 @@
         </div>
       </a>
 
-      <!-- 2026-10-26 新增：怀旧版入口（站主要求「让大家能体验 2026-08-25 的旧版」）。
-           旧版是独立静态副本，放在 legacy/2026-08-25/，不改动新版任何功能。
-           卡片样式复用本页 .card，只是多一个入口，不参与搜索/筛选（本页没有搜索）。
-           【回退办法】删掉这一整段 <a class="card"> 即可，其余代码无需改动。 -->
+      <!-- 怀旧版入口：旧版是独立静态副本，放在 legacy/ 下的旧版目录（目录名带发布日期），
+                 不改动新版任何功能。卡片样式复用本页 .card，只是多一个入口，
+                 不参与搜索 / 筛选（本页没有搜索）。
+                 回退：删掉这一整段 <a class="card"> 即可，其余代码无需改动。 -->
       <a class="card" href="legacy/2026-08-25/"
          data-title="怀旧版 · 2026 年 8 月 25 日"
          data-category="时光机"
@@ -717,8 +819,6 @@
         </div>
       </a>
 
-      <!-- 2026-09-29 用户要求：卡片2「玩家社区」整块删除（页面、后端、D1 数据都不留），
-           所以这里不再有第二张卡片。以后要加卡片，照上面那张复制一段即可。 -->
     </div>
 
     <!-- 特性 -->
@@ -772,35 +872,42 @@
           <span class="credits-label">支持者</span><span class="credits-name">DeepSeek-V4.1-Flash-1017</span>
           <span class="credits-en">AI Assistant</span>
         </div>
-      </div><!-- 这一排原本还有第三张「赞赏码」卡，已经删掉了 ——
-           赞助入口现在在页面更上面（hero 里「开始逛逛」按钮下面那条，
-           2026-11-07 起指向爱发电主页），
-           这里再放一张就重复了，而且这排是「开发者 / 支持者」，本来也不该塞收款入口。 -->
+      </div><!-- 这排是「开发者 / 支持者」，不放收款入口；赞助入口在 hero 里「开始逛逛」下面那张卡，别在这里重复。 -->
     </div>
   </main>
 
-  <!-- 2026-11-07 站主要求：赞助入口改成爱发电外链，二维码大图弹窗（#sponsorModal）整块删除。
-       原来这里是一个 <div class="modal" id="sponsorModal">，里面放 320px 的
-       images/sponsor-qrcode.png 和一句「扫下面这个码就是最大的支持」。
-       【回退办法】把弹窗整块贴回来 + 恢复页面底部那段 sponsorQr 脚本
-       + 恢复 css/style.css 的 .sponsor-modal-content 两条规则，
-       原始代码见 git show e22b59f:index.html。 -->
+  <!-- 赞助弹窗：点首页那张赞助卡打开。权益不分金额大小，所有赞助者都只有下面两条；
+       真正付钱去爱发电，登记去 /support，这里不收集任何支付信息。 -->
+  <div class="modal" id="sponsorEntryModal" role="dialog" aria-modal="true"
+       aria-labelledby="sponsorEntryTitle" aria-hidden="true">
+    <div class="modal-content sponsor-modal">
+      <h2 id="sponsorEntryTitle">☕ 请我喝一杯</h2>
+      <p class="sponsor-modal-sub">这个站是业余时间一个人做的，AI 调用费都是自己掏的。赞助走爱发电，钱不经过本站。</p>
+      <div class="sponsor-benefits">
+        <p class="sponsor-benefits-t">所有赞助者（不分金额大小）都会得到：</p>
+        <ul>
+          <li>· 加入感谢名单，公开鸣谢</li>
+          <li>· 加入专属社区</li>
+        </ul>
+      </div>
+      <div class="sponsor-actions">
+        <a class="btn btn-primary" href="https://afdian.com/a/HuTinJianZW" target="_blank" rel="noopener noreferrer">☕ 去爱发电赞助</a>
+        <a class="btn btn-secondary" href="support">✅ 我赞助过了，去登记</a>
+      </div>
+      <button type="button" class="btn btn-secondary sponsor-close"
+              onclick="closeModal('sponsorEntryModal')">关闭</button>
+    </div>
+  </div>
+
 
   <!-- ==================== 页脚 ==================== -->
-  <!-- 2026-10-04 站主要求（两条，一起执行）：
-       ① 页脚里那排导航链接（首页 / 意见反馈 / ID 宝库 / ❤️ 鸣谢）全删；
-       ② 页脚里的「🔗 分享本站」也删 —— 站主原话「任何页面的页脚都不要有分享链接」。
-       所以现在四个页面的页脚都只剩版权行。
-       分享入口只在首页 hero 那颗按钮上（站主明确说过那颗不要删）。
-       2026-10-05 补记：反馈功能整体下线（反馈页已删）——
-       页脚那排链接里原来的「意见反馈」不会再回来，别再补。
-       2026-10-09 站主要求（合规加固）：「你看情况帮我改，能改的都改了，以安全为主」——
-       于是在页脚【内部】加了三行（法律定位 / 隐私说明 / 联系站长），四个页面同步。
-       ⚠️ 仍然遵守老约束：页脚【下面】一个字都没有，别把这三行挪到 </footer> 后面。 -->
+  <!-- 页脚：四个页面统一只剩版权行 + 三行（法律定位 / 隐私说明 / 联系站长）。
+         分享入口只在首页 hero 那颗按钮上，页脚不放分享链接。
+         ⚠️ 页脚【下面】一个字都没有，别把这三行挪到 </footer> 后面。 -->
   <footer class="footer">
 
-    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
-         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <!-- 横版品牌作为页脚主展示；浅 / 深两套，≤640px 换紧凑版。
+             回退：删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
     <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
       <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
       <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
@@ -852,6 +959,15 @@
         if (!btn) return;
         btn.addEventListener('click', function () {
           if (typeof window.openSiteNotice === 'function') window.openSiteNotice();
+        });
+      })();
+
+      /* ☕ 赞助卡：点开赞助弹窗（弹窗本体在页脚上面 #sponsorEntryModal） */
+      (function heroSponsor() {
+        var btn = $('heroSponsorBtn');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          if (typeof window.openModal === 'function') window.openModal('sponsorEntryModal');
         });
       })();
 
