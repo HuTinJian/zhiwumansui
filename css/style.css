@@ -2371,6 +2371,20 @@ a.btn,
     font-size: 1.2rem;
     flex-shrink: 0;
   }
+
+  /* 书卷层：这颗钮现在是「设置」而不是切主题，导航栏里已经有「目录」陪着它；
+     手机上不再让它浮在右下角（会跟回到顶部、阅读指示挤在一起）。 */
+  .navbar .theme-toggle.settings-btn {
+    position: static;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    box-shadow: none;
+    color: var(--text);
+    font-size: 1.02rem;
+  }
 }
 @media (max-width: 480px) {
   .navbar { padding-left: 6px; padding-right: 6px; gap: 2px; }
@@ -2432,77 +2446,100 @@ html[data-fx="off"] .particles,
 html[data-fx="off"] .aurora-bg { display: none !important; }
 html.lite .particles { display: none; }
 
-/* ---------- 章节题签：每页开头那条「第一章 · 雾起」 ---------- */
+/* ---------- 章节题签：每页开头一条「第一章 · 雾起」 ----------
+   站主要求「占比小一点」，所以做成一条小字横条：一行放完
+   （朱砂小印 + 章号 · 篇名 · 小注），上下各一条细线，不抢正文。 */
 .book-chapter {
-  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
-  margin: 6px 0 28px;
-  padding: 30px 64px 24px;
+  justify-content: center;
+  gap: 9px;
+  margin: 2px 0 18px;
+  padding: 7px 4px 8px;
   text-align: center;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
-/* 下缘再压一条更淡的细线，做出线装书「双栏」的味道 */
-.book-chapter::after {
-  content: '';
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  bottom: 4px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border) 8%, var(--border) 92%, transparent);
-  opacity: 0.55;
-  pointer-events: none;
-}
 .bc-seal {
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  width: 38px;
-  height: 38px;
-  margin-top: -19px;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
   display: grid;
   place-items: center;
   background: var(--seal);
   color: var(--seal-ink);
   font-family: var(--serif);
-  font-size: 1.12rem;
+  font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;
-  border-radius: 5px;
+  border-radius: 3px;
   transform: rotate(-3deg);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
-.bc-body { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bc-body { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .bc-no {
   font-family: var(--serif);
-  font-size: 0.8rem;
-  letter-spacing: 0.42em;
-  text-indent: 0.42em;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
   color: var(--accent);
+  white-space: nowrap;
 }
 .bc-title {
   font-family: var(--serif);
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
-  text-indent: 0.22em;
-  line-height: 1.32;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
   color: var(--text);
+  white-space: nowrap;
 }
-.book-chapter.is-admin { margin: 2px 0 18px; padding: 18px 48px 14px; }
-.book-chapter.is-admin .bc-title { font-size: 1.5rem; }
-.book-chapter.is-admin .bc-note { margin-top: 2px; font-size: 0.74rem; }
 .bc-note {
-  margin-top: 6px;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
   color: var(--text);
-  /* 0.68 是浅色主题下的下限：再淡就掉到 4.5:1 以下（小字要够看清） */
-  opacity: 0.7;
+  /* 浅色主题下 0.66 是本页小字的下限，再淡就低于 4.5:1 */
+  opacity: 0.66;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bc-note::before { content: '·'; margin-right: 6px; opacity: 0.7; }
+.book-chapter.is-admin { margin: 2px 0 14px; padding: 6px 4px 7px; }
+.book-chapter.is-admin .bc-title { font-size: 0.95rem; }
+
+
+
+/* ---------- 章末翻章：上一章 / 目录 / 下一章 ----------
+   一本装订好的书，章末总有一行「翻到下一章」。这里直接复用书的目录数据，
+   没有上一章/下一章时显示灰字，不给假链接。 */
+.book-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 42px 0 8px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
+.book-pager a,
+.book-pager button {
+  padding: 6px 2px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.book-pager a:hover,
+.book-pager button:hover { color: var(--accent); }
+.book-pager .bp-toc { color: var(--accent); letter-spacing: 0.2em; }
+.book-pager .bp-void { opacity: 0.35; white-space: nowrap; }
+@media (max-width: 560px) {
+  .book-pager { flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 0.76rem; }
 }
 
 /* ---------- 幕号：板块标题前的「第一幕」 ---------- */
@@ -2519,11 +2556,11 @@ html.lite .particles { display: none; }
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  padding-right: 11px;
+  padding-right: 9px;
   border-right: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   font-family: var(--serif);
-  font-size: 0.76rem;
-  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
   color: var(--accent);
   white-space: nowrap;
 }
@@ -2537,7 +2574,8 @@ html.lite .particles { display: none; }
   padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  background: transparent;
+  /* 导航栏里的旧链接撤掉后，「目录」就是全站唯一的入口，给它一点实底更像个按钮 */
+  background: var(--bg-glass);
   color: var(--text);
   font-family: var(--font);
   font-size: 0.95rem;
@@ -2856,10 +2894,9 @@ html[data-font="lg"] .dm-font { font-size: 27px; }
 
 /* ---------- 窄屏 ---------- */
 @media (max-width: 768px) {
-  .book-chapter { padding: 22px 44px 18px; }
-  .bc-seal { width: 30px; height: 30px; margin-top: -15px; font-size: 0.92rem; left: 2px; }
-  .bc-title { font-size: 1.35rem; letter-spacing: 0.16em; text-indent: 0.16em; }
-  .bc-note { font-size: 0.72rem; letter-spacing: 0.04em; }
+  .book-chapter { gap: 7px; padding: 6px 2px 7px; margin-bottom: 14px; }
+  .bc-title { font-size: 0.88rem; letter-spacing: 0.12em; }
+  .bc-note { display: none; }
   .book-toc-open { padding: 6px 10px; min-height: 36px; font-size: 0.82rem; }
   .book-toc-open .toc-ico { font-size: 0.85rem; }
   .set-row { grid-template-columns: 1fr; align-items: start; }
@@ -2869,8 +2906,8 @@ html[data-font="lg"] .dm-font { font-size: 27px; }
   .chapter-marker { left: 12px; bottom: 14px; padding: 7px 12px; font-size: 0.72rem; }
 }
 @media (max-width: 430px) {
-  .book-toc-open > span:last-child { display: none; }
-  .book-toc-open { padding: 6px 9px; }
+  /* 导航栏撤掉旧链接后右侧空了，手机上「目录」两个字照样放得下，别缩成一个 ☰ */
+  .book-toc-open { padding: 6px 11px; }
   .chapter-marker .cm-ch { letter-spacing: 0.06em; }
 }
 

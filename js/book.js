@@ -216,6 +216,40 @@
   }
 
   /* ============================================================
+     4.5 章末翻章：上一章 / 目录 / 下一章
+     ============================================================ */
+  function buildPager() {
+    if (!CH || CURRENT === 'admin') return;
+    var main = D.getElementById('main') || D.querySelector('main');
+    if (!main || main.querySelector('.book-pager')) return;
+
+    var idx = -1;
+    for (var i = 0; i < TOC.length; i++) { if (TOC[i].key === CURRENT) idx = i; }
+    if (idx < 0) return;
+
+    /* 章末横条：没有上一章/下一章时用灰字，不造死链接 */
+    function item(ch, cls, empty) {
+      if (!ch) return '<span class="bp-void">' + empty + '</span>';
+      var c = CHAPTERS[ch.key];
+      if (!c) return '';
+      var text = cls === 'bp-prev' ? '← 上一章 · ' + c.title : '下一章 · ' + c.title + ' →';
+      return '<a class="' + cls + '" href="' + hrefFor(ch.file) + '">' + text + '</a>';
+    }
+
+    var el = D.createElement('nav');
+    el.className = 'book-pager';
+    el.setAttribute('aria-label', '翻章');
+    el.innerHTML =
+      item(TOC[idx - 1], 'bp-prev', '已是卷首') +
+      '<button type="button" class="bp-toc">目录</button>' +
+      item(TOC[idx + 1], 'bp-next', '已至卷末');
+
+    main.appendChild(el);
+    var tocBtn = el.querySelector('.bp-toc');
+    if (tocBtn) tocBtn.addEventListener('click', openToc);
+  }
+
+  /* ============================================================
      5. 阅读指示：左下角「第一章 · 第一幕」
      ============================================================ */
   function buildMarker(acts) {
@@ -468,6 +502,11 @@
 
     var isAdmin = CURRENT === 'admin';
 
+    /* 有了「目录」，导航栏就不再重复「首页 / 鸣谢 / 法律」（站主 2026-11-21 的要求）：
+       清空后只放 目录 + 设置；品牌 logo 本身就是回首页的入口。
+       注意这是渐进增强 —— JS 没跑起来时旧链接还在，不会走丢。 */
+    if (slot.li) slot.node.innerHTML = '';
+
     /* 目录：只在公开页面出现，后台是干活的地方，不做目录 */
     if (!isAdmin && !D.querySelector('.book-toc-open')) {
       var tbtn = D.createElement('button');
@@ -541,6 +580,7 @@
     var acts = numberActs();
     buildMarker(acts);
     injectButtons();
+    buildPager();
 
     var marker = D.querySelector('.chapter-marker');
     if (marker) marker.addEventListener('click', openToc);
