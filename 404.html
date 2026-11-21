@@ -14,11 +14,10 @@
       try {
         var t = null;
         try { t = localStorage.getItem('zm_theme'); } catch (e) {}
-        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
-           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
-           【回退办法】把这个 if 块整段删掉、并把上面那行改回
-           var t = localStorage.getItem('zm_theme');
-           备份：.verify/backup-theme-20261107/本文件名 */
+        /* localStorage 在手机系统浏览器（无痕 / 隐私 / 被清理）里可能读不到，
+                   这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
+                   回退：删掉这个 if 块，并把上一行改回
+                   var t = localStorage.getItem('zm_theme'); */
         if (t !== 'dark' && t !== 'light') {
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
@@ -57,19 +56,17 @@
   -->
   <style>
     /* ============================================================
-       404 页令牌桥（2026-10-25 中国色重制）
-       ------------------------------------------------------------
-       背景：404 页是「自带样式的独立页面」，可能被服务器用任意 URL 提供，
-       所以它不加载 css/style.css（相对路径不可靠），全局令牌在这里取不到。
-       本块只做一件事：把 css/style.css 里的同名全局令牌「值」桥接进来，
-       下面所有规则一律引用 var(--令牌)，页面内不再维护第二套粉色色值。
-       ⚠️ 色值取自 css/style.css（2026-10-25 中国色板），将来改色请两边一起改。
-          阴影按色板用「暖褐单层」（404 只有一个圆形按钮，不需要 style.css 那种
-          三层内高光），深色用黑；除此之外不启用第二套颜色。
-       只保留圆角 / 缓动 / 字体等非颜色项。
-       【回退办法】用 git checkout -- 404.html 恢复，或从
-       .verify/backup-theme-20261025/404.html 拷回原文件。
-       ============================================================ */
+           404 页令牌桥
+           ------------------------------------------------------------
+           404 页是「自带样式的独立页面」，可能被服务器用任意 URL 提供，
+           所以它不加载 css/style.css（相对路径不可靠），全局令牌在这里取不到。
+           本块只做一件事：把 css/style.css 里的同名全局令牌「值」桥接进来，
+           下面所有规则一律引用 var(--令牌)，页面内不再维护第二套色值。
+           ⚠️ 将来改 css/style.css 的色板时，这里要跟着一起改。
+              阴影按色板用「暖褐单层」（404 只有一个圆形按钮，不需要 style.css 那种
+              三层内高光），深色用黑；除此之外不启用第二套颜色。
+           只保留圆角 / 缓动 / 字体等非颜色项。
+           ============================================================ */
     :root {
       /* 表面与文字（宣纸）：只桥接本页用到的令牌 */
       --bg: #F5F0E6;
@@ -108,10 +105,9 @@
       --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
-      /* 2026-11-07：原来只写 light，手机浏览器（系统自带 / 开了强制深色的）
-         会认定本页不支持深色而自己反转颜色，跟我们切的 data-theme 打架。
-         写 light dark = 告诉浏览器两套我们都有，别强制反转。
-         【回退办法】改回 color-scheme: light; */
+      /* color-scheme 写 light dark：告诉浏览器本页两套主题都支持，
+               否则系统开了强制深色的手机浏览器会自己反转颜色，跟 data-theme 打架。
+               回退：改回 color-scheme: light; */
       color-scheme: light dark;
     }
     /* 深色 · 墨夜（暖黑，不是蓝黑/纯黑）：同样只桥接全局令牌值，不另设计一套颜色 */
@@ -320,24 +316,20 @@
   <span class="mist" aria-hidden="true">🌫️</span>
   <div class="err-code">404</div>
   <h1>这片雾里没有你要找的页面</h1>
-  <!-- 2026-10-05：反馈功能整体下线（反馈页已删），
-       这段文案里原来那句「或者把问题反馈给我们」不再提反馈，也不另造新的联系方式 -->
   <p class="desc">
     链接可能已经失效，或者地址被拼错了。<br>
     不妨回到首页看看，也许能从这里找到你想去的地方。
   </p>
 
   <div class="actions">
-    <!-- 2026-11-06：站内链接统一走「干净 URL」（Cloudflare Pages 不带 .html），
-         404 可能出现在任意深度，所以这里直接用站点根路径，下面 applyBase 还会按部署目录修正。 -->
+    <!-- 站内链接统一走「干净 URL」（Cloudflare Pages 不带 .html）；
+             404 可能出现在任意深度，所以这里直接用站点根路径，
+             下面 applyBase 还会按部署目录修正。 -->
     <a class="btn btn-primary" id="homeLink" href="/">🏠 返回首页</a>
     <button type="button" class="btn btn-secondary" id="backBtn">↩ 返回上一页</button>
-    <!-- 2026-10-05：原反馈按钮随反馈页一起删掉（站主决定反馈功能下线） -->
     <a class="btn btn-secondary" id="thanksLink" href="/thanks">❤️ 鸣谢</a>
   </div>
 
-  <!-- 2026-10-05：原来这里有一行「如果确信是错误，欢迎在反馈页告诉我们」，
-       反馈页已经删除，这行连同它的链接一起去掉，页面上不留任何指向反馈页的引用。 -->
 
   <script>
     (function () {
@@ -350,8 +342,8 @@
       function paint() {
         var dark = root.getAttribute('data-theme') === 'dark';
         btn.textContent = dark ? '☀️' : '🌙';
-        /* 2026-10-25 中国色：404 不加载 common.js，浏览器状态栏颜色要在本页自己同步。
-           【回退办法】删掉下面两行 meta 同步（状态栏会固定在浅色 #F5F0E6）。 */
+        /* 404 不加载 common.js，浏览器状态栏颜色要在本页自己同步。
+                   回退：删掉下面两行 meta 同步（状态栏会固定在浅色 #F5F0E6）。 */
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', dark ? '#14110E' : '#F5F0E6');
       }
@@ -373,12 +365,11 @@
          404 页可能出现在任意深度、也可能部署在子目录（如 GitHub Pages 的 /repo/），
          因此从当前路径逐级向上探测，找到真正存在 images/favicon.svg 的那一级作为站点根。 */
       var links = {
-        /* 2026-11-06：跟站内导航一致改成干净 URL（不能再写 index.html / thanks.html，
-           否则每次点击都要先吃一次 308 重定向）。homeLink 的空串表示站点根目录本身。 */
+        /* 站内导航统一用干净 URL（不能再写 index.html / thanks.html，
+                   否则每次点击都要先吃一次 308 重定向）。
+                   homeLink 的空串表示站点根目录本身。 */
         homeLink: '',
         thanksLink: 'thanks'
-        /* 2026-10-05：原来那两条指向反馈页的映射（按钮那条 + 正文链接那条）
-           随反馈页一起删除，这里不再保留 —— 所以下面 applyBase 也不会再去设置它们 */
       };
 
       function applyBase(base) {

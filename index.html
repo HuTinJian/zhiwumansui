@@ -146,102 +146,161 @@
       .hero-ver-badge { margin-left: 7px; padding: 2px 9px; font-size: 0.72rem; }
     }
 
-    /* ========== 📢 公告条 ==========
-           位置：紧跟 <nav> 之后，是一条通栏（不在 main / container 里，左右无缩进）。
-           显示：文字横向循环滚动（走马灯）。轨道里放两份一模一样的文案，
-                 动画把轨道左移 50%：滚完一份的瞬间正好接上另一份，看不出接缝。
-           交互：鼠标悬停 / 键盘聚焦时暂停滚动，方便看清；点整条 = 重新打开那个必读公告弹窗。 */
-    .site-announce {
+    /* ========== 🌸 关于我 ==========
+           位置沿用原来「📢 公告条」：紧跟 <nav> 之后的一条通栏，不滚、不点。
+           内容只说一件事：站主是学生，网站的事只能周末（主要周六）处理。
+           【回退办法】从 git 上一个版本取回 .site-announce 那整段与
+             <button id="siteAnnounce"> 即可。 */
+    .about-strip {
       display: flex;
       align-items: center;
       gap: 12px;
       width: 100%;
       margin: 0;
       padding: 10px 18px;
-      text-align: left;
-      font: inherit;
-      color: var(--text);
-      background: var(--gold-bg);
-      border: none;
-      border-bottom: 1px solid var(--gold-light);
-      border-left: 4px solid var(--gold);
-      border-radius: 0;
-      cursor: pointer;
-      overflow: hidden;
-      transition: filter var(--dur) var(--ease-soft);
+      background: var(--bg-tint);
+      border-bottom: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
     }
-    .site-announce:hover { filter: brightness(0.985); }
-    .site-announce:active { filter: brightness(0.96); }
-    .site-announce-badge {
+    .about-strip-badge {
       flex-shrink: 0;
       font-size: 0.76rem;
       font-weight: 800;
       letter-spacing: 1px;
-      /* 金底必须配墨字（奶白字压金只有 3:1，看不清） */
-      color: var(--text-on-gold);
-      background: var(--gold);
+      /* 深底奶白字：跟全站主按钮同一套反差，浅深主题都看得清 */
+      color: var(--text-on-accent);
+      background: var(--primary);
       padding: 4px 11px;
       border-radius: var(--radius-pill);
-    }
-    /* 金底墨字在深浅主题都成立（5.2:1 以上），不再单独覆盖 */
-    /* 公告日期章钉在「📢 公告」后面，不跟着滚，一直看得见。
-           日期只有一个来源：js/common.js 的 SITE_NOTICE_DATE ——
-           脚本启动时会把它填进所有 [data-announce-date] 占位处
-           （公告弹窗顶部那个日期也是同一个值）；HTML 里写的那份只是没脚本时的兜底。
-           改日期只改那一个常量。 */
-    .site-announce-date {
-      flex-shrink: 0;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: var(--gold-ink);
-      background: color-mix(in srgb, var(--bg-card) 78%, transparent);
-      border: 1px solid var(--gold-light);
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
       white-space: nowrap;
-      font-variant-numeric: tabular-nums;
     }
-    /* 深色主题：白底太跳，换成半透明深底 + 浅金字 */
-    [data-theme="dark"] .site-announce-date {
-      color: var(--gold-ink);
-      background: var(--bg-glass);
-      border-color: var(--border);
-    }
-    .site-announce-viewport { flex: 1; min-width: 0; overflow: hidden; }
-    .site-announce-track {
-      display: inline-flex;
-      align-items: center;
-      white-space: nowrap;
-      will-change: transform;
-      animation: announceMarquee 30s linear infinite;
-    }
-    /* 两份文案各自带一段右内边距：这样「轨道宽度的一半」正好等于「一份文案 + 那段空白」 */
-    .site-announce-track > span {
-      padding-right: 70px;
+    .about-strip-text {
+      margin: 0;
       font-size: 0.88rem;
-      line-height: 1.6;
+      line-height: 1.7;
       color: var(--text-light);
     }
-    .site-announce-more { font-weight: 700; color: var(--primary-ink); }
-    .site-announce:hover .site-announce-track,
-    .site-announce:focus-visible .site-announce-track { animation-play-state: paused; }
-    @keyframes announceMarquee {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+    .about-strip-text b { color: var(--text); font-weight: 700; }
+    @media (max-width: 600px) {
+      .about-strip { padding: 8px 12px; gap: 8px; align-items: flex-start; }
+      .about-strip-badge { font-size: 0.7rem; padding: 3px 8px; }
+      .about-strip-text { font-size: 0.82rem; line-height: 1.65; }
     }
-    /* 减少动画：不滚了，只留第一份，多出来的裁掉 */
-    @media (prefers-reduced-motion: reduce) {
-      .site-announce-track { animation: none !important; transform: none !important; }
-      .site-announce-track > span:nth-child(2) { display: none; }
+
+    /* ========== 🐧 QQ 群卡片（首页右侧） ==========
+       宽屏：固定在右侧中间，卡片里直接露出二维码缩略图，点开是完整大图。
+       窄屏（<1320）：收成右下角一枚小按钮，避免挡住正文；点开同样是大图。
+       只放在首页，别的页面不出现。 */
+    .qq-side {
+      position: fixed;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 80;
+      width: 136px;
+    }
+    .qq-side-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      padding: 11px 10px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      color: var(--text);
+      font: inherit;
+      text-align: center;
+      cursor: pointer;
+      transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+    }
+    .qq-side-btn:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow);
+    }
+    .qq-side-btn:active { transform: translateY(0) scale(0.98); }
+    .qq-side-btn:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; }
+    .qq-side-head {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--primary-ink);
+      letter-spacing: 0.3px;
+    }
+    .qq-side-qr {
+      display: block;
+      width: 108px;
+      height: auto;
+      padding: 3px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .qq-side-no {
+      font-size: 0.72rem;
+      line-height: 1.4;
+      color: var(--text-light);
+      font-variant-numeric: tabular-nums;
+    }
+    .qq-side-hint { font-size: 0.7rem; line-height: 1.4; color: var(--text-muted); }
+
+    @media (max-width: 1319px) {
+      .qq-side {
+        top: auto;
+        bottom: 84px;
+        right: 14px;
+        transform: none;
+        width: auto;
+      }
+      .qq-side-btn {
+        flex-direction: row;
+        width: auto;
+        padding: 9px 15px;
+        border-radius: var(--radius-pill);
+        gap: 6px;
+      }
+      .qq-side-qr,
+      .qq-side-no,
+      .qq-side-hint { display: none; }
+      .qq-side-head { font-size: 0.82rem; }
     }
     @media (max-width: 600px) {
-      .site-announce { padding: 8px 12px; gap: 8px; }
-      .site-announce-track > span { padding-right: 48px; font-size: 0.82rem; }
-      /* 窄屏上「📢 公告 + 日期」两个章已经占了小半行，日期缩到最小但**不隐藏** ——
-         站主要的就是「一眼知道这条公告是什么时候的」 */
-      .site-announce-date { font-size: 0.66rem; padding: 2px 7px; letter-spacing: 0; }
+      .qq-side { bottom: 78px; right: 12px; }
+      .qq-side-btn { padding: 8px 13px; }
     }
+
+    /* QQ 群二维码弹窗 */
+    .qq-modal { max-width: 440px; text-align: center; }
+    .qq-modal h2 { margin-bottom: 6px; }
+    .qq-modal .qq-modal-sub {
+      margin: 0 0 14px;
+      font-size: 0.86rem;
+      line-height: 1.7;
+      color: var(--text-light);
+    }
+    .qq-modal-img { display: block; }
+    .qq-modal-img img {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      margin: 0 auto;
+      padding: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .qq-modal .qq-modal-no {
+      margin: 12px 0 16px;
+      font-size: 0.82rem;
+      color: var(--text-light);
+    }
+    .qq-modal .qq-modal-no b { color: var(--primary-ink); font-variant-numeric: tabular-nums; }
 
     .hero .subtitle {
       color: var(--text-light);
@@ -412,7 +471,7 @@
            主页地址不铺在页面上，挂在整块的 title 与按钮的无障碍标签上
            （鼠标悬停能看到、读屏也能读）；按钮直接跳过去。
            约束：所有页脚下面不许再放任何东西，保持现状 —— 这个入口只在 <main> 里。
-           公告里不要放跟关注有关的内容。 */
+           求关注的入口只保留这一条，别再往别处塞。 */
     .bili-follow {
       display: flex;
       align-items: center;
@@ -650,24 +709,17 @@
     </ul>
   </nav>
 
-  <!-- ==================== 📢 公告条 ====================
-         点它 = 重新打开「必读公告」弹窗
-         （弹窗本体在 js/common.js 的 showSiteNotice；这里调 window.openSiteNotice）。
-         之所以单独放一条：那个弹窗每个浏览器只强制弹一次，看过的人得有个地方能再翻出来。
-         ⚠ 位置：导航栏正下方，横向滚动（走马灯）；外面这份文案写两遍，
-            第二份是滚动用的复制品（aria-hidden，读屏软件不会读两次）。 -->
-  <button type="button" class="site-announce" id="siteAnnounce">
-    <span class="site-announce-badge">📢 公告</span>
-    <!-- 这枚日期章固定不动（不参与走马灯），
-             脚本会用 js/common.js 的 SITE_NOTICE_DATE 覆盖这里写的兜底日期。 -->
-    <span class="site-announce-date" data-announce-date title="这条公告最后更新于 2026-11-08">2026-11-08</span>
-    <span class="site-announce-viewport">
-      <span class="site-announce-track">
-        <span>Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
-        <span aria-hidden="true">Roblox ID 宝库的歌单来源有变更 —— 已停止使用 duck 整理的歌单，我和 duck 已经互相道歉、把话说开了；想加歌、报 BUG 或有意见可以进 QQ 群。<b class="site-announce-more">查看说明 →</b></span>
-      </span>
-    </span>
-  </button>
+  <!-- ==================== 🌸 关于我 ====================
+       原来的「📢 公告条」整块删掉了；同一个位置改成这条静态说明。
+       只写站主的可支配时间，不滚动、不点击、也不再有公告弹窗。
+       【回退办法】从 git 上一个版本取回 <button id="siteAnnounce"> 与对应 CSS/JS。 -->
+  <div class="about-strip" role="note" aria-label="关于我">
+    <span class="about-strip-badge">🌸 关于我</span>
+    <p class="about-strip-text">
+      网站上的所有事情，我<b>只能周末处理，主要是周六</b>；其余时间要学习。
+      消息可能回得慢一点，请见谅 —— 周末我会统一看。
+    </p>
+  </div>
 
   <!-- ==================== 主内容 ==================== -->
   <main class="container" id="main">
@@ -751,7 +803,7 @@
          aria-label="在新标签页打开我的哔哩哔哩个人主页（space.bilibili.com/1270782400）">去 B 站关注 →</a>
     </section>
 
-    <!-- 公告条只在导航栏正下方那一条；这里不再放公告 —— 别再加回来，否则首页会出现两条。 -->
+    <!-- 「关于我」只在导航栏正下方那一条；这里不再放 —— 别再加回来，否则首页会出现两条。 -->
 
     <!-- 赞助者名单只在 thanks.html；首页从此不出现名单。
              金额数字的唯一来源是 js/common.js 的 SITE_COST。 -->
@@ -900,6 +952,35 @@
   </div>
 
 
+  <!-- ==================== 🐧 QQ 群卡片 ====================
+       位置：首页右侧（宽屏固定在右中，窄屏收成右下角小按钮）。
+       卡片里直接露出二维码缩略图；点开 #qqGroupModal 看完整大图。
+       【回退办法】删掉 .qq-side / #qqGroupModal 两段 + 底部 qqGroup 绑定即可。 -->
+  <div class="qq-side">
+    <button type="button" class="qq-side-btn" id="qqGroupBtn"
+            aria-haspopup="dialog" aria-controls="qqGroupModal"
+            aria-label="打开 ZhiMist QQ 群二维码">
+      <span class="qq-side-head"><span aria-hidden="true">🐧</span> QQ 群</span>
+      <img class="qq-side-qr" src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码" width="520" height="592" loading="lazy" decoding="async">
+      <span class="qq-side-no">群号 1125311966</span>
+      <span class="qq-side-hint">点开看大图 →</span>
+    </button>
+  </div>
+
+  <div class="modal" id="qqGroupModal" role="dialog" aria-modal="true" aria-labelledby="qqGroupTitle">
+    <div class="modal-content qq-modal">
+      <h2 id="qqGroupTitle">🐧 ZhiMist QQ 群</h2>
+      <p class="qq-modal-sub">加歌、报 BUG、提意见都可以在群里说；我周末统一处理。</p>
+      <a class="qq-modal-img" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener noreferrer">
+        <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码（群号 1125311966）" width="520" height="592" decoding="async">
+      </a>
+      <p class="qq-modal-no">群号 <b>1125311966</b> · 手机可长按识别</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('qqGroupModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== 页脚 ==================== -->
   <!-- 页脚：四个页面统一只剩版权行 + 三行（法律定位 / 隐私说明 / 联系站长）。
          分享入口只在首页 hero 那颗按钮上，页脚不放分享链接。
@@ -953,12 +1034,12 @@
       /* 版本更新检查 */
       checkPageUpdate('index');
 
-      /* 📢 公告条：点开重新看「必读公告」弹窗（弹窗本体在 js/common.js 的 showSiteNotice） */
-      (function siteAnnounce() {
-        var btn = $('siteAnnounce');
+      /* 🐧 QQ 群卡片：点开二维码大图（弹窗本体就是页面里的 #qqGroupModal） */
+      (function qqGroupCard() {
+        var btn = $('qqGroupBtn');
         if (!btn) return;
         btn.addEventListener('click', function () {
-          if (typeof window.openSiteNotice === 'function') window.openSiteNotice();
+          if (typeof window.openModal === 'function') window.openModal('qqGroupModal');
         });
       })();
 

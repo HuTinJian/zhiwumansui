@@ -1,14 +1,14 @@
 /* ============================================================
    织雾满穗 · 玩家「添加歌曲ID」投稿（公开）
-   2026-10-07 站主要求：宝库页在「问题上报」旁边加一个「添加歌曲ID」，
-   让玩家把自己找到的歌曲 ID 上报上来；**后台可以控制**（通过 / 删除），
-   通过之后才进 D1 歌曲列表（songs_extra），因此这一栏在后台「D1歌曲管理」里。
+   宝库页在「问题上报」旁边有「添加歌曲ID」，玩家把自己找到的歌曲 ID 上报上来；
+   **后台可以控制**（通过 / 删除），通过之后才进 D1 歌曲列表（songs_extra），
+   因此这一栏在后台「D1歌曲管理」里。
    ------------------------------------------------------------
    设计（跟无效上报那条链路口径一致）：
    · 同源校验 + 人机验证（配了 Turnstile 才生效）+ 限速（同一身份 10 分钟 30 次）；
    · 只写进 song_submissions 这张**待审核**表，绝不直接进 songs_extra ——
      否则任何人都能往宝库里塞歌，站长就失去「控制」了；
-   · 每条最多 20 个 ID（玩家一次贴一小批就够）；
+   · 每条最多 10 个 ID（玩家一次贴一小批就够）；
    · 唯一键 (music_id, reporter)：同一个人重复提交同一个 ID 只算一次；
    · 后台通过时把它插进 songs_extra 并删掉投稿行（见 songs/submissions.js）。
    ============================================================ */
@@ -23,10 +23,9 @@ import {
   turnstileRejection
 } from '../_utils.js';
 
-/* 音乐 ID 形态（2026-10-17 收紧）：
-   站主要求「游客添加的歌曲 ID 要符合，而不是什么英文和 1234 这些捣乱的」——
+/* 音乐 ID 形态：只收 9~20 位纯数字。
    真实的 Roblox 音频 ID 全是**纯数字**（data/roblox_music.json 里 4799 条实测
-   最短 9 位、最长 15 位），所以这里只收 9~20 位纯数字。
+   最短 9 位、最长 15 位），所以英文和 1234 这些捣乱值一律不收。
    ⚠️ 这里一收紧，老库里可能残留的非数字投稿就永远进不了 songs_extra ——
       那正是我们要的（它们本来就不是有效 ID）；
       但**审核通过时**（functions/api/songs/submissions.js）还没有这些行，
@@ -36,11 +35,11 @@ const ID_PATTERN = /^\d{9,20}$/;
 /* 浏览器匿名身份（前端 getClientId()）：小写字母数字 8~64 位 */
 const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
 
-/* 2026-10-17 站主要求：认不出分类时一律记「🧩 玩家提供」，不再留空 / 未完成。
+/* 认不出分类时一律记「🧩 玩家提供」，不留空 / 未完成。
    这个字面量必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED 一致。 */
 const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
 
-/* 2026-10-18 安全修复：单次从 20 降到 10，配合「限速键改 IP」把放大倍数压下去。
+/* 单次最多 10 条：配合「限速键按 IP」把放大倍数压下去。
    正常投稿一人一次顶多几首，10 条完全够。【回退办法】改回 20。 */
 const MAX_ITEMS = 10;
 
@@ -59,9 +58,9 @@ export async function onRequestPost(context) {
   const reporter = String(body.reporter || '').trim().toLowerCase();
   const validReporter = REPORTER_PATTERN.test(reporter) ? reporter : '';
 
-  /* 2026-10-18 安全修复：限速键必须是 IP，不能是请求体里的 reporter
-     （reporter 可任意伪造，换一个就等于换一个全新限速桶）。
-     【回退办法】改回 limiter.check(validReporter || clientIp(request))（那是真漏洞，别回退）。 */
+  /* 限速键必须是 IP，不能是请求体里的 reporter
+       （reporter 可任意伪造，换一个就等于换一个全新限速桶）。
+       【回退办法】改回 limiter.check(validReporter || clientIp(request))（那是真漏洞，别回退）。 */
   const limit = limiter.check(clientIp(request));
   if (!limit.ok) {
     return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
@@ -77,10 +76,10 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'too many items' }, 400);
     }
 
-    /* 2026-10-17：先探一下 song_submissions 有没有 note 列。
-       ⚠️ 为什么不能只靠 batch 的 try/catch：D1 在 **prepare()** 阶段就检查列，
-       列不存在时是 prepare 抛错，batch 那层根本轮不到（实测踩过）。
-       探不到就退回 4 列写法：投稿永远不许因为「迁移没跑」而失败。 */
+    /* 先探一下 song_submissions 有没有 note 列。
+           ⚠️ 为什么不能只靠 batch 的 try/catch：D1 在 **prepare()** 阶段就检查列，
+           列不存在时是 prepare 抛错，batch 那层根本轮不到（实测踩过）。
+           探不到就退回 4 列写法：投稿永远不许因为「迁移没跑」而失败。 */
     let hasNote = false;
     try {
       await env.DB.prepare('SELECT note FROM song_submissions LIMIT 1').all();
@@ -89,9 +88,9 @@ export async function onRequestPost(context) {
       hasNote = false;
     }
 
-    /* 2026-10-18：同法探 genre 列（玩家自己填的「歌曲类型」）。
-       探不到就走不含 genre 的写法，保证「迁移没跑」时投稿不失败。
-       【回退办法】删掉这段、并把下面 INSERT 里的 genre 分支去掉。 */
+    /* 同法探 genre 列（玩家自己填的「歌曲类型」）。
+           探不到就走不含 genre 的写法，保证「迁移没跑」时投稿不失败。
+           【回退办法】删掉这段、并把下面 INSERT 里的 genre 分支去掉。 */
     let hasGenre = false;
     try {
       await env.DB.prepare('SELECT genre FROM song_submissions LIMIT 1').all();
@@ -108,10 +107,10 @@ export async function onRequestPost(context) {
       if (!ID_PATTERN.test(id)) continue;
 
       const name = String(item.name || '').trim().slice(0, 100);
-      /* 2026-10-26 站主定死：游客投稿只收「ID + 歌名」，分类固定「🧩 玩家提供」。
-         原来可带的 note（说明）/ genre（歌曲类型）两栏已删除，服务端不再接收，
-         即使旧客户端硬塞也一律丢弃（存 NULL），避免这两类内容再进库。
-         【回退办法】从 git 历史恢复 note/genre 的读取与绑定。 */
+      /* 游客投稿只收「ID + 歌名」，分类固定「🧩 玩家提供」。
+               note（说明）/ genre（歌曲类型）两栏服务端不再接收，
+               即使旧客户端硬塞也一律丢弃（存 NULL），避免这两类内容再进库。
+               【回退办法】从 git 历史恢复 note/genre 的读取与绑定。 */
       const note = '';
       const genre = '';
       /* 分类不由客户端决定：无论传什么都记「🧩 玩家提供」。 */

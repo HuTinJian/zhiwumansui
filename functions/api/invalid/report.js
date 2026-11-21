@@ -1,6 +1,5 @@
 /* ============================================================
    织雾满穗 · 上报无效音乐 ID（公开，支持单个或批量）
-   2026-10-05：新增。替代旧「访客隔离区 + 反馈上传」那条链路 ——
    访客只负责说「这个 ID 无效」，下不下架由管理员在后台定。
    ============================================================ */
 
@@ -13,17 +12,18 @@ import {
   requireSameOrigin,
   turnstileRejection
 } from '../_utils.js';
+import { autoAuditInvalidReports } from './_audit.js';
 
 /* 音乐 ID 形态：1~32 位字母 / 数字 / 下划线 / 连字符 */
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 /* 浏览器匿名身份（前端 getClientId()）：小写字母数字 8~64 位 */
 const REPORTER_PATTERN = /^[a-z0-9]{8,64}$/;
 
-/* 一次最多 20 条（2026-10-18 安全修复：原来 200，配合「限速键可伪造」等于单请求写 200 行）。
+/* 一次最多 20 条（安全上限：配合 IP 限速，避免单请求写入过多行）。
    前端也会分批发送，改小不影响功能。【回退办法】把下面的 20 改回 200。 */
 const MAX_ITEMS = 20;
 
-/* 2026-10-07：上报类型 —— invalid = 🚫 无效ID（默认）；info = ✏️ 信息出错（歌名/分类不对） */
+/* 上报类型：invalid = 🚫 无效ID（默认）；info = ✏️ 信息出错（歌名/分类不对） */
 const REPORT_TYPES = ['invalid', 'info'];
 
 /* 同一浏览器身份（拿不到身份时退化为单 IP）10 分钟最多 60 次上报，防刷 */
@@ -45,11 +45,11 @@ export async function onRequestPost(context) {
      所以前端尽量带上 getClientId() */
   const validReporter = REPORTER_PATTERN.test(reporter) ? reporter : '';
 
-  /* 2026-10-18 安全修复：**绝不能用 reporter 当限速键**。
-       reporter 是请求体里客户端自己给的字符串，攻击者每请求换一个随机值，
-       就等于拥有无限个限速桶（实测可写爆 D1 日额度）。必须是 IP。
-       【回退办法】改回 limiter.check(validReporter || clientIp(request))
-       ——但那是真漏洞，别回退。 */
+  /* **绝不能用 reporter 当限速键**。
+         reporter 是请求体里客户端自己给的字符串，攻击者每请求换一个随机值，
+         就等于拥有无限个限速桶（实测可写爆 D1 日额度）。必须是 IP。
+         【回退办法】改回 limiter.check(validReporter || clientIp(request))
+         ——但那是真漏洞，别回退。 */
     const limit = limiter.check(clientIp(request));
   if (!limit.ok) {
     return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
@@ -61,10 +61,10 @@ export async function onRequestPost(context) {
 
   try {
     /* 两种写法都收：单条 { id, name, category, type, note } / 批量 { items: [...] }
-       2026-10-07 站主要求：上报分两类 ——
-         · type='invalid'（🚫 无效ID，默认）：这个 ID 放不出声 / 已经失效；
-         · type='info'（✏️ 信息出错）：歌名或分类不对，玩家在弹窗里改了信息再点「确定上报」。
-       两类都存在同一张表用 type 区分（页面上「问题上报」分两个标签显示）。 */
+           上报分两类：
+             · type='invalid'（🚫 无效ID，默认）：这个 ID 放不出声 / 已经失效；
+             · type='info'（✏️ 信息出错）：歌名或分类不对，玩家在弹窗里改了信息再点「确定上报」。
+           两类都存在同一张表用 type 区分（页面上「问题上报」分两个标签显示）。 */
     const raw = Array.isArray(body.items) ? body.items : [body];
     if (raw.length > MAX_ITEMS) {
       return json({ ok: false, error: 'too many items' }, 400);
@@ -72,9 +72,11 @@ export async function onRequestPost(context) {
 
     const stmts = [];
     const refreshes = [];
-    /* 2026-10-07 站主定的规矩：「以无效为主，如果他点了无效，就不能修改信息」——
-       已经报过无效的 ID，这次如果是 type='info'，**整条跳过**（不改、不新增），
-       并计入 blocked 返回给前端，让页面提示「先撤回无效上报」。 */
+    /* 本次真正按「无效」提交的 ID：响应发出去以后，后台自动审核用 */
+    const autoIds = [];
+    /* 规矩：「以无效为主，如果他点了无效，就不能修改信息」——
+           已经报过无效的 ID，这次如果是 type='info'，**整条跳过**（不改、不新增），
+           并计入 blocked 返回给前端，让页面提示「先撤回无效上报」。 */
     let blocked = 0;
     let existingTypes = Object.create(null);
     try {
@@ -108,16 +110,18 @@ export async function onRequestPost(context) {
       /* 非法 ID 直接丢，不打断整批（批量里混进坏数据是常事） */
       if (!ID_PATTERN.test(id)) continue;
 
-      /* 2026-10-18 安全修复：入库前剔除尖括号。
-       这些字段最终会经 /api/quarantine/list 公开、并在后台 innerHTML 里渲染；
-       现在所有出口都做了 escapeHtml，但「不可信输入原样落库」是纵深防御的缺口，
-       源头清一次的成本最低。【回退办法】删掉 .replace(/[<>]/g, '') 即可。 */
+      /* 入库前剔除尖括号。
+             这些字段最终会经 /api/quarantine/list 公开、并在后台 innerHTML 里渲染；
+             现在所有出口都做了 escapeHtml，但「不可信输入原样落库」是纵深防御的缺口，
+             源头清一次的成本最低。【回退办法】删掉 .replace(/[<>]/g, '') 即可。 */
     const name = String(item.name || '').replace(/[<>]/g, '').trim().slice(0, 100);
       const category = String(item.category || '').replace(/[<>]/g, '').trim().slice(0, 30);
       const type = REPORT_TYPES.includes(String(item.type || '').trim()) ? String(item.type).trim() : 'invalid';
       const note = String(item.note || '').replace(/[<>]/g, '').trim().slice(0, 300);
 
       if (type === 'info' && existingTypes[id]) { blocked++; continue; }
+
+      if (type === 'invalid' && !autoIds.includes(id)) autoIds.push(id);
 
       stmts.push(
         env.DB.prepare(
@@ -150,10 +154,10 @@ export async function onRequestPost(context) {
     try {
       results = await env.DB.batch(stmts);
     } catch (err) {
-      /* 2026-10-07 加的 type / note 两列要靠 migrations.sql 第 3 组补上。
-         万一是「代码先上线、SQL 还没跑」，这里的 INSERT 会报 no such column ——
-         不能让玩家看到「上报失败」：**退回旧的 4 列写法**，上报照旧进后台（只是少了类型与说明），
-         站主跑完 SQL 就自动走上面那条路。 */
+      /* type / note 两列要靠 migrations.sql 第 3 组补上。
+               万一是「代码先上线、SQL 还没跑」，这里的 INSERT 会报 no such column ——
+               不能让玩家看到「上报失败」：**退回旧的 4 列写法**，上报照旧进后台（只是少了类型与说明），
+               迁移跑完就自动走上面那条路。 */
       const legacy = raw
         .filter(item => item && typeof item === 'object')
         .map(item => String(item.id === undefined || item.id === null ? '' : item.id).trim())
@@ -191,6 +195,14 @@ export async function onRequestPost(context) {
       }
     });
     if (refreshStmts.length > 0) await env.DB.batch(refreshStmts);
+
+    /* 自动审核：在响应发出后继续跑（waitUntil），不让访客等网络。
+       只有「明确能播 / 明确无效」才会结案，查不出的一律留在待处理。 */
+    if (autoIds.length > 0) {
+      const task = autoAuditInvalidReports(env, autoIds)
+        .catch(err => console.error('[invalid/report] auto audit', err));
+      if (context.waitUntil) context.waitUntil(task);
+    }
 
     return json({ ok: true, added, duplicates, blocked });
   } catch (err) {

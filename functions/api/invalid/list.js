@@ -1,14 +1,12 @@
 /* ============================================================
    织雾满穗 · 无效上报列表（需认证）
-   2026-10-05：新增。给后台「🚫 无效音乐ID管理」用：
-   待处理 / 已忽略两段按 music_id 聚合，外加统计卡的四个数字。
+   给后台「🚫 无效音乐ID管理」用：待处理段按 music_id 聚合，
+   外加统计卡的四个数字。
    ============================================================ */
 
 import { json, checkAuth } from '../_utils.js';
 import { toUtcIso } from '../_time.js';
 
-/* 2026-10-07 站主要求：去掉「已忽略」那一段 —— 没问题的上报，后台直接**删掉记录**就行
-   （见 handle.js 的 delete-records）。所以这里只查 pending（「待处理」那一段）。 */
 const STATUSES = ['pending', 'all'];
 
 const DEFAULT_LIMIT = 500;
@@ -32,16 +30,16 @@ export async function onRequestGet(context) {
       ? Math.min(rawLimit, MAX_LIMIT)
       : DEFAULT_LIMIT;
 
-    /* 只查待处理（「已忽略」2026-10-07 已按站主要求下线） */
+    /* 只查待处理（pending） */
     const wanted = ['pending'];
 
     const rows = [];
     for (const s of wanted) {
       /* 歌名 / 分类取「最近一条上报」的值（子查询按 id 倒序），
-         而不是 MAX(name) —— 那是字典序最大，会拿到风马牛不相及的名字。
-         2026-10-05 站主要求「按时间排序，从最近到最后」：这里也改成**时间优先**
-         （最近有上报的排最前），次数退为第二关键字。限了 LIMIT，所以 SQL 里的顺序
-         决定了「哪些行会被取回来」，必须在 SQL 层就按时间排，不能只靠 JS 那一遍重排。 */
+               而不是 MAX(name) —— 那是字典序最大，会拿到风马牛不相及的名字。
+               排序：**时间优先**（最近有上报的排最前），次数作为第二关键字。
+               限了 LIMIT，所以 SQL 里的顺序决定了「哪些行会被取回来」，
+               必须在 SQL 层就按时间排，不能只靠 JS 那一遍重排。 */
       const result = await env.DB.prepare(
         `SELECT r1.music_id AS music_id,
                 COUNT(*) AS report_count,
@@ -76,8 +74,8 @@ export async function onRequestGet(context) {
           category: row.latest_category || '未分类',
           count: total,
           status: s,
-          /* 2026-10-07：一条 ID 可能同时被报「无效」和「信息出错」——
-             这里给出最近一条的类型，以及各有多少条，后台据此显示徽标与按钮。 */
+          /* 一条 ID 可能同时被报「无效」和「信息出错」——
+                       这里给出最近一条的类型，以及各有多少条，后台据此显示徽标与按钮。 */
           type: String(row.latest_type || 'invalid') === 'info' ? 'info' : 'invalid',
           infoCount,
           invalidCount: total - infoCount,
@@ -89,17 +87,13 @@ export async function onRequestGet(context) {
       }
     }
 
-    /* 2026-10-05 站主要求「按时间排序，从最近到最后」：
-       原来第一关键字是「上报次数」多的在前，现在**改成时间优先** —— 最近有上报的排最前；
-       次数只作为同一时间（或时间相同/缺失）时的第二关键字，不再抢排头。 */
     rows.sort((a, b) => {
       if (a.lastAt !== b.lastAt) return a.lastAt < b.lastAt ? 1 : -1;
       return b.count - a.count;
     });
     const data = rows.slice(0, limit);
 
-    /* 统计卡的数字一次查询拿到（避免多次往返）。
-       2026-10-07：「已忽略」下线 → 少了 ignoredIds，多了投稿数（后台 D1歌曲管理那张卡要用）。 */
+    /* 统计卡的数字一次查询拿到（避免多次往返）。 */
     const summaryRow = await env.DB.prepare(
       `SELECT
          (SELECT COUNT(*) FROM invalid_reports WHERE status = 'pending') AS pending_reports,

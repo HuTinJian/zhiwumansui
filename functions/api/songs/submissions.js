@@ -1,6 +1,6 @@
 /* ============================================================
    织雾满穗 · 玩家歌曲投稿的后台管理（需认证 + 同源）
-   2026-10-07 新增。给后台「🎶 D1歌曲管理」的「📥 玩家投稿」那一块用：
+   给后台「🎶 D1歌曲管理」的「📥 玩家投稿」那一块用：
      GET  ?status=pending      → 列出待审核的投稿（按音乐 ID 聚合，带投稿条数/时间/投稿人）
      POST { action:'approve', ids:[...] } → 通过：插进 songs_extra（宝库立刻能搜到）并删掉投稿行
      POST { action:'delete',  ids:[...] } → 不要：只删投稿行（songs_extra 不动）
@@ -15,11 +15,11 @@ import { toUtcIso } from '../_time.js';
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 const MAX_IDS = 200;
 
-/* 2026-10-17 站主要求：分类认不出 → 「🧩 玩家提供」（不再出现「未分类」这种像半成品的字眼）。
+/* 分类认不出 → 「🧩 玩家提供」（不要出现「未分类」这种像半成品的字眼）。
    必须和前端 roblox_music.html 的 CAT_PLAYER_PROVIDED、functions/api/songs/submit.js 一致。 */
 const CATEGORY_PLAYER_PROVIDED = '🧩 玩家提供';
 
-/* 2026-10-26 站主定死：玩家投稿分类只有「🧩 玩家提供」。
+/* 玩家投稿分类只有「🧩 玩家提供」。
    所以审核通过时无条件写「玩家提供」，旧待审核行里残留的其他分类也一并归到这里。
    【回退办法】恢复成按 raw 归一（空/未分类/未完成 → 玩家提供，其余原样）。 */
 function normalizeSubmissionCategory() {
@@ -78,7 +78,7 @@ export async function onRequestGet(context) {
       category: row.latest_category || '',
       count: Number(row.submit_count) || 0,
       lastAt: toUtcIso(row.last_at),
-      /* 2026-10-17：玩家写的「说明」，后台投稿列表要显示（没这列时为空串） */
+      /* 玩家写的「说明」，后台投稿列表要显示（没这列时为空串）。 */
       note: row.latest_note || '',
       genre: row.latest_genre || ''
     }));
@@ -140,8 +140,8 @@ export async function onRequestPost(context) {
       ).first();
       let next = Number(maxRow && maxRow.max_line) || 99999;
 
-      /* 2026-10-18：先探 songs_extra 有没有 genre 列（迁移没跑时不影响「通过」）。
-         【回退办法】删掉 hasGenre 分支，只留原来 4 列的 INSERT。 */
+      /* 先探 songs_extra 有没有 genre 列（迁移没跑时不影响「通过」）。
+               【回退办法】删掉 hasGenre 分支，只留原来 4 列的 INSERT。 */
       let hasGenre = false;
       try {
         await env.DB.prepare('SELECT genre FROM songs_extra LIMIT 1').all();

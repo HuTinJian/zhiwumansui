@@ -97,12 +97,7 @@ CREATE TABLE IF NOT EXISTS hot_songs (
   last_updated TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
--- 访问渠道
-CREATE TABLE IF NOT EXISTS visit_sources (
-  user_id TEXT PRIMARY KEY,
-  source TEXT NOT NULL,
-  updated_at TEXT DEFAULT (datetime('now', 'localtime'))
-);
+-- 2026-11-21：手机尺寸收集结束，visit_sources 表已删除（D1 里也已经 DROP）。
 
 -- 索引：加速常用查询
 CREATE INDEX IF NOT EXISTS idx_thanks_category ON thanks(category, id);

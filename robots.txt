@@ -1,4 +1,4 @@
-# 织雾满穗 · robots.txt（2026-10-05 新增）
+# 织雾满穗 · robots.txt
 # ------------------------------------------------------------
 # 先说实话：robots.txt 只是「请勿抓取」的君子协定，
 # 守规矩的搜索引擎会听，恶意爬虫和 AI 采集器根本不看这个文件。
@@ -10,18 +10,17 @@
 
 User-agent: *
 Allow: /
-# 2026-10-18 补：真正的路径是 /admin（/admin.html 会 308 跳过去），两条都留着更稳
+# 真正的路径是 /admin（/admin.html 会 308 跳过去），两条都留着更稳
 Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/
-# 2026-10-18 补：核心数据与开发文件。⚠️ 静态文件物理上挡不住爬虫，这几行只对守规矩的有效
+# 核心数据与开发文件。⚠️ 静态文件物理上挡不住爬虫，这几行只对守规矩的有效
 Disallow: /data/
 Disallow: /README.md
 Disallow: /schema.sql
 Disallow: /migrations.sql
 Disallow: /d1-drop-blog.sql
-Disallow: /tools/
-# 2026-10-26：怀旧版（legacy/2026-08-25/）只作展示，不收录
+# 怀旧版（legacy/2026-08-25/）只作展示，不收录
 Disallow: /legacy/
 
 # ---- AI 训练 / 采集类爬虫（明确拒绝）----

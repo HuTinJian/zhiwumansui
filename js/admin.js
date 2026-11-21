@@ -1301,12 +1301,13 @@ async function handleManualRemove() {
 }
 
 /* ============================================================
-   🔍 批量体检无效 ID（2026-10-17 站主要求新增）
+   🔍 复检待处理上报（原「批量体检」）
    ------------------------------------------------------------
-   站主原话（任务 3）：「无效ID太多了，如果点击试听后，页面显示404的话，
-   我们就认为这个 ID 无效，请做出相关功能」。
-   宝库页那颗是「访客试听时单条体检」；这一颗是**站长在后台批量体检 —— 对象就是
-   「🚫 待处理上报」这一栏里的那些上报**。
+   2026-11-21 起：访客每次提交无效上报，服务端会先自动审核
+   （functions/api/invalid/_audit.js）——明确无效的自动下架、明确能播的自动驳回，
+   只有**查不出**的才留在这栏。这一颗按钮留给站长周末再手动问一遍 Roblox。
+   宝库页那颗是「访客试听时单条体检」；这一颗的对象是
+   「🚫 待处理上报」这一栏里的那些上报。
 
    ⚠️ 范围（2026-10-17 站主当天纠正过一次，别再改宽）：
       只体检 invalidPendingCache（=这一栏列表本身，后台刚拉过的那份）；
@@ -1320,10 +1321,9 @@ async function handleManualRemove() {
         只挑出 Roblox **明确回 404** 的那些（'unknown' 一律不算，因为「连不上 Roblox」
         绝不能当成「这个 ID 无效」）→ 列出来让站长确认 → 走已有的
         handleInvalidAction(ids, 'remove') 一键下架（下架的可在「✅ 已下架」里恢复）。
-   ⚠️ 为什么强制先确认、且必须人工触发：一次体检最坏 25 次 Functions 调用，
-      不做自动/定时体检。
+   ⚠️ 自动审核只处理「明确」的；这一颗是人工兜底，也要先确认再跑。
    【回退办法】删掉本函数 + admin.html 里那颗 #scanValidityBtn 与
-      bindInvalidPanel 里的绑定，即可完全移除批量体检。
+      bindInvalidPanel 里的绑定，即可完全移除手动复检。
    ============================================================ */
 const VERIFY_API = '/api/invalid/verify';
 /* 服务端一次最多收 20 个 ID（见 functions/api/invalid/verify.js 的 MAX_IDS） */
@@ -1366,10 +1366,10 @@ async function scanSongsValidity() {
      体检本身不改数据，但要发十几个请求、等十几秒 ——
      先说清楚「拿哪些 ID、大概多久、不会动数据」，比闷头跑好。 */
   const ok = await showConfirm(
-    '体检待处理上报里的 ID',
-    '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 去问 Roblox「还在不在」。\n\n' +
-    '只有**在 Roblox 那边确实取不到音频**的才会被列出来（已下架 / 不存在），' +
-    '确认之后才下架 —— 不会自动动数据。\n' +
+    '复检待处理上报里的 ID',
+    '将拿「🚫 待处理上报」这一栏里的 ' + targets.length + ' 个 ID 再去问一次 Roblox「还在不在」。\n\n' +
+    '这栏里本来就是**自动审核没结论**的；明确无效的会自动下架（可在「已下架」恢复），' +
+    '查不出的继续留着。\n' +
     '预计 ' + Math.ceil(targets.length / VERIFY_CHUNK) + ' 次请求，大约要等十几秒。\n\n' +
     '（只管这一栏的待处理上报，不动 D1 歌曲、不动主数据、不动已下架名单）'
   );
@@ -1401,7 +1401,7 @@ async function scanSongsValidity() {
     }
   }
 
-  setBtn('🔍 批量体检无效 ID', false);
+  setBtn('🔍 复检待处理', false);
 
   if (invalid.length === 0) {
     showToast('✅ 体检完了：待处理里这 ' + total + ' 个 ID 没发现明确无效的' +
@@ -1555,7 +1555,7 @@ function bindInvalidPanel() {
   /* ➕ 手动下架 ID（2026-10-05）：已下架段那颗按钮 + 极简弹窗 */
   const manualBtn = document.getElementById('manualRemoveBtn');
   if (manualBtn) manualBtn.onclick = openManualRemoveModal;
-  /* 🔍 批量体检（2026-10-17）：整库问一遍 Roblox，把 404 的挑出来让站主一键下架 */
+  /* 🔍 复检（2026-11-21 起是人工兜底）：自动审核没结论的会留在待处理，这里可再问一遍 Roblox */
   const scanBtn = document.getElementById('scanValidityBtn');
   if (scanBtn) scanBtn.onclick = scanSongsValidity;
   const cancelManual = document.getElementById('cancelManualRemove');
@@ -2851,15 +2851,16 @@ async function deleteSponsor(id) {
 /* ============================================================
    📊 数据统计面板
    ------------------------------------------------------------
-   数据本来就存在 D1 里（hot_songs 热度表 / visit_sources 渠道表），
-   接口也早就有了，只是后台一直没有页面把它们显示出来 —— 这里补上。
+   数据本来就存在 D1 里（hot_songs 热度表），接口也早就有了，
+   只是后台一直没有页面把它们显示出来 —— 这里补上。
 
    2026-09-26：按用户要求，后台不再展示「🔥 热门 Top 100」排行榜
    （标题 / 说明 / 榜单列表 / 每行的「✕ 清空热度」全部下线），
    也没有了清空热度的入口；只保留
      · 两张汇总卡（有热度的曲目 / 总互动次数）—— 数据仍取自 /api/hot/list，
-       所以这个接口还得调用，但不再渲染任何列表；
-     · 📢 访问渠道来源（/api/visit/stats，不受影响）。
+       所以这个接口还得调用，但不再渲染任何列表。
+     · 2026-11-21 起「📱 玩家屏幕尺寸」也下线：尺寸收集已经结束，
+       对应 /api/visit/*、visit_sources 表与后台面板全部删除。
    后端 functions/api/hot/* 没动。
    ============================================================ */
 
@@ -2869,7 +2870,7 @@ async function loadStatsPanel() {
   if (statsLoading) return;
   statsLoading = true;
   try {
-    await Promise.all([loadHotSummary(), loadSourceStats()]);
+    await loadHotSummary();
   } finally {
     statsLoading = false;
   }
@@ -2902,156 +2903,9 @@ async function loadHotSummary() {
   }
 }
 
-/* 玩家屏幕尺寸：/api/visit/stats 返回 [{source, count}]
-   2026-10-17 站主要求：「你从哪里来」停用，source 字段现在存的是
-   `视口宽x高@DPR`（例 407x886@3）。表结构没变、接口没变，只是含义变了。
-   【回退办法】把这一行的注释与下面空状态的文案改回「访问渠道」即可。 */
-async function loadSourceStats() {
-  const box = document.getElementById('sourceStats');
-  if (!box) return;
-
-  box.innerHTML = '<div class="loading">加载中...</div>';
-
-  try {
-    const res = await fetch('/api/visit/stats?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) {
-      box.innerHTML = '<div class="empty-state">加载失败（HTTP ' + res.status + '）</div>';
-      return;
-    }
-    const data = await res.json();
-    if (!data || data.ok !== true || !Array.isArray(data.data)) {
-      box.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml((data && data.error) || '未知错误') + '</div>';
-      return;
-    }
-
-    /* ============================================================
-       2026-10-24 站主要求：尺寸收集改成「只收手机/平板的型号 + 英寸」，
-       所以这个面板跟着改 —— 不再按「宽度」聚合，改成按「型号」聚合。
-       数据形态：
-         · 新： 「Xiaomi 17@6.3」 （型号@英寸）
-         · 旧： 「407x886@3」     （早期按宽高收的，单独归到「旧数据」不混进新统计）
-       【回退办法】git checkout js/admin.js
-       ============================================================ */
-    const rows = data.data
-      .map(x => ({ source: String(x.source || '').trim(), count: Number(x.count) || 0 }))
-      .filter(x => x.count > 0);
-
-    if (rows.length === 0) {
-      box.innerHTML = '<div class="empty-state">还没有人上报过设备信息。<br>访客用📱手机 / 📲平板打开宝库页、点「📱 你的手机屏幕尺寸」就会记录在这里（电脑不收集）。</div>';
-      return;
-    }
-
-    /* ============================================================
-       2026-10-24 站主纠正：这个面板的目的是「适配所有设备」，
-       所以**按视口宽度聚合**才有意义（型号只是附注）。
-       三种格式都认：
-         · 407|Xiaomi 14@6.3   ← 当前格式（宽度|型号@英寸）
-         · Xiaomi 14@6.3        ← 上一版（只有型号+英寸，没宽度）
-         · 407x886@3            ← 最早那版（宽x高@DPR）
-       【回退办法】git checkout js/admin.js
-       ============================================================ */
-    const parsed = rows.map(r => {
-      const n = r.source.match(/^(\d{2,4})\|([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
-      if (n) return { width: Number(n[1]), model: n[2], inches: Number(n[3]), count: r.count, kind: 'new' };
-      const m2 = r.source.match(/^([^@\r\n<>]{1,40})@(\d{1,2}(?:\.\d{1,2})?)$/);
-      if (m2) return { width: 0, model: m2[1], inches: Number(m2[2]), count: r.count, kind: 'nowidth' };
-      const o = r.source.match(/^(\d{2,5})x(\d{2,5})@(\d{1,2}(?:\.\d{1,2})?)$/);
-      if (o) return { width: Number(o[1]), model: '', inches: 0, count: r.count, kind: 'legacy' };
-      return { width: 0, model: r.source || '无法识别', inches: 0, count: r.count, kind: 'unknown' };
-    });
-
-    const isNew = parsed.filter(p => p.kind === 'new');
-    const legacy = parsed.filter(p => p.kind !== 'new');
-    const legacyCount = legacy.reduce((s, p) => s + p.count, 0);
-
-    /* 2026-10-24：改成**按宽度聚合** —— 适配真正要看的就是宽度分布。
-       宽度为 0 的（上一版只存了型号）单独归一堆，不混进宽度统计。 */
-    const byWidth = new Map();
-    isNew.forEach(p => {
-      if (!p.width) return;
-      if (!byWidth.has(p.width)) byWidth.set(p.width, { width: p.width, count: 0, models: new Set() });
-      const g = byWidth.get(p.width);
-      g.count += p.count;
-      if (p.model) g.models.add(p.model);
-    });
-    const widths = [...byWidth.values()].sort((a, b) => a.width - b.width);
-    const models = widths;   /* 复用下面的统计代码 */
-
-    const totalNew = isNew.reduce((s, p) => s + p.count, 0);
-    const total = totalNew + legacyCount;
-
-    /* 2026-10-24：按宽度分三类（跟 CSS 断点对齐：768 / 1024） */
-    const sum = (arr) => arr.reduce((s, w) => s + w.count, 0);
-    const phoneList = widths.filter(w => w.width < 768);
-    const tabletList = widths.filter(w => w.width >= 768 && w.width < 1024);
-    const desktopList = widths.filter(w => w.width >= 1024);
-    const phone = sum(phoneList);
-    const tablet = sum(tabletList);
-    const desktop = sum(desktopList);
-
-    /* 最常见宽度（不是最常见机型 —— 适配看宽度） */
-    const top1 = widths.length ? widths.reduce((a, b) => (b.count > a.count ? b : a)) : null;
-    const narrowest = widths.length ? widths[0].width : 0;
-    const widest = widths.length ? widths[widths.length - 1].width : 0;
-    const pct = (n) => total ? Math.round((n / total) * 100) : 0;
-
-    const elSrcCount = document.getElementById('statSourceCount');
-    const elVisitor = document.getElementById('statVisitorCount');
-    if (elSrcCount) elSrcCount.textContent = widths.length.toLocaleString('en-US');
-    if (elVisitor) elVisitor.textContent = total.toLocaleString('en-US');
-
-    /* ---------- 顶部 KPI ---------- */
-    let html = '<div class="src-kpis">' +
-      '<div class="src-kpi"><b>' + total.toLocaleString('en-US') + '</b><span>总样本</span></div>' +
-      '<div class="src-kpi"><b>' + pct(phone) + '%</b><span>手机（&lt;768）</span></div>' +
-      '<div class="src-kpi"><b>' + (top1 ? top1.width + 'px' : '—') + '</b><span>最常见宽度' +
-        (top1 ? ' · ' + top1.count + ' 个' : '') + '</span></div>' +
-      '</div>';
-
-    html += '<p class="src-tip">平板 ' + pct(tablet) + '% ｜ 电脑 ' + pct(desktop) + '% ｜ 共 ' +
-      widths.length + ' 种宽度' +
-      (narrowest ? ' ｜ 范围 ' + narrowest + '~' + widest + 'px' : '') +
-      (legacyCount ? ' ｜ 旧格式 ' + legacyCount + ' 条（单独统计）' : '') +
-      '</p>';
-
-    /* ---------- 分组展示（按宽度升序，每组最多 15 行） ---------- */
-    function groupHtml(title, list, maxCount) {
-      if (list.length === 0) return '';
-      let h = '<div class="src-group-title">' + title + '（' + list.length + ' 种宽度）</div>';
-      list.slice(0, 15).forEach(w => {
-        const models = [...w.models].sort().slice(0, 2).join(' / ');
-        h += '<div class="source-row">' +
-          '<div class="source-top">' +
-            '<span class="source-name">' + w.width + 'px' +
-              (models ? ' <span style="opacity:.6;font-size:.85em">· ' + escapeHtml(models) + '</span>' : '') +
-            '</span>' +
-            '<span class="source-num">' + w.count + ' 个 · ' + pct(w.count) + '%</span>' +
-          '</div>' +
-          '<div class="source-bar"><i style="width:' + Math.max(3, Math.round((w.count / maxCount) * 100)) + '%"></i></div>' +
-        '</div>';
-      });
-      if (list.length > 15) h += '<div class="src-more">…另有 ' + (list.length - 15) + ' 种更少见的宽度</div>';
-      return h;
-    }
-
-    const maxCount = widths.length ? Math.max.apply(null, widths.map(w => w.count)) : 1;
-
-    html += groupHtml('📱 手机', phoneList, maxCount);
-    html += groupHtml('📲 平板', tabletList, maxCount);
-    html += groupHtml('💻 电脑', desktopList, maxCount);
-
-    if (legacyCount > 0 || parsed.some(p => p.kind === 'nowidth')) {
-      const nw = parsed.filter(p => p.kind === 'nowidth').reduce((s, p) => s + p.count, 0);
-      html += '<div class="src-more">另有 ' + (legacyCount + nw) +
-        ' 条早期数据（只有型号或只有宽高，没有视口宽度，不影响上面的宽度统计）</div>';
-    }
-
-        box.innerHTML = html;
-  } catch (err) {
-    console.error('[stats] visit/stats', err);
-    box.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
-  }
-}
+/* 2026-11-21：手机尺寸收集结束，后台「📱 玩家屏幕尺寸」面板与
+   /api/visit/stats 调用一并删除；数据统计只剩热度汇总。
+   【回退办法】从 git 上一个版本取回本函数与 admin.html 的对应面板。 */
 
 /* 点「刷新」按钮时重新拉一次 */
 document.addEventListener('DOMContentLoaded', () => {

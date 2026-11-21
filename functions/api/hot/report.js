@@ -10,7 +10,7 @@ const limiter = createRateLimiter(60, 10 * 60 * 1000);
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,30}$/;
 const VALID_TYPES = ['copy', 'play', 'fav'];
 
-/* 2026-10-10：这个接口比别处更严一档 —— 【必须带 Origin】。
+/* 这个接口比别处更严一档 —— 【必须带 Origin】。
    原因：共享的 requireSameOrigin()（_utils.js:161）在「请求压根没带 Origin」时是**放行**的
    （见 _utils.js:167），于是 curl / 脚本可以不带头直接刷热度榜。
    ⚠️ 只收紧这一个接口，**不动共享函数**：登录、无效上报、渠道上报、投稿那几个接口继续用原口径 ——

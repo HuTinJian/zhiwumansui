@@ -24,15 +24,12 @@
    ============================================================ */
 :root {
   /* ============================================================
-     2026-10-25 站主要求「全部颜色重做 · 中国色 · 护眼 · 突出就突出」
-     ------------------------------------------------------------
-     本块是全站唯一颜色来源（浅色 = 宣纸）。页面内联样式一律引用变量，
+     全站唯一颜色来源（浅色 = 宣纸）。页面内联样式一律引用变量，
      不要再写死色值；改色只改这里。
      色名对照：宣纸 / 墨 / 朱砂 / 胭脂 / 藤黄（金） / 石青 / 竹青 / 月白。
      对比度（WCAG）：正文 14.8:1、次要文字 7.6:1、弱文字 4.6:1、
      主按钮奶白字 6.6:1、成功按钮 6.8:1、金按钮 5.8:1。
-     【回退办法】git checkout -- css/style.css（或拷回
-       .verify/backup-theme-20261025/css/style.css）。
+     回退：git checkout -- css/style.css（或拷回主题备份）。
      ============================================================ */
 
   /* 品牌色 —— 墨做主面，朱砂做行动色 */
@@ -107,7 +104,7 @@
   --radius-xs: 10px;
   --radius-pill: 50px;
 
-  /* 缓动与时长（2026-10-18 调过，保持） */
+  /* 缓动与时长（保持当前值，别随手改） */
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -133,14 +130,13 @@
   --particle: rgb(140, 126, 108);
   --particle-glow: rgba(176, 138, 62, 0.25);
 
-  /* 2026-11-07 手机切主题修复：这里原来只写 light。
-     部分手机浏览器（系统自带的、以及开了「强制深色/夜间模式」的）看到
-     color-scheme: light 就认定"这页不支持深色"，于是自己把整页颜色反转 ——
-     网页再怎么切 data-theme 都会被它盖回去，表现就是「点小太阳没反应」
-     或「只变一部分」。
-     写成 light dark = 告诉浏览器"两套我们自己都有"，它就不会再强制反转；
-     真正的当前主题仍由下面的 [data-theme] 段和 JS 的 color-scheme 内联样式决定。
-     【回退办法】改回 color-scheme: light; */
+  /* 手机切主题兼容：这里写 light dark，而不是只写 light。
+     部分手机浏览器（系统自带、开了「强制深色/夜间模式」的）看到
+     color-scheme: light 就认定本页不支持深色，于是自动反转整页颜色，
+     网页再切 data-theme 也会被盖回去（表现为「点小太阳没反应」或只变一部分）。
+     写成 light dark = 告诉浏览器「两套我们自己都有」，它就不会强制反转；
+     实际主题仍由下面的 [data-theme] 段和 JS 的 color-scheme 内联样式决定。
+     回退：改回 color-scheme: light; */
   color-scheme: light dark;
 }
 
@@ -148,9 +144,9 @@
 /* ---------- 深色主题：墨夜 ---------- */
 [data-theme="dark"] {
   /* ============================================================
-     2026-10-25 深色 = 墨夜：暖黑底 + 宣纸白字 + 提亮朱砂 / 琥珀金。
+     深色 = 墨夜：暖黑底 + 宣纸白字 + 提亮朱砂 / 琥珀金。
      要点：不用纯黑、不用蓝黑，避免夜里刺眼和发冷。
-     【回退办法】同浅色块：git checkout -- css/style.css。
+     回退：git checkout -- css/style.css。
      ============================================================ */
   --primary: #E9DFC9;          /* 月白：深底上的亮面/当前项 */
   --primary-ink: #FFF7E6;      /* 深底上的亮字 */
@@ -240,14 +236,13 @@ html {
 
 body {
   font-family: var(--font);
-  /* 2026-10-19 高级感：把「织雾满穗」的「雾」做成看得见的空气感。
-     左上一点粉、右上一点雾青，都极淡（10% 以内）——目的是让纯色底不再"死板"，
-     卡片看起来像浮在雾里。只用静态 background-image：
+  /* 底纹「雾」：左上一点粉、右上一点雾青，都极淡（10% 以内），
+     让纯色底不再死板，卡片看起来像浮在雾里。只用静态 background-image：
        · 不写 background-attachment: fixed（iOS 上会抖）；
        · 不用 backdrop-filter（低端手机会掉帧）。
-     【回退办法】删掉下面的 background-image 两行、把 background-color 改回 background 简写即可。 */
+     回退：删掉 background-image 两行、把 background-color 改回 background 简写。 */
   background-color: var(--bg);
-  /* 2026-10-25：页面底纹改成暖金 + 朱砂两团极淡的光（护眼，不刺） */
+  /* 页面底纹 = 暖金 + 朱砂两团极淡的光（护眼，不刺） */
   background-image:
     radial-gradient(1100px 520px at 8% -8%, rgba(var(--gold-rgb), 0.06), transparent 62%),
     radial-gradient(820px 460px at 92% -4%, rgba(var(--accent-rgb), 0.045), transparent 66%);
@@ -262,8 +257,7 @@ body {
   transition: background-color 0.4s var(--ease-soft), color 0.4s var(--ease-soft);
 }
 
-/* 2026-10-19：深色主题的雾要更淡、更冷（粉会发灰，雾青要提亮）。
-   【回退办法】删掉这条规则。 */
+/* 深色主题的雾要更淡、更冷（粉会发灰，雾青要提亮）。回退：删掉这条规则。 */
 [data-theme="dark"] body {
   /* 墨夜底纹：金 + 朱砂，低透明度，像灯下的纸 */
   background-image:
@@ -273,10 +267,9 @@ body {
 
 img { max-width: 100%; }
 
-/* ============================================================
-   2026-10-19 排版细节：大标题收紧字距、数字用等宽对齐。
+/* 排版细节：大标题收紧字距、数字用等宽对齐。
    字距是「高级感」最便宜的一招 —— 0.02em 的差别，观感差一个档次。
-   【回退办法】删掉这条规则。 */
+   回退：删掉这条规则。 */
 h1, .hero-title, .page-title {
   letter-spacing: -0.02em;
 }
@@ -487,13 +480,12 @@ body.modal-open .particles i { animation-play-state: paused; }
   position: sticky;
   top: 0;
   z-index: 100;
-  /* 2026-10-25 中国色：宣纸底 + 暖金下边，像册页的眉线。
-     导航条不再用粉色渐变，也不靠厚阴影堆"立体感"。
-     【回退办法】改回原来的浅粉渐变 + #f0bccb 边框（备份见
-       .verify/backup-theme-20261025/css/style.css）。 */
+  /* 中国色：宣纸底 + 暖金下边，像册页的眉线。
+     导航条不用粉色渐变，也不靠厚阴影堆立体感。
+     回退：改回浅粉渐变 + #f0bccb 边框。 */
   background: linear-gradient(180deg, var(--bg-glass-strong) 0%, var(--bg-tint) 100%);
-  /* 2026-11-07：color-mix() 老内核不支持 → 先给普通颜色，再让新内核覆盖。
-     【回退办法】删掉带 color-mix 的那一行即可。 */
+  /* color-mix() 老内核不支持 → 先给普通颜色，再让新内核覆盖。
+     回退：删掉带 color-mix 的那一行。 */
   border-bottom: 1px solid var(--border);
   border-bottom: 1px solid color-mix(in srgb, var(--gold) 42%, var(--border));
   box-shadow: var(--shadow-sm);
@@ -547,7 +539,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 .navbar .nav-links a:hover {
   /* 导航条本身已经是粉色了，这里改用白色"磨砂"高亮，比再叠一层粉更清楚 */
-  /* 2026-10-25：hover 用淡金，不再用白色磨砂（浅色底上会发灰） */
+  /* hover 用淡金，不用白色磨砂（浅色底上会发灰） */
   background: var(--gold-bg);
   background: color-mix(in srgb, var(--gold) 16%, transparent);
   color: var(--primary-ink);
@@ -629,7 +621,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 主按钮 */
 .btn-primary {
-  /* 2026-10-25：主行动 = 朱砂渐变 + 奶白字（6.6:1），全站最"跳"的一档 */
+  /* 主行动 = 朱砂渐变 + 奶白字（6.6:1），全站最跳的一档 */
   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
   color: var(--text-on-accent);
   box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.28);
@@ -650,7 +642,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 /* 危险按钮 */
 .btn-danger {
-  /* 2026-10-25：实底用 --danger-solid（深色下 --danger 是提亮红，奶白字只有 3.3:1） */
+  /* 实底用 --danger-solid（深色下 --danger 是提亮红，奶白字只有 3.3:1） */
   background: var(--danger-solid);
   color: var(--text-on-accent);
   box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.28);
@@ -666,7 +658,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .btn-success:hover { transform: translateY(-1px); filter: brightness(1.14); }
 
-/* 金色按钮（2026-10-25：亮金底 + 墨字；奶白字压金只有 1.9~3:1，不可用） */
+/* 金色按钮：亮金底 + 墨字；奶白字压金只有 1.9~3:1，不可用 */
 .btn-gold {
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
   color: var(--text-on-gold);
@@ -674,18 +666,12 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .btn-gold:hover { transform: translateY(-1px); }
 
-/* ---------- 「分享」按钮（2026-10-04 站主要求：颜色贴主题、还得护眼） ----------
-   ⚠ 类名 2026-10-04 晚从 .btn-share 改成 .zb-invite：站主反馈「手机端有、电脑端没有」，
-     最可能是电脑上的广告拦截插件（AdGuard / 360 / QQ 浏览器内置过滤等）
-     把 class 里带 share 的元素整块 display:none 掉了 —— 这类规则在中文拦截列表里很常见。
-     于是分享相关的 class / id 全部换成不含 share 的中性名字（zb-invite*、invite*），
-     行为一点没变，只是不再撞拦截规则。JS 里仍然兼容老的 [data-share] 写法。
-   站点主题 2026-10-25 起是「宣纸 + 墨 + 朱砂 + 金」：
-   主按钮是朱砂渐变（.btn-primary），金色这一套用在赞助入口块上
-   （--gold-bg / --gold-light / --gold-ink）。分享按钮走金色这一套 ——
-   暖、低饱和、不刺眼，而且比主按钮弱一档，不跟「🚀 开始逛逛」抢焦点：
-     · 浅色模式：淡金底 var(--gold-bg) + 金墨字 var(--gold-ink)（5.8:1）
-     · 深色模式：暖褐底 var(--gold-bg) + 亮金字 var(--gold-ink)（11:1）
+/* ---------- 「分享」按钮（金色一套，比主按钮弱一档，不抢焦点） ----------
+   ⚠ 类名一律用 .zb-invite*（不含 share）：电脑上的广告拦截插件常按 class 里
+     有没有 share 来隐藏元素，带 share 的会被整块 display:none 掉。
+     行为不变，只是不再撞拦截规则；JS 里仍兼容老的 [data-share] 写法。
+   配色：浅色 = 淡金底 var(--gold-bg) + 金墨字 var(--gold-ink)（5.8:1）；
+         深色 = 暖褐底 var(--gold-bg) + 亮金字 var(--gold-ink)（11:1）。
    ⚠ 水波纹要单独覆盖：默认那个是白色，压在淡金底上根本看不见。 */
 .zb-invite {
   background: var(--gold-bg);
@@ -780,7 +766,6 @@ body.modal-open .particles i { animation-play-state: paused; }
   display: none;
   position: fixed;
   inset: 0;
-  /* 2026-10-25：遮罩改成暖褐（原来的紫褐偏冷） */
   background: rgba(32, 24, 16, 0.58);
   justify-content: center;
   align-items: center;
@@ -851,7 +836,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   left: 0;
   right: 0;
   z-index: 1000;
-  /* 2026-10-25：公告条改成朱砂底 + 奶白字（原橙底白字只有 1.8:1，看不清） */
+  /* 公告条用朱砂底 + 奶白字（橙底白字只有 1.8:1，看不清，别改回去） */
   background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
   color: var(--text-on-accent);
   text-align: center;
@@ -913,12 +898,11 @@ body.modal-open .particles i { animation-play-state: paused; }
 .footer .footer-links a:hover { color: var(--primary-ink); }
 
 /* ============================================================
-   2026-11-03 站主要求：横版品牌作为页脚主展示
-   ------------------------------------------------------------
+   横版品牌作为页脚主展示。
    桌面用 760×170 富信息版（含信条印章、网址、年份），
    ≤640px 自动换 360×96 紧凑版，避免小字缩成一条。
    浅/深主题各一张，靠 CSS 切换，不跑 JS。
-   【回退办法】删掉本段 + 各页 <footer> 里的 .footer-brand 块即可。
+   回退：删掉本段 + 各页 <footer> 里的 .footer-brand 块。
    ============================================================ */
 .footer-brand {
   margin: 0 auto 20px;
@@ -942,9 +926,9 @@ body.modal-open .particles i { animation-play-state: paused; }
   [data-theme="dark"] .footer-brand .fb-compact.fb-dark { display: block; width: min(320px, 88vw); }
 }
 
-/* 2026-10-09 站主要求（合规加固）：页脚新增「法律定位 + 隐私说明 + 联系站长」三行。
-   四个页面共用这一套样式，刻意做得低调：字号比版权行再小一档、颜色更淡，不抢版面。
-   ⚠️ 内容全部在 <footer> 内部 —— 【页脚下面】依然什么都没有（站主硬约束，别挪出去）。 */
+/* 页脚「法律定位 + 隐私说明 + 联系站长」三行：四个页面共用这一套，刻意做得低调 ——
+   字号比版权行再小一档、颜色更淡，不抢版面。
+   ⚠️ 内容全部在 <footer> 内部 —— 页脚下面依然什么都没有（硬约束，别挪出去）。 */
 .footer .footer-legal {
   max-width: 760px;
   margin: 10px auto 0;
@@ -964,10 +948,8 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .footer .footer-legal a:hover { color: var(--gold-ink); }
 
-/* 页脚里的「🔗 分享本站」（2026-10-04 新增，同日又按站主要求下线）：
-   ⚠ 现在四个页面的页脚都不放分享入口了（站主：「任何页面的页脚都不要有分享链接」），
-     所以下面这条规则【当前没有元素在用】—— 留着是为了万一以后要加回页脚入口，
-     直接写 <button class="zb-invite-link" data-invite> 就能用上同一套金色文字样式。
+/* 页脚「🔗 分享本站」的文字样式：当前没有元素在用（页脚不放分享入口），
+   留着是为了以后要加回页脚入口时，直接写 .zb-invite-link 按钮就能用上同一套金色文字样式。
    （按钮元素不像 <a> 那样自带文字样式，所以 font: inherit 是必需的。） */
 .footer .footer-links .zb-invite-link {
   background: none;
@@ -1109,10 +1091,9 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 .theme-toggle:active { transform: scale(0.9); }
 
-/* ---------- 「分享本站」弹窗（2026-10-04 新增） ----------
+/* ---------- 「分享本站」弹窗 ----------
    弹窗本体（#inviteModal）由 js/common.js 动态拼出来，这里只管长相；
-   ⚠ class 名一律用 zb-invite*（不含 share）—— 原因见上面 .zb-invite 那段注释：
-     电脑上的广告拦截插件常按 class 里有没有 share 来隐藏元素。
+   ⚠ class 名一律用 zb-invite*（不含 share）—— 广告拦截插件常按 share 隐藏元素。
    配色全部走主题变量，深色模式自动跟着变。
    ⚠ 选择器写成 .modal-content .zb-invite-xxx：.modal-content p 那条规则更具体，
      不这么写的话行距、下边距会被它盖掉。 */
@@ -1244,17 +1225,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-radius: var(--radius);
 }
 
-/* ---------- 📺 公告里的「求关注」小方块：2026-10-05 加、当天又按站主要求删 ----------
-   （站主先说「顺便求个关注」，随后明确「公告里面不要有跟关注有关的」）
-   原来这里是一组 .site-notice-bili / -title / -body 规则，现已整块删除；
-   全站没有元素再用这几个类。求关注入口只在首页的 .bili-follow 那条细横幅。
-   历史实现见 git 提交 dca915f。 */
 
-/* ---------- 📬 反馈结果弹窗（2026-10-26 站主要求删除） ----------
-   原来这里有一整套 .zm-notice-* 样式，只服务「你上报的内容有结果了」那个弹窗；
-   弹窗已经删除，样式一并移除，避免留下没人用的代码。
-   【回退办法】从 git 历史恢复这一段（git show HEAD~:css/style.css），
-     并在 js/common.js 恢复 checkReportNotices 调用。 */
 
 /* ---------- 开发者与支持者（首页 / 反馈页共用） ---------- */
 .credits-section {
@@ -1307,12 +1278,11 @@ body.modal-open .particles i { animation-play-state: paused; }
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
 .credits-en { font-size: 0.83rem; color: var(--text-light); }
 
-/* ---------- 公共：页面容器（2026-10-05 补） ----------
-   背景：index.html / roblox_music.html 各自在页面内定义了自己的 .container，
-   唯独 thanks.html 用了 class="container" 却没有定义 —— 于是鸣谢页的内容
-   一直贴着屏幕左右边缘（375px 手机上卡片 left=0 / right=375）。
-   这里补一份共享兜底：带页面内定义的那两页照样是它们自己的生效
-   （页面 <style> 在 <link> 之后，同优先级后来者赢），只影响鸣谢页。 */
+/* ---------- 公共：页面容器 ----------
+   index.html / roblox_music.html 各自在页面内定义了自己的 .container，
+   thanks.html 没有定义，需要这份共享兜底，否则内容会贴着屏幕左右边缘。
+   带页面内定义的那两页照样是它们自己的生效
+   （页面 <style> 在 <link> 之后，同优先级后来者赢）。 */
 .container {
   max-width: 1040px;
   margin: 0 auto;
@@ -1323,9 +1293,8 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 /* ---------- 公共：区块标题（跟首页 .section-head 同一套尺度） ----------
-   2026-09-26：鸣谢页原来用的是居中大标题（.thanks-head，最大 2.3rem），
-   用户要求「格式像主页一样，别那么大」，于是把首页那套区块标题收进共享表，
-   鸣谢页直接复用；首页自带同名内联样式（写在 index.html 的 <style> 里），
+   鸣谢页直接复用这套区块标题，不再用居中大标题。
+   首页自带同名内联样式（写在 index.html 的 <style> 里），
    层叠顺序上依然是首页自己的那份生效，视觉不受影响。 */
 .section-head {
   display: flex;
@@ -1334,7 +1303,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   margin: 44px 0 18px;
   flex-wrap: wrap;
 }
-/* 2026-10-18：鸣谢页的标题从 h2 改成 h1（全站统一「一页一个 h1」），这里并列选择器兜住。 */
+/* 鸣谢页的标题用 h1（全站统一「一页一个 h1」），并列选择器兜住 */
 .section-head h1,
 .section-head h2 {
   font-size: 1.3rem;
@@ -1350,13 +1319,12 @@ body.modal-open .particles i { animation-play-state: paused; }
   min-width: 30px;
   background: linear-gradient(90deg, var(--border), transparent);
 }
-/* 居中版（鸣谢页用；2026-09-26 用户要求「居中」）：
-   标题与小字居中，右边那条渐隐横线去掉 —— 否则会把标题挤到左边 */
+/* 居中版（鸣谢页用）：标题与小字居中，右边那条渐隐横线去掉 ——
+   否则会把标题挤到左边 */
 .section-head.center { justify-content: center; text-align: center; }
 .section-head.center::after { display: none; }
 
 /* ---------- 鸣谢页（thanks.html）：切换选择器 + 名单卡片 ----------
-   2026-09-26：荣誉榜搬来这个页面，和宝库的鸣谢合成一页，靠切换器换名单。
    切换器外观照后台 admin.html 的 .subtabs/.subtab（药丸 + 当前项有色底），
    但尺度按首页那套来（0.84rem，不再放大）；样式收进全站共享表，页面里不用再写一份。
    颜色全走既有主题变量，明暗两套主题都不用再写一遍。
@@ -1399,33 +1367,15 @@ body.modal-open .particles i { animation-play-state: paused; }
 .seg-panel[hidden] { display: none; }
 .seg-panel:not([hidden]) { animation: fadeInUp 0.4s var(--ease-soft) both; }
 
-/* 2026-09-26：赞助者那一栏**也改成和 Roblox 那一档同一个写法**（用户要求
-   「赞助者名单模仿 Roblox 的鸣谢名单那样写人名等内容」）——
-   用的是上面的 .thanks-groups / .thanks-group / .cat-title / .thanks-person，
-   所以原来那一整套卡片样式（.thanks-list / .thanks-card / .thanks-crown /
-   .thanks-info / .thanks-top / .thanks-name / .thanks-title / .thanks-note /
-   .thanks-amount*）都删掉了。 */
 
-/* 2026-09-30：原来这里是「全站唯一那处金额」.thanks-cost（鸣谢页那行小字）。
-   用户要求把金额挪到首页 hero 的赞助入口右边单独显示，鸣谢页不再写它 ——
-   标记与样式都删了，新那一块的样式跟着 hero 赞助入口写在 index.html 的内联 <style> 里
-   （.hero-sponsor-cost，见 index.html）。 */
 
-/* 2026-09-26：这一块原来是「☕ 请我喝一杯」+ 赞赏码小图（.thanks-support / -qr / -txt / -t / -s）。
-   用户要求「把鸣谢里面赞助码有关的删掉」，标记与样式都移除了 —— 赞赏入口只在首页 hero 那条。 */
 
 /* 「🎮 Roblox ID 宝库」那一栏：按类别分组的名单 —— 同样不用卡片盒子，
    改成居中一列（限宽 640px），组与组之间靠间距 + 细分隔线分开 */
-/* 2026-09-26 那版是「类别并排成三列」（每个类别自己一列，人在列里往下排）。
-   2026-10-05 上午先把列间距从 18px 加到 44px；
-   **同一天下午站主再次改主意**：
-   「鸣谢名单的所有内容包括但不限于 Roblox ID 宝库、赞助者等，里面的人都要分为 3 列向下排，
-     如果是像 🎬 ID公益UP主/作者 这样的，就按这个类型为一列向下排，每一列之间的间距要大」。
-   → 现在的做法：
-     · 每个类别（或赞助者那一整块）**自己占满一整行**，类别之间上下堆叠（行距 38px）；
-     · 块内的人用 CSS 多列 column-count: 3 —— 多列的填充顺序本来就是
-       「先填满第一列、再往第二列」，正是站主要的「向下排」；
-     · 列间距给到 56px（比行距大得多），三列一眼分得开。
+/* 鸣谢名单「3 列向下排」：每个类别（或赞助者那一整块）自己占满一整行，
+   类别之间上下堆叠（行距 38px）；块内的人用 CSS 多列 column-count: 3 ——
+   多列的填充顺序本来就是「先填满第一列、再往第二列」，正是要的「向下排」；
+   列间距给到 56px（比行距大得多），三列一眼分得开。
    窄屏降级见文件末尾的媒体查询：900px → 2 列，600px → 1 列。 */
 .thanks-groups {
   display: block;
@@ -1449,7 +1399,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   align-items: center;
   gap: 12px;
 }
-/* 2026-10-05 起不再限宽 640px：限了宽，3 列会挤成一团 */
+/* 3 列区块不限宽 640px：限了宽，3 列会挤成一团 */
 .thanks-single .thanks-group { max-width: none; }
 /* 类别里的人：**3 列向下排**（多列布局，列宽自适应，列间距 56px） */
 .thanks-people {
@@ -1478,18 +1428,17 @@ body.modal-open .particles i { animation-play-state: paused; }
   font-size: 0.86rem;
   color: var(--text);
 }
-/* 2026-10-05 站主要求：「鸣谢名单的 Roblox 感谢那一块，每个人的间距大一点」。
-   .thanks-person 是赞助者和多列网格共用的，所以这里只给**多列网格**（🎮 Roblox ID 宝库 /
-   🙏 玩家感谢 都用 .thanks-groups）加行距，赞助者那一栏（.thanks-single）保持原样，
-   免得顺手把没让他改的地方也动了。 */
+/* Roblox 感谢那一块每个人的间距大一点。.thanks-person 是赞助者和多列网格共用的，
+   所以这里只给多列网格（🎮 Roblox ID 宝库 / 🙏 玩家感谢，都用 .thanks-groups）加行距，
+   赞助者那一栏（.thanks-single）保持原样，免得顺手改到不该动的地方。 */
 .thanks-groups .thanks-person {
   padding: 8px 0;
 }
 .thanks-person .p-name { font-weight: 600; color: var(--primary-ink); }
 .thanks-person .p-platform { color: var(--text-muted); font-size: 0.78rem; }
-/* 2026-10-01 站主要求：赞助者的**金额**用金色。
-   用 --gold-ink 而不是 --gold —— 它是专门给「浅底上的金色文字」准备的（对比度 5.2:1），
-   深色模式下会自动换成浅金，两种主题都看得清。 */
+/* 赞助者的金额用金色。用 --gold-ink 而不是 --gold —— 它是专门给
+   「浅底上的金色文字」准备的（对比度 5.2:1），深色模式下会自动换成浅金，
+   两种主题都看得清。 */
 .thanks-person .p-amount { color: var(--gold-ink); font-size: 0.78rem; font-weight: 700; }
 .thanks-person .p-message { color: var(--text-light); font-size: 0.8rem; }
 
@@ -1510,242 +1459,28 @@ body.modal-open .particles i { animation-play-state: paused; }
   list-style: none;
 }
 
-/* 2026-11-07 站主要求：赞助入口从「微信赞赏码 + 大图弹窗」改成爱发电外链，
-   index.html 里的 #sponsorModal 整块删掉，只服务那个弹窗的两条规则一起删：
-     .sponsor-modal-content { max-width: 420px; text-align: center; }
-     .sponsor-modal-content h2 { margin-bottom: 10px; }
-   【回退办法】把上面两行贴回这里，并恢复 index.html 的弹窗标记与脚本。 */
 /* ============================================================
-   2026-10-24 适配补丁：真实数据最窄 320px（iPhone SE 一代 / 老安卓），
-   320 下首页/鸣谢/法律三页的导航栏会往右溢出 3px（实测）。
+   适配补丁：真实数据最窄 320px（iPhone SE 一代 / 老安卓），
+   320 下首页/鸣谢/法律三页的导航栏会向右溢出 3px（实测）。
    这里只收紧导航栏，不动页面其它部分。
-   【回退办法】删掉这个媒体查询即可。
+   回退：删掉这个媒体查询。
    ============================================================ */
 /* ============================================================
-   2026-10-24 导航适配（加了「建议」「反馈」两项之后，实测量过）：
+   导航适配（加了「建议」「反馈」两项之后实测量过）：
      · ≤480：隐藏品牌文字，只留 logo —— 腾出约 80px
      · ≤360：导航项只显示图标（文字被 max-width 截掉）——
        5 个图标约 180px，加 logo/主题按钮在 320 宽也放得下
-   为什么不用汉堡菜单：那要改三页 HTML + 加 JS，收益不抵成本；
+   不用汉堡菜单：那要改三页 HTML + 加 JS，收益不抵成本；
    图标本身自带语义（🏠❤️⚖️💡🐞），可访问性靠原链接文字（读屏仍能读）。
-   【回退办法】删掉这两个媒体查询即可。
+   回退：删掉这两个媒体查询。
    ============================================================ */
 /* ============================================================
-   12.5 预览版告知弹窗
+   12.5 （已删除）预览版告知弹窗
+   ------------------------------------------------------------
+   2026-11-21：随着首页「📢 公告」一起下线，这里原本的
+   .preview-notice-* / .site-notice-* 全部样式已删除。
+   【回退办法】从 git 上一个版本取回本段即可。
    ============================================================ */
-/* ⚠ 这里原来写的是 overflow: hidden（为了让顶部那条渐变被圆角裁住）。
-   结果就是【手机上新人是划不动的】：内容比屏幕高的时候直接被切掉，还滚不了。
-   现在改成纵向可滚 —— 圆角照样能把内容裁进去，滚动手感靠上面 .modal-content 那两条。 */
-.preview-notice-modal .modal-content {
-  max-width: 520px;
-  padding: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border: none;
-}
-
-.preview-notice-content .preview-notice-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 16px 24px 14px;
-  background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
-}
-
-.preview-notice-badge {
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--text-on-accent);
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  padding: 4px 14px;
-  border-radius: var(--radius-pill);
-  /* 这里原来有个一直「呼吸」的 box-shadow 动画。
-     弹窗本来就在做动画，再叠一个每帧重绘的阴影只会拖慢它，已去掉。 */
-}
-
-.preview-notice-ver {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--text-on-accent);
-  color: color-mix(in srgb, var(--text-on-accent) 90%, transparent);
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.preview-notice-content h2 {
-  font-size: 1.18rem;
-  margin: 20px 24px 10px;
-  color: var(--text);
-}
-
-.preview-notice-body {
-  margin: 0 24px 16px;
-  font-size: 0.92rem;
-  line-height: 1.85;
-  color: var(--text-light);
-}
-
-.preview-notice-body strong {
-  color: var(--primary-ink);
-  font-weight: 700;
-}
-
-/* 必读公告弹窗里那三条「决定」用列表排版（2026-09-27 新增）：
-   .preview-notice-body 本身是段落样式，这里给 ul 版补上缩进和行距。 */
-.preview-notice-body.site-notice-list {
-  margin: 0 24px 16px;
-  padding-left: 22px;
-  list-style: disc;
-}
-.preview-notice-body.site-notice-list li { margin-bottom: 6px; }
-@media (max-width: 768px) {
-  .preview-notice-body.site-notice-list { margin: 0 16px 13px; padding-left: 20px; }
-}
-
-/* 「希望大家帮忙补歌」那句号召（2026-09-27 新增）：给个底色，别让它混在正文里被划过去 */
-.preview-notice-body.site-notice-call {
-  padding: 12px 15px;
-  background: var(--bg-tint);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--primary-light);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-  line-height: 1.8;
-}
-@media (max-width: 768px) {
-  .preview-notice-body.site-notice-call { padding: 10px 12px; font-size: 0.84rem; }
-}
-
-/* 「郑重道歉」区块（2026-09-27 用户要求特别标注）：
-   用警示色单独框出来，保证不会被当成普通正文一眼划过去。
-   当前主题的 --danger / --danger-bg / --danger-light 浅色与深色都有定义。 */
-.site-notice-apology {
-  margin: 0 24px 18px;
-  padding: 14px 16px;
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-light);
-  border-left: 4px solid var(--danger);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-}
-.site-notice-apology-title {
-  font-size: 0.98rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--danger);
-  margin-bottom: 8px;
-}
-.site-notice-apology-item {
-  margin: 0 0 8px;
-  font-size: 0.88rem;
-  line-height: 1.8;
-  color: var(--text-light);
-}
-.site-notice-apology-item:last-child { margin-bottom: 0; }
-.site-notice-apology-item strong { color: var(--text); }
-@media (max-width: 768px) {
-  .site-notice-apology { margin: 0 16px 14px; padding: 12px 13px; }
-  .site-notice-apology-item { font-size: 0.84rem; }
-}
-
-/* ---------- 必读公告弹窗里的 QQ 群（2026-09-27 新增） ----------
-   点卡片 = 新标签打开原图（手机上可长按识别）。
-   2026-11-08 站主要求删掉另一个群后只剩一张卡片：改成居中 + 限宽，
-   否则 flex:1 会让这一张铺满整行、二维码孤零零悬在中间。
-   【回退】把 flex 改回 1 1 200px / 1 1 140px 即可恢复两卡并排的样子。 */
-.site-notice-groups { margin: 0 24px 18px; }
-.site-notice-groups-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
-}
-.site-notice-group-list { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.site-notice-group {
-  flex: 0 1 260px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 12px 10px;
-  text-align: center;
-  text-decoration: none;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
-}
-.site-notice-group:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.site-notice-group img {
-  display: block;
-  width: 100%;
-  max-width: 210px;
-  height: auto;
-  border-radius: var(--radius-xs);
-}
-.site-notice-group-name { font-size: 0.86rem; font-weight: 700; color: var(--text); }
-.site-notice-group-no {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--primary-ink);
-  letter-spacing: 0.3px;
-}
-.site-notice-group-desc { font-size: 0.76rem; line-height: 1.6; color: var(--text-light); }
-@media (max-width: 768px) {
-  .site-notice-groups { margin: 0 16px 14px; }
-  .site-notice-group-list { gap: 10px; }
-  .site-notice-group { flex: 0 1 180px; padding: 10px 8px; }
-  .site-notice-group img { max-width: 150px; }
-}
-
-/* 2026-10-05 站主要求：删掉公告里「⚠️ 本站目前仍是预览版，功能和内容都在陆续调整；
-   重要内容请自行二次确认。」那一段 —— 它用的 .preview-notice-note / .preview-notice-note-icon
-   两条规则（以及下面窄屏里的一条）随之删除，现在全站没有元素再用这两个类。
-   历史样式见 git 提交 b84aae5；要加回来照着写一遍即可。 */
-
-.preview-notice-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 0 24px 22px;
-}
-
-.preview-notice-actions .btn {
-  flex: 1 1 140px;
-}
-
-/* ---------- 新人弹窗底部那句赞助提示 ----------
-   这里【不放二维码图】了（用户 2026-09-25 要求）：弹窗只说一句「赞助码在首页」，
-   顺带省掉首访为这个弹窗下载 220KB 二维码的开销。
-   注意要盖掉 .modal-content p 的 margin-bottom:20px 和 pre-wrap。 */
-.preview-notice-sponsor-tip {
-  margin: 0 24px 20px;
-  padding: 11px 15px;
-  font-size: 0.84rem;
-  line-height: 1.8;
-  color: var(--text-light);
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--primary-light);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-  white-space: normal;
-}
-.preview-notice-sponsor-tip strong { color: var(--primary-ink); }
-
-/* ---------- 手机上：新人弹窗要放得下，也尽量少划 ----------
-   2026-09-25 用户反馈「手机端没办法划屏幕」。除了把 overflow 改开（见上面那条），
-   这里再把这块的内外边距收窄：24px 的左右留白在小屏上太奢侈，
-   省下来的高度能让「我知道了 / 去提意见」和最后那句提示不用划就看见。 */
-@media (max-width: 768px) {
-  .preview-notice-content .preview-notice-top { padding: 13px 16px 11px; }
-  .preview-notice-content h2 { margin: 15px 16px 8px; }
-  .preview-notice-body { margin: 0 16px 13px; font-size: 0.88rem; }
-  .preview-notice-actions { padding: 0 16px 14px; gap: 8px; }
-  .preview-notice-sponsor-tip { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.8rem; }
-  .preview-notice-ver { font-size: 0.72rem; }
-}
 /* ============================================================
    12.6 精简模式（手机上自动生效）
    ------------------------------------------------------------
@@ -1851,8 +1586,8 @@ html.lite .seg-panel:not([hidden]) {
   .seg-tab { padding: 7px 14px; font-size: 0.82rem; }
 }
 
-/* 2026-10-05 鸣谢页「3 列向下排」的窄屏降级：
-   900px 以下 2 列、480px 以下 1 列（480 那条在文件末尾的媒体查询里）。 */
+/* 鸣谢页「3 列向下排」的窄屏降级：900px 以下 2 列、480px 以下 1 列
+   （480 那条在文件末尾的媒体查询里）。 */
 @media (max-width: 900px) {
   .thanks-people {
     column-count: 2;
@@ -1911,23 +1646,19 @@ html.lite .seg-panel:not([hidden]) {
 }
 
 /* ============================================================
-   2026-10-24 · 科幻交互层（站主要求：动画全部重做 + 注重创新）
-   ------------------------------------------------------------
-   这一层只负责「氛围与手感」，不改任何布局：
+   科幻交互层：只负责「氛围与手感」，不改任何布局。
      ① 指针光晕（跟随鼠标的一团冷光，青→紫）
      ② 扫描线底纹（静态，不跑动画）
      ③ 点击涟漪
      ④ 标题「模糊收拢」入场
      ⑤ 弹窗进出带模糊与缩放
      ⑥ 全局按下反馈统一
-
    性能纪律：
      · 只动 transform / opacity / CSS 变量（不触发重排）；
      · 指针位置用 rAF 节流，一帧最多写一次；
      · 手机（无 hover）自动跳过光晕与涟漪；
      · 系统开启「减少动态效果」时整层跳过。
-   【回退办法】删掉本段（从「科幻交互层」注释到文件末尾本段结束）即可，
-     不影响任何功能样式。
+   回退：删掉本段即可，不影响任何功能样式。
    ============================================================ */
 
 /* ② 扫描线：一层极淡的横向细纹（静态）。用伪元素，不占布局。 */
@@ -2047,16 +1778,15 @@ button:active,
 }
 
 /* ============================================================
-   2026-10-24 导航适配（放在**文件最末尾**，确保压过前面 768/480 两档的旧规则）
-   ------------------------------------------------------------
-   坑：前面 @media(max-width:768) 写了 .navbar .nav-links a{padding:6px 12px;font-size:.85rem}，
-        @media(max-width:480) 又写了 {padding:6px 10px} —— 它们是后出现的，
-        所以我放在 1500 多行的收紧规则全被覆盖了，实测 360~430 全部溢出 44~115px。
-   现在改到文件最后，同选择器后者胜，才真正生效。
+   导航适配（必须放在文件最末尾，确保压过前面 768/480 两档的旧规则）
+   坑：前面 @media(max-width:768) 与 @media(max-width:480) 里的
+       .navbar .nav-links a{padding/font-size} 是后出现的，
+       会把文件前部的收紧规则覆盖掉，实测 360~430 全部溢出 44~115px。
+   放在文件最后，同选择器后者胜，才真正生效。
    两级：
      · ≤480：隐藏品牌文字 + 收紧要缩小 → 5 个入口的文字在 360~480 放得下
      · ≤340：才退成「只显示图标」（320 那种极窄屏）
-   【回退办法】删掉文件末尾这一段即可。
+   回退：删掉文件末尾这一段。
    ============================================================ */
 @media (max-width: 480px) {
   .navbar { gap: 4px; padding-left: 10px; padding-right: 10px; }
@@ -2073,35 +1803,26 @@ button:active,
   }
 }
 /* ============================================================
-   2026-10-24 站主要求：「整个网站都显示中式文化风格！要艺术，改掉！」
-   ------------------------------------------------------------
-   这层**只覆盖 CSS 变量 + 字体 + 底纹**，不动任何结构/选择器。
+   中式文化风格层：只覆盖 CSS 变量 + 字体 + 底纹，不动任何结构/选择器。
    前台 6 页共用 css/style.css，所以改这里 = 全站换装。
-
-   配色按传统五色定（2026-10-25 已换成新色板，见文件开头）：
+   配色按传统五色定（当前色板见文件开头）：
      宣纸 #F5F0E6 ｜ 墨 #221C16 ｜ 朱砂 #A62E22 ｜ 竹青 #4F7A5A ｜ 琥珀金 #B08A3E
    深色对应「墨夜」：暖黑底 + 宣纸白字 + 提亮朱砂。
-
    艺术感靠三件小事，不靠花哨：
      ① 标题换宋体（中文的书卷气主要来自衬线）
      ② 底纹换成极淡的宣纸晕染（暖金 + 朱砂两团，静态）
      ③ 圆角收小、分隔线换细金线（去掉糖果感）
-
-   【回退办法】颜色回退只需改文件开头的令牌；本段的形制（宋体/鱼尾/回纹）
+   回退：颜色回退只需改文件开头的令牌；本段的形制（宋体/鱼尾/回纹）
    要单独撤销时，删掉对应小节即可。
    ============================================================ */
 
 /* ============================================================
-   2026-10-25 站主要求「全部颜色重做 · 中国风」
-   ------------------------------------------------------------
-   原来这里重复定义了一整套 :root / [data-theme="dark"] 色值，
-   与文件开头冲突（后者覆盖前者，改一处漏一处）。
-   现在颜色令牌只保留文件开头唯一一份；本段只留字体与形制说明，
-   下面「中式艺术层 / 文化质感层」继续生效。
-   【回退办法】删掉本注释，令牌仍在文件开头，不影响渲染。
+   颜色令牌只保留文件开头唯一一份：这里不要再重复定义 :root / [data-theme="dark"]，
+   两处定义会互相冲突（后者覆盖前者，改一处漏一处）。
+   本段只留字体与形制说明，下面「中式艺术层 / 文化质感层」继续生效。
    ============================================================ */
 
-/* 深色令牌同样只保留文件开头那一份（2026-10-25 去重）。 */
+/* 深色令牌同样只保留文件开头那一份，这里不要再定义。 */
 
 /* 标题走宋体；正文仍用无衬线（可读性优先） */
 .hero-title,
@@ -2121,7 +1842,7 @@ body {
   background-image:
     radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
     radial-gradient(circle at 82% 78%, rgba(var(--accent-rgb), 0.035), transparent 46%);
-  /* 2026-10-24 性能：fixed 滚动时每帧重绘整页，去掉 */
+  /* 性能：fixed 滚动时每帧重绘整页，去掉 */
   background-attachment: scroll;
 }
 [data-theme="dark"] body {
@@ -2138,14 +1859,11 @@ body {
 }
 
 /* ============================================================
-   2026-10-24 中式艺术层（站主：整个网站要有艺术，中国文化风格）
-   ------------------------------------------------------------
-   不加任何 HTML 结构，只用伪元素与边框，三个细节：
+   中式艺术层：不加任何 HTML 结构，只用伪元素与边框，三个细节：
      ① 导航栏底部一条「金线」—— 中式册页的书口感
-     ② 大标题下方一枚「朱砂短印」—— 替代原来的装饰点
+     ② 大标题下方一枚「朱砂短印」—— 替代装饰点
      ③ 卡片描边用极淡的金，hover 时微亮
-
-   【回退办法】删掉本段即可。
+   回退：删掉本段即可。
    ============================================================ */
 
 /* ① 导航栏书口金线 */
@@ -2191,15 +1909,14 @@ body {
 
 
 /* ============================================================
-   2026-10-24 中式「活态」层（站主：不能全是死的，有点活的）
-   ------------------------------------------------------------
-   ① 浮尘：原来的光点改成缓慢上下呼吸 + 微摆（不再是机械循环）
-   ② 宣纸呼吸：整页底纹极慢地明暗起伏（9 秒一轮）
-   ③ 金线流光：导航栏那条金线有一道光缓慢流过（7 秒）
-   ④ 墨晕：卡片 hover 时从中心晕开一层极淡朱砂
+   中式「活态」层：
+     ① 浮尘：缓慢上下呼吸 + 微摆（不是机械循环）
+     ② 宣纸呼吸：整页底纹极慢地明暗起伏（9 秒一轮）
+     ③ 金线流光：导航栏那条金线有一道光缓慢流过（7 秒）
+     ④ 墨晕：卡片 hover 时从中心晕开一层极淡朱砂
    性能：全部 transform/opacity/background-position，GPU 合成；
         周期 7~14 秒（慢才有生命感）；reduced-motion 下全关。
-   【回退办法】删掉本段。
+   回退：删掉本段。
    ============================================================ */
 
 /* ① 浮尘：缓慢下沉 + 微摆（替代原来机械上下） */
@@ -2221,7 +1938,7 @@ body {
   50%      { opacity: 1; }
 }
 body::before {
-  /* 2026-10-24 性能：全屏呼吸动画去掉，改为静态 */
+  /* 性能：全屏呼吸动画去掉，改为静态 */
 }
 
 /* ③ 金线流光：导航栏金线上一道光缓慢流过 */
@@ -2267,20 +1984,17 @@ body::before {
 
 
 /* ============================================================
-   2026-10-24 中式「形制」层（站主：都加，你自己判断）
-   ------------------------------------------------------------
-   只有颜色不算中式，还得有中式的图案语言。这里加三样，
+   中式「形制」层：只有颜色不算中式，还得有中式的图案语言。
    全部靠伪元素，不动 HTML、不改布局：
      ① 页脚朱砂印章（竖排「织雾」两字，像钤印）
      ② 大标题下双线（一实一淡，册页行线感）
      ③ 卡片左上回纹角（一条 L 形细线，像书角包边）
-   纪律：all 透明度 ≤ 0.9，最细 1px；任何一样单独删掉都不影响别的。
-   【回退办法】删掉本段即可。
+   纪律：所有透明度 ≤ 0.9，最细 1px；任何一样单独删掉都不影响别的。
+   回退：删掉本段即可。
    ============================================================ */
 
 /* ① 页脚朱砂印章 */
 .footer::after {
-  /* 2026-10-24 站主要求：竖幅「织雾」→ 横幅「织雾满穗 · ZhiMist」 */
   content: '织雾满穗 · ZhiMist';
   display: block;
   width: fit-content;
@@ -2301,8 +2015,8 @@ body::before {
   white-space: nowrap;
 }
 
-/* 2026-11-03 站主要求：新页脚横版已承担品牌展示，这条旧朱砂小条重复，隐藏。
-   【回退办法】删掉下面这条 display:none 即可恢复。 */
+/* 新页脚横版已承担品牌展示，这条旧朱砂小条重复，隐藏。
+   回退：删掉下面这条 display:none 即可恢复。 */
 .footer::after { display: none !important; }
 
 /* ② 大标题下双线（覆盖掉之前那条单线） */
@@ -2340,15 +2054,13 @@ body::before {
 
 
 /* ============================================================
-   2026-10-24 文化质感层（站主：要体现文化，而不是科技）
-   ------------------------------------------------------------
-   把「科技四件套」全部换掉：
+   文化质感层：把「科技四件套」全部换掉：
      ① 指针光晕 → 关闭（这是最典型的科技交互）
      ② 扫描线   → 宣纸纤维（竖向 1px 极细纹，像纸的帘纹）
      ③ 粒子     → 纸屑（哑光灰点，缓慢飘落，不再发光）
      ④ 流光     → 静态金线（一道细线，不跑光）
    纪律：所有纹理不透明度 ≤ 0.06；只留「呼吸」和「墨晕」两种动效。
-   【回退办法】删掉本段即可恢复。
+   回退：删掉本段即可恢复。
    ============================================================ */
 
 /* ① 关掉指针光晕（科技感最强的一项） */
@@ -2365,7 +2077,7 @@ body::before {
     transparent 1px 3px
   ) !important;
   opacity: 0.5 !important;
-  /* 2026-10-24 性能：全屏呼吸动画去掉，改为静态 */
+  /* 性能：全屏呼吸动画去掉，改为静态 */
 }
 
 /* ③ 粒子光点 → 纸屑（哑光、不再发光） */
@@ -2373,7 +2085,7 @@ body::before {
   border-radius: 1px !important;
   box-shadow: none !important;
   opacity: 0.28 !important;
-  animation: none !important; /* 2026-10-24 性能：多个粒子同时动太耗，关掉 */
+  animation: none !important; /* 性能：多个粒子同时动太耗，关掉 */
   animation-duration: 26s !important;
   animation-timing-function: linear !important;
 }
@@ -2393,7 +2105,7 @@ body::before {
 
 /* ⑤ 后台的科技网格 → 宣纸纤维 */
 body[data-theme] {
-  /* 2026-10-25：底 = 暖金晕染 + 竖纤维（宣纸帘纹），两者叠在一起 */
+  /* 底 = 暖金晕染 + 竖纤维（宣纸帘纹），两者叠在一起 */
   background-image:
     radial-gradient(circle at 18% 8%, rgba(var(--gold-rgb), 0.05), transparent 42%),
     repeating-linear-gradient(90deg, rgba(var(--ink-rgb), 0.045) 0 1px, transparent 1px 3px) !important;
@@ -2404,10 +2116,8 @@ body[data-theme] {
 
 
 /* ============================================================
-   2026-10-24 按钮统一层（站主：按钮效果要统一）
-   ------------------------------------------------------------
-   只统一「形」与「动」，不动配色语义。
-   【回退办法】删掉本段。
+   按钮统一层：只统一「形」与「动」，不动配色语义。
+   回退：删掉本段。
    ============================================================ */
 
 .btn,
@@ -2482,11 +2192,10 @@ a.btn:active,
 
 
 /* ============================================================
-   2026-10-24 ID 可读性（站主：看不见 / 注意适配）
-   ------------------------------------------------------------
-   ① 颜色：用朱砂红（原粉色的角色），深色下提亮
-   ② 适配：长 ID 允许任意断行，320 宽也撑不破
-   【回退办法】删掉本段。
+   ID 可读性：
+     ① 颜色：用朱砂红，深色下提亮
+     ② 适配：长 ID 允许任意断行，320 宽也撑不破
+   回退：删掉本段。
    ============================================================ */
 
 .id-number {
@@ -2516,18 +2225,17 @@ a.btn:active,
 
 
 /* ============================================================
-   2026-10-24 胶囊化（站主：按钮全改成胶囊，包括「反馈」「建议」）
-   ------------------------------------------------------------
-   ① 所有按钮 → 胶囊（999px）
-   ② 导航项 → 胶囊（hover/active 时给一层浅底，才看得出是「按的」）
-   ③ 分类/筛选标签本来就是胶囊，这里只统一一下内边距比例
-   【回退办法】删掉本段。
+   胶囊化：
+     ① 所有按钮 → 胶囊（999px）
+     ② 导航项 → 胶囊（hover/active 时给一层浅底，才看得出是「按的」）
+     ③ 分类/筛选标签本来就是胶囊，这里只统一一下内边距比例
+   回退：删掉本段。
    ============================================================ */
 
 .btn,
-/* 2026-10-25：大面积的「赞助卡 / 公告条」不能被胶囊化，否则手机上是一个巨大药丸。
+/* 大面积的「赞助卡 / 公告条」不能被胶囊化，否则手机上是一个巨大药丸。
    这里把它们排除掉，各自用卡片自己的圆角。 */
-button:not(.theme-toggle):not(.back-to-top):not(.modal-close):not(.hero-sponsor):not(.site-announce),
+button:not(.theme-toggle):not(.back-to-top):not(.modal-close):not(.hero-sponsor):not(.qq-side-btn),
 input[type="submit"],
 input[type="button"],
 a.btn,
@@ -2549,7 +2257,7 @@ a.btn,
   background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .navbar .nav-links a.active {
-  /* 2026-10-25：当前页 = 朱砂实底 + 奶白字（和主按钮同一档强调） */
+  /* 当前页 = 朱砂实底 + 奶白字（和主按钮同一档强调） */
   background: var(--primary-btn-a); color: var(--text-on-accent);
 }
 [data-theme="dark"] .navbar .nav-links a.active {
@@ -2569,11 +2277,9 @@ a.btn,
 
 
 /* ============================================================
-   2026-10-24 选中态胶囊化（站主：选择的效果也要是胶囊的）
-   ------------------------------------------------------------
-   把全站所有 .active 选中态（分类标签、分段、筛选、后台标签）统一成胶囊。
+   选中态胶囊化：把全站所有 .active 选中态（分类标签、分段、筛选、后台标签）统一成胶囊。
    容器本身保持原形（可能是圆角矩形），只让「选中的那一块」是胶囊。
-   【回退办法】删掉本段。
+   回退：删掉本段。
    ============================================================ */
 
 .cat-tab.active,
@@ -2609,8 +2315,7 @@ a.btn,
 }
 
 /* ============================================================
-   2026-10-25 手机适配（站主：浅色/暗色切回的那个小太阳也要适配）
-   ------------------------------------------------------------
+   手机适配（主题开关）：
    实测问题：导航 5 个入口 + 主题开关在 390px 宽下总宽 417px，
    开关被挤出屏幕右侧（scrollWidth 417 > 390），点不到。
    做法：
@@ -2618,7 +2323,7 @@ a.btn,
         滚动时也一直能切主题；和「回到顶部」错开约 30px。
      ② ≤480：导航项再收一档，保证 360px 窄屏也不溢出。
    只动主题开关与导航间距，不动其它布局。
-   【回退办法】删掉本节两条 @media 即可恢复原布局。
+   回退：删掉本节两条 @media 即可恢复原布局。
    ============================================================ */
 @media (max-width: 768px) {
   /* 反馈/建议页的导航没有 .has-brand，全局 .navbar 的 flex-end 会把品牌挪到右边、
@@ -2627,11 +2332,11 @@ a.btn,
   .navbar .nav-links { margin-left: 0; }
   .navbar .theme-toggle {
     position: fixed;
-    /* 2026-11-07 手机切主题修复：先给不会算 env()/max() 的老内核一组死值，
+    /* 手机切主题修复：先给不会算 env()/max() 的老内核一组死值，
        再让新内核用下面两行覆盖（带刘海屏安全区）。
-       原写法只有 env() 版本：老浏览器整条声明失效 → right/bottom 变 auto →
+       只写 env() 版本时老浏览器整条声明失效 → right/bottom 变 auto →
        position:fixed 退回静态位置，按钮跑到导航栏里被挤出屏幕，用户点不到。
-       【回退办法】删掉 right:14px / bottom:88px 两行 */
+       回退：删掉 right:14px / bottom:88px 两行。 */
     right: 14px;
     bottom: 88px;
     right: max(14px, env(safe-area-inset-right));
@@ -2679,13 +2384,12 @@ a.btn,
 }
 
 /* ============================================================
-   2026-11-03 页脚品牌 + 手机浮动按钮避让
-   ------------------------------------------------------------
+   页脚品牌 + 手机浮动按钮避让
    手机导航页的主题开关固定在右下（bottom 88），滚到页脚时会压住
    联系站长那几行。给这类页面的页脚留出 148px 的底部空间，
    让文字停在浮动按钮上方。只影响「导航栏里有 .theme-toggle」的页面，
    后台 / 宝库页的开关在页头，不参与。
-   【回退办法】删掉本节即可。
+   回退：删掉本节即可。
    ============================================================ */
 @media (max-width: 768px) {
   body:has(.navbar .theme-toggle) .footer {

@@ -11,7 +11,6 @@
    ============================================================ */
 .update-image-modal {
   /* 不用 backdrop-filter：全屏毛玻璃 + 动画 = 弹窗卡顿的头号原因 */
-  /* 2026-10-25：暖褐遮罩（原来的紫褐偏冷） */
   background: rgba(28, 20, 12, 0.66);
 }
 .update-image-modal .modal-content {
@@ -36,7 +35,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  /* 2026-10-25：宣纸 → 淡金，标题用朱砂，去粉色 */
   background: linear-gradient(135deg, var(--bg-card) 0%, var(--gold-bg) 100%);
   border-bottom: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
 }
@@ -104,8 +102,8 @@
   border-radius: 14px;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-/* 2026-10-25 中国色海报底：类名不变（数据里还写着 theme-pink 等），
-   只换颜色。五档都压到足够深，保证白色标题/说明看得清：
+/* 中国色海报底：类名不变（数据里还写着 theme-pink 等），只换颜色。
+   五档都压到足够深，保证白色标题/说明看得清：
      胭脂 / 黛紫 / 石青 / 鎏金 / 竹青 */
 .update-image-modal .update-canvas.theme-pink   { background: linear-gradient(135deg, #B8515F 0%, #8F2A38 52%, #6E1B26 100%); }
 .update-image-modal .update-canvas.theme-purple { background: linear-gradient(135deg, #7C6A96 0%, #584772 52%, #3A2D4D 100%); }
@@ -333,10 +331,10 @@
 }
 
 /* 左块
-   2026-10-07 站主反馈：大标题 4 个字很好看，超过 4 个字就换行、难看。
-   根因在这里 —— 原来左块是 `flex: 0 1 auto`（能被压缩），右边那些说明行是 `flex: 1 1 auto`，
-   两边一起挤的时候左边被压到 ~110px，于是连「问题上报」4 个字都被折成 2+2 两行。
-   现在：左块**按内容占位、不参与压缩**（flex: 0 0 auto），并给它一个明确的上限
+   大标题 4 个字很好看，超过 4 个字就换行、难看。
+   根因在这里 —— 左块若写 flex: 0 1 auto（能被压缩），右边说明行是 flex: 1 1 auto，
+   两边一起挤时左边会被压到 ~110px，于是连「问题上报」4 个字都被折成 2+2 两行。
+   现在：左块按内容占位、不参与压缩（flex: 0 0 auto），并给它一个明确的上限
    （max-width: 420px）—— 标题的「预算」就是这 420px，js/common.js 的 fitUpdateTitle()
    据此量出该缩多少字号/字距，缩不进去才折行；右边那一块自己吃掉剩下的宽度。 */
 .update-image-modal .left-block {
@@ -352,9 +350,9 @@
   letter-spacing: 5px;
   line-height: 1.15;
   margin-bottom: 10px;
-  /* 2026-10-07：标题默认**不折行**（fitUpdateTitle() 会先把字距、再把字号缩到装得下）；
+  /* 标题默认不折行（fitUpdateTitle() 会先把字距、再把字号缩到装得下）；
      万一长到缩不下去，JS 会改成 normal + balance（两行长度接近）。
-     ⚠️ 这里**不能**同时写 text-wrap: balance —— Chrome 里 white-space 是简写，
+     ⚠️ 这里不能同时写 text-wrap: balance —— Chrome 里 white-space 是简写，
      后面的 text-wrap 会把 nowrap 覆盖掉，标题就又折行了（踩过）。 */
   white-space: nowrap;
   background: linear-gradient(180deg, #ffffff 0%, #fff5d8 45%, #ffd98a 100%);
@@ -575,7 +573,7 @@
   letter-spacing: 3px;
   margin-top: 10px;
   text-shadow: 0 4px 16px rgba(0,0,0,0.28);
-  /* 2026-10-07：简洁版是居中标题，万一长到要折行，让两行长度接近（text-wrap: balance），
+  /* 简洁版是居中标题，万一长到要折行，让两行长度接近（text-wrap: balance），
      比「第一行满、第二行一个孤字」顺眼；支持的浏览器就用，不支持的照旧折行。 */
   text-wrap: balance;
 }
@@ -590,7 +588,7 @@
 .update-image-modal .update-simple-body {
   margin: 0 16px 16px;
   padding: 16px 18px;
-  /* 2026-10-25：正文卡片固定用暖白纸（它压在彩色渐变上，不能跟随深色主题变黑） */
+  /* 正文卡片固定用暖白纸（它压在彩色渐变上，不能跟随深色主题变黑） */
   background: #FFFCF6;
   border-radius: 14px;
   max-height: 46vh;

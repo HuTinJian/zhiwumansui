@@ -1,7 +1,7 @@
 /* ============================================================
    织雾满穗 · 查「我自己上报过的无效 ID」（公开，按浏览器匿名身份过滤）
-   2026-10-05：站主要求宝库页加一张「上报表」—— 访客能看到自己点过
-   「🚫 无效处理」的歌，还能单条恢复 / 全部恢复（本质上就是只属于自己的那份隔离区）。
+   宝库页的「上报表」：访客能看到自己点过「🚫 无效处理」的歌，
+   还能单条恢复 / 全部恢复（本质上就是只属于自己的那份隔离区）。
    ------------------------------------------------------------
    安全口径（重要，别放宽）：
    · reporter 必填且必须合法，**不合法一律 400**。绝不能「不传 reporter 就返回全部」——
@@ -37,12 +37,11 @@ export async function onRequestGet(context) {
       return json({ ok: false, error: 'too many requests', wait: limit.wait }, 429);
     }
 
-    /* 按时间倒序：最近上报的排最前（2026-10-05 站主要求「按时间排序，从最近到最后」）。
-       created_at 是 UTC（见 ../_time.js 的说明），同一秒内再按 id 倒序兜底。
-       2026-10-07：多带回 type 与 note —— 前端「问题上报」按「🚫 无效ID / ✏️ 信息出错」分两个标签。
-       2026-10-17：再带回 updated_at —— 站主要求「自己反馈的 ID 想要看到有没有过审核」，
-       审核时间就是这一行的 updated_at（后台处理时会写 datetime('now','localtime')），
-       前端显示成「已审核 · 10-17 09:20」，让人一眼看出是什么时候被看过的。 */
+    /* 按时间倒序：最近上报的排最前。
+           created_at 是 UTC（见 ../_time.js 的说明），同一秒内再按 id 倒序兜底。
+           带回 type 与 note —— 前端「问题上报」按「🚫 无效ID / ✏️ 信息出错」分两个标签。
+           再带回 updated_at —— 这就是审核时间（后台处理时写 datetime('now','localtime')），
+           前端显示成「已审核 · 10-17 09:20」那种形式，让人一眼看出是什么时候被看过的。 */
     const result = await env.DB.prepare(
       `SELECT music_id, name, category, status, type, note, created_at, updated_at
          FROM invalid_reports
@@ -56,9 +55,9 @@ export async function onRequestGet(context) {
       name: row.name || '',
       category: row.category || '',
       /* pending = 后台还没处理（访客可自行恢复）
-         removed = 已审核·已下架（后台确认无效）
-         noted   = 已审核·无需处理（2026-10-17 起，「🗑️ 删记录」标的就是这个）
-         ignored = 已忽略（历史遗留，前端不显示） */
+               removed = 已审核·已下架（后台确认无效）
+               noted   = 已审核·无需处理（后台「🗑️ 删记录」标的就是这个）
+               ignored = 已忽略（历史遗留，前端不显示） */
       status: String(row.status || 'pending'),
       /* invalid = 🚫 无效ID；info = ✏️ 信息出错（老数据没有 type 列，一律按 invalid 算） */
       type: String(row.type || 'invalid') === 'info' ? 'info' : 'invalid',

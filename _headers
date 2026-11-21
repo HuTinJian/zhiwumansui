@@ -7,109 +7,83 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000
   X-Frame-Options: DENY
-  # 2026-10-18：补三条零影响的指令（站内没有 form/base/object，加了不会白屏）。
-  # 注意没动 script-src —— 页面有大量内联脚本，硬上会全站白屏。
   Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 
-# 2026-10-05 加固说明：
-#   · HSTS        —— 强制浏览器以后只走 HTTPS（本站本来就只有 HTTPS，纯保险）
+# 安全头说明：
+#   · HSTS —— 强制浏览器以后只走 HTTPS（本站本来就只有 HTTPS，纯保险）
 #   · X-Frame-Options / frame-ancestors —— 禁止任何网站把本站嵌进 iframe
 #     （防点击劫持；站内一个 iframe 都没有，所以不会影响任何页面）
-#   · Permissions-Policy —— 明确关掉摄像头/麦克风/定位/支付，减少被滥用的面
-
-# 2026-10-05：这里原来还有一段 /admin.html 单独设置 X-Frame-Options 与 frame-ancestors。
-# 现在上面 /* 已经把这两条罩住全站，重复设置会被 Cloudflare 用「逗号拼接」处理
-# （变成 `X-Frame-Options: DENY, DENY`）—— 而 X-Frame-Options 只认单个值，
-# 浏览器遇到认不出的值可能整条忽略，等于白设。所以这一段删掉，只留 /* 那一份。
+#   · Permissions-Policy —— 明确关掉摄像头 / 麦克风 / 定位 / 支付，减少被滥用的面
+#   · CSP 没动 script-src —— 页面有大量内联脚本，硬上会全站白屏。
+#   · 不在别处再单独写 X-Frame-Options：重复设置会被 Cloudflare 拼成
+#     「DENY, DENY」，而它只认单个值，浏览器可能整条忽略。
 
 # ------------------------------------------------------------
 # 缓存策略
 # ------------------------------------------------------------
-# 这里的目标只有一个：**让「改了代码却不生效」这件事不再发生**。
-#
-# 2026-11-06：页面 HTML / CSS / JS / 图片 / 数据统一 5 分钟（原因见下面各段注释）。
-# 只由服务器兜底的动态接口（/api/*）不在这里配，走各自响应里的 no-store。
+# 目标只有一个：让「改了代码却不生效」这件事不再发生。
+# 页面 HTML / CSS / JS / 图片 / 数据统一 5 分钟；只由服务器兜底的动态接口
+# （/api/*）不在这里配，走各自响应里的 no-store。
 
-# 歌曲主数据：5 分钟缓存。
-# 你改了 data/roblox_music.json 推上去之后，访客最多 5 分钟就能看到新版。
-# （想在电脑上立刻看到，按 Ctrl + F5 强制刷新即可）
-# 2026-10-18：给 data/ 兜底缓存（原来只配了 roblox_music.json，
-# admin_quarantine.json 每次都回源校验）；顺便给数据加 noai（只对守规矩的爬虫有效）。
+# 歌曲主数据：5 分钟缓存。改完 data/roblox_music.json 推上去，
+# 访客最多 5 分钟看到新版（想立刻看到：Ctrl + F5）。
+# data/ 整体兜底缓存，并给数据加 noai（只对守规矩的爬虫有效）。
 /data/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
   X-Robots-Tag: noai, noindex
 
-# 2026-10-18：开发文件虽然公开，但至少让搜索引擎别收录
+# 开发文件虽然公开，但至少让搜索引擎别收录
 /README.md
   X-Robots-Tag: noindex, nofollow
 /*.sql
   X-Robots-Tag: noindex, nofollow
-/tools/*
-  X-Robots-Tag: noindex, nofollow
 
-# CSS / JS：缓存 5 分钟（2026-11-06 由 60 秒上调；改完想立刻看到：Ctrl + F5）。
-# 2026-10-05 性能补丁：加 stale-while-revalidate —— 过期后浏览器先用手里的旧文件渲染，
-# 同时后台校验；2026-11-06 实测：静态资源（CSS/JS）过期后确实会带 ETag 走 304，
-# 但每次仍要一次往返（实测 ~220ms），而它们又是渲染阻塞资源，所以把有效期一起放宽到 5 分钟。
-# ⚠️ 代价说清：SWR 生效时访客这一次看到的仍是旧文件，要**再打开一次**才是新版 ——
-# 「改完看不到效果」的窗口是「5 分钟 + 一次导航」，要立刻看到就 Ctrl + F5。
+# CSS / JS：缓存 5 分钟（想立刻看到：Ctrl + F5）。
+# 加 stale-while-revalidate：过期后浏览器先用手里的旧文件渲染、同时后台校验。
+# ⚠️ 代价：SWR 生效时访客这一次看到的仍是旧文件，要再打开一次才是新版 ——
+# 「改完看不到效果」的窗口是「5 分钟 + 一次导航」。
 /css/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /js/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# 图片：5 分钟（同样加 stale-while-revalidate，换了图标最多等 5 分钟，或 Ctrl + F5）
+# 图片：5 分钟（换了图标最多等 5 分钟，或 Ctrl + F5）
 /images/*
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 # ------------------------------------------------------------
-# HTML 页面：短缓存（2026-10-05 加缓存，2026-11-06 从 60 秒调到 5 分钟）
+# HTML 页面：短缓存
 # ------------------------------------------------------------
-# 背景（性能审计实测）：Cloudflare Pages 给 HTML 的响应里**既没有 ETag 也没有
-# Last-Modified**，所以「浏览器问一句有没有变、没变回 304」这条路根本走不通 ——
-# 不设缓存就意味着**每次点开页面都要把整份 HTML 重新下一遍**（宝库页 32KB、首页 12KB，
-# 外加一次 250~460ms 的 TTFB）。这是重复访问里最大的一笔固定开销。
-#
-# 2026-11-06 实测补充：`stale-while-revalidate` 对**顶层页面导航**不生效 ——
-# 60 秒到期后再点一次页面，浏览器仍是同步重下整份 HTML（实测宝库页 65 秒后重新下载
-# 69,326B、FCP 988ms）。所以把有效期放宽到 5 分钟：正常一次浏览会话里来回点，
-# 页面都直接来自缓存；改 HTML 最多 5 分钟 + 一次导航对外生效（想立刻看到：Ctrl + F5）。
-# 注意：HTML 里内联了各页自己的 CSS/JS，所以这条同时也决定了「页面结构改动」的生效速度。
+# 背景（性能审计实测）：Cloudflare Pages 给 HTML 的响应里既没有 ETag 也没有
+# Last-Modified，所以「浏览器问一句有没有变、没变回 304」这条路走不通 ——
+# 不设缓存就意味着每次点开页面都要把整份 HTML 重新下一遍
+# （宝库页 32KB、首页 12KB，外加一次 250~460ms 的 TTFB）。
+# 注意：HTML 里内联了各页自己的 CSS/JS，所以这条也决定了「页面结构改动」的生效速度。
+# 另外实测：stale-while-revalidate 对顶层页面导航不生效，所以有效期直接给 5 分钟。
 /
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /*.html
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# 说明：2026-10-05 之前这里写的是「HTML 不设缓存、必须每次拿最新」，
-# 原因是当时以为浏览器能靠 ETag/Last-Modified 走 304 —— 实测 Cloudflare Pages
-# 的 HTML 响应两者都没有，于是「不设缓存」变成了「每次都整份重下」。
-# 现在改成上面那两条 5 分钟规则：新鲜度只差 5 分钟，但重复访问快了一个来回。
-
 # ------------------------------------------------------------
-# 怀旧版（legacy/2026-08-25/）：2026-10-26 新增
-# 只读的旧版静态副本，不参与新版功能；让搜索引擎别收录。
-# 故意不在这里另写 Cache-Control —— 上面的 /*.html、/css/*、/js/*、/images/* 已覆盖，
-# 同一路径再写一条会变成重复响应头（X-Robots-Tag 是唯一的例外，按路径单独生效）。
+# 怀旧版（legacy/2026-08-25/）：只读的旧版静态副本，不参与新版功能；
+# 让搜索引擎别收录。缓存沿用上面的 /*.html、/css/*、/js/*、/images/*，
+# 这里只按路径加 X-Robots-Tag。
 # 【回退办法】删掉这一整段即可。
 # ------------------------------------------------------------
 /legacy/*
   X-Robots-Tag: noindex, nofollow
 
 # ------------------------------------------------------------
-# 页面缓存 · 干净 URL（2026-11-06 性能修复）
+# 页面缓存 · 干净 URL
 # ------------------------------------------------------------
-# 实测背景：Cloudflare Pages 会先把 /xxx.html **308 重定向**到 /xxx，浏览器最终停在
-# **不带扩展名**的地址上；而上面只写了 `/` 和 `/*.html`，于是只有首页真正吃到 HTML 缓存。
-# 其余页面每次导航都要重新下载整份 HTML（实测宝库页暖加载仍传输 68,726B、FCP 788ms，
-# 点一次「宝库」从点击到歌单出现 1.8~1.9 秒）。
-#
-# 这里把每个页面的「干净 URL」逐条显式列出（Cloudflare 的 _headers 按**请求路径**匹配，
-# 不会自动把 /roblox_music 折算成 /roblox_music.html）。站内链接也已在 2026-11-06
-# 一并改成干净 URL，所以点站内链接不会再经过 308。
-# 【回退办法】删掉这一段 + 把页面里的 href 改回 *.html，即恢复原状（会慢回原样）。
+# Cloudflare Pages 会先把 /xxx.html 308 重定向到 /xxx，浏览器最终停在不带扩展名的地址；
+# 而 _headers 按请求路径匹配，所以每个页面的干净 URL 要逐条列出。
+# 站内链接已统一用干净 URL，点站内链接不会再经过 308。
+# 【回退办法】删掉这一段 + 把页面里的 href 改回 *.html，即恢复原状。
 /roblox_music
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
@@ -122,16 +96,9 @@
 /law
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
-# 2026-11-07：新增的赞助登记页（support.html）也走 5 分钟 HTML 缓存，
-# 否则它会落到 Cloudflare 默认的 max-age=0，每次导航都整份重下。
+# 赞助登记页（support.html）也走 5 分钟 HTML 缓存，否则会落到默认 max-age=0。
 # 【回退办法】删掉下面这三行即可。
 /support
-  Cache-Control: public, max-age=300, stale-while-revalidate=86400
-
-/suggest
-  Cache-Control: public, max-age=300, stale-while-revalidate=86400
-
-/feedback
   Cache-Control: public, max-age=300, stale-while-revalidate=86400
 
 /404

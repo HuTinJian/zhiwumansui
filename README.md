@@ -50,7 +50,6 @@
 │   ├── sponsors.json          👑 赞助者底档（静态、只读；后台加的那些存在 D1 里）
 │   ├── thanks.json            🎮 Roblox ID 宝库（鸣谢名单）的本地档案（静态、只读；结构同 GET /api/thanks）
 │   ├── thanks-players.json    🙏 玩家感谢的本地档案（静态、只读）
-│   ├── device-models.json     设备型号对照表（前端识别机型用，静态、只读）
 │   ├── updates.json           站点更新公告（由 AI 直接写这个文件，页面读它）
 │   └── admin_quarantine.json  已下架（原开发者隔离区）的静态快照（由后台「🚫 无效音乐ID管理 → 📤 导出」得到）
 ├── images/                    图片资源
@@ -62,9 +61,9 @@
 │       ├── auth/              login.js（登录）/ check.js（登录态）/ logout.js（退出）
 │       ├── songs/             list.js / add.js / delete.js / clear.js / export.js / submit.js / submissions.js
 │       ├── quarantine/        list.js / import.js / delete.js（已下架名单，界面上叫「已下架」）
-│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销上报）/ list.js / mine.js / handle.js / **verify.js（体检 ID 存不存在）**
+│       ├── invalid/           report.js（访客上报）/ withdraw.js（撤销上报）/ list.js / mine.js / handle.js / verify.js（体检 ID 存不存在）
+│       │                      _actions.js（下架 / 驳回的共享 SQL）/ _audit.js（上报后的自动审核）
 │       ├── hot/               list.js（公开榜单）/ report.js（上报）/ delete.js（后台清榜）
-│       ├── visit/             stats.js（渠道统计）/ report.js（上报）
 │       ├── notices/           mine.js（后台公告）
 │       ├── sponsor/           list.js / register.js（登记订单）/ handle.js（核对）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
@@ -73,6 +72,7 @@
 ├── schema.sql                 D1 建表语句（**全新部署**跑这个）
 ├── migrations.sql             D1 增量迁移（**老库补字段**跑这个，见第五节）
 ├── d1-drop-blog.sql           老库清理用：删掉早期遗留的五张表（全新部署不需要）
+├── d1-drop-visits.sql         老库清理用：删掉 visit_sources（2026-11-21 线上已执行，全新部署不需要）
 ├── _headers                   Cloudflare Pages 静态资源响应头（安全头 + 缓存策略）
 ├── _redirects                 旧地址跳转：/sponsor → 鸣谢页（301）
 ├── robots.txt                 「请勿抓取」声明（挡规矩的 AI 采集爬虫，2026-10-05 新增）
@@ -168,7 +168,7 @@ Workers & Pages → D1 → 选择数据库 → Console → 粘贴 schema.sql 的
 ```
 
 `schema.sql` 会创建：`invalid_reports`、`quarantine_admin`、`songs_extra`、`thanks`、
-`page_updates`、`hot_songs`、`visit_sources`、`feedback`（已下线，仅留档）以及若干索引，
+`page_updates`、`hot_songs`、`feedback`（已下线，仅留档）以及若干索引，
 语句都是 `CREATE TABLE IF NOT EXISTS`，重复执行安全。
 
 > 2026-10-05：`invalid_reports` 是这轮新增的「无效音乐 ID 上报」表；`quarantine_admin`
@@ -563,7 +563,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
   本地双击 `index.html` 仍然可用：`js/common.js` 只在 `file:` 协议下把链接还原成 `.html`。
   ⚠️ 改 `_headers` 或链接后照样是「5 分钟 + 一次导航」生效，Ctrl + F5 可立即看到。
 - **两个「统计类」公开只读接口进了 60 秒缓存（2026-10-05）**：`/api/hot/list` 与
-  `/api/visit/stats` 的响应加了 `Cache-Control: public, max-age=60, stale-while-revalidate=600`。
+  `/api/visit/stats` 的响应加了 `Cache-Control: public, max-age=60, stale-while-revalidate=600`（该接口已随尺寸收集在 2026-11-21 删除）。
   ⚠️ 配套关键：**前端必须去掉 `?t=Date.now()`**（URL 一变缓存永远不命中）——宝库页那两处已经去掉了；
   后台（`js/admin.js`）仍然带 `?t=`，所以后台看到的永远是最新数据。
   ⚠️ **`/api/quarantine/list`（已下架名单）与 `/api/songs/list`（后台加的歌）故意保持 `no-store`**：
@@ -1424,8 +1424,11 @@ happy / sunny / joy（→ 搞笑音效，库里那批 Happy Song 就在这栏）
 - 后台：「📢 访问渠道来源」→ **「📱 玩家屏幕尺寸」**（格式说明写在标题旁）。
 - ⚠️ 老的渠道数据还在 `visit_sources` 表里（按旧渠道名分组），后台会混着显示；
   要清就 `DELETE FROM visit_sources WHERE source NOT LIKE '%@%';`（**没替站主动数据**，需要时自己执行）。
+  （2026-11-21：这张表已随尺寸收集一起 DROP，原始数据备份见第 20 节。）
 - 验收：`.verify/screen-size-407-20261017.mjs` 14/14（407×886 下视口/物理分辨率/DPR/标识全对、
   手动上报真的发到接口、自动上报确实发生、弹窗无溢出）。
+- **2026-11-21 已整块删除**：站主说收集结束，按钮 / 弹窗 / 前端上报 / 后台面板 /
+  `/api/visit/*` / D1 的 `visit_sources` 表全部清掉（结论与执行记录见第 20 节）。
 
 **这一轮的验收（都是真跑，不是看代码）**
 
@@ -1703,3 +1706,74 @@ D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare →
 - `#sponsorEntryModal` 加回：内容只有两条所有赞助者（不分金额）通用的权益——加入感谢名单公开鸣谢、加入专属社区；再加「☕ 去爱发电赞助」外链、「✅ 我赞助过了，去登记」→ `/support`、关闭。点卡片走 `openModal`，不再直接跳转。
 - D1 第 7 组已由 AI 用 Cloudflare API 直接执行（账号/库 ID 在 `.verify/cf-targets.json`，令牌在 `E:\.dsh\.credentials.yaml` 的 `refs.CLOUDFLARE_API_TOKEN`）：`sponsor_regs` 表 + 两条索引已建，`page_updates` 里的 sponsor 旧公告行已清。线上 `POST /api/sponsor/register` 实测返回 `{"ok":true}`，测试行随后已删除。
 - 验收：单测 26/26；E2E 26/26（新增「卡片圆角为 0」「弹窗两条权益」「去登记入口」断言），0 条 JS 报错。
+
+---
+
+### 20）2026-11-21：关于我 / QQ 群卡片 / 无效 ID 自动审核 / 删掉手机尺寸收集 / V3.4.5
+
+站主一次列了 5 件事（原话见下），这一轮全部落地：
+
+> 1. 公告删除，改成关于我的，我只能周末处理网站所有事情，主要是周六，其余时间需要学习
+> 2. 将QQ群的二维码直接放在网站主页右侧，弄个卡片，点进去是二维码
+> 3. 后台的无效音乐ID的体检功能，弄成自动的，每提交一个无效ID反馈，自动审核是否真的无效，若审核不出来，即不确定的，就留在待处理
+> 4. 手机尺寸的收集结束了，关于它的按钮，页面，后台，D1数据库等统统删除，结论如下……
+> 5. 最后弹出更新弹窗，版本号 +0.1.5
+
+**① 公告 → 关于我**
+
+- `index.html` 顶部那条「📢 公告」整块删除，原位置换成静态的「🌸 关于我」：
+  「网站上的所有事情，我只能周末处理，主要是周六；其余时间要学习。」
+- `js/common.js` 里的 5.5 节「全站必读公告弹窗」整段删除（含 `SITE_NOTICE_*`、
+  `showSiteNotice` / `openSiteNotice`、`noticeGate`），`css/style.css` 的
+  `.preview-notice-*` / `.site-notice-*` 样式一并清掉。
+- 首页不再有公告入口；版本更新弹窗不受影响（现在直接弹，不再等公告闸门）。
+
+**② QQ 群卡片**
+
+- 首页右侧新增 `.qq-side`：宽屏固定在右侧中间，卡片里直接露出二维码缩略图；
+  窄屏（<1360px）收成右下角小按钮，避免挡正文。
+- 点击打开 `#qqGroupModal`：完整二维码 + 群号 `1125311966`，手机可长按识别。
+- 图片仍用仓库里的 `images/qq-group-zmist.jpg`；原来塞在公告弹窗里的群卡片随公告一起删除。
+
+**③ 无效 ID 上报自动审核**
+
+- 访客提交 `type='invalid'` 上报后，`functions/api/invalid/report.js` 用
+  `context.waitUntil()` 在响应发出后跑 `functions/api/invalid/_audit.js`，不拖慢提交。
+- 判据（**只有明确的才自动结案**）：
+  - `assetdelivery` 200/206 → **明确能播** → 自动标 `noted`（不留在待处理）；
+  - `assetdelivery` 404 且 `economy` 404 → **明确不存在** → 自动下架；
+  - `assetdelivery` 403 且 `economy` 200 → **存在但取不到音频**（下架/未授权）→ 自动下架；
+  - 其它（401 / 429 / 5xx / 超时 / 两边说法对不上）→ `unknown`，**原样留在「🚫 待处理上报」**。
+- 安全阀：先拿两首长期在架的对照 ID 探一次上游；探不通就只做「明确能播」的判定，
+  403 这类需要二次确认的一律留人工，避免 Roblox 抽风时批量误杀。
+- 下架 / 驳回的 SQL 抽到 `functions/api/invalid/_actions.js`，后台手动操作与自动审核共用一套。
+- 后台那颗按钮保留为「🔍 复检待处理」（自动审核没结论的可以再问一遍），文案已同步。
+
+**④ 手机尺寸收集全部删除（含 D1）**
+
+- 宝库页：删掉「📱 你的手机屏幕尺寸」按钮、`#visitSourceModal` 弹窗、设备识别 / 型号对照 /
+  静默自动上报整段脚本。
+- 后台：删掉「📱 玩家屏幕尺寸」面板、两条 KPI 卡与 `loadSourceStats()`；数据统计只剩热度汇总。
+- 后端：删掉 `functions/api/visit/report.js`、`stats.js` 整个目录；`schema.sql` 不再建 `visit_sources`。
+- 静态数据：删掉 `data/device-models.json`。
+- D1：新增 `d1-drop-visits.sql`；站主这次已用 Cloudflare API 直接执行（2026-11-21）：
+  先把 **655 行**导出到 `归档\2026-11-21-095043-织雾满穗-关于我与清理\visit_sources-export-2026-11-21.json`，
+  再 `DROP TABLE visit_sources`，线上库里已确认没有这张表。
+- **收集结论（留档）**：最常见宽度 **360px**；最小宽度 **320px（HarmonyOS / K）**、**768px（iPad）**。
+  以后改断点按这三个数来，不需要再收数据。
+
+**⑤ 更新弹窗**
+
+- `data/updates.json` 的 `index` 升到 **V3.4.5**（V3.3.0 + 0.1.5，2026-11-21），
+  标题「关于我 + QQ 群」，主题 `theme-blue`，正文就是上面这五条改动。
+- 访客浏览器里的 `pageVersion_index` 与新版不一致时弹一次；想重新弹给所有人就再改 `version`。
+
+**⑥ 需要站主做的事**
+
+- 代码推上去后 Cloudflare Pages 会自动部署；D1 的表这次已经由 AI 用 API 删掉了，**你不需要再跑 SQL**。
+- 如果你以后重建库，`schema.sql` 里已经没有 `visit_sources`，不用跑 `d1-drop-visits.sql`；
+  只有老库才需要它。
+- **回退**：本次改动前的文件备份在
+  `归档\2026-11-21-095043-织雾满穗-关于我与清理\`；
+  D1 的原始尺寸数据备份在同一个目录的 `visit_sources-export-2026-11-21.json`。
+

@@ -1088,215 +1088,16 @@ function initShareTriggers() {
   }
 
   /* ============================================================
-     5.5 全站必读公告弹窗
+     5.5 （已删除）全站必读公告弹窗
      ------------------------------------------------------------
-     2026-09-27：原来的「预览版告知弹窗」整段换成这个（用户要求：
-     「预览版的弹窗删除了，改成这个」；「预览版」三个字改放到首页大标题后面）。
-     · 只在首页（index.html / 站点根路径）弹
-     · 每个浏览器只弹一次（记住在 localStorage 里）
-     · 想让它重新弹给所有访客看，只要把下面的版本号 +1
-     · 点空白处、按 ESC 都关不掉，只能点弹窗里的按钮
-     · 首页那条「📢 公告」可以再次打开它（window.openSiteNotice）
-     · 倒计时已取消（2026-09-27 用户说「算了，倒计时取消吧」）：
-       不论自动弹还是手动重看，「我已阅读并知晓」一打开就能点
-     · **2026-10-05 站主要求「把公告弹窗删除了，但是公告保留」→ 不再自动弹**
-       （initUI 里那句 setTimeout(showSiteNotice, …) 已删，改成初始化时直接放行 noticeGate）。
-       公告本体一个字没少，只是改成「访客想看的时候，点首页那条 📢 公告才打开」。
-       想恢复自动弹：把 initUI 里那句 setTimeout 加回去即可（本函数原样保留 force 参数）。
+     2026-11-21：首页「📢 公告」与对应的必读公告弹窗一起下线，
+     原位置改成静态的「关于我」；访客侧不再有这份公告的任何入口。
+     【回退办法】从 git 上一个版本取回本节 + index.html 的公告条即可。
      ============================================================ */
-  const SITE_NOTICE_KEY = 'zm_site_notice_seen';
-  /* 注意：内容有改动时把这个数字 +1，所有访客下次打开首页就会重新看到一次。
-     （2026-10-05 起不再自动弹，这个版本号只在「以后恢复自动弹」时才有意义，
-      留着是为了记录内容变更历史。）
-     2026-09-27 v1 → v2：加了「郑重道歉」（对 duck、对用户），必须让看过 v1 的人也再看到一次。
-     2026-09-29 v2 → v3：道歉措辞改为「我和 duck 已经互相道歉」，并去掉歌单数量描述。
-     2026-09-29 v3 → v4：删掉道歉区块里「我和 duck 已经互相道歉」那一段。
-     2026-09-29 v4 → v5：加一句「duck 和他的群不归我管」。
-     2026-09-29 v5 → v6：删掉公告开头的歌单来源说明段。
-     2026-10-05 v6 → v7：删掉「站还是我一个人在维护…进我的群说一声就行」那一段；
-                        两个群的说明改成「进群前先看清分别是什么」——见下面群卡片与那句说明。
-     2026-10-05 v7 → v8：两个群的说明顺序改成「先我的群、再 duck 的群」（跟上面两张卡片一致）；
-                        删掉结尾「⚠️ 本站目前仍是预览版…自行二次确认。」那一段；
-                        两张二维码下面的短说明恢复成原来的「提建议 / 报 BUG / 让我加歌单」那种写法
-                        （站主：「2 个群的二维码下面改成像之前一样的那个『提建议/报 bug』等内容」）——
-                        卡片只留「进群干什么」，RP / 群规 / 不归我管这些在下面那段里说。
-     2026-11-08 v8 → v9：站主要求删掉「duck 的第三方 RP 群」的全部内容
-                        （二维码卡片、群号、以及「两个群分别是什么」那句对比说明），
-                        只剩站主自己的群；群说明段落同步收缩成一条。 */
-  const SITE_NOTICE_VERSION = '9';
-
-  /* 公告的「日期」只有一个来源（2026-10-05 站主要求「滚动公告加个时间」时确立）：
-     · 首页那条滚动公告右上角的日期章（index.html 的 [data-announce-date]）；
-     · 公告弹窗顶部那枚日期（.preview-notice-ver）。
-     两处都由 initUI → fillSiteNoticeDate() 用这个常量回填，**改内容就改这一行**，
-     免得出现「滚动条上写一个日期、弹窗里写另一个日期」。
-     2026-10-05：公告内容是这天改的（删掉维护说明那段、重写两个群的说明），所以填今天。
-     2026-11-08：删掉 duck 那个第三方 RP 群之后公告内容又变了，日期跟着改成今天。 */
-  const SITE_NOTICE_DATE = '2026-11-08';
-
-  /* 把上面那个日期填进页面里所有 [data-announce-date] 占位处（没脚本时显示 HTML 里的兜底值） */
-  function fillSiteNoticeDate(scope) {
-    const root = scope || document;
-    root.querySelectorAll('[data-announce-date]').forEach(el => {
-      el.textContent = SITE_NOTICE_DATE;
-      if (el.hasAttribute('title')) el.setAttribute('title', '这条公告最后更新于 ' + SITE_NOTICE_DATE);
-    });
-  }
-
-  /* 用来让「版本更新弹窗」等必读弹窗关掉之后再出现，避免两个弹窗撞在一起。
-     2026-10-05：公告不再自动弹 → initUI 里会立刻放行这个闸门，
-     否则「版本更新公告」要白等到下面那个 20 秒兜底超时才出现。 */
-  let releaseNoticeGate;
-  const noticeGate = new Promise(resolve => { releaseNoticeGate = resolve; });
-  /* 兜底：万一弹窗没跑起来，20 秒后也必须放行 */
-  setTimeout(() => { if (releaseNoticeGate) releaseNoticeGate(); }, 20000);
-
-  /* 只在首页弹：站点根路径 / 与 /index.html 都算首页，其它页面（宝库/鸣谢/后台/404）不弹 */
-  function isHomePage() {
-    const path = (window.location.pathname || '').toLowerCase();
-    if (path === '' || path === '/') return true;
-    return path.indexOf('index.html') !== -1;
-  }
-
-  /* force=true 时无视「已经看过」的记录（首页那条公告点开走的就是这条路） */
-  function showSiteNotice(force) {
-    const release = () => { if (releaseNoticeGate) { releaseNoticeGate(); releaseNoticeGate = null; } };
-
-    if (!hasSharedStyles()) { release(); return; }
-    if (!isHomePage()) { release(); return; }
-    if (document.documentElement.getAttribute('data-notice') === 'off') { release(); return; }
-
-    if (force !== true) {
-      let seen = null;
-      try { seen = localStorage.getItem(SITE_NOTICE_KEY); } catch (e) {}
-      if (seen === SITE_NOTICE_VERSION) { release(); return; }
-    }
-
-    const modalId = 'siteNoticeModal';
-    const old = document.getElementById(modalId);
-    if (old) old.remove();        /* 已开着就先拆掉重建，保证倒计时重新从 10 秒走 */
-
-    const modal = document.createElement('div');
-    modal.id = modalId;
-    modal.className = 'modal preview-notice-modal';   /* 复用原来那套弹窗样式 */
-    modal.dataset.static = 'true';                    /* 遮罩不可关（全局也已禁用，这里再表一次态） */
-    modal.dataset.noEsc = 'true';                     /* ESC 也关不掉 */
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', modalId + 'Title');
-
-    modal.innerHTML = `
-      <div class="modal-content preview-notice-content">
-        <div class="preview-notice-top">
-          <span class="preview-notice-badge">📢 站点公告</span><span class="preview-notice-ver">${SITE_NOTICE_DATE}</span>
-        </div>
-        <h2 id="${modalId}Title">关于 Roblox ID 宝库歌单来源的说明</h2>
-        <!-- 2026-09-29 站主要求：删掉原来的开头段
-             （「宝库里的歌单，此前有一部分是 duck 整理的…我决定：」），
-             列表直接跟在标题下面。 -->
-        <ul class="preview-notice-body site-notice-list">
-          <li>从今天起<strong>不再使用 duck 整理的那份歌单</strong>；</li>
-          <li>宝库主列表<strong>只保留我确认过的这些歌</strong>；</li>
-          <li>其余的歌已经单独存成 JSON 文件留档，不会丢；数据库里已有的歌也<strong>不做任何改动</strong>，照常显示、照常搜索。</li>
-        </ul>
-
-        <!-- 道歉区块（2026-09-27 建立；2026-09-29 站主要求删掉其中「我和 duck 已经互相道歉」那一段，
-             只保留对本站用户的道歉）：
-             单独用警示色框起来，见 css/style.css 的 .site-notice-apology。 -->
-        <div class="site-notice-apology">
-          <p class="site-notice-apology-title">🙏 郑重道歉</p>
-          <p class="site-notice-apology-item">
-            <strong>对使用本站的大家道歉：</strong>因为我个人的原因，宝库的歌单一下子少了一大截，
-            让你白跑一趟、没找到想听的歌，真的很抱歉。我会尽快把歌单补回来，
-            也欢迎你把想听的 ID 发给我。
-          </p>
-        </div>
-
-        <p class="preview-notice-body site-notice-call">
-          🧩 <strong>希望大家帮忙补歌</strong>：如果你手上有好听的 Roblox 音乐 ID，
-          把「歌名 + ID」发给我就行（进下面的群发即可），
-          我会陆续把它们补进宝库，让这里重新热闹起来。
-          <!-- 2026-10-05：这里原来还写着「或者去反馈页留言都可以」，反馈页已删除，去掉这半句。 -->
-        </p>
-
-        <!-- 2026-10-05 站主要求删掉这一段（原话：「把公告里面的『站还是我一个人在维护，
-             后面会继续按自己的节奏补歌。想加歌、报 BUG、提建议，进我的群说一声就行。』删除了」）。
-             别再顺手加回来 —— 这两句的意思上面「希望大家帮忙补歌」和下面的群说明里已经都有。 -->
-
-        <!-- QQ 群（2026-09-27 用户提供）：点图在新标签打开原图，手机上可直接长按识别。
-             2026-11-08 站主要求：把「duck 的第三方 RP 群」相关内容全部删掉 ——
-             第二张二维码卡片、群号、下面的对比说明一并删除，这里只剩站主自己的群。
-             【回退】备份在 .verify/backup-notice-group-20261108/js/common.js（含原版群图），
-             或 git show HEAD:js/common.js 取回原文件；改回来时把那张卡片和说明按备份贴回即可。 -->
-        <div class="site-notice-groups">
-          <p class="site-notice-groups-title">📮 我的 QQ 群</p>
-          <div class="site-notice-group-list">
-            <a class="site-notice-group" href="images/qq-group-zmist.jpg" target="_blank" rel="noopener">
-              <!-- 2026-10-05 性能：群图在公告弹窗的**下半部分**，多数访客不会往下滚 ——
-                   加 loading="lazy" 后不滚就不下载（滚到了照常显示）。
-                   2026-11-08：另一个群的那张图（约 80KB）随该群内容一起删了，这里只剩一张。 -->
-              <img src="images/qq-group-zmist.jpg" alt="ZhiMist QQ 群二维码，群号 1125311966" width="520" height="592" loading="lazy" decoding="async">
-              <span class="site-notice-group-name">ZhiMist（我的群）</span>
-              <span class="site-notice-group-no">群号 1125311966</span>
-              <span class="site-notice-group-desc">提建议 / 报 BUG / 让我加歌单</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- 2026-11-08 站主要求：原来这段标题是「加群前先分清这两个群」，其中
-              duck 的第三方 RP 群那一条随该群内容一起删掉；
-              「我这边只负责本站（织雾满穗）的内容」是那条的尾巴，也一并删。
-              现在只剩站主自己的群，保留原来「守法前提下随便说、可以批评我」的说明。 -->
-        <p class="preview-notice-body">
-          ℹ️ <strong>我的群（ZhiMist）</strong>：只要遵守法律法规，你想说什么都行 ——
-          哪怕是批评我、说我哪里做得不好都可以，我会吸取教训。
-        </p>
-
-        <!-- 📺 求关注：2026-10-05 站主先说「顺便求个关注」加在这里，
-             随后又明确「公告里面不要有跟关注有关的」→ **整段删除**（连同 CSS .site-notice-bili）。
-             求关注的入口只保留首页 hero 下面那条细横幅（index.html 的 .bili-follow）。
-             别再往公告里加关注相关的内容。 -->
-
-        <!-- 2026-10-05 站主要求删掉这一段（原话：「把『⚠️ 本站目前仍是预览版，
-             功能和内容都在陆续调整；重要内容请自行二次确认。』删除了」）。
-             它用的 .preview-notice-note / .preview-notice-note-icon 两条 CSS 也一并删了
-             （css/style.css 里留了说明与历史提交号）。 -->
-        <div class="preview-notice-actions" id="siteNoticeActions">
-          <!-- 2026-10-05：站主要求反馈功能整页下线，这里原来那颗
-               「💬 去反馈」（href="feedback.html"）随之删除，
-               公告弹窗只剩「我已阅读并知晓」一个出口。 -->
-          <button type="button" class="btn btn-primary" id="siteNoticeOk">我已阅读并知晓</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    openModal(modalId);
-
-    const okBtn = document.getElementById('siteNoticeOk');
-    const markSeen = () => { try { localStorage.setItem(SITE_NOTICE_KEY, SITE_NOTICE_VERSION); } catch (e) {} };
-
-    /* 【2026-09-27 用户要求】倒计时整个取消：按钮一打开就能点。
-       这个弹窗是「必须读完」的：遮罩不可关、ESC 也关不掉（data-static / data-no-esc），
-       2026-10-05 反馈页删除后只剩「我已阅读并知晓」这一个出口
-       （原来还有一个「💬 去反馈」跳走的出口，已随反馈功能一起下线）。 */
-    if (okBtn) okBtn.onclick = () => { markSeen(); release(); closeModal(modalId); };
-
-    const onClose = e => {
-      if (e.detail.id !== modalId) return;
-      document.removeEventListener('zm:modalclose', onClose);
-      markSeen();
-      release();
-    };
-    document.addEventListener('zm:modalclose', onClose);
-  }
-
-  /* 首页那条「📢 公告」点开的就是这个弹窗（不受「已经看过」的限制） */
-  function openSiteNotice() { showSiteNotice(true); }
 
     /* 统一初始化 */function initUI() {
   applyLiteMode();
   fillSiteCost();
-  fillSiteNoticeDate();   /* 滚动公告 / 公告弹窗上的日期（只有一个来源 SITE_NOTICE_DATE） */
   fillSponsorTotal();     /* 「收到的赞助」：按 D1 + 底档现算（0.6 节） */
   initShareTriggers();    /* 全站 [data-share] 分享入口（0.7 节） */
     bindModalA11y();
@@ -1316,15 +1117,6 @@ function initShareTriggers() {
     initReveal();
     initLocalFileLinks();   /* 仅 file:// 下生效：把干净 URL 还原成 .html，保住本地双击浏览 */
     initPageTransition();
-
-    /* 2026-10-05 站主要求：「把公告弹窗删除了，但是公告保留」——
-       所以这里**不再自动弹**那个「全站必读公告」（原来这里有一句延后调用，
-       形如 set‌Timeout(show‌SiteNotice, …)，已删）。公告本体与首页入口都保留：
-       访客想看的时候，点首页那条 📢 公告就会打开它（window.openSiteNotice → showSiteNotice(true)）。
-       想恢复自动弹：把那一句加回来即可（showSiteNotice 本身原样保留，带 force 参数）。
-       ⚠️ 不再自动弹之后，那个「避免两个弹窗撞车」的 noticeGate 必须**当场放行**，
-       否则下面的「版本更新公告」会一直等到 20 秒兜底超时才出现。 */
-    if (releaseNoticeGate) { releaseNoticeGate(); releaseNoticeGate = null; }
 
     /* 2026-10-05：原来这里还会调 checkFeedbackDecision() 去查「我提过的反馈有没有被处理」。
        反馈功能整页下线（feedback.html 已删、/api/feedback/* 已删），回执弹窗一并删除。 */
@@ -1409,9 +1201,6 @@ function initShareTriggers() {
     let stored = null;
     try { stored = localStorage.getItem(storageKey); } catch (e) {}
     if (stored === version) return;
-
-    /* 等「预览版告知」弹窗关掉之后再弹更新公告，避免两个弹窗叠在一起 */
-    await noticeGate;
 
     let cfg = null;
     if (Array.isArray(updates) && updates.length > 0) {
@@ -1912,7 +1701,6 @@ function initShareTriggers() {
     showToast,        // 底部短提示
     showNotice,       // 顶部提示条
     showConfirm,      // 确认弹窗（返回 Promise）
-    openSiteNotice,   // 重新打开「全站必读公告」弹窗（首页那条公告用）
     openShareModal,   // 打开「分享本站」弹窗（页脚 / 宝库工具栏等自己加按钮时用）
     openModal,        // 打开弹窗
     closeModal,       // 关闭弹窗

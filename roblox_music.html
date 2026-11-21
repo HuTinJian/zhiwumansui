@@ -5,41 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Roblox ID 宝库 - 织雾满穗</title>
 
-  <!-- 2026-10-10：下面两处数字原来写的是「2900+」，早就过时了（当天数据已是 4799 条）。
-       2026-11-07：后台导出合并进 data/roblox_music.json 后是 4955 条，两处同步改成 4955+。
-       规则：data/roblox_music.json 的条数变了，就顺手把这两个数字一起改。
-       ⚠️ 别想着用 JS 动态改 og:description —— 微信 / QQ / Twitter / Facebook 的分享卡片
-       抓取器【不执行 JS】，动态写进去它们看不到；对搜索与分享有效的只有这里写死的静态值。 -->
-  <meta name="description" content="收录 4955+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与无效上报，持续更新。">
+  <!-- 下面的数字必须与 data/roblox_music.json 的条数保持一致；条数变了就一起改。不要改成 JS 动态写入 og:description —— 微信 / QQ / Twitter / Facebook 的分享卡片抓取器不执行 JS，动态值对搜索与分享无效。 -->
+  <meta name="description" content="收录 4959+ 个 Roblox 游戏内可用的音乐与音效 ID，欢迎进群投稿补充；支持关键词搜索、分类筛选、一键复制、收藏与无效上报，持续更新。">
   <meta name="keywords" content="Roblox,音乐ID,音效ID,SoundId,Roblox 音乐,织雾满穗">
-  <!-- 2026-10-25 中国色施工：浏览器地址栏基色改为宣纸米色（浅色主题），
-       深色主题由 js/common.js 切换 theme-color 时覆盖，这里只管浅色。
-       【回退办法】改回旧的粉色基色（具体色值见 .verify/backup-theme-20261025/roblox_music.html 同位置）。 -->
+  <!-- 浏览器地址栏基色（浅色主题）为宣纸米色；深色主题由 js/common.js 切换 theme-color 时覆盖，这里只管浅色。 -->
   <meta name="theme-color" content="#F5F0E6">
   <meta name="color-scheme" content="light dark">
   <meta property="og:title" content="Roblox ID 宝库 - 织雾满穗">
-  <meta property="og:description" content="4955+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
+  <meta property="og:description" content="4959+ 个 Roblox 音乐 ID，一键复制，随取随用；也欢迎投稿补充。">
 
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <!-- ============================================================
-       2026-10-18 性能修复：这段**必须**排在 <link rel="stylesheet"> 之前。
-       原来排在样式表后面 —— 按 HTML 规范，内联脚本标签执行前要先等它前面
-       尚未下载完的样式表，于是 591KB 的主数据 JSON 要等 style.css（gzip 约 19KB）
-       下完才发请求，跟旧注释写的「与 CSS 并行」正好相反。
-       挪到前面后，JSON 请求与样式表真正并行，冷启动首访能省一个 RTT。
-       这段只写 window.__zmMainData，不读任何样式，提前执行没有副作用；
-       页面底部 loadData() 仍然复用同一个 promise。
+       这段必须排在 <link rel="stylesheet"> 之前：按 HTML 规范，内联脚本执行前要等它前面尚未下载完的样式表，放在后面会让主数据 JSON 串行等 style.css 下完才发请求。
+       本段只写 window.__zmMainData，不读任何样式，提前执行没有副作用；页面底部 loadData() 仍然复用同一个 promise。
        失败时返回 null（不产生未处理的 rejection），由 loadData 统一提示。
-       【回退办法】把这段整块挪回 <link> 之后即可（只影响快慢，不影响功能）。 -->
+       【回退办法】把这段整块挪回 <link> 之后即可（只影响快慢，不影响功能）。
+       ============================================================ -->
   <script>
     (function () {
       try {
         window.__zmMainData = fetch('data/roblox_music.json').catch(function () { return null; });
-        /* 2026-11-06 性能：辅助数据（已下架快照 / 下架接口 / D1 新歌 / 热门榜）也从 <head> 里
-           提前发出去，并顺手解析成 JSON（纯数据，不是 Response —— 这样首屏超时后的
-           「迟到补画」再调一次 loadAuxLists() 也不会重复读同一个响应体）。
-           原先它们在页面底部 loadData() 才发，而整页有 97KB 内联脚本要先解析完，
-           等于白等一个「解析耗时 + 一个接口 RTT」；实测暖加载时歌单要等这串接口 ~700ms。
+        /* 辅助数据（已下架快照 / 下架接口 / D1 新歌 / 热门榜）在 <head> 里提前发出，并顺手解析成 JSON（纯数据，不是 Response —— 首屏超时后的「迟到补画」再调一次 loadAuxLists() 也不会重复读同一个响应体）。
            失败一律 resolve 成 null，不产生未处理的 rejection。
            【回退办法】删掉 __zmAuxPre / __zmHotPre 这两行即可（功能不变，只是慢回原样）。 */
         window.__zmAuxPre = Promise.all([
@@ -65,11 +51,8 @@
       try {
         var t = null;
         try { t = localStorage.getItem('zm_theme'); } catch (e) {}
-        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
-           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
-           【回退办法】把这个 if 块整段删掉、并把上面那行改回
-           var t = localStorage.getItem('zm_theme');
-           备份：.verify/backup-theme-20261107/本文件名 */
+        /* 手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），这里用 cookie 兜底，读写口径与 js/common.js 一致。
+           【回退办法】把这个 if 块整段删掉，并把上面那行改回 var t = localStorage.getItem('zm_theme'); */
         if (t !== 'dark' && t !== 'light') {
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
@@ -85,8 +68,6 @@
   </script>
 
   <style>
-    /* 2026-09-26：原来这里有一整块 .header-nav / .nav-btn 样式，
-       只服务于页头那颗「❤️ 鸣谢名单」按钮；按钮按用户要求删掉了，样式一并移除。 */
 
     .container {
       max-width: 1100px;
@@ -95,8 +76,7 @@
     }
 
     .page-header {
-      /* 底色走主题变量：浅色暖金、深色墨夜（2026-10-25 由 css/style.css 的 --header-grad-* 决定）。
-         【回退办法】本行不用改 — 想恢复旧页头配色，只改 css/style.css 里这两个令牌即可。 */
+      /* 底色走主题变量：浅色暖金、深色墨夜（由 css/style.css 的 --header-grad-* 决定）。想恢复旧页头配色，只改 css/style.css 里这两个令牌即可。 */
       background: linear-gradient(145deg, var(--header-grad-a), var(--header-grad-b));
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -133,8 +113,7 @@
     .page-header .stats .fav-stat strong {
       color: var(--gold-ink);
     }
-    /* 深色模式开关的落点（2026-10-04：导航栏取消后，从导航栏搬进页头右上角）。
-       common.js 的 injectThemeToggle 会找 [data-theme-slot] 把开关插进来。 */
+    /* 深色模式开关的落点：common.js 的 injectThemeToggle 会找 [data-theme-slot] 把开关插进来。 */
     .header-tools {
       display: inline-flex;
       align-items: center;
@@ -160,42 +139,15 @@
       font-family: var(--font);
       transition: all 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    /* 2026-10-05：原来这里是「⛔ 我的隔离区」按钮的配色（.btn-quarantine-custom）。
-       访客隔离区已被「无效处理 / 无效批量处理」整条链路取代（上报进后台的
-       「🚫 无效音乐ID管理」），那颗按钮连同它的样式一起删掉。 */
 
     /* 这个按钮原来带一个「一直轻微放大」的循环动画。
        它虽然只动 transform（不算贵），但页面放着不动也在持续耗电，
        而收益只是「看起来在呼吸」。为了整体流畅度，改成静态按钮，
        靠颜色和阴影本身就已经够醒目了。 */
-    /* 2026-10-25 中国色施工：这颗「玩家/信息类」按钮统一走竹青深底 + 奶白字。
-       浅深两套主题下 --success-strong 都是深青（压奶白字对比度 6:1 以上），
-       光晕用 --accent-mist-line（青瓷描边色），不再写死蓝色渐变。
-       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-source 两段覆盖回来。 */
-    .btn-source {
-      background: var(--success-strong);
-      color: var(--text-on-accent);
-      border: none;
-      box-shadow: 0 6px 18px var(--accent-mist-line);
-      font-weight: 700;
-    }
-    .btn-source:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px var(--accent-mist-line);
-    }
-    .btn-source:active {
-      transform: scale(0.93);
-    }
 
-    /* 2026-10-09：为工具栏那颗「⚖️ 法律」写过的 .btn-law 金色样式，随按钮一起删掉
-       （站主当天要求把宝库页的「法律」按钮删掉）。别再往这一页工具栏加法律按钮。 */
 
-    /* ========== 「📌 问题上报」按钮 + 上报面板（2026-10-05 新增，10-07 改名并分两类） ==========
-       访客上报过的东西在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），
-       可以单条撤回 / 全部撤回。数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 */
-    /* 2026-10-25 中国色施工：墨色按钮 —— 底 var(--primary)、字 var(--bg)，
-       浅色=墨底宣纸字，深色=月白底墨字，两套主题自动反差，不再写死蓝灰渐变。
-       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-mine 两段覆盖回来。 */
+    /* ========== 「📌 问题上报」按钮 + 上报面板：访客上报在这里集中看到（🚫 无效ID / ✏️ 信息出错 两类标签），可单条撤回 / 全部撤回；数据按浏览器匿名身份过滤（GET /api/invalid/mine）。 ========== */
+    /* 墨色按钮：底 var(--primary)、字 var(--bg)；浅色=墨底宣纸字，深色=月白底墨字，两套主题自动反差，不写死蓝灰渐变。 */
     .btn-mine {
       background: var(--primary);
       color: var(--bg);
@@ -209,10 +161,7 @@
     }
     .btn-mine:active { transform: scale(0.93); }
 
-    /* 「➕ 添加歌曲ID」是全页的主行动按钮。
-       2026-10-25 中国色施工：改成朱砂渐变 + 奶白字（突出就突出）；
-       金只留给收藏/荣誉/状态标识，不再当普通按钮底色。
-       【回退办法】用备份里 .btn-submit-song 两段覆盖回来。 */
+    /* 「➕ 添加歌曲ID」是全页的主行动按钮：朱砂渐变 + 奶白字；金只留给收藏/荣誉/状态标识，不当普通按钮底色。 */
     .btn-submit-song {
       background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       color: var(--text-on-accent);
@@ -226,18 +175,14 @@
     }
     .btn-submit-song:active { transform: scale(0.93); }
 
-    /* 「📌 问题上报」弹窗里的两类标签（2026-10-07）：复用全局 .seg-tabs 那套药丸样式 */
+    /* 「📌 问题上报」弹窗里的两类标签：复用全局 .seg-tabs 那套药丸样式 */
     .myrep-tabs { margin: 0 0 12px; }
     .myrep-tabs .seg-tab { font-size: 0.8rem; padding: 6px 14px; }
 
     /* ✏️ 信息出错 / ➕ 添加歌曲ID 两个弹窗里的表单（同一个样式块） */
     .info-err-form { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
     .info-err-form label { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
-    /* 2026-10-17 新增 select：任务「游客添加歌曲的类型可以继续选择」——
-       「➕ 添加歌曲ID」弹窗的「分类」从纯手写改成下拉（也能手写自定义），
-       下拉沿用同一套表单外观（和 input / textarea 完全一致）。
-       【回退办法】删掉下面选择器里的 `.info-err-form select,` 这一行即可，
-       下拉会退回浏览器默认外观（功能不受影响）。 */
+    /* 「分类」下拉沿用同一套表单外观（与 input / textarea 完全一致）。【回退办法】删掉下面选择器里的 .info-err-form select, 这一行，下拉会退回浏览器默认外观（功能不受影响）。 */
     .info-err-form input,
     .info-err-form select,
     .info-err-form textarea {
@@ -251,19 +196,13 @@
       color: var(--text);
       resize: vertical;
     }
-    /* 2026-10-25 中国色施工：表单聚焦环走全局金令牌（金色只做标识/高亮线，不做大面积底）。
-       【回退办法】用备份里对应规则覆盖回来。 */
+    /* 表单聚焦环走全局金令牌（金色只做标识/高亮线，不做大面积底）。 */
     .info-err-form input:focus,
     .info-err-form select:focus,
     .info-err-form textarea:focus { outline: 2px solid rgba(var(--gold-rgb), 0.45); border-color: var(--gold); }
     /* 下拉本身跟输入框一样高、一样圆角；cursor 给个指针免得看不出来能点 */
     .info-err-form select { cursor: pointer; }
-    /* 「✅ 确定上报 / 提交投稿」是弹窗里的主行动。2026-10-25 中国色施工：改成朱砂渐变 + 奶白字
-       （跟页头「添加歌曲」同一套行动色）；金只做状态标识，不再铺在按钮上。
-       【回退办法】用 .verify/backup-theme-20261025/roblox_music.html 里 .btn-info-confirm 两段覆盖回来。
-       2026-10-07 站主反馈「提交投稿的按钮样式不好看，不是胶囊的」——
-       原来这里没写圆角，落到了通用按钮的圆角上；现在跟弹窗里其它按钮一样用**胶囊**
-       （border-radius: var(--radius-pill)），内边距也对齐「关闭 / 取消」那几颗。 */
+    /* 「✅ 确定上报 / 提交投稿」是弹窗里的主行动：朱砂渐变 + 奶白字（与页头「添加歌曲」同一套行动色）；金只做状态标识，不铺在按钮上。按钮用胶囊形（border-radius: var(--radius-pill)），内边距与「关闭 / 取消」对齐。 */
     .btn-info-confirm {
       background: linear-gradient(135deg, var(--primary-btn-a), var(--primary-btn-b));
       color: var(--text-on-accent);
@@ -295,9 +234,7 @@
       background: rgba(var(--gold-rgb), 0.16);
       color: var(--gold-ink);
     }
-    /* 2026-10-25 中国色施工：删掉深色专用覆盖 —— --gold-ink 在深色下本身就是提亮金，
-       一套规则两套主题都够看，少一处写死色值。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .myrep-type-tag 两条。 */
+    /* --gold-ink 在深色下本身就是提亮金，一套规则两套主题都够用，不需要深色专用覆盖，也少一处写死色值。 */
     .myrep-note-cell { color: var(--text-light); font-size: 0.78rem; max-width: 260px; word-break: break-word; }
 
     .myrep-note {
@@ -317,14 +254,13 @@
       background: var(--bg-card);
     }
     /* ============================================================
-       2026-10-17：上报列表从「6 列大表格」改成「卡片行」，四要素一眼看到：
-         第一行：歌名（长名字自动省略号 + 悬停看全名）、状态
-         第二行：ID、时间、操作按钮
-       基准尺寸 = 小米 17 6.3 英寸（CSS 视口约 407×886），
-       所以第一行用 flex + min-width:0 + ellipsis 防撑破，第二行用 nowrap + auto 推按钮。
-       【回退办法】删掉 .myrep-list / .myrep-row / .myrep-row-main / .myrep-row-sub /
-         .myrep-note-line 这五组规则即可（旧 .myrep-table 样式一直保留着，没删）。
-       ============================================================ */
+         上报列表 = 卡片行，四要素一眼看到：
+           第一行：歌名（长名字自动省略号 + 悬停看全名）、状态
+           第二行：ID、时间、操作按钮
+         基准尺寸 = 小米 17 6.3 英寸（CSS 视口约 407×886）：
+         第一行用 flex + min-width:0 + ellipsis 防撑破，第二行用 nowrap + auto 推按钮。
+         【回退办法】删掉 .myrep-list / .myrep-row / .myrep-row-main / .myrep-row-sub / .myrep-note-line 这五组规则即可（旧 .myrep-table 样式一直保留着，没删）。
+         ============================================================ */
     .myrep-list { display: flex; flex-direction: column; }
     .myrep-row {
       display: flex;
@@ -416,10 +352,7 @@
       white-space: nowrap;
     }
     .myrep-status.pending { background: rgba(var(--ink-rgb), 0.10); color: var(--primary-ink); }
-    /* 2026-10-26 语义修正（原来颜色也正好反了）：
-         removed（确认无效并下架）= 反馈成功 → 竹青/青瓷成功色
-         noted（无效反馈）        = 反馈不成立 → 胭脂红警示色
-       【回退办法】把下面两条的 background/color 对调回 2026-10-25 版本。 */
+    /* 语义：removed（确认无效并下架）= 反馈成功 → 竹青/青瓷成功色；noted（无效反馈）= 反馈不成立 → 胭脂红警示色。【回退办法】把下面两条的 background/color 对调即可。 */
     .myrep-status.removed { background: var(--accent-mist-soft); color: var(--accent-mist); }
     .myrep-status.noted { background: var(--danger-bg); color: var(--danger); }
     .myrep-status.local { background: var(--info-bg); color: var(--info-ink); }
@@ -435,9 +368,7 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s var(--ease-soft);
-      /* 2026-10-17：按小米 17（407×886）实测这颗按钮只有 26px 高，手指偏难点中；
-         补到 30px 并垂直居中（再大会把卡片副行撑高，反而不好看）。
-         【回退办法】删掉下面三行即可恢复原来的 26px。 */
+      /* 这颗按钮按 407×886 实测只有 26px 高、手指偏难点中，所以补到 30px 并垂直居中（再大会把卡片副行撑高，反而不好看）。【回退办法】删掉下面三行即可恢复 26px。 */
       min-height: 30px;
       display: inline-flex;
       align-items: center;
@@ -482,9 +413,7 @@
       transition: border-color 0.25s var(--ease-soft);
     }
     .search-row input[type="text"]:focus {
-      /* 2026-10-25 中国色施工：聚焦环改用全局 --focus-ring / --shadow-glow
-         （浅色朱砂、深色金），不再写死旧蓝灰投影。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原该规则两条。 */
+      /* 聚焦环用全局 --focus-ring / --shadow-glow（浅色朱砂、深色金），不写死旧蓝灰投影。 */
       border-color: var(--focus-ring);
       box-shadow: var(--shadow-glow);
     }
@@ -512,8 +441,7 @@
     .filter-tabs button:active {
       transform: scale(0.93);
     }
-    /* 2026-10-25 中国色施工：当前分类 = 朱砂实底 + 奶白字（不再用浅灰描边表示选中）。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .filter-tabs button.active。 */
+    /* 当前分类 = 朱砂实底 + 奶白字，不用浅灰描边表示选中。 */
     .filter-tabs button.active {
       background: var(--primary-btn-a);
       border-color: var(--primary-btn-a);
@@ -521,9 +449,7 @@
       box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.28);
     }
 
-    /* 2026-10-25 中国色施工：「最新」是竹青系筛选 —— 默认淡青瓷底 + 竹青字，
-       选中时换成 --success-strong 实底 + 奶白字（两套主题下都是深青压白字，对比度 6:1）。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-latest 四段。 */
+    /* 「最新」是竹青系筛选：默认淡青瓷底 + 竹青字，选中换成 --success-strong 实底 + 奶白字（两套主题下都是深青压白字，对比度 6:1）。 */
     .btn-latest {
       margin-left: auto;
       border: 2px solid var(--accent-mist-line);
@@ -545,9 +471,7 @@
       box-shadow: 0 0 0 3px var(--accent-mist-soft), var(--shadow);
     }
 
-    /* 2026-10-25 中国色施工：「热门」是朱砂系筛选 —— 默认淡朱砂底 + 朱砂字，
-       选中时朱砂实底 + 奶白字（用深档 --primary-btn-a 保证白字对比度 ≥5.8:1）。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-hot 四段。 */
+    /* 「热门」是朱砂系筛选：默认淡朱砂底 + 朱砂字，选中朱砂实底 + 奶白字（用深档 --primary-btn-a 保证白字对比度 ≥5.8:1）。 */
     .btn-hot {
       border: 2px solid rgba(var(--accent-rgb), 0.45);
       background: rgba(var(--accent-rgb), 0.10);
@@ -568,9 +492,7 @@
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18), var(--shadow);
     }
 
-    /* 2026-10-25 中国色施工：原来是紫色渐变（紫蓝霓虹），现在改为中性宣纸底；
-       选中态与其它筛选项统一：朱砂实底 + 奶白字 + 淡朱砂光圈；深色专用覆盖一并删除。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-multi 四段及深色覆盖。 */
+    /* 多选筛选走中性宣纸底；选中态与其它筛选项统一：朱砂实底 + 奶白字 + 淡朱砂光圈。 */
     .filter-tabs .btn-multi {
       padding: 8px 18px;
       border: 2px solid var(--primary-light);
@@ -604,9 +526,7 @@
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18), var(--shadow);
     }
 
-    /* 2026-10-25 中国色施工：收藏筛选属于「金 = 标识/荣誉」—— 默认淡金底 + 金字，
-       选中时 --gold-strong 实底 + 奶白字（浅色 5.8:1 / 深色 5.1:1），不再拿浅金底压白字。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-fav-filter 四段。 */
+    /* 收藏筛选属于「金 = 标识/荣誉」：默认淡金底 + 金字，选中 --gold-strong 实底 + 奶白字（浅色 5.8:1 / 深色 5.1:1），不拿浅金底压白字。 */
     .btn-fav-filter {
       border: 2px solid var(--gold-light);
       background: var(--gold-bg);
@@ -627,16 +547,12 @@
       box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.22), var(--shadow);
     }
 
-    /* 2026-10-05（站主要求）：这里原来是一整块 .batch-bar（批量条）的样式。
-       「无效批量处理」这个功能整个删掉了（连按钮、勾选框、批量模式一起），
-       所以这些规则没有任何元素会命中，一并清掉。 */
 
     .song-group {
       background: var(--bg-card);
       border-radius: var(--radius);
       border: 2px solid transparent;
-      /* 2026-10-25 中国色施工：卡片投影改用全局阴影令牌（浅色暖褐 / 深色黑，随主题自动切换）。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .song-group 两条。 */
+      /* 卡片投影用全局阴影令牌（浅色暖褐 / 深色黑，随主题自动切换）。 */
       box-shadow: var(--shadow-sm);
       margin-bottom: 10px;
       padding: 14px 18px;
@@ -662,11 +578,8 @@
       gap: 6px 12px;
       margin-bottom: 10px;
     }
-    /* 2026-10-18 新增：歌名后面的「玩家说：xxx」小字（玩家投稿时自己填的歌曲类型）。
-       样式刻意做小做淡，不抢主歌名。【回退办法】删掉这条规则。 */
-    /* 2026-10-18 配色创新：这枚小字代表「玩家自己说的话」，用青瓷和朱砂/墨区分开，
-       一眼能看出「这是投稿者补充的、不是官方分类」。
-       【回退办法】颜色改回 var(--text-muted) / var(--bg-soft) / var(--border)。 */
+    /* 歌名后面的「玩家说：xxx」小字（玩家投稿时自己填的歌曲类型），刻意做小做淡，不抢主歌名。【回退办法】删掉这条规则。 */
+    /* 这枚小字代表「玩家自己说的话」，用青瓷与朱砂/墨区分开，一眼能看出「这是投稿者补充的、不是官方分类」。【回退办法】颜色改回 var(--text-muted) / var(--bg-soft) / var(--border)。 */
     .genre-tip {
       margin-left: 8px;
       font-size: 0.72rem;
@@ -692,9 +605,7 @@
       gap: 8px;
     }
     .badge-multi {
-      /* 2026-10-25 中国色施工：沿用「墨底反白 / 月白底反墨」的写法（--primary + --bg），
-         两套主题自动反差，不再有深字压深底的问题。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .badge-multi 整段。 */
+      /* 沿用「墨底反白 / 月白底反墨」的写法（--primary + --bg），两套主题自动反差，避免深字压深底。 */
       background: var(--primary); color: var(--bg);
       font-size: 0.72rem;
       font-weight: 600;
@@ -703,8 +614,7 @@
       white-space: nowrap;
     }
     .badge-hot {
-      /* 2026-10-25 中国色施工：「热门」属于标识类，走金 —— 深金底 + 奶白字（5.8:1），
-         不再用旧红渐变。 */
+      /* 「热门」属于标识类，走金：深金底 + 奶白字（5.8:1），不用旧红渐变。 */
       background: var(--gold-strong);
       color: var(--text-on-accent);
       font-size: 0.72rem;
@@ -730,9 +640,7 @@
       gap: 8px 12px;
       padding: 8px 10px;
       border-radius: 10px;
-      /* 2026-10-25 中国色施工：行底从旧粉改成墨色淡叠；--ink-rgb 在深色主题下自动变亮，
-         一层叠加同时服务两套主题，原来那两条深色专用覆盖已经删掉。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .id-row 两段。 */
+      /* 行底用墨色淡叠：--ink-rgb 在深色主题下自动变亮，一层叠加同时服务两套主题，不需要深色专用覆盖。 */
       background: rgba(var(--ink-rgb), 0.035);
       margin-bottom: 4px;
       transition: background 0.2s var(--ease-soft), transform 0.25s var(--ease-soft);
@@ -741,9 +649,6 @@
       background: rgba(var(--ink-rgb), 0.07);
       transform: translateX(3px);
     }
-    /* 2026-10-05（站主要求）：这里原来是 .id-checkbox（批量选择用的圆形勾选框）
-       与 .batch-mode .id-checkbox 两条规则。「无效批量处理」删掉后，行里不再有勾选框，
-       这几条规则没有任何元素会命中，一并清掉（原来那条「深色模式下白圆点」的注释也随它去）。 */
 
     .id-number {
       font-family: 'Courier New', monospace;
@@ -779,13 +684,13 @@
     }
     .id-actions .btn-fav:hover {
       color: var(--gold-ink);
-      /* 2026-10-25 中国色施工：淡金叠色改用 --gold-rgb，深浅主题自动跟随。 */
+      /* 淡金叠色用 --gold-rgb，深浅主题自动跟随。 */
       background: rgba(var(--gold-rgb), 0.12);
     }
     .id-actions .btn-fav:active { transform: scale(0.85); }
     .id-actions .btn-fav.active { color: var(--gold-ink); }
     .id-actions .btn-copy {
-      /* 2026-10-24 修：文字用 --bg（永远跟 --primary 反差），深色下不再白压白 */
+      /* 文字用 --bg（永远跟 --primary 反差），深色下不会白压白 */
       background: var(--primary); color: var(--bg);
     }
     .id-actions .btn-copy:hover {
@@ -795,9 +700,7 @@
     .id-actions .btn-copy:active { transform: scale(0.9); }
     .id-actions .btn-copy.copied { background: var(--success-strong); }
     .id-actions .btn-play {
-      /* 2026-10-25 中国色施工：试听按钮走竹青深底 + 奶白字；hover 不再换成
-         --success-dark（深色主题里它是亮档，压白字会糊），只靠 transform 给反馈。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-play 两段。 */
+      /* 试听按钮走竹青深底 + 奶白字；hover 不换成 --success-dark（深色主题里它是亮档，压白字会糊），只靠 transform 给反馈。 */
       background: var(--success-strong);
       color: var(--text-on-accent);
     }
@@ -806,9 +709,7 @@
       transform: scale(1.06) rotate(2deg);
     }
     .id-actions .btn-play:active { transform: scale(0.9); }
-    /* 2026-10-05：「复制」后面那颗小一号的「🚫 无效处理」（原先是隔离用的 ✕）。
-       字号 / 内边距都压一档，主次仍然让「复制」当主角；
-       已上报的行整条变灰、按钮换成「↩️ 撤销」，看得见也点得回来。 */
+    /* 「复制」后面那颗小一号的「🚫 无效处理」：字号 / 内边距都压一档，主次仍让「复制」当主角；已上报的行整条变灰、按钮换成「↩️ 撤销」，看得见也点得回来。 */
     .id-actions .btn-invalid {
       background: transparent;
       color: var(--text-muted);
@@ -817,10 +718,7 @@
       padding: 4px 9px;
     }
 
-    /* 「✏️ 信息出错」—— 2026-10-07 站主要求「区分开、但护眼」，沿用琥珀金这一族。
-       2026-10-25 中国色施工：色值全部换成金令牌（--gold / --gold-ink / --gold-rgb），
-       深色专用覆盖删除 —— 深色主题的 --gold-ink 本来就是亮金，一套规则够用。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-info-error 四段。 */
+    /* 「✏️ 信息出错」沿用琥珀金这一族（护眼且与其它状态区分）。色值全部用金令牌（--gold / --gold-ink / --gold-rgb）；深色主题的 --gold-ink 本来就是亮金，一套规则够用。 */
     .group-actions .btn-info-error {
       background: transparent;
       color: var(--gold-ink);
@@ -847,7 +745,7 @@
       border-color: var(--gold);
       background: rgba(var(--gold-rgb), 0.18);
     }
-    /* 「以无效为主」（2026-10-07）：这一组已报过无效 → 信息出错按钮置灰、点了只提示 */
+    /* 「以无效为主」：这一组已报过无效 → 信息出错按钮置灰、点了只提示 */
     .group-actions .btn-info-error.blocked {
       opacity: 0.5;
       cursor: not-allowed;
@@ -929,8 +827,7 @@
     .pager button:active:not(:disabled) { transform: scale(0.93); }
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
     .pager button.current {
-      /* 2026-10-25 中国色施工：当前页 = 朱砂实底 + 奶白字，跟其它「选中」统一。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .pager button.current。 */
+      /* 当前页 = 朱砂实底 + 奶白字，跟其它「选中」统一。 */
       background: var(--primary-btn-a);
       border-color: var(--primary-btn-a);
       color: var(--text-on-accent);
@@ -998,9 +895,7 @@
     .btn-random:active { transform: scale(0.93) rotate(3deg); }
 
     /* 随机跳转的目标高亮 */
-    /* 2026-10-25 中国色施工：随机跳转高亮从旧蓝灰光圈改成低透明金线，
-       不再有粉色高亮闪底；两套主题共用这一套，深色专有动画一并删除。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 targetFlash 段。 */
+    /* 随机跳转高亮用低透明金线，不用旧蓝灰光圈 / 粉色闪底；两套主题共用这一套。 */
     @keyframes targetFlash {
       0%   { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0.55); background: rgba(var(--gold-rgb), 0.16); }
       70%  { box-shadow: 0 0 0 14px rgba(var(--gold-rgb), 0); }
@@ -1022,13 +917,12 @@
       margin: 0 0 12px;
       min-height: 1.6em;
     }
-    /* 2026-10-18 可访问性：12px 小字拿 --primary 当文字只有约 3:1，换 --primary-ink（5.2:1）。
-   --primary 继续只做填充/描边。【回退办法】改回 var(--primary)。 */
+    /* 可访问性：12px 小字拿 --primary 当文字只有约 3:1，换 --primary-ink（5.2:1）。--primary 继续只做填充/描边。【回退办法】改回 var(--primary)。 */
     .result-info strong { color: var(--primary-ink); font-weight: 700; }
     .result-info .cleared {
       border: none;
       background: var(--bg-tint);
-      color: var(--primary-ink);   /* 2026-10-18：0.76rem 小字对比度，原为 --primary */
+      color: var(--primary-ink);   /* 0.76rem 小字对比度：用 --primary-ink，不用 --primary */
       font-size: 0.76rem;
       font-weight: 600;
       padding: 3px 12px;
@@ -1046,8 +940,7 @@
       flex-wrap: wrap;
       flex-shrink: 0;
     }
-    /* 2026-10-18 可访问性提示：按钮文字用 --primary 在 --bg-tint 上约 2.8:1，
-       这里换成 --primary-ink。若觉得按钮字太深，可单独改回 var(--primary)。 */
+    /* 可访问性：按钮文字用 --primary 在 --bg-tint 上约 2.8:1，这里换成 --primary-ink。若觉得按钮字太深，可单独改回 var(--primary)。 */
     .group-actions button {
       padding: 5px 13px;
       border: none;
@@ -1088,22 +981,8 @@
       white-space: nowrap;
     }
 
-    /* ========== 深色模式局部适配（2026-10-25 中国色施工重写） ==========
-       原来这里是一批写死色值的深色覆盖：旧蓝灰叠色、浅白叠色、粉红提示底，
-       外加一套蓝灰高亮动画。全局令牌在深色下已经是「墨夜」暖色，这些覆盖
-       既重复又把页面拉回蓝黑/霓虹，因此整段删除：
-         · .id-row / .group-actions / .visit-source-btn 的底色改由令牌本身承担；
-         · .visit-other-input 的底色与全局一致，无需再覆盖；
-         · 风险弹窗的淡红提示底改用 --danger-bg（深浅两套都定义过）；
-         · 更新弹窗投影交给全局 --shadow-modal；
-         · 随机跳转高亮两套主题共用金线 targetFlash（见上方关键帧）。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原
-       「深色模式局部适配」整段（备份文件里是连续的 [data-theme="dark"] 规则）。 */
 
-    /* 2026-10-09：两个风险弹窗（#riskModal 告知 / #riskConfirmModal 二次确认）现在共用同一套
-       「元素」—— h2 + .sub-warning 小胶囊 + .redirect-notice 提示条 + .risk-body + .section-title。
-       所以下面几条选择器**同时罩住两个弹窗**，两边长得一模一样；各自独有的（.btn-confirm 的
-       倒计时态）保持单独写。改样式时别只改一个，改完请打开两个弹窗各看一眼。 */
+    /* 两个风险弹窗（#riskModal 告知 / #riskConfirmModal 二次确认）共用同一套「元素」—— h2 + .sub-warning 小胶囊 + .redirect-notice 提示条 + .risk-body + .section-title。下面几条选择器同时罩住两个弹窗，两边长得一模一样；各自独有的（.btn-confirm 的倒计时态）单独写。改样式时别只改一个，改完请打开两个弹窗各看一眼。 */
     #riskModal .modal-content,
     #riskConfirmModal .modal-content {
       max-width: 700px;
@@ -1143,11 +1022,7 @@
       color: var(--danger);
       border-radius: 0 6px 6px 0;
     }
-    /* 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」。
-       所以两个弹窗都在 .risk-body **外面**（＝滚动区上方、始终可见）放一条金色横幅入口：
-       点它是**站内跳转**去 law.html（2026-10-09 站主明确「要在页面里面跳转，不要新开标签」，
-       所以没有 target="_blank"）。
-       放在滚动区外面是刻意的 —— 长文弹窗往上翻的时候它也一直在。 */
+    /* 两个弹窗都在 .risk-body 外面（＝滚动区上方、始终可见）放一条金色横幅入口，点它是站内跳转去 law.html（不新开标签）。放在滚动区外面是刻意的 —— 长文往上翻的时候它一直在。 */
     .risk-law-link {
       display: flex;
       align-items: center;
@@ -1217,9 +1092,7 @@
       border-top: 1px solid var(--border);
     }
     #riskModal .btn-confirm {
-      /* 2026-10-25 中国色施工：危险确认按钮 = 胭脂红实底 + 奶白字；
-         hover 用更深的朱砂档（--primary-btn-b）压暗，不再写死十六进制。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 .btn-confirm 两段。 */
+      /* 危险确认按钮 = 胭脂红实底 + 奶白字；hover 用更深的朱砂档（--primary-btn-b）压暗，不写死十六进制。 */
       background: var(--danger-solid);
       color: var(--text-on-accent);
       opacity: 0.5;
@@ -1246,14 +1119,8 @@
       scrollbar-color: rgba(var(--ink-rgb), 0.22) transparent;
     }
 
-    /* 2026-10-09：二次确认弹窗（#riskConfirmModal）原来单独写了一套 .modal-content / .risk-body /
-       .section-title 样式，长得跟告知弹窗不一样；现在两者共用上面那套「元素」，这四段重复规则
-       已删除（只保留下面这条注释，方便日后对照）。
-       删除前它长这样：.modal-content{max-width:620px} / .risk-body{font-size:.88rem;line-height:1.9;
-       margin-bottom:14px} / .section-title{color:var(--primary);font-size:.9rem}。 */
 
-    /* 2026-10-09：两个风险弹窗正文里的邮箱链接（版权投诉入口）。
-       页面没有全局的 a 样式，不写这段就会用浏览器默认的蓝色，跟主题不搭。 */
+    /* 两个风险弹窗正文里的邮箱链接（版权投诉入口）。页面没有全局 a 样式，不写这段就会用浏览器默认蓝色，跟主题不搭。 */
     #riskModal .risk-body a,
     #riskConfirmModal .risk-body a {
       color: var(--primary-ink);
@@ -1263,12 +1130,8 @@
     #riskModal .risk-body a:hover,
     #riskConfirmModal .risk-body a:hover { color: var(--gold-ink); }
 
-    /* 2026-10-05：这里原来是一整套「⛔ 我的隔离区」弹窗的样式
-       （#quarantineModal / #quarantineList / .quarantine-item / .quarantine-footer，
-       连「💬 去反馈」那颗 <a> 的对齐规则）。隔离区与反馈都下线了，
-       弹窗 DOM 连同这些选择器一起删干净，避免留着一堆没有元素命中的死规则。 */
 
-    /* ========== 左下角常驻「返回首页」（2026-10-04 新增） ==========
+    /* ========== 左下角常驻「返回首页」 ==========
        导航栏取消之后，这一页唯一的路口就是它：固定在左下角，滚到哪都在。
        z-index 压在弹窗（999）之下 —— 弹窗打开时它被盖住，不会跑到遮罩上面。 */
     .back-home-fab {
@@ -1300,189 +1163,10 @@
       .back-home-fab { padding: 9px 14px; font-size: 0.82rem; }
     }
 
-    #visitSourceModal .modal-content {
-      max-width: 480px;
-    }
-    #visitSourceModal h2 {
-      color: var(--primary);
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    #visitSourceModal .visit-desc {
-      color: var(--text-light);
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      line-height: 1.6;
-      text-align: center;
-    }
-    /* 2026-10-17 新增：屏幕尺寸那块（原来这里是一排渠道按钮） */
-    .screen-box {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin: 4px 0 14px;
-    }
-    .screen-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 10px;
-      padding: 10px 12px;
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.84rem;
-    }
-    .screen-row span { color: var(--text-muted); }
-    .screen-row b {
-      color: var(--text);
-      font-family: ui-monospace, Menlo, Consolas, monospace;
-      font-weight: 700;
-      word-break: break-all;
-      text-align: right;
-    }
-    #visitSourceModal .visit-current {
-      display: block;
-      margin-top: 8px;
-      font-size: 0.82rem;
-      color: var(--primary);
-      font-weight: 600;
-    }
+    /* 2026-11-21：手机尺寸收集结束，原来的「你的手机屏幕尺寸」按钮、
+       弹窗以及更早的渠道选择样式全部删除。【回退办法】从 git 上一个版本取回。 */
 
-    .visit-source-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .visit-source-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 13px 18px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--bg-soft);
-      color: var(--text);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: all 0.25s var(--ease-soft);
-    }
-    .visit-source-btn:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
-      background: var(--bg-card);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
-    }
-    .visit-source-btn:active {
-      transform: scale(0.97);
-    }
-    .visit-source-btn .src-count {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      background: var(--bg);
-      padding: 2px 10px;
-      border-radius: 20px;
-      flex-shrink: 0;
-    }
-    .visit-source-btn:hover .src-count {
-      color: var(--primary);
-      background: var(--bg-tint);
-    }
 
-    /* 2026-10-25 中国色施工：「当前来源」是选中项，按色板允许的「墨底 + 宣纸字」做，
-       「当前」小徽标改成朱砂实底；行内计数胶囊保持 --bg-card / --primary 自动反差。
-       【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原 active-choice 三条。 */
-    .visit-source-btn.active-choice {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: var(--bg);
-      box-shadow: var(--shadow);
-      position: relative;
-    }
-    .visit-source-btn.active-choice::before {
-      content: '当前';
-      position: absolute;
-      top: -8px;
-      left: 12px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: var(--text-on-accent);
-      background: var(--primary-btn-a);
-      padding: 1px 8px;
-      border-radius: 10px;
-      letter-spacing: 0.5px;
-    }
-    .visit-source-btn.active-choice .src-count {
-      color: var(--primary);
-      background: var(--bg-card);
-    }
-
-    .visit-other-input {
-      margin-top: 12px;
-      padding: 14px;
-      background: var(--bg-soft);
-      border: 2px dashed var(--primary-light);
-      border-radius: var(--radius-sm);
-      animation: fadeInUp 0.25s var(--ease-soft) both;
-    }
-    .visit-other-input input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-family: var(--font);
-      font-size: 0.92rem;
-      background: var(--bg-card);
-      color: var(--text);
-      outline: none;
-      margin-bottom: 10px;
-      transition: border-color 0.25s var(--ease-soft);
-    }
-    .visit-other-input input:focus {
-      /* 2026-10-25 中国色施工：聚焦环跟搜索框统一走 --focus-ring / --shadow-glow。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原该规则两条。 */
-      border-color: var(--focus-ring);
-      box-shadow: var(--shadow-glow);
-    }
-    .visit-other-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-    .visit-other-actions button {
-      padding: 7px 18px;
-      border-radius: var(--radius-pill);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
-      border: none;
-      transition: all 0.25s var(--ease-soft);
-    }
-    .visit-other-actions .btn-cancel-other {
-      background: var(--border);
-      color: var(--text);
-    }
-    .visit-other-actions .btn-cancel-other:hover {
-      /* 2026-10-18：写死的浅粉在深色主题下会让文字消失 → 用令牌。
-         【回退办法】从 .verify/backup-theme-20261025/roblox_music.html 还原本条。 */
-      background: var(--border-strong);
-    }
-    .visit-other-actions .btn-confirm-other {
-      background: var(--primary); color: var(--bg);
-    }
-    .visit-other-actions .btn-confirm-other:hover {
-      background: var(--primary-dark);
-      transform: translateY(-1px);
-    }
-
-    /* 2026-10-05：#quarantineList 的滚动条美化（4 条规则）随隔离区弹窗一起删除 */
 
     /* cardRise / fadeInUp / popIn 三个通用动画在 css/style.css 里统一维护，此处不再重复定义 */
 
@@ -1498,12 +1182,7 @@
       }
     }
 
-    /* 搜索与筛选栏（搜索框 + 下面的分类）：
-       2026-10-05 站主反馈「往下划的时候，搜索框和下面的分类也跟着下来了 修复」——
-       原来桌面端（≥769px）这里写的是 `position: sticky; top: 64px`，
-       贴在页头下面一直跟着滚，挡视线也挡内容。**现在改成正常随页面滚走**，
-       但保留那张卡片的观感（不透明底 + 圆角 + 细边框 + 内边距），所以看起来没变、只是不再吸顶。
-       注意：`top` 留在页头那条 sticky 上（那是站主没让改的），这里只管搜索栏自己。 */
+    /* 搜索与筛选栏（搜索框 + 下面的分类）：不吸顶，随页面正常滚走（sticky 会挡视线也挡内容）；保留卡片观感（不透明底 + 圆角 + 细边框 + 内边距），所以看起来没变、只是不再吸顶。top 留在页头那条 sticky 上，这里只管搜索栏自己。 */
     @media (min-width: 769px) {
       .search-row {
         background: var(--bg);
@@ -1528,7 +1207,7 @@
       .group-name { font-size: 1rem; }
       .id-number { font-size: 0.82rem; }
       .id-actions button { padding: 5px 10px; font-size: 0.75rem; }
-      /* 2026-10-05：手机上「无效处理」再压一档，一排四颗按钮才不至于挤爆 */
+      /* 手机上「无效处理」再压一档，一排四颗按钮才不至于挤爆 */
       .id-actions .btn-invalid { padding: 4px 8px; font-size: 0.68rem; }
       #riskModal .modal-content { padding: 18px 16px 12px; }
       #riskModal .risk-body { font-size: 0.78rem; max-height: 45vh; }
@@ -1543,11 +1222,7 @@
   
 
     /* ============================================================
-       2026-10-24 「📌 问题上报」弹窗放大（站主：做大一点，不要客气）
-       ------------------------------------------------------------
-       原来走通用 .modal-content 的 500px 宽，列表挤成一条。
-       这里单独放宽到 860px（不超屏 94%），高度 88dvh，行距也松一档。
-       手机（<640）仍然 94vw，不会贴边。
+       「📌 问题上报」弹窗单独放宽到 860px（不超屏 94%）、高度 88dvh，行距也松一档；手机（<640）仍然 94vw，不会贴边。
        【回退办法】删掉本段。
        ============================================================ */
     #myReportsModal .modal-content {
@@ -1580,15 +1255,6 @@
 
   <a class="skip-link" href="#main">跳到主要内容</a>
 
-  <!-- ==================== 顶部导航栏（2026-10-04 已按用户要求取消） ====================
-       原来这里是和首页一样的 <nav class="navbar">（首页 / 反馈 / 鸣谢 三个入口）。
-       用户要求：宝库页不要导航栏，只在左下角留一个常驻的「返回首页」——
-         · 左下角那个按钮见页面最下面的 <a class="back-home-fab">；
-         · 页脚里原来那排链接也一并去掉了，只留版权行；
-         · 深色模式开关本来挂在导航栏里，现在改挂到页头右上角
-           （<span class="header-tools" data-theme-slot>，见下面的 page-header）。
-       2026-10-05：反馈功能整页下线，这一页本来就没有反馈入口，无需再改；
-         原先挂在「我的隔离区」弹窗里的「💬 去反馈」随弹窗一起删掉。 -->
 
   <main class="container" id="main">
     <header class="page-header">
@@ -1600,11 +1266,7 @@
           <span>🔁 <strong id="statMulti">0</strong> 组多 ID</span>
           <span class="fav-stat">⭐ <strong id="statFavs">0</strong> 收藏</span>
         </div>
-        <!-- 2026-09-26：这里原来有一颗「❤️ 鸣谢名单」按钮（先弹窗、后改成跳 thanks.html）。
-             按用户要求删掉了：卡片一（宝库页）不再出现鸣谢入口，
-             要去看鸣谢走顶部导航或页脚的「❤️ 鸣谢」。 -->
-        <!-- 2026-10-04：导航栏取消后，深色模式开关改挂到这里（common.js 的
-             injectThemeToggle 会找 [data-theme-slot] 插进去）。 -->
+        <!-- 深色模式开关的落点：common.js 的 injectThemeToggle 会找 [data-theme-slot] 把开关插进来。 -->
         <span class="header-tools" data-theme-slot></span>
       </div>
       <div class="btns toolbar">
@@ -1618,31 +1280,9 @@
         <span class="tool-sep" aria-hidden="true"></span>
         <div class="tool-group">
           <span class="tool-label">管理</span>
-          <!-- 2026-10-05 两轮改动都记在这里，免得以后有人往回加：
-               ① 这里原来有一颗「⛔ 我的隔离区」（打开本地隔离区弹窗）——
-                  站主要求用「无效处理」代替隔离区、批量隔离、每行的叉叉与后台反馈，弹窗整块删掉；
-               ② 随后站主又说「把『无效批量处理』相关功能删除了」——
-                  于是那颗「🚫 无效批量处理」按钮、批量条、行里的勾选框、批量模式一起删干净。
-               2026-10-17：这一组那颗按钮从「📢 告诉我们你从哪来」改成了「📱 你的手机屏幕尺寸」
-       （站主：渠道数据够了，改成收集屏幕尺寸做适配）。上报只有一种方式：
-               每条 ID 上的「🚫 无效处理」（点错了点它变出来的「↩️ 撤销」回退）。 -->
-          <!-- 2026-10-05 站主要求：加一颗「📋 我上报的」——打开上报表，
-               能看到自己点过「无效处理」的歌，单条 / 全部恢复。 -->
-          <!-- 2026-10-07 站主要求：这颗按钮改名「📌 问题上报」（原来是「📋 我上报的」），
-               并在它旁边加一颗「➕ 添加歌曲ID」（玩家投稿，后台在 D1歌曲管理里审核）。 -->
           <button class="btn btn-mine" id="openMyReportsBtn" title="看看你上报过哪些问题，可以在这里撤回">📌 问题上报</button>
           <button class="btn btn-submit-song" id="openSubmitSongBtn" title="把你找到的歌曲 ID 投稿给站长">➕ 添加歌曲ID</button>
-          <button class="btn btn-source" id="openSourceBtn" title="看看这台设备的屏幕尺寸，帮我们做适配">📱 你的手机屏幕尺寸</button>
-          <!-- 2026-10-09：这里曾经加过一颗「⚖️ 法律」（指向 law.html），
-               当天站主就要求删掉 ——「把 Roblox ID 宝库里面的『法律』按钮删除了」。
-               ⚠️ 别再往这一页的工具栏加法律入口：这一页的入口只保留页脚那条
-               与试听弹窗顶部那条金色横幅（弹窗里那条是当前页内跳转，不新开标签）。 -->
         </div>
-        <!-- 2026-10-04：这里原来是第三组「分享」——「🔗 分享给朋友」按钮。
-             当天站主先要求加上（「分享链接只有主页有」），随后又明确这一页不要分享
-             （「只删除分享，另外 2 个留着」「我只让你删除 Roblox ID 宝库的」），
-             于是整组撤掉：这一页的工具栏只剩「浏览」和「管理」两组。
-             ⚠ 别再往这一页加分享入口了；首页 / 鸣谢 两页的分享入口照旧保留（反馈页 2026-10-05 已整页删除）。 -->
       </div>
     </header>
 
@@ -1657,8 +1297,6 @@
 
     <div class="result-info" id="resultInfo" aria-live="polite"></div>
 
-    <!-- 2026-10-05（站主要求）：这里原来是「批量条」（已选 N 个 ID / 取消选择 / 🚫 无效上报选中）。
-         「无效批量处理」整个功能删掉了 —— 现在只有每条 ID 上那颗「🚫 无效处理」可点。 -->
 
     <div id="loadingSkeleton" aria-hidden="true">
       <div class="skeleton skeleton-card"></div>
@@ -1674,15 +1312,9 @@
     <nav class="pager pager-bottom" id="pagerBottom" aria-label="分页导航" hidden></nav>
   </main>
 
-  <!-- 页脚：2026-10-04 导航栏取消后，这里原来那排链接（首页 / 反馈 / 鸣谢）
-       按「只在左下角留一个返回首页」的要求一并去掉，只留版权行。
-       中途一度加回过「🔗 分享本站」，随后站主明确「只删除分享……我只让你删除
-       Roblox ID 宝库的」，于是这一页的分享入口（工具栏那组 + 这里）全部撤掉，
-       页脚又只剩版权行。要分享去首页 / 鸣谢那两页（反馈页 2026-10-05 已删除）。 -->
   <footer class="footer">
 
-    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
-         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <!-- 页脚主展示用横版品牌；浅/深两套，≤640px 换紧凑版。【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
     <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
       <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
       <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
@@ -1690,14 +1322,7 @@
       <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
     </div>
     <p>© <span id="footerYear">2026</span> 织雾满穗 · 用知识照亮世界</p>
-    <!-- 2026-10-09 站主要求（合规加固）：「你看情况帮我改，能改的都改了，以安全为主」——
-         页脚【内部】补三行，四个页面同步；页脚【下面】依然什么都没有（老约束没破）。
-         这三行是拿来补法律漏洞的，别删（完整理由见 index.html 页脚同处注释）：
-         ① 联系方式 —— 《信息网络传播权保护条例》第 23 条的免责前提是「接到通知后断开链接」，
-            收不到通知就免不了责，所以必须把入口留在明面上；
-         ② 法律定位 —— 「只提供跳转 Roblox 官方页面的链接，不存储、不传播任何音频文件」，
-            与下面 riskModal 最后那句口径必须一致（两处说法打架就要出事）；
-         ③ 隐私说明 —— 《个人信息保护法》第 17 条的告知义务；本站只存随机 ID、IP 不落库。 -->
+    <!-- 页脚【内部】三行，四个页面同步；页脚【下面】依然什么都没有（老约束没破）。这三行是补法律漏洞的，别删：① 联系方式 —— 《信息网络传播权保护条例》第 23 条的免责前提是「接到通知后断开链接」，收不到通知就免不了责，入口必须留在明面上；② 法律定位 ——「只提供跳转 Roblox 官方页面的链接，不存储、不传播任何音频文件」，与下面 riskModal 最后那句口径必须一致（两处说法打架就要出事）；③ 隐私说明 ——《个人信息保护法》第 17 条的告知义务；本站只存随机 ID、IP 不落库。 -->
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
       完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law">⚖️ 法律与风险提示</a>。<br>
@@ -1706,8 +1331,7 @@
     </p>
   </footer>
 
-  <!-- 左下角常驻「返回首页」（2026-10-04 用户要求）：
-       导航栏取消之后，这一页唯一的路口就是它。 -->
+  <!-- 左下角常驻「返回首页」：导航栏取消后，这一页唯一的路口就是它。 -->
   <a class="back-home-fab" href="./" aria-label="返回首页">🏠 返回首页</a>
 
   <div class="modal" id="riskModal">
@@ -1715,11 +1339,7 @@
       <h2>⚠️ 跳转前请先看这一段</h2>
       <div class="sub-warning">本站只做跳转，不提供任何音频</div>
       <div class="redirect-notice">即将跳转至 Roblox 官方页面</div>
-      <!-- 2026-10-09 站主要求：「法律那个页面的跳转，在相关弹窗请放在最上面突出」——
-           这条金色横幅是弹窗里最显眼的入口，且刻意放在 .risk-body **外面**：
-           正文往上翻的时候它一直停在顶部看得见。
-           同日稍后站主又要求：「我要点击跳转是在页面里面跳转，而不是换了一个新标签」
-           → 已去掉 target="_blank" / rel，改成普通站内链接（当前页跳转）。 -->
+      <!-- 弹窗里最显眼的入口，刻意放在 .risk-body 外面：正文往上翻时它停在顶部看得见。点击是站内跳转（不新开标签）。 -->
       <a class="risk-law-link" href="law">
         <span class="ico" aria-hidden="true">⚖️</span>
         <span class="txt">
@@ -1729,18 +1349,7 @@
         <span class="arrow" aria-hidden="true">→</span>
       </a>
       <div class="risk-body" id="riskBody">
-        <!-- 2026-10-09 站主要求：「风险弹窗的整个弹窗你也可以选择重做，里面的相关内容如法律之类的，
-             可以修改，增加等，只为了我们更加安全！」→ 整个弹窗按「保护本站」的方向重写。
-             重写原则（三条，别改回去）：
-             ① 只讲事实与承诺，不做任何自我指控：原文那句「未经许可将上述平台的音乐作品嵌入
-                第三方工具（如本工具），构成对著作权人信息网络传播权的侵犯」等于自认；
-                「Roblox 曾因未经授权使用音乐被 NMPA 起诉」那段，则把「本站很清楚这些音频
-                可能没授权」写在明面上，等于替对方准备好「明知/应知」的证据 —— 两段都已删除。
-             ② 把合规义务写清楚是【用户】的：用他人音乐要自己拿到许可、自己守 Roblox 规则。
-             ③ 补上「收到通知立即断链 + 联系方式」：这是《信息网络传播权保护条例》第 23 条
-                免责路径的书面承诺，也是重写后这个弹窗最有价值的一句话。
-             ⚠️ 结构约束（改文案时别动）：保留 id="riskBody"（JS 会 dom.riskBody.scrollTop = 0）
-                与 .risk-body / .section-title 两个类（样式在 #riskModal .risk-body 里）。 -->
+        <!-- 风险弹窗的写作原则（别改回去）：① 只讲事实与承诺，不做任何自我指控 —— 不写「未经许可将第三方平台的音乐作品嵌入本工具构成侵权」这类自认句，也不写「Roblox 曾因未经授权使用音乐被起诉」这类把「明知/应知」写在明面上的内容；② 把合规义务写清楚是【用户】的：用他人音乐要自己拿到许可、自己守 Roblox 规则；③ 保留「收到通知立即断链 + 联系方式」—— 这是《信息网络传播权保护条例》第 23 条免责路径的书面承诺。⚠️ 结构约束（改文案时别动）：保留 id="riskBody"（JS 会执行 dom.riskBody.scrollTop = 0）与 .risk-body / .section-title 两个类。 -->
 <span class="section-title">【本站是做什么的】</span>
 本站是一个 Roblox 音频 ID 的<b>索引工具</b>：把 ID 整理成清单，<b>并提供跳转到 Roblox 官方页面的链接</b>。本站<b>不存储、不转存、不播放、不传播任何音频文件</b>，也不提供任何下载。点「确认跳转」后打开的是 Roblox 官方页面（create.roblox.com），那里的内容由 Roblox 及其用户提供，与本站无关。
 
@@ -1779,18 +1388,7 @@
         <span class="arrow" aria-hidden="true">→</span>
       </a>
       <div class="risk-body">
-        <!-- 2026-10-09 站主要求（合规加固）：整个二次确认弹窗一并重写。
-             ① 原文「访问 Roblox 官方页面可能需要网络加速器」已改成中性说法 ——
-                《计算机信息网络国际联网管理暂行规定》第 6 条禁止使用非法定信道，
-                第 14 条罚则（警告 + 1.5 万元以下罚款）；那句话字面上等于教用户走非法定信道。
-             ② 「我们已在上一页向你完整告知全部法律与平台风险」跟着上一页一起改了，
-                现在只说事实：本站只做跳转、不播放不存储不传播。
-             ③ 增加投诉入口与法条页入口：权利人找得到人，才谈得上《条例》第 23 条的
-                「接到通知后断链」；完整条文统一放 law.html。
-             ④ 站主要求（同日稍后）：「第 2 次确认弹窗你也重做一下，要符合之前的风险弹窗的相关
-                元素」→ 现在两个弹窗共用同一套元素：h2 + .sub-warning 胶囊 + .redirect-notice
-                提示条 + .risk-body（含 .section-title 小节），样式选择器也合并成「两个弹窗一起罩」
-                （见上面 CSS 注释）。改一个记得两个一起看。 -->
+        <!-- 二次确认弹窗的写作要求：① 不写「访问 Roblox 官方页面可能需要网络加速器」这类说法 —— 《计算机信息网络国际联网管理暂行规定》第 6 条禁止使用非法定信道、第 14 条有罚则，字面上等于教用户走非法定信道；② 只说事实：本站只做跳转，不播放不存储不传播；③ 保留投诉入口与法条页入口 —— 权利人找得到人，才谈得上《条例》第 23 条的「接到通知后断链」，完整条文统一放 law.html；④ 与告知弹窗共用同一套元素（h2 + .sub-warning + .redirect-notice + .risk-body / .section-title），改一个记得两个一起看。 -->
 <span class="section-title">【你确认的是这件事】</span>
 接下来会在<b>新标签页打开 Roblox 官方页面</b>（create.roblox.com）。本站只做跳转：<b>不播放、不存储、不传播任何音频文件</b>，页面上也不会留下任何东西。
 
@@ -1811,14 +1409,8 @@
     </div>
   </div>
 
-  <!-- 2026-10-05：这里原来是「⛔ 我的隔离区」弹窗（列表 + 全部恢复 + 💬 去反馈）。
-       站主明确：无效处理这一套代替隔离区、批量隔离、叉叉与后台反馈 ——
-       弹窗删掉，反馈页也整页下线（feedback.html 已删除），不再有任何反馈入口。 -->
 
-  <!-- 2026-10-07 站主要求：这个弹窗改名「📌 问题上报」，并且里面分两类 ——
-       「🚫 无效ID」（原来那一类）和「✏️ 信息出错」（新加的那一类）。
-       数据还是 GET /api/invalid/mine（按浏览器匿名身份过滤，只读），
-       撤回走 POST /api/invalid/withdraw。 -->
+  <!-- 「📌 问题上报」弹窗分两类：🚫 无效ID 与 ✏️ 信息出错。数据还是 GET /api/invalid/mine（按浏览器匿名身份过滤，只读），撤回走 POST /api/invalid/withdraw。 -->
   <div class="modal" id="myReportsModal">
     <div class="modal-content">
       <h2>📌 问题上报</h2>
@@ -1826,13 +1418,12 @@
         这些是<b>你这台浏览器</b>上报过的东西，共 <span class="myrep-count" id="myRepCount">0</span> 条。
         后台还没处理的可以点「↩️ 撤回」；已经下架的由管理员那边定，你自己改不了。
       </p>
-      <!-- 两类上报的切换（2026-10-07）：只切这一个弹窗里显示哪一类，不发请求 -->
+      <!-- 两类上报的切换：只切这一个弹窗里显示哪一类，不发请求 -->
       <div class="seg-tabs myrep-tabs" id="myRepTypeTabs" role="tablist" aria-label="上报类型">
         <button type="button" class="seg-tab active" data-rtype="invalid" role="tab" aria-selected="true">🚫 无效ID</button>
         <button type="button" class="seg-tab" data-rtype="info" role="tab" aria-selected="false">✏️ 信息出错</button>
       </div>
-      <!-- 2026-10-24 站主要求：两类上报之下再分「待审核 / 成功 / 拒绝」三态。
-           这里是二级筛选，只切显示、不发请求。 -->
+      <!-- 两类上报之下再分「待审核 / 成功 / 拒绝」三态：二级筛选，只切显示、不发请求。 -->
       <div class="seg-tabs myrep-tabs myrep-status-tabs" id="myRepStatusTabs" role="tablist" aria-label="审核状态">
         <button type="button" class="seg-tab active" data-rstatus="all" role="tab" aria-selected="true">全部</button>
         <button type="button" class="seg-tab" data-rstatus="pending" role="tab" aria-selected="false">⏳ 待审核</button>
@@ -1849,9 +1440,7 @@
     </div>
   </div>
 
-  <!-- ✏️ 信息出错（2026-10-07 取代原来的「📋 复制全部」按钮）：
-       玩家把歌名 / 分类改成正确的，或写一句说明，点「确定上报」送到后台。
-       上报类型是 type='info'，在「📌 问题上报」里归到「✏️ 信息出错」那一类。 -->
+  <!-- ✏️ 信息出错：玩家把歌名 / 分类改成正确的，或写一句说明，点「确定上报」送到后台；上报类型 type='info'，在「📌 问题上报」里归到「✏️ 信息出错」这一类。 -->
   <div class="modal" id="infoErrorModal">
     <div class="modal-content">
       <h2>✏️ 信息出错</h2>
@@ -1859,8 +1448,7 @@
         这首歌的<b>信息</b>哪里不对（歌名 / 分类写错了）？改成正确的，或写一句说明，点「确定上报」送到后台。<br>
         涉及的 ID：<b id="infoErrIds">—</b>
       </p>
-      <!-- 2026-10-18 站主反馈：有用户把「这个 ID 用不了」也写到这里 —— 那是「无效处理」的活。
-           这里先讲清楚分工；真的写错了通道，提交时会弹窗拦住并给一键改道的出口。 -->
+      <!-- 说明里写「这个 ID 用不了」属于「无效处理」的活，这里先讲清楚分工。 -->
       <p class="myrep-note" style="color:var(--primary-ink);font-weight:600;">
         「这个 ID 放不出声 / 已经失效 / 打开是 404」<b>不是这里</b> ——
         请用宝库里每首歌旁边的「🚫 无效处理」上报。
@@ -1869,9 +1457,7 @@
         <label for="infoErrName">正确的歌名</label>
         <input type="text" id="infoErrName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
         <label for="infoErrCategory">正确的分类</label>
-        <!-- 2026-10-17 站主要求：「信息出错的分类也是选择，也没有其它（自己写的）」——
-             自由输入框改成下拉，只列固定分类，外加第一项「（不确定就留空）」。
-             选项由 fillInfoErrCategories() 在打开弹窗时填；预填值不在列表里会临时补一项。 -->
+        <!-- 信息出错的分类是下拉（固定分类 + 第一项「（不确定就留空）」）；选项由 fillInfoErrCategories() 在打开弹窗时填；预填值不在列表里会临时补一项。 -->
         <select id="infoErrCategory">
           <option value="">（不确定就留空）</option>
         </select>
@@ -1886,8 +1472,7 @@
     </div>
   </div>
 
-  <!-- ➕ 添加歌曲ID（2026-10-07 站主要求：玩家把找到的歌曲 ID 投稿上来，
-       后台在「🎶 D1歌曲管理 → 📥 玩家投稿」里审核，通过了才进 D1 歌曲列表）。 -->
+  <!-- ➕ 添加歌曲ID：玩家把找到的歌曲 ID 投稿上来，后台在「🎶 D1歌曲管理 → 📥 玩家投稿」里审核，通过了才进 D1 歌曲列表。 -->
   <div class="modal" id="submitSongModal">
     <div class="modal-content">
       <h2>➕ 添加歌曲ID</h2>
@@ -1898,11 +1483,7 @@
       <div class="info-err-form">
         <label for="submitSongName">歌名</label>
         <input type="text" id="submitSongName" maxlength="100" placeholder="例如：晴天" autocomplete="off">
-        <!-- 2026-10-26 站主定死：分类只有「🧩 玩家提供」；「歌曲类型」「说明」两栏删除。
-             游客投稿不再挑分类、不再填类型/说明，只留歌名 + ID（后台也只按玩家提供入库）。
-             【回退办法】从 git 历史恢复本段原来的 <select id="submitSongCategory">、
-             <input id="submitSongGenre">、<textarea id="submitSongNote"> 三块，
-             并恢复 js 里 fillSubmitCategories() 的调用。 -->
+        <!-- 游客投稿分类固定只有「🧩 玩家提供」；不再挑分类、不填类型/说明，只留歌名 + ID（后台也只按玩家提供入库）。【回退办法】从 git 历史恢复原来的 <select id="submitSongCategory">、<input id="submitSongGenre">、<textarea id="submitSongNote"> 三块，并恢复 js 里 fillSubmitCategories() 的调用。 -->
         <p class="myrep-note submit-cat-fixed">分类：<b>🧩 玩家提供</b>（游客投稿统一进这里）</p>
         <label for="submitSongIds">歌曲 ID（一行一个，最多 20 个）</label>
         <textarea id="submitSongIds" rows="3" placeholder="例如：&#10;1876950732&#10;1441450732"></textarea>
@@ -1914,59 +1495,7 @@
     </div>
   </div>
 
-  <!-- ============================================================
-       2026-10-17 站主要求：这里原来是「🙏 帮助我们了解推广渠道」（让玩家选从哪知道本站），
-       渠道数据已经够了、功能停用，改成「📱 你的手机屏幕尺寸」：
-       自动测出这台设备的分辨率/视口/DPR/型号，玩家点一下就能帮我们收集一份，
-       之后按真实尺寸做适配（本站的基准是小米 17 6.3"，CSS 视口 407×886）。
-       【回退办法】把下面整块换回原来的渠道选择弹窗（那版在 git 历史里搜
-         「帮助我们了解推广渠道」即可找到），并把按钮文案改回「📢 告诉我们你从哪来」。
-       ============================================================ -->
-  <div class="modal" id="visitSourceModal">
-    <div class="modal-content">
-      <h2>📱 你的手机屏幕尺寸</h2>
-      <p class="visit-desc">
-        站长想按真实机型来调排版。<br>
-        <b>只收集手机 / 平板的型号与屏幕尺寸，电脑不收集。</b><br>
-        下面是自动测出来的结果，点「✅ 上报给站长」帮我们收集一份。
-        <br><span class="visit-current" id="visitCurrentHint" style="display:none;"></span>
-      </p>
-
-      <!-- 2026-10-24 改版：只收集「手机 / 平板」的型号与屏幕尺寸，电脑不上报。
-           所以这里只留四个字段，别的都删掉了。 -->
-      <div class="screen-box">
-        <div class="screen-row">
-          <span>设备类型</span>
-          <b id="screenDevice">—</b>
-        </div>
-        <div class="screen-row">
-          <span>设备型号</span>
-          <b id="screenModel">—</b>
-        </div>
-        <div class="screen-row">
-          <span>屏幕尺寸（估算）</span>
-          <b id="screenInches">—</b>
-        </div>
-        <div class="screen-row">
-          <span>上报内容</span>
-          <b id="screenTag">—</b>
-        </div>
-        <div class="screen-row" id="screenSkipRow" style="display:none;">
-          <span>说明</span>
-          <b style="color:var(--text-muted);font-weight:600;">电脑端不收集，不用上报</b>
-        </div>
-      </div>
-
-      <p class="visit-desc" style="font-size:0.76rem;">
-        🔒 只记录屏幕尺寸这几项，不包含任何个人信息、也不含账号。
-      </p>
-
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="visitSourceClose">关闭</button>
-        <button type="button" class="btn btn-primary" id="screenReportBtn">✅ 上报给站长</button>
-      </div>
-    </div>
-  </div>
+  <!-- 2026-11-21：手机尺寸收集结束，「你的手机屏幕尺寸」弹窗已删除。 -->
 
   <script src="js/common.js"></script>
   <script src="js/turnstile.js"></script>
@@ -1974,9 +1503,7 @@
     /* ========== 全局状态 ========== */
     let songDatabase = [];
     let favorites = new Set();
-    /* 2026-10-05：已被「无效处理」上报过的 ID（见 loadInvalidReported）。
-       它只决定「这一行画成已上报、按钮变 ↩️ 撤销」，**不再像旧隔离区那样把条目藏起来** ——
-       站主选的就是「就地标记、可撤销」，点错了随时点回来，不会出现找不回的死角。 */
+    /* 已被「无效处理」上报过的 ID（见 loadInvalidReported）：只决定「这一行画成已上报、按钮变 ↩️ 撤销」，不隐藏条目 —— 就地标记、可撤销，点错了随时点回来，不会出现找不回的死角。 */
     let invalidReported = new Set();
     let currentCategory = 'all';
     let currentKeyword = '';
@@ -1985,8 +1512,6 @@
     let showLatestOnly = false;
     let showHotOnly = false;
     let hotMap = new Map();
-    /* 2026-10-05（站主要求）：batchMode / selectedIds 随「无效批量处理」一起删掉了 ——
-       现在没有批量选择，上报只有每条 ID 上那颗「🚫 无效处理」。 */
     let riskCountdownCleanup = null;
     let pendingRedirectId = null;
 
@@ -1997,21 +1522,7 @@
        仍然让“我已知晓，不再提示”能够生效，而不是每次试听都弹窗。 */
     const RISK_FALLBACK_VERSION = 'local-1';
 
-    /* 2026-10-09 新增：告知【内容】的版本号 —— ⚠️ 以后改了弹窗里的法律文案就 +1（v2 → v3 …）。
-       为什么需要它：老用户点过「我已知晓，不再提示」后，localStorage 里存的是当时的版本号；
-       而服务端那个版本号（/api/risk 读 D1 的 page_updates）只有后台主动调用
-       POST /api/risk 重置才会变 —— 所以光改文案，老用户永远看不到新内容。
-       现在把「服务端版本 + 内容版本」拼起来当有效版本号：
-         · 后台重置           → 服务端变了   → 所有人重新看一次（原有行为不变）
-         · 改文案并给这里 +1  → 内容版本变了 → 同样所有人重新看一次
-       v1（同日早些时候）：弹窗按“保护本站”的方向重写（删自我指控、加断链承诺与投诉邮箱）。
-       v2（同日）：弹窗指向新建的 law.html「⚖️ 法律与风险提示」—— 站主要求把完整法律条文
-                   放到站内提醒用户，弹窗只留摘要 + 一个入口。
-       v3（同日）：二次确认弹窗也按同一套元素重做（h2 + .sub-warning + .redirect-notice +
-                   四个小节 + 法条页入口），两个弹窗长得一样了。
-       v4（当前）：站主要求「法律那个页面的跳转，在相关弹窗请放在最上面突出」→ 两个弹窗在
-                   .risk-body 外面（滚动区上方、始终可见）加了一条金色横幅 .risk-law-link，
-                   新标签打开 law.html；正文里那条重复的入口句同时删掉。 */
+    /* 告知【内容】的版本号 —— ⚠️ 以后改了弹窗里的法律文案就把内容版本 +1。有效版本 = 服务端版本 + 内容版本：后台重置（POST /api/risk 读 D1 的 page_updates）只改服务端；只改文案时，老用户（存过「我已知晓」）靠内容版本 +1 才会重新看到新内容。 */
     const RISK_CONTENT_VERSION = 'v4';
 
     function riskVersion() {
@@ -2132,8 +1643,7 @@
        既省内存，也让定位算法的误差小了一个数量级。
        ============================================================ */
     const PAGE_SIZE = 100;
-    /* 2026-10-01 站主要求：「🔥 热门推荐」里是 100 组（按歌名合并后的组），
-       不是 100 个 ID —— 一个歌名可能挂好几个 ID，所以不能拿 ID 数当上限。 */
+    /* 「🔥 热门推荐」里是 100 组（按歌名合并后的组），不是 100 个 ID —— 一个歌名可能挂好几个 ID，不能拿 ID 数当上限。 */
     const HOT_GROUP_LIMIT = 100;
     let currentGroups = [];
     let currentPage = 1;
@@ -2192,9 +1702,7 @@
         .trim() || '未知歌名';
     }
 
-    /* 2026-10-05：「无效处理」上报过的 ID 存本地（用新 key，**不复用**旧隔离区那份）。
-       旧 key roblox_quarantine_guest 里的数据留在访客浏览器里不动 ——
-       隔离区功能已下线，再读它只会让那些 ID 无端消失、而且没有任何恢复入口。 */
+    /* 「无效处理」上报过的 ID 存本地，用新 key，不复用旧隔离区那份：旧 key roblox_quarantine_guest 的数据留在访客浏览器里不动 —— 隔离区已下线，再读它只会让那些 ID 无端消失，而且没有任何恢复入口。 */
     const INVALID_REPORTED_KEY = 'roblox_invalid_reported';
 
     function saveInvalidReported() {
@@ -2229,8 +1737,6 @@
       }
     }
 
-    /* 2026-10-05：nowStr()（把当前时间格式化成「YYYY-MM-DD HH:mm」）原来只给隔离区
-       记时间用；隔离区下线后没有任何调用点，一并删掉。 */
 
     async function loadServerRiskVersion() {
       try {
@@ -2249,14 +1755,9 @@
 
     async function loadHotList() {
       try {
-        /* 2026-10-01 站主要求「热门按 100 组算，不是 100 个 ID」：
-           所以这里多拿一些 ID（上限 500），前端再按歌名合并成组、取前 100 组
-           （见 renderList 里的 HOT_GROUP_LIMIT）。
-           2026-10-05 性能：去掉 `?t=` 与 cache:'no-store' —— 服务端已经给这个接口
-           配了 `public, max-age=60`，URL 每次不同的话缓存永远不命中，等于白配。
-           热门榜晚 60 秒无所谓。 */
-        /* 2026-11-06 性能：<head> 里已经把请求和 JSON 解析都做完了（__zmHotPre 是纯数据），
-           这里直接复用；旧缓存页面没有这个变量时按原样现拉一次。 */
+        /* 热门按 100 组算，不是 100 个 ID：这里多拿一些 ID（上限 500），前端再按歌名合并成组、取前 100 组（见 renderList 里的 HOT_GROUP_LIMIT）。
+           接口服务端配了 public, max-age=60，所以不要加 ?t= 或 cache:'no-store' —— URL 每次不同的话缓存永远不命中；热门榜晚 60 秒无所谓。 */
+        /* <head> 里已经把请求和 JSON 解析都做完了（__zmHotPre 是纯数据），这里直接复用；旧缓存页面没有这个变量时按原样现拉一次。 */
         let data;
         if (window.__zmHotPre) {
           data = await window.__zmHotPre;
@@ -2278,33 +1779,22 @@
     }
 
     /* ------------------------------------------------------------
-       主数据 + 辅助数据的载入（2026-10-05 性能改造）
+       主数据 + 辅助数据的载入
        ------------------------------------------------------------
        辅助数据 = ① 已下架的静态快照 data/admin_quarantine.json
                  ② /api/quarantine/list（后台刚下架的）
                  ③ /api/songs/list（后台加的新歌）
-       它们**不该挡住首屏**：最多等 AUX_TIMEOUT，超了就先按已有数据画出来，
-       等它们真的回来了再补一次重绘（keepPage，不会把用户甩回第 1 页）。
+       它们不该挡住首屏：最多等 AUX_TIMEOUT，超了就先按已有数据画出来，等它们真的回来了再补一次重绘（keepPage，不会把用户甩回第 1 页）。
        主数据用 <head> 里就发出去的那个 fetch（window.__zmMainData），早下早画。
        ------------------------------------------------------------ */
-    /* 2026-10-18 性能：1500 → 700ms。首屏被两个 D1 接口卡住的上限从 1.5 秒降到 0.7 秒；
-   超时后仍走「辅助数据迟到再补画一次」的现有分支，功能不变，只是首屏更快。
-   【回退办法】改回 1500。 */
+    /* AUX_TIMEOUT = 700ms：首屏被两个 D1 接口卡住的上限（原 1500ms）；超时后仍走「辅助数据迟到再补画一次」的现有分支，功能不变，只是首屏更快。【回退办法】改回 1500。 */
 const AUX_TIMEOUT = 700;
     let auxLateApplied = false;
 
     async function loadAuxLists() {
-      /* 2026-10-18：热门榜也在这里一起并行拉。原因：主列表要显示热度与排名，
-         但如果在首屏渲染后再单独拉、拉回来再重绘，会**重建整个列表 DOM**，
-         用户正在点的按钮会被换掉（实测「信息出错」弹窗点不开）。
-         放进这个 Promise.all 就只渲染一次，代价是首屏多等一个并行请求（有 0.7s 超时兜底）。
-         【回退办法】删掉下面这一行 loadHotList() 即可。 */
-      /* 2026-11-06 性能：三个辅助请求已在 <head> 里提前发出（window.__zmAuxPre），
-         这里优先复用；只有在旧缓存页面（没有 __zmAuxPre）时才按老办法现发。
-         热门榜仍走 loadHotList()（内部同样复用 __zmHotPre），保证 hotMap 的正常填充。 */
-      /* 两个接口故意带 `?t=` 且服务端 no-store：管理员刚下架 / 刚加的歌必须在
-         下一次加载就生效（2026-10-05 端到端验收 E34 证伪过「给 60 秒缓存」的写法）。
-         静态快照 data/admin_quarantine.json 仍走 CDN 的 5 分钟缓存，与接口结果取并集。 */
+      /* 热门榜也在这里一起并行拉：主列表要显示热度与排名，若首屏渲染后再单独拉、拉回来再重绘，会重建整个列表 DOM，用户正在点的按钮会被换掉（实测「信息出错」弹窗点不开）。放进这个 Promise.all 就只渲染一次，代价是首屏多等一个并行请求（有 0.7s 超时兜底）。【回退办法】删掉下面这一行 loadHotList() 即可。 */
+      /* 三个辅助请求已在 <head> 里提前发出（window.__zmAuxPre），这里优先复用；只有在旧缓存页面（没有 __zmAuxPre）时才按老办法现发。热门榜仍走 loadHotList()（内部同样复用 __zmHotPre），保证 hotMap 的正常填充。 */
+      /* 两个接口故意带 ?t= 且服务端 no-store：管理员刚下架 / 刚加的歌必须在下次加载就生效（「给 60 秒缓存」的写法已被端到端验收证伪）。静态快照 data/admin_quarantine.json 仍走 CDN 的 5 分钟缓存，与接口结果取并集。 */
       const hotP = loadHotList().catch(() => null);
 
       /* <head> 的预加载已经把 JSON 解析好（__zmAuxPre 里是纯数据，不是 Response）——
@@ -2368,7 +1858,7 @@ const AUX_TIMEOUT = 700;
           name: i.name || '未知歌名',
           category: i.category || '🧩 玩家提供',
           lineIndex: i.lineIndex || 100000,
-          /* 2026-10-18：玩家投稿时填的「歌曲类型」，审核通过后由 songs_extra.genre 带出来。 */
+          /* 玩家投稿时填的「歌曲类型」，审核通过后由 songs_extra.genre 带出来。 */
           genre: i.genre || '',
           _fromD1: true
         });
@@ -2376,10 +1866,7 @@ const AUX_TIMEOUT = 700;
 
       const adminIds = new Set(((aux && aux.adminQuarantine) || []).map(i => String(i.id)));
 
-      /* 2026-10-05：管理员在后台「🚫 无效音乐ID管理」里确认无效、下架的 ID，
-         在这里被整条过滤掉 —— 这就是「已下架」唯一的全站生效方式。
-         旧代码下面还有一段「把访客本地隔离区里已处理的条目同步删掉」的逻辑，
-         访客隔离区已经下线，那段随之删除（本地旧数据也不再读）。 */
+      /* 管理员在后台「🚫 无效音乐ID管理」里确认无效、下架的 ID，在这里被整条过滤掉 —— 这是「已下架」唯一的全站生效方式。 */
       songDatabase = [...mergedMap.values()]
         .filter(i => !adminIds.has(i.id))
         .map(i => ({ ...i, name: cleanName(i.name) }));
@@ -2439,10 +1926,7 @@ const AUX_TIMEOUT = 700;
       while (dom.filterTabs.children.length > 2) {
         dom.filterTabs.removeChild(dom.filterTabs.lastChild);
       }
-      /* 2026-10-19 修 BUG：数据里同时存在「玩家提供」和「🧩 玩家提供」两种写法，
-         原来按原样去重 → 分类栏会**出现两个「玩家提供」按钮**。
-         这里统一归一到一个规范值（带图标那个），并把空/未分类也并进去。
-         【回退办法】换回原来的单行 [...new Set(...)] 写法。 */
+      /* 数据里同时存在「玩家提供」和「🧩 玩家提供」两种写法，按原样去重会让分类栏出现两个「玩家提供」按钮。这里统一归一到一个规范值（带图标那个），并把空/未分类也并进去。【回退办法】换回原来的单行 [...new Set(...)] 写法。 */
       const catSet = new Set();
       songDatabase.forEach(i => {
         const c = String(i.category || '').trim();
@@ -2450,9 +1934,7 @@ const AUX_TIMEOUT = 700;
         catSet.add(c.includes('玩家提供') ? CAT_PLAYER_PROVIDED : c);
       });
       const cats = [...catSet];
-      /* 2026-10-18 站主要求：「🧩 玩家提供」固定放在「🔁 多 ID」后面（也就是分类里的第一个），
-         其余分类保持原来的出现顺序。这样游客投稿的歌永远有个固定、显眼的分栏。
-         【回退办法】把下面 two lines 删掉、把 cats 换回 categories 即可。 */
+      /* 「🧩 玩家提供」固定放在「🔁 多 ID」后面（分类里的第一个），其余分类保持原来的出现顺序 —— 这样游客投稿的歌永远有个固定、显眼的分栏。【回退办法】把下面两行删掉、把 cats 换回 categories 即可。 */
       const playerCat = cats.filter(c => c === CAT_PLAYER_PROVIDED);
       const otherCats = cats.filter(c => c !== CAT_PLAYER_PROVIDED);
       const categories = playerCat.concat(otherCats);
@@ -2466,7 +1948,7 @@ const AUX_TIMEOUT = 700;
 
       /* 若当前选中的分类已经不存在（例如该类别的歌全部被隔离），
          必须回退到「全部」，否则会出现“列表空白且没有任何按钮高亮”的死局。 */
-      /* 2026-10-18：同上，判断用排好序的 categories（内容与 cats 相同，只是顺序）。 */
+      /* 同上：判断用排好序的 categories（内容与 cats 相同，只是顺序）。 */
       if (currentCategory !== 'all' && !categories.includes(currentCategory)) {
         currentCategory = 'all';
       }
@@ -2562,10 +2044,7 @@ const AUX_TIMEOUT = 700;
         b.setAttribute('aria-pressed', b.dataset.cat === 'all' ? 'true' : 'false');
       });
 
-      /* 2026-10-18 修 BUG：这里原来写的是 renderList(options)，
-         但 clearAllFilters() 是没有参数的函数 —— options 未定义，点击「清除筛选」会直接
-         抛 ReferenceError（状态改了、列表不重绘，看起来就是『点了没用』）。改成 renderList()。
-         【回退办法】把这一行改回 renderList(options)（那是 BUG，别回退）。 */
+      /* clearAllFilters() 没有参数：这里必须是 renderList()，写成 renderList(options) 会抛 ReferenceError（状态改了、列表不重绘，看起来就是「点了没用」）。不要改回去。 */
       renderList();
     }
 
@@ -2593,13 +2072,13 @@ const AUX_TIMEOUT = 700;
             categories: new Set(),
             maxLineIndex: 0,
             maxHot: 0,
-            genre: ''    /* 2026-10-18：这一组里第一个有「歌曲类型」的歌，用于显示小字 */
+            genre: ''    /* 这一组里第一个有「歌曲类型」的歌，用于显示小字 */
           });
         }
         const g = groupMap.get(key);
         g.ids.push(item.id);
         g.categories.add(item.category);
-        if (!g.genre && item.genre) g.genre = item.genre;   /* 2026-10-18：取第一个非空 */
+        if (!g.genre && item.genre) g.genre = item.genre;   /* 取第一个非空 */
         if ((item.lineIndex || 0) > g.maxLineIndex) {
           g.maxLineIndex = item.lineIndex || 0;
         }
@@ -2611,9 +2090,7 @@ const AUX_TIMEOUT = 700;
 
       if (showHotOnly) {
         groups.sort((a, b) => (b.maxHot || 0) - (a.maxHot || 0) || compareName(a.name, b.name));
-        /* 2026-10-01 站主要求：热门里是「100 组」，不是「100 个 ID」——
-           ID 已经在上面按名字合并成组了（同名多 ID 算一组），
-           这里再按热度取前 100 组；一页正好 100 组，所以热门视图就是一页。 */
+        /* 热门里是「100 组」，不是「100 个 ID」：ID 已经在上面按名字合并成组了（同名多 ID 算一组），这里再按热度取前 100 组；一页正好 100 组，所以热门视图就是一页。 */
         groups = groups.slice(0, HOT_GROUP_LIMIT);
       } else if (showLatestOnly) {
         groups.sort((a, b) => (b.maxLineIndex || 0) - (a.maxLineIndex || 0));
@@ -2832,11 +2309,7 @@ const AUX_TIMEOUT = 700;
 
       let nameHtml = safeName;
       if (isMulti) nameHtml += ' <span class="badge-multi">多 ID</span>';
-      /* 2026-10-19 站主要求：只显示热度，**去掉「#排名」** ——
-         因为排名是按「当前筛选后的结果」算的（搜索/切分类后编号会变），
-         在用户眼里就是「排名不准」，不如不显示。
-         现在：主列表与热门视图都只显示「🔥 热度」，没有热度就不显示标签。
-         【回退办法】把 rankText 那段加回来即可（但不准，不建议）。 */
+      /* 只显示热度，去掉「#排名」：排名是按「当前筛选后的结果」算的（搜索/切分类后编号会变），在用户眼里就是「排名不准」。主列表与热门视图都只显示「🔥 热度」，没有热度就不显示标签。【回退办法】把 rankText 那段加回来（但不准，不建议）。 */
       if (group.maxHot > 0) {
         nameHtml += ' <span class="badge-hot" title="共被复制 / 试听 ' + group.maxHot + ' 次">🔥 ' + group.maxHot + '</span>';
       }
@@ -2845,7 +2318,7 @@ const AUX_TIMEOUT = 700;
       group.ids.forEach(id => {
         const sid = escapeHtml(id);
         const isFav = favorites.has(id);
-        /* 2026-10-05：这一行是否已经上报过无效 —— 决定整行灰化与按钮文案 */
+        /* 这一行是否已经上报过无效 —— 决定整行灰化与按钮文案 */
         const reported = invalidReported.has(id);
         const catStrEsc = escapeHtml(group.categories ? [...group.categories].join(' / ') : '');
         rowsHtml += `
@@ -2875,8 +2348,7 @@ const AUX_TIMEOUT = 700;
           ${rowsHtml}
         `;
 
-      /* 「以无效为主」（2026-10-07）：这一组里只要有人报过无效，信息出错那颗按钮就先置灰
-         （要用到已经插好的 DOM，所以在这里调，而不是在模板字符串里算） */
+      /* 「以无效为主」：这一组里只要有人报过无效，信息出错那颗按钮就先置灰（要用到已经插好的 DOM，所以在这里调，而不是在模板字符串里算） */
       syncInfoErrorBtn(el.querySelector('.btn-info-error'));
 
       /* 事件不在这里逐个绑定：
@@ -2903,14 +2375,9 @@ const AUX_TIMEOUT = 700;
       showToast('✅ 已复制 ID ' + id);
     }
 
-    /* 「✏️ 信息出错」（2026-10-07 取代原来的「📋 复制全部」）：
-       站主原话「让玩家修改信息，然后点击『确定上报』然后上报到后台」。
-       这一组歌的歌名 / 分类直接带进弹窗当**预填值**（玩家在原文上改，比从空白写省事），
-       ID 列表原样带上（只显示、不提交）—— 弹窗里再决定改什么、写不写说明。 */
+    /* 「✏️ 信息出错」：这一组歌的歌名 / 分类直接带进弹窗当预填值（玩家在原文上改，比从空白写省事），ID 列表原样带上（只显示、不提交）—— 弹窗里再决定改什么、写不写说明。 */
 
-    /* 「以无效为主」（2026-10-07 站主原话：「如果他点了无效，就不能修改信息」）：
-       这一组里只要有任何一个 ID 已经报过无效，这颗按钮就置灰、点了也只提示，
-       并把他送到「📌 问题上报 → 🚫 无效ID」去撤回。 */
+    /* 「以无效为主」：这一组里只要有一个 ID 已经报过无效，这颗按钮就置灰、点了也只提示，并把他送到「📌 问题上报 → 🚫 无效ID」去撤回。 */
     function groupHasInvalidReport(groupEl) {
       if (!groupEl) return false;
       const ids = Array.prototype.map
@@ -2961,16 +2428,11 @@ const AUX_TIMEOUT = 700;
       const nameText = (groupEl.dataset.name || '').trim();
       const catText = (groupEl.querySelector('.group-category') || {}).textContent || '';
 
-      /* 分类可能带前缀图标（「🎬 电子舞曲」这种）——**只有真的带了「图标 + 空格」才去掉前缀**。
-         ⚠️ 别写成「斜杠 + 上箭头 + 反斜杠 S + 加号 + 反斜杠 s + 星号 + 斜杠」那种正则：
-         分类名本身不带空格时（「电子舞曲」），它会连整个名字一起吃掉，预填就空了
-         （2026-10-07 用例抓到过）。正确写法是要求后面**必须有一个空格**：^[^\s]+\s+ */
+      /* 分类可能带前缀图标（「🎬 电子舞曲」这种）—— 只有真的带了「图标 + 空格」才去掉前缀。⚠️ 别写成「去掉第一个空白之前的全部内容」那种正则：分类名本身不带空格时（「电子舞曲」）会连整个名字一起吃掉，预填就空了。正确写法要求图标后面必须有一个空格。 */
       openInfoErrorModal(ids, nameText, catText.replace(/^[^\s]+\s+/, '').trim(), '');
     }
 
-    /* 真正打开「✏️ 信息出错」弹窗的那一步（2026-10-17 抽出来的：
-       宝库页那颗「信息出错」和「试听发现 ID 无效」两处都要用，预填值不一样）。
-       name / category / note 都只是**预填**，玩家还能改；ids 只显示、不提交（只报 ids[0]）。 */
+    /* 真正打开「✏️ 信息出错」弹窗的那一步：宝库页那颗「信息出错」和「试听发现 ID 无效」两处都要用，预填值不一样。name / category / note 都只是预填，玩家还能改；ids 只显示、不提交（只报 ids[0]）。 */
     function openInfoErrorModal(ids, name, category, note) {
       const list = (ids || []).map(v => String(v || '').trim()).filter(Boolean);
       if (list.length === 0) { showToast('没拿到 ID，请关掉重新点一次'); return; }
@@ -2979,7 +2441,7 @@ const AUX_TIMEOUT = 700;
       const catInput = document.getElementById('infoErrCategory');
       const noteInput = document.getElementById('infoErrNote');
       if (nameInput) nameInput.value = name || '';
-      /* 2026-10-17：分类变下拉了 —— 先按预填值把选项填好，再选中它 */
+      /* 分类是下拉：先按预填值把选项填好，再选中它 */
       fillInfoErrCategories(category);
       void catInput;
       if (noteInput) noteInput.value = note || '';
@@ -2990,8 +2452,7 @@ const AUX_TIMEOUT = 700;
       const modal = document.getElementById('infoErrorModal');
       if (modal) {
         modal.dataset.ids = JSON.stringify(list);
-        /* 2026-10-18：把这首歌**原本的**歌名 / 分类记下来 ——
-           万一玩家其实是想报「无效」，转成无效上报时要用原值，不能用他在这个框里改的值。 */
+        /* 把这首歌原本的歌名 / 分类记下来 —— 万一玩家其实是想报「无效」，转成无效上报时要用原值，不能用他在这个框里改的值。 */
         modal.dataset.origName = String(name || '');
         modal.dataset.origCategory = String(category || '');
       }
@@ -3016,22 +2477,15 @@ const AUX_TIMEOUT = 700;
       }
 
       /* ============================================================
-         2026-10-18 站主要求：有人把「这个 ID 用不了 / 404」写进「信息出错」。
-         那属于「无效处理」通道，这里要像「输入 1234 那种捣乱 ID」一样弹窗拦住，
-         并直接给一个「改成无效上报」的出口（省得他自己回去找按钮）。
+         有人把「这个 ID 用不了 / 404」写进「信息出错」：那属于「无效处理」通道，这里要像「输入 1234 那种捣乱 ID」一样弹窗拦住。
          ⚠️ 只查「说明」那一栏：歌名里出现「无效」很可能是正常歌名（如《无效恋爱》）。
-         【回退办法】把下面这一段（到「if (looksInvalid) {...}」结束）整块删掉即可。
+         【回退办法】把下面这一段（到 if (looksInvalid) {...} 结束）整块删掉即可。
          ============================================================ */
-      /* 2026-10-24 站主反馈：有玩家把系统预填的那句
-         「试听时在 Roblox 那边取不到音频（下架或不存在）：这个 ID 是无效的」
-         原样留在说明里就提交了 —— 这类"报用不了"的话要拦下来。
-         所以把这批口语化的说法全部补进来。
-         【回退办法】删掉新加的那几行即可。 */
+      /* 有玩家把系统预填的那句「试听时在 Roblox 那边取不到音频（下架或不存在）：这个 ID 是无效的」原样留在说明里就提交了 —— 这类「报用不了」的话要拦下来，所以把口语化的说法都补进来。【回退办法】删掉新加的那几行即可。 */
       const INVALID_WORDS = [
         '无效', '失效', '没用', '不能用', '用不了', '放不了', '放不出', '播放不了',
         '播不了', '没声音', '没有声音', '听不了', '听不到', '挂了', '废了', '打不开',
         '404', '找不到', '不存在', '下架', '删了吧', '死链',
-        /* 2026-10-24 新增 */
         '取不到', '取不到音频', '放出来', '没声', '没音', '听不出', '播放失败',
         '打不开声', '空的', '假的', '不好使', '不能用', '报废', '失效了', '听不成'
       ];
@@ -3039,10 +2493,7 @@ const AUX_TIMEOUT = 700;
       const looksInvalid = INVALID_WORDS.some(w => noteLower.indexOf(w.toLowerCase()) !== -1);
 
       if (looksInvalid) {
-        /* 2026-10-26 站主明确要求：说明里写「取不到音频 / 下架 / 这个 ID 无效」的，
-           一律弹窗拦下，**这条信息出错反馈不加入后台**，也不自动转成无效上报
-           （要报无效请他自己点「🚫 无效处理」，避免两条链混在一起）。
-           【回退办法】从 git 历史恢复本段原来的「改成无效上报 / 继续报信息出错」分支。 */
+        /* 说明里写「取不到音频 / 下架 / 这个 ID 无效」的，一律弹窗拦下，这条信息出错反馈不加入后台，也不自动转成无效上报（要报无效请他自己点「🚫 无效处理」，避免两条链混在一起）。【回退办法】从 git 历史恢复本段原来的「改成无效上报 / 继续报信息出错」分支。 */
         await showConfirm(
           '⚠️ 这条要报「无效处理」，不是「信息出错」',
           '你写的内容是在说「这个 ID 用不了 / 取不到音频 / 已经下架 / 是无效的」。\n\n' +
@@ -3070,8 +2521,7 @@ const AUX_TIMEOUT = 700;
       if (okBtn) okBtn.disabled = false;
       if (!res.ok) return;
 
-      /* 2026-10-07 站主定的规矩「以无效为主」：这个 ID 已经报过无效时，后端会挡下来，
-         这里如实说明，并把「问题上报」面板打开到「🚫 无效ID」那一栏，方便他撤回。 */
+      /* 「以无效为主」：这个 ID 已经报过无效时，后端会挡下来，这里如实说明，并把「问题上报」面板打开到「🚫 无效ID」那一栏，方便他撤回。 */
       if (res.blocked > 0) {
         closeModal('infoErrorModal');
         showToast('🚫 这个 ID 你已经报过「无效」了：要先撤回无效上报，才能报「信息出错」');
@@ -3085,30 +2535,24 @@ const AUX_TIMEOUT = 700;
 
     /* 整个列表只绑一次监听器：新增节点自动生效，不用反复绑定 */
     function bindListDelegation() {
-      /* 2026-10-05：「无效批量处理」删掉后，行里不再有勾选框（.id-checkbox），
-         原来那个 change 监听器（维护 selectedIds）随之删除，只留下面这套点击委托。 */
       dom.songList.addEventListener('click', e => {
         const btn = e.target.closest ? e.target.closest('button') : null;
         if (!btn || !dom.songList.contains(btn)) return;
 
         if (btn.classList.contains('btn-fav')) { toggleFavorite(btn.dataset.id, btn); return; }
         if (btn.classList.contains('btn-play')) {
-          /* 2026-10-17：试听照旧立刻打开（别让访客等一次网络请求），
-             同时在后台体检一次这个 ID —— 是 404 就在页面上告诉他并给一键上报。
-             这两件事互不阻塞：verifyPreview() 是异步的，任何异常都只是「没查出问题」。 */
+          /* 试听照旧立刻打开（别让访客等一次网络请求），同时在后台体检一次这个 ID —— 是 404 就在页面上告诉他并给一键上报。这两件事互不阻塞：verifyPreview() 是异步的，任何异常都只是「没查出问题」。 */
           previewId(btn.dataset.id);
           verifyPreview(btn.dataset.id, false);
           return;
         }
         if (btn.classList.contains('btn-copy')) { copyOneId(btn); return; }
-        /* 2026-10-05：新按钮 —— 没报过就上报，报过了就撤销（原来这里是隔离用的 ✕） */
+        /* 没报过就上报，报过了就撤销 */
         if (btn.classList.contains('btn-invalid')) { toggleInvalidReport(btn); return; }
-        /* 2026-10-07：原来是 btn-copy-group（复制该组全部 ID），站主要求改成「✏️ 信息出错」 */
         if (btn.classList.contains('btn-info-error')) { openInfoError(btn); }
       });
     }
 
-    /* 2026-10-05：syncBatchCheckboxes()（批量模式下同步勾选状态）随批量功能一起删除 */
 
     /* ============================================================
        随机挑一首 → 精准定位
@@ -3212,7 +2656,6 @@ const AUX_TIMEOUT = 700;
       showToast('🎲 随机到：' + name);
     }
 
-    /* 2026-10-05：updateSelectedCount()（批量条上「已选 N 个」）随批量功能一起删除 */
 
     function toggleFavorite(id, btn) {
       if (favorites.has(id)) {
@@ -3236,28 +2679,18 @@ const AUX_TIMEOUT = 700;
     }
 
     /* ============================================================
-       🔍 试听时的「ID 到底存不存在」体检（2026-10-17 站主要求）
+       试听时的「ID 到底存不存在」体检
        ------------------------------------------------------------
-       站主原话：「无效ID太多了，如果点击试听后，页面显示404的话，我们就认为这个 ID 无效，
-                 请做出相关功能（玩家想要试听，需要加速器）」。
-       为什么必须由**我们自己的后端**去问 Roblox：
-         · Roblox 的官方资产页 create.roblox.com 对**任何** ID 都返回 200（它是 Next.js 单页应用，
-           页面内容由浏览器再拉接口渲染）——直接看这个页面的状态码永远看不出 404；
-         · 真正能区分「存在 / 不存在」的是 Roblox 的 economy 接口
-            GET https://economy.roblox.com/v2/assets/<id>/details
-            存在 → 200（带 assetTypeId）；不存在 → 404；ID 格式离谱 → 400；
-            问太快 → 429。实测（2026-10-17，拿已下架名单里的 12 条 + 在架的 8 条对照）：
-            已下架的绝大多数 404，在架的绝大多数 200，区分得很干净；
-         · 这些接口**不带 CORS 头**（Access-Control-Allow-Origin 为空），浏览器里读不到状态码，
-            所以放到 Cloudflare Functions 里转一手（见 functions/api/invalid/verify.js）。
+       为什么必须由我们自己的后端去问 Roblox：
+         · Roblox 的官方资产页 create.roblox.com 对任何 ID 都返回 200（它是 Next.js 单页应用，页面内容由浏览器再拉接口渲染）——直接看这个页面的状态码永远看不出 404；
+         · 真正能区分「存在 / 不存在」的是 Roblox 的 economy 接口 GET https://economy.roblox.com/v2/assets/<id>/details：存在 → 200（带 assetTypeId）；不存在 → 404；ID 格式离谱 → 400；问太快 → 429。实测（拿已下架名单里的 12 条 + 在架的 8 条对照）：已下架的绝大多数 404，在架的绝大多数 200，区分得很干净；
+         · 这些接口不带 CORS 头（Access-Control-Allow-Origin 为空），浏览器里读不到状态码，所以放到 Cloudflare Functions 里转一手（见 functions/api/invalid/verify.js）。
        三种判定：
-         · invalid  —— Roblox 明确说不存在（404 / 400）→ 这就是「点进去是 404」的那种；
-         · valid    —— Roblox 说存在（200）；
-         · unknown  —— 连不上 Roblox / 被限速 / 返回了看不懂的东西。
-           注意：**没有加速器时多半是 unknown 而不是 invalid** —— 所以绝不会因为
-           「你连不上」就误判一首好歌是无效的（这是刻意留的安全边界）。
-       注意：只查一次不缓存？—— 每次点试听都查会慢（Roblox 接口 300~800ms）。
-           所以每个 ID 的结果在本次会话里记一份（verifiedIds），翻回来再点直接给结论。
+         · invalid —— Roblox 明确说不存在（404 / 400），就是「点进去是 404」的那种；
+         · valid —— Roblox 说存在（200）；
+         · unknown —— 连不上 Roblox / 被限速 / 返回了看不懂的东西。
+       注意：没有加速器时多半是 unknown 而不是 invalid —— 绝不会因为「你连不上」就误判一首好歌是无效的（这是刻意留的安全边界）。
+       每个 ID 的结果在本次会话里记一份（verifiedIds），翻回来再点直接给结论（Roblox 接口 300~800ms，每次点都查会慢）。
        ============================================================ */
     const VERIFY_URL = '/api/invalid/verify';
     /* 'invalid' / 'valid' / 'unknown'，本次会话内的缓存（刷新页面就重查） */
@@ -3290,11 +2723,9 @@ const AUX_TIMEOUT = 700;
 
     /* 名单里的这首歌（取歌名 / 分类，用来预填上报弹窗；取不到也没关系） */
     /* ============================================================
-       2026-10-18 性能：按 ID 找歌原来是 .find 线性扫 4804 条，而「问题上报」
-       会对每条本地记录各调一次。这里改成**懒建 Map 索引**：
-         · 第一次调用时建一次，之后 O(1)；
-         · 用「数组引用是否变化」判断要不要重建（applyData 每次都新建数组），
-           所以不需要在任何地方手动清理缓存，也不会出现「函数还没定义就被调用」的问题。
+       按 ID 找歌：懒建 Map 索引
+         · 第一次调用时建一次，之后 O(1)（原来是 .find 线性扫 4800 条，而「问题上报」会对每条本地记录各调一次）；
+         · 用「数组引用是否变化」判断要不要重建（applyData 每次都新建数组），所以不需要手动清理缓存，也不会出现「函数还没定义就被调用」的问题。
        【回退办法】把函数体换回单行 .find 写法即可（下面注释里保留了原句）。
        原句：const hit = (Array.isArray(songDatabase) ? songDatabase : []).find(s => String(s.id) === sid);
        ============================================================ */
@@ -3327,7 +2758,7 @@ const AUX_TIMEOUT = 700;
 
       const sid = String(payloadId);
       const meta = songMetaById(sid);
-      /* 2026-10-17 判据改了：不再只说 404，而是「在 Roblox 那边取不到音频」（下架/不存在都算） */
+      /* 判据是「在 Roblox 那边取不到音频」（下架 / 不存在都算），不只是 404 */
       showToast('🚫 这个 ID 在 Roblox 那边取不到音频，已标记为「无效 ID」');
 
       if (typeof showConfirm !== 'function') return status;
@@ -3340,10 +2771,7 @@ const AUX_TIMEOUT = 700;
       );
       if (!want) return status;
 
-      /* 2026-10-26 站主定死：ID 用不了只能走「无效处理」，绝不能预填进「信息出错」。
-         原来这里 openInfoErrorModal(..., '试听时...这个 ID 是无效的。') 就是玩家滥用信息出错的源头，
-         现在直接调用无效上报接口，不再碰信息出错表单。
-         【回退办法】改回 openInfoErrorModal([sid], meta.name, meta.category, '...')。 */
+      /* ID 用不了只能走「无效处理」，绝不能预填进「信息出错」：这里直接调用无效上报接口，不碰信息出错表单。 */
       if (invalidReported.has(sid)) {
         showToast('🚫 这个 ID 你已经报过「无效」了，站长会处理的');
         return status;
@@ -3369,9 +2797,6 @@ const AUX_TIMEOUT = 700;
 
       if (win) {
         try { win.opener = null; } catch (e) {}
-        /* 2026-10-05 站主要求：删掉这里原来那句
-           「🚀 已在新标签页打开 Roblox 官方页面（访问可能需要加速器）」——
-           新标签页本来就打开了，不用再弹一句。被拦截时的兜底提示（下面那句）保留。 */
         return;
       }
 
@@ -3398,9 +2823,7 @@ const AUX_TIMEOUT = 700;
         riskCountdownCleanup = null;
       }
 
-      /* 2026-10-09 站主要求：「风险弹窗的倒计时改成 5 秒」→ 原来 10 秒，现在 5 秒。
-         秒数是**一处定义**：这里的常量 + HTML 里那颗按钮的初始文案（确认跳转 (5s)）。
-         改秒数时两处一起改，否则弹窗刚打开的一瞬间会闪一下旧数字。 */
+      /* 风险弹窗倒计时 5 秒；秒数是一处定义：这里的常量 + HTML 里那颗按钮的初始文案（确认跳转 (5s)）。改秒数时两处一起改，否则弹窗刚打开的一瞬间会闪一下旧数字。 */
       const RISK_COUNTDOWN_SECONDS = 5;
 
       dom.riskBody.scrollTop = 0;
@@ -3484,15 +2907,8 @@ const AUX_TIMEOUT = 700;
     };
 
     /* ============================================================
-       「无效处理 / 无效批量处理」（2026-10-05 取代隔离区那一整套）
-       ------------------------------------------------------------
-       链路：访客点「🚫 无效处理」→ POST /api/invalid/report（带匿名浏览器身份）
-             → 后台「🚫 无效音乐ID管理」按 ID 聚合看到「上报几次」
-             → 管理员点「确认无效并下架」→ 写 quarantine_admin
-             → 前台下次加载时整条过滤掉（见 loadData 里的 adminIds）。
-       本地只做两件事：把这一行画成「已上报」、把这个 ID 记进 localStorage。
-       **不隐藏条目** —— 站主明确要求「就地标记、可撤销」，
-       误点之后点按钮变出来的「↩️ 撤销」就能撤回（同时会通知服务端删掉自己那一份）。
+       「无效处理」链路：访客点「🚫 无效处理」→ POST /api/invalid/report（带匿名浏览器身份）→ 后台「🚫 无效音乐ID管理」按 ID 聚合看到「上报几次」→ 管理员点「确认无效并下架」→ 写 quarantine_admin → 前台下次加载时整条过滤掉（见 loadData 里的 adminIds）。
+       本地只做两件事：把这一行画成「已上报」、把这个 ID 记进 localStorage。不隐藏条目 —— 就地标记、可撤销，误点之后点按钮变出来的「↩️ 撤销」就能撤回（同时会通知服务端删掉自己那一份）。
        ============================================================ */
 
     /* 服务端单次最多收 200 条（见 functions/api/invalid/report.js），超了要分批 */
@@ -3550,7 +2966,7 @@ const AUX_TIMEOUT = 700;
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json().catch(() => null);
           if (!data || !data.ok) throw new Error((data && data.error) || 'bad response');
-          /* 2026-10-07：后端会把「已经报过无效、这次的信息出错被挡下」的条数回在 blocked 里 */
+          /* 后端会把「已经报过无效、这次的信息出错被挡下」的条数回在 blocked 里 */
           blocked += Number(data.blocked) || 0;
         }
         return { ok: true, blocked };
@@ -3606,28 +3022,17 @@ const AUX_TIMEOUT = 700;
       invalidReported.add(id);
       saveInvalidReported();
       paintInvalidRow(id);
-      /* 2026-10-07「以无效为主」：报过无效之后，这首歌的「✏️ 信息出错」就该关掉了 */
+      /* 「以无效为主」：报过无效之后，这首歌的「✏️ 信息出错」就该关掉了 */
       syncInfoErrorBtn(btn);
       showToast('🚫 已上报 ID ' + id + ' 无效，点「↩️ 撤销」可以撤回');
     }
 
-    /* 2026-10-05（站主要求）：这里原来是 batchReportInvalid()（批量上报选中的 ID）。
-       「无效批量处理」整个功能删除后它没有任何调用点，连同 toggleBatchMode() 一起删掉。
-       现在上报只有一条路：每条 ID 上的「🚫 无效处理」→ toggleInvalidReport()。 */
 
     /* ============================================================
-       「📋 我上报的」上报表（2026-10-05 站主要求新增）
-       ------------------------------------------------------------
-       站主原话：「增加一个上报表（游客），点击无效按钮之后上报的歌曲，在这里面可以看到
-       所有他上报的歌曲，然后可以选择恢复，再加个全部恢复按钮（其实本质上还是游客隔离区）」。
-       数据两条来源，合并显示：
-         ① 服务端 GET /api/invalid/mine?reporter=xxx —— 权威：带状态（待处理 / 已忽略 / 已下架）
-            和上报时间；后台已经处理过的也能看到处理结果。
-         ② 本地 localStorage（roblox_invalid_reported）—— 兜底：接口挂了 / 纯静态托管时
-            至少能看到「我这台浏览器报过哪些」，另外还能捞出「本地有、服务端没有」的残留
-            （比如表建好之前报的、或在别的设备上撤过的）。
-       恢复 = 调已有的 withdraw（服务端只删自己那条 pending），成功后本地标记一并清掉、
-       宝库页那一行立刻变回「🚫 无效处理」。
+       「📋 我上报的」上报表：数据两条来源，合并显示：
+         ① 服务端 GET /api/invalid/mine?reporter=xxx —— 权威：带状态（待处理 / 已忽略 / 已下架）和上报时间；后台已经处理过的也能看到处理结果。
+         ② 本地 localStorage（roblox_invalid_reported）—— 兜底：接口挂了 / 纯静态托管时至少能看到「我这台浏览器报过哪些」，另外还能捞出「本地有、服务端没有」的残留（比如表建好之前报的、或在别的设备上撤过的）。
+       恢复 = 调已有的 withdraw（服务端只删自己那条 pending），成功后本地标记一并清掉、宝库页那一行立刻变回「🚫 无效处理」。
        ============================================================ */
     const INVALID_MINE_URL = '/api/invalid/mine';
 
@@ -4469,289 +3874,6 @@ const AUX_TIMEOUT = 700;
     }
   </script>
 
-  <script>
-  (function () {
-    'use strict';
-
-    /* ============================================================
-       2026-10-17：这里原来是「你从哪里来」的渠道选择逻辑（PRESET 平台按钮、
-       自定义输入、按渠道统计人数）。站主说渠道数据够了、功能停用，
-       整体换成「手机屏幕尺寸」收集。下面这段全部重写。
-       【回退办法】整段换回 git 历史里带 PRESET = ['哔哩哔哩', ...] 的那一版即可。
-       ============================================================ */
-
-    const USER_ID_KEY = 'visit_user_id';
-    const REPORTED_KEY = 'screen_size_reported';  /* 记住上次报过的尺寸，没变就不重复报 */
-    const MODAL_ID = 'visitSourceModal';
-
-    function getUserId() {
-      let uid = localStorage.getItem(USER_ID_KEY);
-      if (!uid) {
-        uid = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem(USER_ID_KEY, uid);
-      }
-      return uid;
-    }
-
-    /* ============================================================
-       2026-10-24 站主要求（改版）：
-       「只收集手机和平板的设备型号（如 Xiaomi 17）和屏幕尺寸（如 6.3"），
-        其它的都不收集。电脑也不收集。」
-       —— 所以这里不再记「宽x高@DPR」，改成「型号@英寸」，且只对 phone / tablet 上报。
-       【回退办法】git checkout roblox_music.html（旧版按 宽x高@DPR 收集）。
-       ============================================================ */
-
-    /* 设备分三类。判据顺序：UA 明确特征 → Client Hints 的 mobile → 触摸 + 小屏。 */
-    function detectDeviceClass() {
-      const ua = navigator.userAgent || '';
-      if (/iPad|Tablet|PlayBook|Silk|Kindle/i.test(ua)) return 'tablet';
-      if (/iPhone|iPod|Windows Phone|IEMobile|BlackBerry|Opera Mini/i.test(ua)) return 'phone';
-      if (/Android/i.test(ua)) {
-        /* Android 平板通常不带 "Mobile"；手机上一定带 */
-        return /Mobile/i.test(ua) ? 'phone' : 'tablet';
-      }
-      /* 2026-10-24 修：**先判桌面系统**。
-         之前兜底是「有触摸 + 最短边 < 900 就当平板」——
-         结果带触摸屏的 Windows 电脑（最窄边正好 900）被误判成平板，
-         弹窗还显示「未知平板」。桌面系统一律 desktop，哪怕它有触摸屏。
-         【回退办法】删掉下面这个 if，回到旧兜底。 */
-      if (/Windows NT|Macintosh|X11|CrOS|Linux x86_64|Linux i686/i.test(ua)) {
-        return 'desktop';
-      }
-      try {
-        if (navigator.userAgentData && navigator.userAgentData.mobile) return 'phone';
-      } catch (e) {}
-      /* 兜底：有触摸 + 最短边 < 900 → 当平板；否则电脑 */
-      const touch = (navigator.maxTouchPoints || 0) > 1;
-      const shortSide = Math.min(screen.width || 0, screen.height || 0);
-      if (touch && shortSide > 0 && shortSide < 900) return 'tablet';
-      return 'desktop';
-    }
-
-    /* ============================================================
-       2026-10-24 · 型号对照表（站主要「Xiaomi 17 Pro」这种营销名）
-       ------------------------------------------------------------
-       浏览器读不到营销名，只读得到型号代码；所以拿 data/device-models.json 翻译。
-       · 只拉一次，force-cache
-       · 表里没有的**原样返回代码**（不猜、不编）
-       · 加载失败也照常工作（空表 → 显示代码）
-       【回退办法】删掉这段即可。
-       ============================================================ */
-    let _modelMap = null;
-    let _modelMapLoading = false;
-    const _modelMapWaiters = [];
-
-    function loadModelMap(cb) {
-      if (_modelMap) { if (cb) cb(_modelMap); return; }
-      if (cb) _modelMapWaiters.push(cb);
-      if (_modelMapLoading) return;
-      _modelMapLoading = true;
-      fetch('data/device-models.json', { cache: 'force-cache' })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (j) { _modelMap = (j && j.models) || {}; })
-        .catch(function () { _modelMap = {}; })
-        .finally(function () {
-          _modelMapLoading = false;
-          const ws = _modelMapWaiters.splice(0);
-          ws.forEach(function (fn) { try { fn(_modelMap); } catch (e) {} });
-        });
-    }
-
-    /* 代码 → 营销名。查不到就原样返回（这是纪律：宁可显示代码，也不猜）。 */
-    function prettyModel(code) {
-      if (!code) return code;
-      if (!_modelMap) return code;          /* 表还没加载 → 先给代码，加载完会刷新 */
-      const hit = _modelMap[String(code).toUpperCase()];
-      return hit || code;
-    }
-
-    /* 型号：优先用 Client Hints 的可读型号（Chrome 会给 "Xiaomi 17" 这种），
-       拿不到再回退 UA（Android 常常只有型号代码，如 23127PN0CC）。 */
-    function detectModel() {
-      const ua = navigator.userAgent || '';
-      if (/iPad/i.test(ua)) return 'iPad';
-      if (/iPhone/i.test(ua)) {
-        /* iPhone 的 UA 只有 "iPhone"，用屏幕尺寸大致判代（仅作参考） */
-        const w = Math.round(screen.width || 0), h = Math.round(screen.height || 0);
-        const dpr = window.devicePixelRatio || 1;
-        const px = Math.round(w * dpr) + 'x' + Math.round(h * dpr);
-        const guess = { '1179x2556': 'iPhone 14 Pro', '1170x2532': 'iPhone 13/14', '1290x2796': 'iPhone 15 Pro Max', '750x1334': 'iPhone SE', '1125x2436': 'iPhone X/XS' };
-        return guess[px] || 'iPhone';
-      }
-      const m = ua.match(/Android[^;)]*[;)]\s*([^;)]+?)(?:\s*Build|\s*;|\))/i);
-      if (m && m[1]) return m[1].trim().slice(0, 40);
-      return '';
-    }
-
-    /* 异步再试一次「高熵」型号（Chrome 90+）。拿到更可读的名字就更新弹窗。 */
-    function fetchBetterModel(cb) {
-      try {
-        if (!navigator.userAgentData || !navigator.userAgentData.getHighEntropyValues) return;
-        navigator.userAgentData.getHighEntropyValues(['model']).then(function (d) {
-          if (d && d.model) cb(String(d.model).slice(0, 40));
-        }).catch(function () {});
-      } catch (e) {}
-    }
-
-    /* 英寸估算：CSS 像素按 160dpi 定义，所以 hypot(w,h)/160 就是英寸。
-       实测纯公式偏小 ~3%，乘 1.03 校正；保留 1 位小数。 */
-    function estimateInches() {
-      const w = Number(screen.width) || 0;
-      const h = Number(screen.height) || 0;
-      if (!w || !h) return '';
-      const cssDiag = Math.sqrt(w * w + h * h);
-      const inches = Math.round((cssDiag / 160) * 1.03 * 10) / 10;
-      return String(inches);
-    }
-
-    /* 这台设备的信息。
-       · deviceClass：phone / tablet / desktop（只有前两种上报）
-       · model：型号（可能是空，用「未知机型」兜底）
-       · inches：估算英寸
-       · tag：上报用的标识「型号@英寸」，例如 Xiaomi 17@6.3 */
-    function getScreenInfo() {
-      const dpr = window.devicePixelRatio || 1;
-      const cls = detectDeviceClass();
-      const rawModel = detectModel();
-      /* 2026-10-24：原始型号先过对照表翻译（表里没有就还是代码）。 */
-      const model = prettyModel(rawModel) || (cls === 'tablet' ? '未知平板' : '未知机型');
-      const inches = estimateInches();
-      const sw = Math.round(screen.width || 0);
-      const sh = Math.round(screen.height || 0);
-      return {
-        deviceClass: cls,
-        shouldReport: cls === 'phone' || cls === 'tablet',
-        model: model,
-        inches: inches,
-        viewport: Math.round(window.innerWidth || 0) + '×' + Math.round(window.innerHeight || 0),
-        physical: Math.round(sw * dpr) + '×' + Math.round(sh * dpr),
-        dpr: String(Math.round(dpr * 100) / 100),
-        /* 2026-10-24 站主纠正：收集的目的是「适配所有设备」，所以**宽度必须带上**，
-           格式变成 `407|Xiaomi 14@6.3`（宽度|型号@英寸）。
-           后台面板按宽度聚合排断点，型号只是附注。 */
-        tag: (Math.round(window.innerWidth || 0) || 0) + '|' + model + '@' + (inches || '0')
-      };
-    }
-
-    const openBtn = document.getElementById('openSourceBtn');
-    const modal = document.getElementById(MODAL_ID);
-    if (!openBtn || !modal) return;
-
-    /* 2026-10-24：旧字段（视口/分辨率/DPR）已从弹窗删掉，这里只留还在用的。 */
-    const elModel = document.getElementById('screenModel');
-    const elTag = document.getElementById('screenTag');
-    const currentHint = document.getElementById('visitCurrentHint');
-    const reportBtn = document.getElementById('screenReportBtn');
-
-    /* 2026-10-24 改版：弹窗只显示「类型 / 型号 / 英寸 / 上报内容」四项。
-       电脑端把上报按钮禁用，并显示一行说明（站主要求电脑不收集）。 */
-    const elDevice = document.getElementById('screenDevice');
-    const elInches = document.getElementById('screenInches');
-    const elSkipRow = document.getElementById('screenSkipRow');
-
-    /* 2026-10-24：只刷新「型号 / 上报内容」这两行，不触发 getScreenInfo 的重活，
-       专供异步对照表加载完后回填。 */
-    function paintScreenInfoLight() {
-      const info = getScreenInfo();
-      if (elModel) elModel.textContent = info.model || '识别不到（不影响）';
-      if (elTag) elTag.textContent = info.shouldReport ? info.tag : '（电脑端不收集）';
-    }
-
-    function deviceClassLabel(cls) {
-      return cls === 'phone' ? '📱 手机' : cls === 'tablet' ? '📲 平板' : '💻 电脑';
-    }
-
-    function paintScreenInfo() {
-      const info = getScreenInfo();
-      if (elDevice) elDevice.textContent = deviceClassLabel(info.deviceClass);
-      if (elModel) elModel.textContent = info.model || '识别不到（不影响）';
-      if (elInches) elInches.textContent = info.inches ? ('约 ' + info.inches + ' 英寸') : '识别不到';
-      if (elTag) elTag.textContent = info.shouldReport ? info.tag : '（电脑端不收集）';
-      if (elSkipRow) elSkipRow.style.display = info.shouldReport ? 'none' : '';
-      if (reportBtn) {
-        reportBtn.disabled = !info.shouldReport;
-        reportBtn.textContent = info.shouldReport ? '✅ 上报给站长' : '电脑端不收集';
-      }
-      /* 2026-10-24：对照表是异步拉的，拉完再刷一次显示（否则先看到的是代码） */
-      loadModelMap(function () { paintScreenInfoLight(); });
-
-      /* 型号拿得更准就再刷新一次（Chrome 的 Client Hints） */
-      fetchBetterModel(function (better) {
-        if (better && elModel && info.model !== better) {
-          elModel.textContent = better;
-          if (elTag) elTag.textContent = better + '@' + (info.inches || '0');
-        }
-      });
-      if (currentHint) {
-        const last = localStorage.getItem(REPORTED_KEY) || '';
-        currentHint.textContent = last
-          ? '上次已上报：' + last + '（尺寸没变就不用重复报）'
-          : '还没上报过';
-        currentHint.style.display = 'block';
-      }
-      return info;
-    }
-
-    async function reportScreen(manual) {
-      /* 2026-10-24：先把对照表等出来，否则会把原始代码报进 D1。 */
-      if (!_modelMap) {
-        await new Promise(function (resolve) { loadModelMap(function () { resolve(); }); });
-      }
-      const info = getScreenInfo();
-      /* 2026-10-24：电脑端一律不上报（站主要求）。 */
-      if (!info.shouldReport) {
-        if (manual) showToast('💻 电脑端不收集设备信息，手机 / 平板打开才会记录');
-        return;
-      }
-      try {
-        await zmPostJson('/api/visit/report', {
-          userId: getUserId(),
-          source: info.tag
-        }, 'visit');
-        localStorage.setItem(REPORTED_KEY, info.tag);
-        if (manual) {
-          showToast('✅ 已上报：' + info.tag + '，谢谢！');
-          closeModal(MODAL_ID);
-        }
-      } catch (e) {
-        if (manual) showToast('⚠️ 上报失败，稍后再试');
-      }
-    }
-
-    /* 静默自动上报：页面加载 2 秒后报一次；尺寸没变就跳过（同一 userId 只会覆盖同一条） */
-    function autoReportOnce() {
-      setTimeout(() => {
-        const info = getScreenInfo();
-        /* 2026-10-24：只在手机 / 平板上自动上报；电脑直接跳过（不占额度）。 */
-        if (!info.shouldReport) return;
-        if (localStorage.getItem(REPORTED_KEY) === info.tag) return;
-        reportScreen(false);
-      }, 2000);
-    }
-
-    openBtn.addEventListener('click', () => {
-      paintScreenInfo();
-      openModal(MODAL_ID);
-    });
-
-    const closeBtn = document.getElementById('visitSourceClose');
-    if (closeBtn) closeBtn.addEventListener('click', () => closeModal(MODAL_ID));
-
-    if (reportBtn) {
-      reportBtn.addEventListener('click', () => {
-        reportBtn.disabled = true;
-        reportScreen(true).finally(() => { reportBtn.disabled = false; });
-      });
-    }
-
-    /* 转屏 / 改窗口大小时，弹窗里的数字跟着更新 */
-    window.addEventListener('resize', () => {
-      if (modal.classList.contains('show')) paintScreenInfo();
-    });
-
-    autoReportOnce();
-  })();
-  </script>
 
 </body>
 </html>

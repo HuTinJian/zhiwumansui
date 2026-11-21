@@ -22,8 +22,8 @@ async function isLoggedIn() {
 }
 
 /* 提交密码到后端
-   （2026-10-05：优先走 ZMTurnstile.postJson —— 如果站点配了 Turnstile，
-   登录请求会带上一张一次性通行证；没配就是普通 fetch，行为与以前一致） */
+   （优先走 ZMTurnstile.postJson —— 如果站点配了 Turnstile，
+   登录请求会带上一张一次性通行证；没配就是普通 fetch） */
 async function submitPassword(password) {
   try {
     const body = { password: String(password ?? '') };

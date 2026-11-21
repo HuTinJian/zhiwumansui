@@ -1,11 +1,9 @@
 /* ============================================================
-   织雾满穗 · /api/* 专用中间件（2026-10-05 新增）
+   织雾满穗 · /api/* 专用中间件
    ------------------------------------------------------------
-   为什么只写在这一层：functions/_middleware.js（根目录那个）会连
-   静态页面一起拦，等于把每一次访客打开网页都算成一次 Functions 调用，
-   白白消耗 Workers 免费额度（10 万次/天），代价太大。
-   放在 functions/api/ 下只对 /api/* 生效，额度使用与今天完全一致。
-
+   只放在 functions/api/ 下，只对 /api/* 生效：若放到根目录
+   functions/_middleware.js，静态页面也会被拦，每次访客打开网页都算一次
+   Functions 调用，白白消耗 Workers 免费额度（10 万次/天）。
    做三件事：
      1. 全站 API 突发限速（单 IP，10 分钟 600 次）——安全网，
         正常访客远到不了这个数（手机运营商大内网共享 IP 的情况也留了余量）；
@@ -42,10 +40,10 @@ export async function onRequest(context) {
   }
 
   /* 2) 请求体上限：只看声明长度，不把 body 读进来（读进来就已经消耗内存了）
-     ⚠️ 2026-10-18 安全修复：原来只信 Content-Length，
-        用 chunked 编码（不带这个头）就能整段绕过，几十 MB 的 body 会直接进 JSON.parse。
-        浏览器 fetch 一定会带 Content-Length，所以这里拒绝 transfer-encoding 不会误伤正常访客。
-        【回退办法】删掉下面 transfer-encoding 那个判断即可。 */
+       ⚠️ 必须同时拒绝 transfer-encoding：只信 Content-Length 的话，
+          用 chunked 编码（不带这个头）就能整段绕过，几十 MB 的 body 会直接进 JSON.parse。
+          浏览器 fetch 一定会带 Content-Length，所以这里拒绝 transfer-encoding 不会误伤正常访客。
+          【回退办法】删掉下面 transfer-encoding 那个判断即可。 */
   if (request.headers.get('transfer-encoding')) {
     return jsonError('payload_too_large', 413);
   }

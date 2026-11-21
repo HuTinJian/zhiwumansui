@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>后台管理 - 织雾满穗</title>
-  <!-- 2026-10-18：后台原来没有「渲染前定主题」脚本（其它 5 个页面都有），
-       用过深色的人每次进后台都会先闪一下浅色。这里补一份，逻辑与 index.html 相同。
-       【回退办法】删掉下面这段脚本标签与 meta theme-color 即可。 -->
-  <!-- 2026-10-25 中国色施工：初始 theme-color 写浅色宣纸（色值与全局 --bg 一致）；切到深色时由 js/common.js 覆盖为墨夜底。
-       【回退办法】改回原来的粉色初值（见 .verify/backup-theme-20261025/admin.html 第 10 行）。 -->
+  <!-- 渲染前先定主题，避免深色用户进后台时先闪一下浅色；逻辑与 index.html 一致。
+  回退：删掉下面这段脚本标签与 meta theme-color 即可。 -->
+  <!-- 初始 theme-color 用浅色宣纸（与全局 --bg 一致）；切到深色时由 js/common.js 覆盖为墨夜底。 -->
   <meta name="theme-color" content="#F5F0E6">
   <meta name="color-scheme" content="light dark">
   <script>
@@ -16,11 +14,8 @@
       try {
         var t = null;
         try { t = localStorage.getItem('zm_theme'); } catch (e) {}
-        /* 2026-11-07：手机系统浏览器里 localStorage 可能读不到（无痕/隐私/被清理），
-           这里补一层 cookie 兜底，读写口径与 js/common.js 一致。
-           【回退办法】把这个 if 块整段删掉、并把上面那行改回
-           var t = localStorage.getItem('zm_theme');
-           备份：.verify/backup-theme-20261107/本文件名 */
+        /* 手机系统浏览器里 localStorage 可能读不到（无痕 / 隐私 / 被清理），这里用 cookie 兜底；读写口径与 js/common.js 一致。
+        回退：删掉这个 if 块，并把上面那行改回 localStorage.getItem('zm_theme')。 */
         if (t !== 'dark' && t !== 'light') {
           try {
             var mc = document.cookie.match(/(?:^|;\s*)zm_theme=(dark|light)(?:;|$)/);
@@ -44,8 +39,6 @@
     }
     .admin-topbar h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
     .admin-topbar .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    /* 2026-09-29：顶部原来还有一枚「📦 合并工具」标签（连同这条 .admin-topbar .tab 规则），
-       合并工具整体搬去了桌面本地版，这里不再需要这条样式。 */
 
     .tabs {
       display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
@@ -60,12 +53,9 @@
     }
     .tab:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
     .tab:active { transform: scale(0.98); }
-    /* 2026-10-25 中国色：选中标签的「粉雾阴影」与淡粉底全部换成朱砂叠色（--accent-rgb 随主题变），
-       不再出现粉色；底色仍是 --primary（浅色墨 / 深色月白），字色后面由「选中态修复」统一成 --bg。
-       【回退办法】把本段四处朱砂叠色改回旧的粉色 rgba 写法（透明度不变），
-       或从 .verify/backup-theme-20261025/admin.html 整段拷回。 */
+    /* 选中标签：底色 var(--primary)（浅色墨 / 深色月白），字色由文末「选中态修复」统一成 var(--bg)；阴影用 var(--accent-rgb) 叠色，随主题变化，不写死粉色。 */
     .tab.active {
-      background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 2026-10-18 对比度：深色下 --primary 变浅，白字只有 2.3:1（见文末「选中态修复」的 --bg 兜底） */
+      background: var(--primary); border-color: var(--primary); color: var(--text-on-accent); /* 对比度：深色下 --primary 变浅，白字只有 2.3:1；字色由文末「选中态修复」统一成 --bg */
       box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3);
     }
 
@@ -120,9 +110,6 @@
       margin-bottom: 16px; display: flex; align-items: center;
       justify-content: space-between; flex-wrap: wrap; gap: 10px;
     }
-    /* 2026-10-01 用户要求：原来每个面板标题后面都跟着一个灰色数字徽章（.count），
-       现在全部删掉 —— 数字只留在「📈 数据统计」的卡片里，标题那一行只管按钮。
-       所以 .count 这条样式也没人要了，一并删掉。 */
     .panel-card h2 .head-actions {
       display: flex; gap: 8px; flex-wrap: wrap;
       /* 「❤️ 鸣谢名单」那两个面板的 h2 里只有按钮（标题已经写在子标签上了），
@@ -166,11 +153,7 @@
       border-radius: var(--radius-pill); cursor: pointer; font-weight: 600;
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
-    /* 2026-10-25 中国色：金/红实底按钮统一换成「深底 + 奶白字」的令牌
-       （--gold-strong / --danger / --text-on-accent），hover 不再写死旧的金褐色/暗红色，
-       改成掺 14% 深朱砂（--primary-btn-b）压暗，浅/深两套主题方向一致。
-       【回退办法】按钮底色改回 var(--gold)，字色改回 #fff，hover 改回旧的写死深色值；
-       或从 .verify/backup-theme-20261025/admin.html 整段拷回。 */
+    /* 金 / 红实底按钮统一用「深底 + 奶白字」令牌：--gold-strong / --danger / --text-on-accent；hover 用 14% 深朱砂（--primary-btn-b）压暗，浅 / 深主题方向一致。 */
     .list-item .actions .btn-approve { background: var(--gold-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-approve:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
     .list-item .actions .btn-delete { background: var(--danger-solid); color: var(--text-on-accent); }
@@ -182,9 +165,7 @@
       background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
     }
     .list-item .actions .btn-edit-sponsor:hover { background: var(--bg-tint); transform: translateY(-1px); }
-    /* 2026-10-01 补：同一批新按钮换过类名（底档行按「名字」删 / 鸣谢行的编辑 /
-       恢复显示），漏写样式就会掉回浏览器默认的灰按钮 —— 站主一眼就看出来了。
-       这里跟上面几款对齐：编辑 = 中性描边、删除 = 危险红、恢复 = 跟「受理」同款金色。 */
+    /* 「按名字删 / 编辑 / 恢复显示」三类按钮的配色：编辑 = 中性描边、删除 = 危险红、恢复 = 金色（与「受理」同款）；漏写样式会掉回浏览器默认灰按钮。 */
     .list-item .actions .btn-edit-sponsor-name,
     .list-item .actions .btn-edit-thanks {
       background: var(--bg-card); color: var(--primary); border: 1px solid var(--primary-light);
@@ -196,11 +177,7 @@
     .list-item .actions .btn-restore-sponsor { background: var(--gold-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-restore-sponsor:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
 
-    /* ========== ID 旁边那对小按钮：📋 复制 / 🔗 试听（2026-10-05 站主要求） ==========
-       站主：「后台所有跟 ID 有关的，都要有复制和试听功能，这样更快的审核和判断」，
-       并连补两句「也包括 D1」「包括 D1 的歌曲管理」——
-       所以 🚫 无效音乐ID管理三段（待处理 / 已忽略 / 已下架）与 🎶 D1 歌曲管理每一行
-       的 ID 后面都挂这对按钮（JS 里由 adminIdActions() 生成）。 */
+    /* ID 旁的「📋 复制 / 🔗 试听」小按钮：无效音乐ID管理各栏与 🎶 D1 歌曲管理每一行的 ID 后都挂，由 adminIdActions() 生成。 */
     .id-acts {
       display: inline-flex;
       align-items: center;
@@ -226,9 +203,7 @@
     .id-act:hover { border-color: var(--primary-light); color: var(--primary); background: var(--bg-card); }
     .id-act:active { transform: scale(0.97); }
     /* 「🔗 试听」是跳去 Roblox 官方页，给一点区分色，别跟「复制」混在一起 */
-    /* 2026-10-25 中国色：「🔗 试听」原来的天蓝/宝蓝换成石青信息色（--info-ink / --info-bg），
-       不再有蓝紫霓虹；边框用 color-mix 调淡，保持小药丸的轻量感。
-       【回退办法】改回旧的天蓝边框与深蓝字（见备份文件 205-206 行）。 */
+    /* 「🔗 试听」用石青信息色：字 var(--info-ink)、底 var(--info-bg)，边框用 color-mix 调淡，保持小药丸的轻量感。 */
     .id-act[data-admin-listen] { border-color: color-mix(in srgb, var(--info-ink) 55%, transparent); color: var(--info-ink); }
     .id-act[data-admin-listen]:hover { border-color: var(--info-ink); color: var(--info-ink); background: var(--info-bg); }
     @media (max-width: 600px) {
@@ -237,15 +212,12 @@
     }
     .list-item .actions button:active { transform: scale(0.92); }
 
-    /* ---------- 上报状态标签（2026-10-05：这套原来叫「反馈处理结果」，
-         反馈面板整块下线后留给「🚫 无效音乐ID管理」用 —— 红=上报次数、绿=已下架） ---------- */
+    /* 上报状态标签：红 = 上报次数，绿 = 已下架 */
     .list-item .type-tag.green { background: var(--success-strong); color: var(--text-on-accent); }
     .list-item .type-tag.red { background: var(--danger-solid); color: var(--text-on-accent); }
     .list-item .actions button[disabled] { opacity: 0.38; cursor: not-allowed; transform: none; }
 
-    /* ========== 🚫 无效音乐ID管理（2026-10-05 新增） ==========
-       替代原来的「⛔ 开发者隔离区」：待处理上报 / 已忽略 / 已下架 三段。
-       统计卡沿用 .stat-card、分页沿用 .pager，这里只写这套面板自己的东西。 */
+    /* ========== 🚫 无效音乐ID管理：待处理上报 / 已下架 两栏；统计卡沿用 .stat-card、分页沿用 .pager，这里只写本面板样式 ========== */
     .invalid-bar {
       display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
       padding: 10px 12px; margin-bottom: 12px;
@@ -254,15 +226,7 @@
     }
     /* 左边那句「已选 N 条」占满剩余宽度，把操作按钮推到右边 */
     .invalid-bar .invalid-bar-info {
-      /* 2026-10-17：改成独占一整行（flex-basis 100%），按钮从第二行左端起紧凑排。
-         原来 margin-right:auto + 体检那颗的 margin-left:auto = 两个 auto 平分空白，
-         体检按钮被甩到最右、中间一大段空档（站主截图指出）。手机上本来就是这么排的。
-         【回退办法】把下面这行改回 `margin-right: auto;`。 */
-      /* 2026-10-17 站主要求「已选 N 条和下面的几个按钮放到同一行，跟之前一样」→
-         恢复成原来的 `margin-right: auto`（它把按钮排推到右边，与以前完全一致）。
-         ⚠️ 关键：这句已经在吃 auto 了，**右边的按钮一律不许再写 margin-left: auto**
-         （两个 auto 会平分空白 → 凭空多出一大段空档，站主当天拿截图指出过）。
-         手机上仍由下面 @media 里的 flex: 1 0 100% 让它独占一行（那是早就有的适配）。 */
+      /* 「已选 N 条」用 margin-right:auto 把按钮推右；右侧按钮一律不许再写 margin-left:auto（两个 auto 会平分空白，多出一段空档）。手机端由下面 @media 的 flex:1 0 100% 让它独占一行。 */
       font-size: 0.82rem; color: var(--text-light); margin-right: auto;
     }
     .invalid-bar .invalid-bar-info strong { color: var(--primary); font-weight: 700; }
@@ -273,29 +237,21 @@
       transition: background 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
     }
     .invalid-bar button:active { transform: scale(0.97); }
-    /* 2026-10-25 中国色：「全选」原来是浅灰底白字（浅色下白字对比不够），
-       改成 --primary 实底 + --bg 字（浅色=墨底宣纸字，深色=月白底暖黑字），两边都清楚。
-       【回退办法】改回浅灰底白字的旧写法（见 .verify/backup-theme-20261025/admin.html 第 249-250 行）。 */
+    /* 「全选」用 --primary 实底 + --bg 字（浅色墨底宣纸字 / 深色月白底暖黑字），两套主题都清楚。 */
     .invalid-bar .btn-pick-all { background: var(--primary); color: var(--bg); }
     .invalid-bar .btn-pick-all:hover { background: var(--primary-dark); }
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
-    /* 2026-10-24：「❌ 批量拒绝」—— 拒绝类操作用中性描边，不用大红块抢眼。
-       【回退办法】删掉这两条规则。 */
+    /* 「❌ 批量拒绝」：拒绝类操作用中性描边，不用大红块抢眼。 */
     .invalid-bar .btn-batch-reject {
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
     .invalid-bar .btn-batch-reject:hover { background: var(--bg-tint); color: var(--danger); }
-    /* 2026-10-18：这行原来的浅灰粉描边是写死的，深色主题下字会看不见；已换 --border-strong 令牌。
-       【回退办法】改回旧写法（旧色值见 .verify/backup-theme-20261025/admin.html 第 258-259 行）。 */
+    /* 这行描边用 --border-strong 令牌；写死浅灰粉在深色主题下字会看不见。 */
     .invalid-bar .btn-pick-none:hover { background: var(--border-strong); }
-    /* 「🧹 清空已忽略」那颗按钮 2026-10-07 随那一段一起删了，样式留着不碍事（下面那行只是记录） */
     .invalid-bar .btn-clear-ignored { background: var(--danger-solid); color: var(--text-on-accent); margin-left: auto; }
     .invalid-bar .btn-clear-ignored:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); }
 
-    /* 搜索框（2026-10-05 站主要求：无效音乐ID管理的三个分类各自搜索自己的；
-       随后歌曲管理也要能搜 —— 四处共用这一套样式，所以类名用中性的 .panel-search）。
-       每一段自己一行：左边一个输入框（flex 占满），右边一句「匹配 N 条 / 共 M 条」。
-       输入框外观照站内其它搜索框（药丸形、浅底、聚焦时主色描边）。 */
+    /* 搜索框：无效音乐ID管理各栏与歌曲管理共用（类名用中性的 .panel-search）。每段一行：左边输入框（flex 占满），右边显示「匹配 N 条 / 共 M 条」；药丸形、浅底、聚焦时主色描边。 */
     .panel-search-row {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
       margin: 0 0 12px;
@@ -313,18 +269,11 @@
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
     }
     .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
-    /* 「➕ 手动下架 ID」（2026-10-05 补回站主自己下架的能力）：金色，跟「已下架」这一段的语义对上 */
-    /* 2026-10-17：手动下架（「✅ 已下架」栏里唯一那颗）继续靠 margin-left:auto 顶到最右。
-       「🔍 批量体检无效 ID」当天从这一栏挪到了「🚫 待处理上报」栏 ——
-       它体检的是**还没处理的**上报，放在已下架那一栏是站主指出来的错。
-       在待处理那一栏它排最后，同样用 margin-left:auto 跟左边那排批量按钮分开。
-       【回退办法】把两条 margin-left 换回原来的位置（体检那颗挪回 .btn-manual-remove 那栏）。 */
+    /* 「➕ 手动下架 ID」用金色，与「已下架」语义对应 */
+    /* 手动下架按钮用 margin-left:auto 顶到最右；「🔍 复检待处理」归「🚫 待处理上报」栏（它复检的是还没处理的上报），不要放回已下架栏。 */
     .invalid-bar .btn-manual-remove { background: var(--gold-strong); color: var(--text-on-accent); margin-left: auto; }
     .invalid-bar .btn-manual-remove:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); }
-    /* 🔍 批量体检无效 ID（2026-10-17 新增，在「🚫 待处理上报」栏末尾）
-       ⚠️ 这里**绝对不能再写 margin-left:auto**：左边那句「已选 N 条」已经是 `margin-right: auto`，
-       两个 auto 会各分走一半空白，把体检那颗甩到最右、跟批量按钮拉出一大段空档
-       （站主 2026-10-17 拿截图指出过）。现在「已选 N 条」独占一整行，按钮从第二行左端起紧凑排。 */
+    /* 🔍 复检待处理 排在「🚫 待处理上报」栏末尾；这里绝对不能再写 margin-left:auto —— 左边「已选 N 条」已用 margin-right:auto，两个 auto 会平分空白、把按钮甩到最右。 */
     .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
     .invalid-bar .btn-scan-validity:hover { background: var(--bg-tint); color: var(--primary); }
     .invalid-bar .btn-scan-validity:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -345,9 +294,7 @@
       background: var(--primary); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
     }
-    /* 2026-10-25 中国色：勾选后的底色是 --primary（浅色=墨、深色=月白），
-       对勾不能再写死白色（深色主题下白勾压在月白底上会隐形），改用 --bg（永远与 --primary 反色）。
-       【回退办法】把下面两行 var(--bg) 改回白色（见备份 320-321 行）。 */
+    /* 勾选后的底色是 var(--primary)，对勾用 var(--bg)（永远与 --primary 反色）；不能写死白色，深色主题下会隐形。 */
     .invalid-pick input[type="checkbox"]:checked::after {
       content: ''; position: absolute; left: 50%; top: 50%;
       width: 5px; height: 10px; border-right: 2px solid var(--bg);
@@ -361,35 +308,22 @@
     .invalid-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .list-item .actions .btn-invalid-remove { background: var(--danger-solid); color: var(--text-on-accent); }
     .list-item .actions .btn-invalid-remove:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
-    /* 2026-10-07：「🙈 忽略」改成「🗑️ 删除记录」——
-       中性描边款（不是红色满块），因为它删的只是「上报记录」，歌还在；
-       【2026-10-18 修 BUG】上面这行原来缺了收尾的注释符号，导致下面 .btn-invalid-ignore 与
-       .btn-invalid-delete 两条规则（含 hover）整块被当成注释吞掉 —— 后台「❌ 无效反馈」
-       按钮因此没有中性描边底色，hover 也没反应。这里已把注释正确闭合。
-       【回退办法】把下面这 4 行说明删掉，并在上一行末尾去掉注释收尾符号即可（但那是 BUG，别回退）。
-       */
+    /* 「❌ 无效反馈」用中性描边（不是红色满块）：删的只是上报记录，歌还在。 */
     .list-item .actions .btn-invalid-ignore,
     .list-item .actions .btn-invalid-delete {
       background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
     }
     .list-item .actions .btn-invalid-ignore:hover,
     .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-1px); }
-    /* 📥 玩家投稿那一块的两个按钮（2026-10-07） */
-    /* 2026-10-25 中国色：成功按钮的浅色底不动（--success-strong 上奶白字 6.8:1），
-       hover 不再用会「变亮」的 --success-dark（深色主题下那是给文字用的浅绿，白字会糊），
-       改成与其它实底按钮一致的 14% 深朱砂压暗。
-       【回退办法】hover 改回 var(--success-dark)；按钮字色改回白色（见备份 345-350 行）。 */
+    /* 📥 玩家投稿的两个按钮 */
+    /* 成功按钮 hover 不用会「变亮」的 --success-dark（深色主题下白字会糊），改用 14% 深朱砂压暗，与其它实底按钮一致。 */
     .list-item .actions .btn-submission-approve { background: var(--success-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-submission-approve:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
     .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
     .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-1px); }
     .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-invalid-restore:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
-    /* ✏️ 修改信息（2026-10-17 新增）：信息出错那一栏的主操作，
-       用金黄色（跟「➕ 添加歌曲 / ✏️ 信息出错」同一族），一眼能看出是「改」不是「删 / 下架」。
-       2026-10-25 中国色：底色改用 --gold-strong（深金底 + 奶白字 5.8:1），
-       不再用浅金兜底色与深棕字（那套在深色主题下字会糊）。
-       【回退办法】改回浅金底 + 深棕字的旧写法（见备份 354-355 行）。 */
+    /* 「✏️ 修改信息」用金黄色（与「➕ 添加歌曲 / ✏️ 信息出错」同族），一眼能看出是「改」不是「删 / 下架」；底色用 --gold-strong（深金底 + 奶白字 5.8:1）。 */
     .list-item .actions .btn-info-edit { background: var(--gold-strong); color: var(--text-on-accent); font-weight: 700; }
     .list-item .actions .btn-info-edit:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
 
@@ -397,8 +331,6 @@
       display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
       gap: 10px; margin-bottom: 16px;
     }
-    /* 2026-10-01 站主：「统计的大小变小」——数字和留白都收了一档，
-       卡片不再一大块，一行能放下更多张 */
     .stat-card {
       background: linear-gradient(135deg, var(--bg-tint), var(--bg-soft));
       border: 1px solid var(--border);
@@ -409,57 +341,12 @@
     .stat-card .num { font-size: 1.3rem; font-weight: 800; color: var(--primary-ink); line-height: 1.15; }
     .stat-card .label { font-size: 0.74rem; color: var(--text-light); margin-top: 3px; line-height: 1.35; }
 
-    /* ========== 数据统计面板 ========== */
-    .stats-sub {
-      font-size: 1rem; font-weight: 700; color: var(--text);
-      margin: 22px 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .stats-sub .sub-hint { font-size: 0.78rem; font-weight: 400; color: var(--text-muted); }
+    /* 2026-11-21：手机尺寸收集结束，尺寸统计相关样式（.src-* / .source-* / .stats-sub）已删除。 */
 
-    /* 2026-09-26：原来这里有一套 .rank-* 榜单样式（「🔥 热门 Top 100」），
-       榜单按用户要求从后台下线，这份样式一并删除；
-       上面两张统计卡（有热度的曲目 / 总互动次数）继续保留。 */
-
-    /* ============================================================
-       2026-10-19 站主要求：尺寸数据要看得清楚（原来一行一个 407x886@3，几十行眼花）。
-       这里补 KPI 卡与分组的样式；渲染逻辑在 js/admin.js 的 loadSourceStats。
-       【回退办法】删掉 .src-* 这几条规则即可（渲染那边也会退回旧样子）。
-       ============================================================ */
-    .src-kpis { display: flex; gap: 10px; margin: 0 0 12px; flex-wrap: wrap; }
-    .src-kpi {
-      flex: 1 1 120px; min-width: 110px;
-      background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px;
-      padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
-    }
-    .src-kpi b { font-size: 1.35rem; color: var(--primary-ink); line-height: 1.2; }
-    .src-kpi span { font-size: 0.74rem; color: var(--text-muted); }
-    .src-kpi.warn b { color: var(--danger); }
-    .src-tip { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px; line-height: 1.7; }
-    .src-tip.warn { color: var(--danger); }
-    .src-group-title {
-      font-size: 0.78rem; font-weight: 800; color: var(--text-muted);
-      letter-spacing: 0.4px; margin: 14px 0 8px;
-    }
-    .src-more { font-size: 0.76rem; color: var(--text-light); padding: 6px 2px 0; }
-    /* 访问渠道 */
-    .source-list { display: flex; flex-direction: column; gap: 12px; }
-    .source-row { display: flex; flex-direction: column; gap: 5px; }
-    .source-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.86rem; }
-    .source-name { font-weight: 600; color: var(--text); word-break: break-word; }
-    .source-num { color: var(--primary-ink); font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
-    .source-bar { height: 8px; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--border); overflow: hidden; }
-    .source-bar i {
-      display: block; height: 100%; border-radius: 6px;
-      background: linear-gradient(90deg, var(--primary-btn-a), var(--accent));
-      transition: width 0.7s var(--ease-out);
-    }
 
     .loading { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.9; }
 
-    /* 2026-09-26：歌曲管理 / 赞助者原来各有一排「行内添加表单」，
-       现在都改成了「按钮 + 弹窗」，那两套表单样式一并删除；
-       赞助者面板里那段说明文字也按用户要求删掉了，这里只剩列表里的小分组标题。 */
     .sponsor-group-title {
       font-weight: 700; color: var(--gold); margin: 16px 0 8px; font-size: 0.95rem;
     }
@@ -514,11 +401,7 @@
     }
     #batchImportModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #batchImportModal .import-status.err { color: var(--danger); font-weight: 600; }
-    /* 「➕ 添加歌曲」的识别预览（2026-10-01 加的）：贴进去就显示认出了几首、
-       歌名对不对、各归到哪个分类，确认前心里有数。
-       2026-10-01 晚站主反馈「正常屏幕上太小了」——原来字号 0.82rem、固定 176px 高
-       （约 5 行），确实小。现在：字放大到 0.95rem、高度按屏幕算（46vh，最多 420px），
-       1366×768 的笔记本上大约能看 12 行；汇总那行粘在顶上，往下翻也看得见。 */
+    /* ➕ 添加歌曲的识别预览：显示认出几首、歌名与分类；高度按屏幕算（46vh，最多 420px），汇总行置顶。 */
     #batchImportModal .import-preview {
       display: none; font-size: 0.95rem; line-height: 1.75;
       background: var(--bg-tint); border: 1px solid var(--border);
@@ -552,12 +435,8 @@
       color: var(--text-muted); margin-top: 6px; font-size: 0.88rem;
     }
 
-    /* 2026-10-05：「➕ 添加隔离歌曲」弹窗整块删掉（那套手动添加已并入
-       「🚫 无效音乐ID管理」，下架入口统一走「✅ 确认无效并下架」），
-       所以这里原来那套「添加隔离歌曲」弹窗的样式一并删除。 */
 
-    /* ➕ 手动下架 ID 的极简弹窗（2026-10-05 站主需求：自己发现无效、但没人上报时用）：
-       只有一个「每行一个 ID」的输入框 + 一行状态，够用就行，不做老那套大弹窗。 */
+    /* ➕ 手动下架 ID 的极简弹窗：一个「每行一个 ID」输入框 + 一行状态，不做大弹窗。 */
     #manualRemoveModal .modal-content { max-width: 560px; }
     #manualRemoveModal .panel-desc { margin-bottom: 10px; }
     #manualRemoveModal textarea {
@@ -579,9 +458,7 @@
     #manualRemoveModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #manualRemoveModal .import-status.err { color: var(--danger); font-weight: 600; }
 
-    /* ✏️ 修改信息弹窗（2026-10-17 新增）：预填玩家报上来的歌名 / 分类。
-       宽度跟「手动下架」那类弹窗一致；ID 与玩家说明只读，用浅底块显示。
-       【回退办法】删掉这四条规则即可（弹窗结构本身删不删都不影响其它样式）。 */
+    /* ✏️ 修改信息弹窗：预填玩家报上来的歌名 / 分类；宽度与「手动下架」弹窗一致，ID 与玩家说明只读、用浅底块显示。 */
     #infoEditModal .modal-content { max-width: 560px; }
     #infoEditModal .info-edit-id {
       font-family: 'Courier New', monospace; font-size: 0.95rem; font-weight: 700;
@@ -601,8 +478,7 @@
     #infoEditModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #infoEditModal .import-status.err { color: var(--danger); font-weight: 600; }
 
-    /* 两个「单个录入」弹窗（鸣谢 / 赞助者）保持同一个宽度
-       （原来还有第三个「添加歌曲」弹窗，2026-09-29 用户要求去掉那个按钮，弹窗一并删除） */
+    /* 两个「单个录入」弹窗（鸣谢 / 赞助者）保持同一宽度 */
     #addThanksModal .modal-content { max-width: 520px; }
     #addSponsorModal .modal-content { max-width: 520px; }
 
@@ -637,9 +513,7 @@
       transition: max-height 0.35s var(--ease-bounce), opacity 0.25s var(--ease-soft);
       z-index: 20;
     }
-    /* overflow-y: auto 是 2026-10-04 加的：下拉里的项会越攒越多
-       （固定几项 + 从 D1 补进来的历史类别），超过 300px 的部分必须能滚。
-       （2026-10-05 站主删掉「自定义类别」之后，最后一项不再是自定义入口，但这个滚动仍需要。） */
+    /* 下拉超过 300px 必须能滚（overflow-y:auto）：项会越攒越多（固定几项 + 从 D1 补进来的历史类别）。 */
     .select-dropdown.open { max-height: 300px; opacity: 1; pointer-events: auto; overflow-y: auto; }
     .select-option {
       padding: 12px 16px; font-size: 0.95rem; color: var(--text);
@@ -655,12 +529,8 @@
       content: '✓'; float: right; color: var(--primary); font-weight: 700;
     }
 
-    /* ---------- 「✏️ 自定义类别…」那套样式（2026-10-04 加、2026-10-05 站主要求删） ----------
-       原来这里有 .select-option-custom（下拉最后那一项）与 #addThanksCustomCat
-       （选中后露出的输入框）两条规则。自定义类别功能整个下线后没有元素再用，一并删除。 */
 
-    /* 「✍️ 描述由我手写（不自动代写）」勾选框（2026-10-05 新增）：
-       「网站创新家」那一栏的描述由站主手写，勾上之后自动代写一个字都不许碰 */
+    /* 「✍️ 描述由我手写（不自动代写）」勾选框：勾上后自动代写一个字都不许碰（「网站创新家」那一栏默认勾上）。 */
     .manual-note-line {
       display: flex; align-items: center; gap: 8px; cursor: pointer;
       font-size: 0.88rem; color: var(--text-light); font-weight: 600;
@@ -669,10 +539,7 @@
       transition: border-color 0.25s var(--ease-soft);
     }
     .manual-note-line:hover { border-color: var(--primary-light); }
-    /* 2026-10-05 站主要求：「描述由我手写」那个勾选框从**方格改成圆圈**。
-       做法跟站内本来就有的圆形勾选框一模一样（.invalid-pick / 原宝库页的 .id-checkbox 那套）：
-       先把浏览器默认的方块外观抹掉（appearance: none），再自己画一个圆 + 白色对勾。
-       浅色深浅两套主题都走变量（--bg-card / --primary-light / --primary），不用单独适配。 */
+    /* 圆形勾选框：appearance:none 去掉默认方块，自画圆 + 对勾；颜色走 --bg-card / --primary-light / --primary，两套主题通用。 */
     .manual-note-line input[type="checkbox"] {
       width: 20px; height: 20px; margin: 0; flex-shrink: 0;
       /* ⚠️ padding 必须显式写成 0：这个勾选框在 .form-group 里，
@@ -693,7 +560,7 @@
       background: var(--primary); border-color: var(--primary);
       box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
     }
-    /* 2026-10-25 中国色：同上，勾选底是 --primary，对勾用 --bg 才在浅/深两套主题都看得见。 */
+    /* 勾选底用 var(--primary)，对勾用 var(--bg)，浅 / 深主题都看得见。 */
     .manual-note-line input[type="checkbox"]:checked::after {
       content: ''; position: absolute; left: 50%; top: 50%;
       width: 5px; height: 10px; border-right: 2px solid var(--bg);
@@ -708,10 +575,7 @@
       margin: 6px 0 0 2px; line-height: 1.6;
     }
 
-    /* ========== 分页（跟宝库页那套一模一样，100 组/页） ==========
-       2026-10-01 站主要求：歌曲管理 / 无效音乐ID管理 / 鸣谢名单那两栏都按
-       「100 组/页」来。样式直接从 roblox_music.html 抄过来，两边长得一致：
-       40px 圆角按钮、当前页高亮、窄屏自动收起「首页/末页」。 */
+    /* 分页：100 组 / 页（与宝库页同一套）：40px 圆角按钮、当前页高亮、窄屏收起「首页 / 末页」。 */
     .pager {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
       gap: 6px; padding: 14px 0 4px;
@@ -734,9 +598,7 @@
     .pager button:disabled { opacity: 0.38; cursor: not-allowed; }
     .pager button.current {
       background: var(--primary); border-color: var(--primary);
-      /* 2026-10-25 中国色：当前页是 --primary 实底（浅色=墨、深色=月白），字必须用 --bg 才永远反差；
-         原来用 --text-on-accent，深色主题下月白底压奶白字几乎看不见。
-         【回退办法】把 color 改回 var(--text-on-accent)。 */
+      /* 当前页是 --primary 实底（浅色墨 / 深色月白），字必须用 --bg 才永远反差；用 --text-on-accent 在深色下几乎看不见。 */
       color: var(--bg); opacity: 1; transform: none;
     }
     .pager .pager-gap { color: var(--text-muted); font-size: 0.82rem; padding: 0 2px; user-select: none; }
@@ -761,13 +623,11 @@
       .panel-card { padding: 18px; }
       .panel-card h2 { font-size: 1.05rem; }
       .list-item { padding: 14px; }
-      /* 2026-10-05：无效音乐ID管理在窄屏上让「已选 N 条」独占一行，
-         按钮再往下排，不然一排挤成两行看着乱 */
+      /* 窄屏上「已选 N 条」独占一行，按钮往下排，避免挤成两行 */
       .invalid-bar .invalid-bar-info { flex: 1 0 100%; margin-right: 0; }
       .invalid-bar .btn-clear-ignored { margin-left: 0; }
 
-      /* 后台弹窗的手机适配（2026-10-01 晚补的：站主问「做了适配吗」）——
-         说明文字收紧、输入框矮一点、识别预览按屏幕高度算、按钮撑满更好点 */
+      /* 手机端弹窗适配：说明文字收紧、输入框变矮、识别预览按屏幕高度算、按钮撑满更好点 */
       #batchImportModal .modal-content { padding: 18px 16px; }
       #batchImportModal .import-hint { font-size: 0.78rem; line-height: 1.6; padding: 8px 10px; }
       #batchImportModal .import-hint code { font-size: 0.76rem; }
@@ -790,31 +650,13 @@
       #batchImportModal .import-preview { max-height: 42vh; }
     }
   
-    /* ============================================================
-       2026-10-24 · 后台科幻主题（2026-10-25 中国色重制后大部分退役）
-       ------------------------------------------------------------
-       原段是「深空灰底 + 金色霓虹」的一整套颜色覆盖，和前台的中国色脱节，
-       也是站主说「浅色/深色都不好看」的根因。按 .verify/chinese-palette-20261025.md：
-       颜色变量整段删除，后台改为直接引用全局的宣纸/墨夜令牌；只保留不含颜色的
-       排版规则（等宽数字对齐）与少量改用令牌的细描边，**不改选择器/布局/id**。
-       【回退办法】从 .verify/backup-theme-20261025/admin.html 拷回本段原样
-       （备份与改造前的 admin.html 逐字节一致）；或按各小节注释里的「回退办法」逐条改回。
-       ============================================================ */
+    /* 后台主题段：颜色一律引用全局宣纸 / 墨夜令牌（不另立色板）；只保留不含颜色的排版规则（等宽数字对齐）与改用令牌的细描边，不要改选择器 / 布局 / id。 */
 
-    /* ① 主题变量（2026-10-25 整段删除）
-       ------------------------------------------------------------
-       原来这里重写了 --bg/--bg-card/--border/--text/--primary/--gold/--shadow 等
-       30 多个变量，还叠了一套 [data-theme="dark"] 深空灰 + 金色霓虹；后台因此和
-       前台是两套色板。整段删除后，后台与前台共用 css/style.css 的一份中国色令牌：
-       浅色=宣纸+墨+朱砂+藤黄，深色=墨夜+月白+提亮朱砂。深色不再单独覆盖颜色。
-       【回退办法】见备份 .verify/backup-theme-20261025/admin.html 第 757-842 行。 */
     /* （① 浅色变量覆盖已删除：--bg/--border/--text/--primary/--gold/--shadow 等全部交回全局令牌） */
 
     /* （① 深色变量覆盖已删除：深色不再另立色板，--bg/--border/--text/--primary/--accent 等全部由全局 [data-theme="dark"] 提供） */
 
-    /* ② 底纹：宣纸（暖金晕染 + 竖纤维），不再用科技网格。
-       2026-10-25 站主要中国风：后台也是站的一部分，不能前台宣纸、后台赛博。
-       【回退办法】改回上面的 44px 冷灰网格两道 linear-gradient（见备份 802-814 行）。 */
+    /* 底纹：宣纸（暖金晕染 + 竖纤维），与前台中国风一致，不用科技网格。 */
     body {
       background-color: var(--bg) !important;
       background-image:
@@ -886,23 +728,15 @@
       color: var(--text-light);
     }
 
-    /* 2026-10-24 中式：后台标题也用宋体 */
     .admin-topbar h1, .panel-card h2, .tab, .subtab { font-family: "Songti SC", "Noto Serif SC", "SimSun", serif; }
 
 
-/* ============================================================
-   2026-10-24 选中态胶囊化（站主：选择的效果也要是胶囊的）
-   ------------------------------------------------------------
-   把全站所有 .active 选中态（分类标签、分段、筛选、后台标签）统一成胶囊。
-   容器本身保持原形（可能是圆角矩形），只让「选中的那一块」是胶囊。
-   【回退办法】删掉本段。
-   ============================================================ */
+/* 全站 .active 选中态统一成胶囊：容器保持原形，只让「选中的那一块」是胶囊。 */
 
 .cat-tab.active,
 .cat-tab.is-active,
 .seg-tab.active,
 .filter-tabs button.active,
-.visit-source-btn.active,
 .btn-multi.active,
 .btn-confirm.active,
 .btn-fav-filter.active,
@@ -931,15 +765,7 @@
 }
 
 
-    /* ============================================================
-       2026-10-25 选中态文字（原「白底白字修复」按新令牌重写）
-       ------------------------------------------------------------
-       背景是 --primary 的那几种选中态：字用 --bg（浅色=墨底宣纸字，
-       深色=月白底暖黑字），永远反差；
-       主按钮 .btn-primary 底色是朱砂渐变，字必须用 --text-on-accent（奶白），
-       不能再用 --bg —— 深色下 --bg 是暖黑，压在朱砂上只有 2.7:1。
-       【回退办法】删掉本段，恢复备份里的旧写法（备份 921-970 行）。
-       ============================================================ */
+    /* 背景是 --primary 的选中态：字用 --bg（永远反差）。主按钮 .btn-primary 是朱砂渐变，字必须用 --text-on-accent（奶白），不能用 --bg —— 深色下压朱砂只有 2.7:1。 */
     .tab.active,
     .subtab.active,
     .seg-tab.active,
@@ -951,7 +777,7 @@
       color: var(--text-on-accent) !important;
     }
 
-    /* 2026-10-24 补：子标签选中态要有底色，否则深色字压深底会「消失」 */
+    /* 子标签选中态要有底色，否则深色字压深底会「消失」 */
     .subtab.active {
       background: var(--primary);
       color: var(--bg) !important;
@@ -974,9 +800,6 @@
 </head>
 <body>
 
-  <!-- 2026-09-26：这里原来有一条站点导航栏。
-       后台自己就有「⚙️ 后台管理」标题栏（含「返回主页」「退出登录」），
-       用户要求把这条导航栏删掉，已移除。 -->
 
   <div class="admin-container">
 
@@ -985,21 +808,14 @@
       <div class="actions">
         <button class="btn btn-secondary" onclick="location.href='./'">返回主页</button>
         <button class="btn btn-danger" id="logoutBtn">退出登录</button>
-        <!-- 2026-09-29 用户要求：合并工具不再放网站上（改成桌面上双击使用的本地版），
-             所以这里那枚「📦 合并工具」按钮连同它下面的 panel-merge 面板一起删掉了。 -->
       </div>
     </div>
 
     <div class="tabs" id="mainTabs">
-      <!-- 2026-10-05 站主要求：「💬 反馈管理」整块下线（反馈页、接口、后台面板一起删），
-           这里不再有那颗标签；「🎮 卡片管理」顶上来当默认面板。 -->
       <button class="tab active" data-panel="panel-cards">🎮 卡片管理</button>
-      <!-- 2026-09-29 用户要求：去掉「📝 更新管理」（原来是个 iframe 工具页）。
-           公告改成仓库里的静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
+      <!-- 公告数据是仓库静态文件 data/updates.json，由 AI 在完成任务后直接写。 -->
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
       <button class="tab" data-panel="panel-stats">📈 数据统计</button>
-      <!-- 2026-11-07 站主要求：建议、反馈两个页面连同接口 / D1 表 / 后台面板全部删除，
-           「📬 建议/反馈」标签与 panel-inbox 面板已整块移除（别再往回加）。 -->
     </div>
 
     <!-- 卡片管理 -->
@@ -1007,18 +823,12 @@
 
       <div class="subtabs" data-tabs-group="cards">
         <button class="subtab active" data-subpanel="card1-panel">🎵 Roblox ID 宝库</button>
-        <!-- 2026-09-29：原来第二颗子标签是「🌾 玩家社区」（卡片2），随整个社区功能一起删除 -->
       </div>
 
       <div class="subpanel active" id="card1-panel">
         <div class="subtabs subtabs-lv3" data-tabs-group="card1">
-          <!-- 2026-10-07 站主要求：这颗子标签从「🎶 歌曲管理」改名成「🎶 D1歌曲管理」 -->
           <button class="subtab active" data-subpanel="card1-songs">🎶 D1歌曲管理</button>
-          <!-- 2026-10-05 站主要求：原来的「⛔ 开发者隔离区」并入「🚫 无效音乐ID管理」，
-               子面板名 / id 一起改（旧名字整个作废，代码和样式里都不再出现）。 -->
           <button class="subtab" data-subpanel="card1-invalid">🚫 无效音乐ID管理</button>
-          <!-- 2026-10-07 站主要求：「卡片管理 → Roblox ID 宝库」再加一个「✏️ 信息出错管理」，
-               跟前面两个子面板并列（玩家在宝库页点「✏️ 信息出错」报上来的都在这里）。 -->
           <button class="subtab" data-subpanel="card1-info">✏️ 信息出错管理</button>
         </div>
 
@@ -1034,9 +844,6 @@
                 <div class="num" id="statGroup">-</div>
                 <div class="label">歌曲组数</div>
               </div>
-              <!-- 2026-10-01 用户要求：这里补一张「D1 歌曲数量」（D1 里真正存了多少条）；
-                   原来那张「开发者隔离区」搬到隔离区自己的面板去了。
-                   2026-10-05：隔离区那块已改成「🚫 无效音乐ID管理」，统计卡换成四张新的。 -->
               <div class="stat-card">
                 <div class="num" id="statD1Songs">-</div>
                 <div class="label">D1 歌曲数量</div>
@@ -1044,9 +851,6 @@
             </div>
           </div>
 
-          <!-- 2026-10-07 站主要求：「📥 玩家投稿」不要摆在歌曲列表最下面，要跟
-               「🚫 待处理上报 / ✅ 已下架」那样**并列成子标签** ——
-               于是 D1歌曲管理 里也分两段：🎶 歌曲列表 / 📥 玩家投稿。 -->
           <div class="subtabs subtabs-lv3" data-tabs-group="songs" id="songSegTabs">
             <button class="subtab active" data-subpanel="songs-list">🎶 歌曲列表</button>
             <button class="subtab" data-subpanel="songs-submissions">📥 玩家投稿</button>
@@ -1057,13 +861,6 @@
             <h2>
               🎶 D1 歌曲管理
               <span class="head-actions">
-                <!-- 2026-10-01 用户要求：这两颗按钮的叫法跟「❤️ 鸣谢名单」里的
-                     「➕ 添加鸣谢」对齐 ——「📥 导入」改成「➕ 添加歌曲」，
-                     隔离区那颗同理改成「➕ 添加隔离歌曲」。
-                     按钮背后的弹窗和接口都没变（还是贴一段文字批量加，比一条条填快）；
-                     标题后面那个灰色数字也按用户要求删掉了，数字在下面的统计卡里。
-                     2026-10-05：下面那颗「➕ 添加隔离歌曲」随旧隔离区面板一起删了，
-                     现在下架统一走「🚫 无效音乐ID管理 → ✅ 确认无效并下架」。 -->
                 <button class="btn btn-gold" id="openBatchImportBtn">➕ 添加歌曲</button>
                 <button class="btn btn-secondary" id="exportSongsBtn">📤 导出</button>
                 <button class="btn btn-danger" id="clearSongsBtn">🧹 清空</button>
@@ -1072,9 +869,7 @@
             <p class="panel-desc">
               加到这里就存进 D1，宝库页自动加载；攒多了用合并工具并进主数据。
             </p>
-            <!-- 2026-10-05 站主要求：歌曲管理也要能搜（匹配 ID / 歌名 / 分类）。
-                 跟「无效音乐ID管理」三段那三个搜索框同一套样式（.panel-search 那组），
-                 改动只影响这一页自己的显示，不会动 D1 里的数据。 -->
+            <!-- 歌曲管理搜索：匹配 ID / 歌名 / 分类；只影响本页显示，不改 D1 数据。 -->
             <div class="panel-search-row">
               <input type="text" class="panel-search" id="songSearch"
                      placeholder="🔍 搜索 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
@@ -1083,14 +878,12 @@
             <div id="songList">
               <div class="loading">加载中...</div>
             </div>
-            <!-- 2026-10-01 站主要求：这个列表按「100 组/页」分页，跟宝库页一样 -->
+            <!-- 歌曲列表按 100 组 / 页分页，与宝库页一致 -->
             <nav class="pager" id="songPager" aria-label="歌曲分页" hidden></nav>
           </div>
           </div><!-- /#songs-list -->
 
-          <!-- 📥 玩家投稿（2026-10-07 站主要求）：宝库页「➕ 添加歌曲ID」投上来的 ID 先落到这儿，
-               站长点「✅ 通过」才进上面的 D1 歌曲列表（宝库立刻能搜到），点「🗑️ 不要」就丢掉。
-               它跟「🎶 歌曲列表」是**并列的子标签**（见上面 #songSegTabs）。 -->
+          <!-- 📥 玩家投稿：宝库页提交的 ID 先落这里；点「✅ 通过」才进 D1 歌曲列表（宝库立刻能搜到），点「🗑️ 不要」就丢掉。与「🎶 歌曲列表」是并列子标签。 -->
           <div class="subpanel" id="songs-submissions">
           <div class="panel-card">
             <h2>
@@ -1113,9 +906,7 @@
         <div class="subpanel" id="card1-invalid">
           <div class="panel-card">
             <h2>📈 数据统计</h2>
-            <!-- 2026-10-05 站主要求：原来「开发者隔离区」那两张卡（隔离区 ID 数 / 涉及分类）
-                 换成「无效音乐ID管理」的四张 —— 待处理 ID / 累计上报 / 已忽略 / 已下架。
-                 数字全部来自 /api/invalid/list 的 summary（已下架 = quarantine_admin 的条数）。 -->
+            <!-- 统计卡数字来自 /api/invalid/list 的 summary（已下架 = quarantine_admin 的条数）。 -->
             <div class="stat-grid">
               <div class="stat-card">
                 <div class="num" id="statInvalidPending">-</div>
@@ -1125,8 +916,6 @@
                 <div class="num" id="statInvalidReports">-</div>
                 <div class="label">累计上报</div>
               </div>
-              <!-- 2026-10-07：原来这里有一张「其中信息出错」，现在那类上报有了自己的
-                   子面板（✏️ 信息出错管理）和自己的统计卡，这里就不重复放了。 -->
               <div class="stat-card">
                 <div class="num" id="statInvalidRemoved">-</div>
                 <div class="label">已下架</div>
@@ -1142,17 +931,11 @@
                 <button class="btn btn-secondary" id="exportInvalidBtn">📤 导出</button>
               </span>
             </h2>
-            <!-- 2026-10-05 站主要求「描述太多了，弄成超级简洁的版本」——
-                 原来那 5 行说明砍成 2 行，只留「怎么用」的三件事：
-                 待处理→下架/忽略、导出=已下架、没人报就手动下架。
-                 细节（字段格式、手动下架不占累计上报等）挪进代码注释与 README，界面上不再铺开。 -->
             <p class="panel-desc">
-              访客上报进「待处理」：确认无效就下架；是用户瞎报的就点「❌ 无效反馈」。<br>
-              「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
+              访客提交后会自动审核：<b>明确无效</b>的直接下架、<b>明确能播</b>的自动驳回；<br>
+              <b>查不出的才留在这里</b>，周末人工看。「📤 导出」= 已下架名单；没人报的用「➕ 手动下架 ID」。
             </p>
 
-            <!-- 2026-10-05 新增、2026-10-07 改成两段：站主说「『已忽略』其实没必要，
-                 没有问题的上报的 ID 直接删除后台记录就行」→「🙈 已忽略」整段删掉。 -->
             <div class="subtabs subtabs-lv3" data-tabs-group="invalid" id="invalidSegTabs">
               <button class="subtab active" data-subpanel="invalid-pending" data-seg="pending">🚫 待处理上报</button>
               <button class="subtab" data-subpanel="invalid-removed" data-seg="removed">✅ 已下架</button>
@@ -1165,26 +948,13 @@
                 <button class="btn-pick-all" id="invalidPickAll">全选本页</button>
                 <button class="btn-pick-none" id="invalidPickNone">取消全选</button>
                 <button class="btn-batch-remove" id="invalidBatchRemove">✅ 批量下架</button>
-                <!-- 2026-10-24 站主要求：待处理上报加一颗「❌ 批量拒绝」
-                     （= 批量无效反馈：这些上报不作数，ID 本身没问题）。
-                     【回退办法】删掉这颗按钮 + admin.js 里对应绑定。 -->
+                <!-- 「❌ 批量拒绝」= 批量无效反馈：这些上报不作数，ID 本身没问题。
+                回退：删掉按钮 + admin.js 对应绑定。 -->
                 <button class="btn-batch-reject" id="invalidBatchReject">❌ 批量无效反馈</button>
-                <!-- 2026-10-17 站主要求：「🗑️ 批量删除记录」这颗按钮不要了，整颗删掉。
-                     单条处理仍然走每行那颗「❌ 无效反馈」（2026-10-17 由「🗑️ 删除记录」改名）；
-                     （这一栏的 CSS 类 .btn-batch-ignore / .btn-invalid-ignore 也跟着一起删了，
-                       下面 js 里的绑定同步移除。）
-                     【回退办法】把这颗按钮加回来，并在 js/admin.js 的 bindInvalidPanel 里
-                       补回 `document.getElementById('invalidBatchIgnore').onclick = () => confirmInvalidDelete(pickedInvalidIds());`。 -->
-                <!-- 2026-10-17 站主要求「无效ID太多了」→ 加一颗批量体检：拿服务端去问 Roblox
-                     「这些 ID 到底还在不在」，把 404 的挑出来，确认后一键下架。
-                     接口见 functions/api/invalid/verify.js（为什么必须走服务端，那里写了原因）。
-                     【2026-10-17 当天修正】这颗按钮**一开始被我放到了「✅ 已下架」那一栏**，
-                     站主指出那不对：体检的对象是**待审核的**上报（还没处理的那些），
-                     所以挪到「🚫 待处理上报」这一栏；已下架名单本来就是处理过的结果，不需要再体检。 -->
-                <button class="btn-scan-validity" id="scanValidityBtn">🔍 批量体检无效 ID</button>
+                <!-- 🔍 复检：新上报已经自动审核过，查不出的才留在这栏；这颗按钮是给站长周末再手动问一遍 Roblox 用的（接口见 functions/api/invalid/verify.js）。 -->
+                <button class="btn-scan-validity" id="scanValidityBtn" title="自动审核没结论的会留在这里，可以再手动复检一遍">🔍 复检待处理</button>
               </div>
-              <!-- 2026-10-05 站主要求：三个分类各自搜索自己的（这一栏只搜「待处理上报」）。
-                  匹配 ID / 歌名 / 分类，右边的字会显示「匹配 N 条 / 共 M 条」。 -->
+              <!-- 本栏搜索只搜「待处理上报」：匹配 ID / 歌名 / 分类，右侧显示「匹配 N 条 / 共 M 条」。 -->
               <div class="panel-search-row">
                 <input type="text" class="panel-search" id="invalidPendingSearch"
                        placeholder="🔍 搜索这一栏的 ID / 歌名 / 分类..." autocomplete="off" spellcheck="false">
@@ -1196,20 +966,12 @@
               <nav class="pager" id="invalidPendingPager" aria-label="待处理上报分页" hidden></nav>
             </div>
 
-            <!-- ② 已忽略：2026-10-07 站主要求整段删除（原话「『已忽略』其实没必要，
-                 没有问题的上报的 ID 直接删除后台记录就行」）——
-                 现在没问题就在「待处理上报」里点「❌ 无效反馈」（= 这条反馈本身无效、ID 其实是对的），
-                 它就从这个「待处理」消失。
-                 ⚠️ 2026-10-17 起「标记已审核」不是真删行：状态标成 noted 留在库里，
-                 上报的人在「📌 我上报的」里能看到「✅ 已审核」+ 处理时间
-                 （站主要求「自己反馈的 ID 想要看到有没有过审核」），后台这边看到的效果跟以前一样。 -->
 
             <!-- ③ 已下架：来自 /api/quarantine/list（旧表沿用不改名，界面文案统一叫「已下架」） -->
             <div class="subpanel" id="invalid-removed">
               <div class="invalid-bar">
                 <span class="invalid-bar-info">这些 ID 已确认无效、从全站隐藏；点「🔓 恢复上架」就重新显示。</span>
-                <!-- 2026-10-05 站主要求补回「站主自己下架」的能力：没人上报、但你知道这 ID 不能用时，
-                     走这颗「手动下架」（直接写已下架名单，不进「待处理上报」）。 -->
+                <!-- 「➕ 手动下架」：没人上报但 ID 不能用时用；直接写已下架名单，不进「待处理上报」。 -->
                 <button class="btn-manual-remove" id="manualRemoveBtn">➕ 手动下架 ID</button>
               </div>
               <div class="panel-search-row">
@@ -1225,13 +987,7 @@
           </div>
         </div>
 
-        <!-- ✏️ 信息出错管理（2026-10-07 站主要求新增，跟 D1歌曲管理 / 无效音乐ID管理并列）
-             玩家在宝库页点「✏️ 信息出错」、把歌名/分类改好（或写一句说明）报上来的都在这里。
-             主操作是「✏️ 修改信息」（改好保存）；也可以「✅ 标记已审核」收工 ——
-             上报的人会在自己的「📌 我上报的」里看到「✅ 已审核」+ 处理时间（2026-10-17 起）；
-             ⚠️ 2026-10-18 站主要求：这一栏**不提供「确认无效并下架」**——
-             「ID 放不出声」属于「🚫 待处理上报」那一栏，两件事不能混。
-             数据跟「🚫 无效音乐ID管理」同一个接口（/api/invalid/list），前端按 infoCount 分栏。 -->
+        <!-- ✏️ 信息出错管理：玩家在宝库页报的信息错误都在这里；主操作「✏️ 修改信息」，也可「✅ 标记已审核」（上报人能在「📌 我上报的」看到）。本栏不提供「确认无效并下架」（那属于「🚫 待处理上报」）。数据同 /api/invalid/list，前端按 infoCount 分栏。 -->
         <div class="subpanel" id="card1-info">
           <div class="panel-card">
             <h2>📈 数据统计</h2>
@@ -1272,38 +1028,25 @@
         </div>
       </div>
 
-      <!-- 2026-09-29 用户要求：卡片2「🌾 玩家社区」整个功能已删除，
-           这里的管理面板（社区帖子管理 + 已限制发言的账号）连同上面那颗子标签一起删掉。 -->
     </div>
 
-    <!-- 2026-09-29 用户要求：合并工具不再放在网站上（只有站长一个人用）。
-         原来这里是「📦 合并工具」一级面板（二级 / 三级标签 + 四个工具 iframe），
-         现在整个删掉 —— 四个工具改成桌面上的本地版，双击就能用，
-         内容部署在：桌面\织雾满穗-合并工具\（含《使用说明.txt》）。 -->
 
     <!-- 鸣谢名单 -->
     <div class="panel" id="panel-thanks">
 
-      <!-- 2026-09-26：这里原来有一段 panel-hint 说明（两个名单展示在 thanks.html、
-           赞助者两处来源……），用户要求删掉，已移除。 -->
 
       <div class="subtabs subtabs-lv3" data-tabs-group="thanks">
         <button class="subtab active" data-subpanel="sponsor-panel">👑 赞助者</button>
         <button class="subtab" data-subpanel="thanks-panel">🎮 Roblox ID 宝库</button>
-        <!-- 2026-10-05 站主要求：新增「🙏 玩家感谢」子面板，跟 Roblox 那一栏一样可增 / 改 / 删；
-             鸣谢页上它是第三个切换，「网站创新家」从 Roblox 栏搬到了这里。
-             （当天稍后站主又要求删掉「自定义类别」，所以这两栏的类别都只能从下拉里现有的项选。） -->
+        <!-- 🙏 玩家感谢子面板：可增 / 改 / 删；鸣谢页第三个切换，「网站创新家」归在这里。类别只能从下拉现有项里选，不支持自定义类别。 -->
         <button class="subtab" data-subpanel="thanks-players">🙏 玩家感谢</button>
-        <!-- 2026-11-07 新增：赞助登记（爱发电没有回调，只能站内登记 + 人工核对）。
-             【回退办法】删掉这一行按钮 + 下面 #sponsor-reg-panel 整块 + admin.js 里
-             的四组函数 + #sponsorConfirmModal 即可。 -->
+        <!-- 赞助登记（爱发电没有回调，只能站内登记 + 人工核对）。
+        回退：删掉这一行按钮 + 下面 #sponsor-reg-panel 整块 + admin.js 里的四组函数 + #sponsorConfirmModal 即可。 -->
         <button class="subtab" data-subpanel="sponsor-reg-panel">✅ 赞助登记</button>
       </div>
 
       <!-- 子面板 · 赞助者（底档只读 + D1 可增删改） -->
       <div class="subpanel active" id="sponsor-panel">
-        <!-- 2026-10-01 用户要求：鸣谢名单这两栏也补上「📈 数据统计」，
-             跟歌曲管理 / 开发者隔离区保持一致；标题后面那个数字徽章同时删掉。 -->
         <div class="panel-card">
           <h2>📈 数据统计</h2>
           <div class="stat-grid">
@@ -1316,11 +1059,8 @@
 
         <div class="panel-card">
           <h2>
-            <!-- 2026-09-26：这里原来又写了一遍「👑 赞助者」（子标签上已经有了），按用户要求删掉 -->
             <span class="head-actions">
-              <!-- 2026-09-26：原来这里还有个「🔄 刷新」按钮，用户要求去掉 ——
-                   与「🎮 Roblox ID 宝库」面板保持一致（那边也没有刷新按钮，
-                   切标签时会自动拉一次，改完也会自动刷新）。 -->
+              <!-- 这里不放「🔄 刷新」按钮：与宝库面板一致，切标签时会自动拉一次，改完也会自动刷新。 -->
               <button class="btn btn-secondary" id="exportSponsorsBtn">📤 导出</button>
               <button class="btn btn-gold" id="openAddSponsorBtn">➕ 添加赞助者</button>
             </span>
@@ -1331,7 +1071,7 @@
           <div id="sponsorList">
             <div class="loading">加载中...</div>
           </div>
-          <!-- 2026-10-01 站主要求：鸣谢名单这两栏也按「100 组/页」分页 -->
+          <!-- 鸣谢名单两栏按 100 组 / 页分页 -->
           <nav class="pager" id="sponsorPager" aria-label="赞助者分页" hidden></nav>
         </div>
       </div>
@@ -1340,8 +1080,7 @@
       <div class="subpanel" id="thanks-panel">
         <div class="panel-card">
           <h2>📈 数据统计</h2>
-          <!-- 2026-10-01 站主要求：这里改成「那 3 个类别」各一张卡（类别有几个人）。
-               卡片由 js/admin.js 按 D1 里实际的类别动态生成，以后加类别会自动多一张。 -->
+          <!-- 类别统计卡由 js/admin.js 按 D1 里实际的类别动态生成，加类别会自动多一张。 -->
           <div class="stat-grid" id="thanksStatGrid">
             <div class="stat-card">
               <div class="num">-</div>
@@ -1352,7 +1091,6 @@
 
         <div class="panel-card">
           <h2>
-            <!-- 2026-09-26：这里原来又写了一遍「❤️ 鸣谢名单」（子标签上已经有了），按用户要求删掉 -->
             <span class="head-actions">
               <button class="btn btn-secondary" id="exportThanksBtn">📤 导出</button>
               <button class="btn btn-gold" id="openAddThanksBtn">➕ 添加鸣谢</button>
@@ -1368,11 +1106,7 @@
         </div>
       </div>
 
-      <!-- 子面板 · 🙏 玩家感谢（2026-10-05 站主要求新增）
-           跟「🎮 Roblox ID 宝库」那一栏同一套做法：可增 / 改 / 删、每页 100 人、能导出。
-           归属规则见 js/admin.js 的 isPlayerThanksCategory()（类别名带 🙏 / 含「玩家感谢」/
-           含「网站创新家」的归这一栏）。2026-10-05 站主要求删掉了「自定义类别」，
-           所以这一栏只能选已有类别 —— 要新增类别跟 AI 说，在固定项里加一行。 -->
+      <!-- 🙏 玩家感谢：可增 / 改 / 删、每页 100 人、能导出。归属规则见 js/admin.js 的 isPlayerThanksCategory()（类别名带 🙏 / 含「玩家感谢」/「网站创新家」归这栏）。不支持自定义类别；要加新类别，在固定项里加一行。 -->
       <div class="subpanel" id="thanks-players">
         <div class="panel-card">
           <h2>📈 数据统计</h2>
@@ -1401,11 +1135,8 @@
         </div>
       </div>
 
-      <!-- 子面板 · ✅ 赞助登记（2026-11-07 新增）
-           流程：赞助者在 /support 填订单号 → 这里核对 → 点「确认入账」时后端才写进
-           鸣谢名单（category=👑 赞助者）。爱发电没有订单回调，所以这一步只能人工。
-           【回退办法】删掉这个 subpanel + 上面的子标签按钮 + js/admin.js 里
-           loadSponsorRegs / renderSponsorRegs / 四个动作函数 + #sponsorConfirmModal。 -->
+      <!-- ✅ 赞助登记子面板：赞助者在 /support 填订单号 → 这里核对 → 点「确认入账」时后端才写进鸣谢名单（category=👑 赞助者）。爱发电没有订单回调，这一步只能人工。
+      回退：删掉这个 subpanel + 上面的子标签按钮 + js/admin.js 里 loadSponsorRegs / renderSponsorRegs / 四个动作函数 + #sponsorConfirmModal。 -->
       <div class="subpanel" id="sponsor-reg-panel">
         <div class="panel-card">
           <h2>📈 数据统计</h2>
@@ -1464,44 +1195,20 @@
             <div class="num" id="statHotTotal">-</div>
             <div class="label">总互动次数</div>
           </div>
-          <div class="stat-card">
-            <div class="num" id="statSourceCount">-</div>
-            <div class="label">已记录渠道数</div>
-          </div>
-          <div class="stat-card">
-            <div class="num" id="statVisitorCount">-</div>
-            <div class="label">回答过来源的人数</div>
-          </div>
         </div>
 
-        <!-- 2026-09-26：原来这里有一整块「🔥 热门 Top 100」（标题 + 说明 + 榜单 + 每行清空），
-             按用户要求整块下线；上面两张统计卡（有热度的曲目 / 总互动次数）继续保留，
-             数据仍取自 /api/hot/list，只是后台不再展示排行榜。 -->
 
-        <div class="stats-sub">
-          <!-- 2026-10-17 站主要求：「你从哪里来」停用，改成收集玩家手机屏幕尺寸。
-               这里显示的是「视口宽x高@DPR」分布，例：407x886@3（小米 17 / 6.3"），
-               用来按真实尺寸定断点。
-               【回退办法】标题改回「📢 访问渠道来源」，sub-hint 改回原来的说明即可。 -->
-          📱 玩家屏幕尺寸
-          <span class="sub-hint">按“宽度”聚合（宽度才决定断点）；手机 &lt;500 / 平板 500-899 / 电脑 ≥900</span>
-        </div>
-        <div id="sourceStats" class="source-list">
-          <div class="loading">加载中...</div>
-        </div>
+        <!-- 2026-11-21：手机尺寸收集结束，「📱 玩家屏幕尺寸」整块已删除。 -->
       </div>
     </div>
 
-    <!-- 2026-11-07 站主要求：建议、反馈页面连同接口 / D1 表 / 后台面板全部删除。
-         这里原来是「📬 建议 / 反馈收件箱」面板（读 D1 的 suggestions / site_feedback，
-         接口 functions/api/inbox/list.js），已整块删除。别再往回加。 -->
 
   </div>
 
   <footer class="footer">
 
-    <!-- 2026-11-03 站主要求：横版品牌作为页脚主展示；浅/深两套，≤640px 换紧凑版。
-         【回退办法】删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
+    <!-- 页脚横版品牌：浅 / 深两套，≤640px 换紧凑版。
+    回退：删掉这个 .footer-brand 块 + css/style.css 里的 .footer-brand 规则即可。 -->
     <div class="footer-brand" aria-label="织雾满穗 · ZhiMist">
       <img class="fb-full fb-light" src="images/brand/logo-lockup-light.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
       <img class="fb-full fb-dark" src="images/brand/logo-lockup-dark.svg" alt="织雾满穗 · ZhiMist" width="760" height="170" loading="lazy" decoding="async">
@@ -1509,8 +1216,7 @@
       <img class="fb-compact fb-dark" src="images/brand/logo-lockup-compact-dark.svg" alt="织雾满穗 · ZhiMist" width="360" height="96" loading="lazy" decoding="async">
     </div>
     <p>© <span id="year">2026</span> 织雾满穗 · 用知识照亮世界</p>
-    <!-- 法律定位 + 隐私说明 + 联系站长（2026-10-09 加，与前台三个页面保持一致；
-         理由见 index.html 页脚同处注释：收通知的入口 + 法律定位 + 隐私告知）。 -->
+    <!-- 法律定位 + 隐私说明 + 联系站长：与前台三个页面保持一致（收通知的入口 + 法律定位 + 隐私告知）。 -->
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
       完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law">⚖️ 法律与风险提示</a>。<br>
@@ -1524,8 +1230,6 @@
   <div class="modal" id="batchImportModal">
     <div class="modal-content">
       <h2>➕ 添加歌曲</h2>
-      <!-- 2026-10-01 晚：这段格式说明原来一直摊开着（8 行），在正常屏幕上把
-           识别预览挤得很小。改成可折叠（默认收起），要用的时候点一下。 -->
       <details class="import-hint">
         <summary>📖 支持哪些写法（认不出来时再点开看）</summary>
         <strong>每行一首，怎么排都行</strong>（自己会认）：<br>
@@ -1558,10 +1262,7 @@
     </div>
   </div>
 
-  <!-- ➕ 手动下架 ID 弹窗（2026-10-05 站主需求：自己发现某个 ID 不能用、但没人上报时，
-       在这里直接下架。极简：一个「每行一个 ID」的输入框 + 确认按钮；
-       提交走 /api/quarantine/import，source 写「手动下架」——
-       只进已下架名单，不进 invalid_reports，所以「待处理上报 / 累计上报」不受影响。 -->
+  <!-- ➕ 手动下架 ID 弹窗：一个「每行一个 ID」输入框 + 确认按钮；提交走 /api/quarantine/import，source 写「手动下架」——只进已下架名单，不进 invalid_reports，所以「待处理上报 / 累计上报」不受影响。 -->
   <div class="modal" id="manualRemoveModal">
     <div class="modal-content">
       <h2>➕ 手动下架 ID</h2>
@@ -1580,13 +1281,8 @@
     </div>
   </div>
 
-  <!-- ✏️ 修改信息弹窗（2026-10-17 站主要求新增）
-       问题 1 的原话：「使用信息出错后，在后台提示的是是否加入隔离区而不是修改信息」——
-       玩家报「信息出错」是在说「歌名 / 分类不对」，后台该能**直接改**。
-       这个弹窗从「✏️ 信息出错管理」里那颗「✏️ 修改信息」打开，
-       预填玩家改好的值，点「✅ 保存并生效」→ POST /api/songs/add（upsert 歌名 / 分类）
-       → 再把这条上报删掉（js/admin.js 的 handleInfoEdit）。
-       【回退办法】连同 js/admin.js 里的 openInfoEditModal / handleInfoEdit 一起删掉即可。 -->
+  <!-- ✏️ 修改信息弹窗：从「✏️ 信息出错管理」的「✏️ 修改信息」打开，预填玩家改好的值；点「✅ 保存并生效」→ POST /api/songs/add（upsert 歌名 / 分类）→ 再删掉这条上报（js/admin.js 的 handleInfoEdit）。
+  回退：连同 js/admin.js 的 openInfoEditModal / handleInfoEdit 一起删掉即可。 -->
   <div class="modal" id="infoEditModal">
     <div class="modal-content">
       <h2>✏️ 修改信息</h2>
@@ -1630,26 +1326,12 @@
             <span class="arrow">▾</span>
           </button>
           <div class="select-dropdown" id="addThanksSelectDropdown">
-            <!-- 2026-10-05 站主要求：新增固定类别「网站创新家」，放在最前面（显眼位置）。
-                 这一类的描述由站主手写，界面上会默认勾上「✍️ 描述由我手写」，
-                 js/admin.js 也写死了「这一类绝不自动代写」。
-                 2026-10-05 补（站主要求）：类别名前也要有图标（跟下面几个一样），
-                 所以统一叫「💡 网站创新家」—— data-value 与显示文字必须是同一个字符串，
-                 D1 里存的就是它；改这里要同步 js/admin.js 的 MANUAL_NOTE_CATEGORY。 -->
-            <!-- data-scope（2026-10-05）：这一项该出现在哪个子面板的下拉里 ——
-                 players = 只在「🙏 玩家感谢」里出现，roblox = 只在「🎮 Roblox ID 宝库」里出现。
-                 动态从 D1 补进来的类别不写这个属性，由 js/admin.js 按归属规则现算。 -->
+            <!-- 固定类别「💡 网站创新家」放最前面；这一类的描述由站主手写，界面默认勾上「✍️ 描述由我手写」，js/admin.js 写死「这一类绝不自动代写」。data-value 与显示文字必须是同一个字符串（D1 里存的就是它）；改这里要同步 js/admin.js 的 MANUAL_NOTE_CATEGORY。 -->
+            <!-- data-scope：这一项出现在哪个子面板的下拉里 —— players = 只在「🙏 玩家感谢」，roblox = 只在「🎮 Roblox ID 宝库」。动态从 D1 补进来的类别不写这个属性，由 js/admin.js 按归属规则现算。 -->
             <div class="select-option" data-value="💡 网站创新家" data-scope="players">💡 网站创新家</div>
             <div class="select-option" data-value="🎬 ID公益UP主/作者" data-scope="roblox">🎬 ID公益UP主/作者</div>
             <div class="select-option" data-value="📋 歌单整理者" data-scope="roblox">📋 歌单整理者</div>
-            <!-- 2026-10-07 站主要求：把「💬 反馈贡献者」整类删掉（反馈功能早就下线了）——
-                 下拉里不再提供这一项，D1 里的历史行用 migrations.sql 第 3 组那两句清掉。 -->
-            <!-- 2026-10-04 那版这里还有一项「✏️ 自定义类别…」（选中后露出输入框、自己起名字）。
-                 站主 2026-10-05 要求「把后台的所有关于自定义类别的都删除了」→ 整项连输入框一起删掉。
-                 现在只能从「上面这几项固定类别 + D1 里已经存在的类别」里选：
-                 js/admin.js 的 syncThanksCategoryOptions() 会把 D1 里出现过的类别自动补进这个列表，
-                 所以以前自建过的类别照样选得到，历史数据不会丢。
-                 以后要加新类别：跟 AI 说一声，在上面的固定项里加一行即可。 -->
+            <!-- 类别只能从「固定项 + D1 里已存在的类别」里选：js/admin.js 的 syncThanksCategoryOptions() 会把 D1 出现过的类别自动补进列表，历史数据不会丢。要加新类别，在上面的固定项里加一行即可。 -->
           </div>
         </div>
       </div>
@@ -1665,9 +1347,7 @@
         <label for="addThanksMessage">描述（选填）</label>
         <textarea id="addThanksMessage" placeholder="例如：反馈了歌曲缺失问题" maxlength="200" style="min-height:80px;"></textarea>
       </div>
-      <!-- 2026-10-05 站主要求：新增「✍️ 描述由我手写（不自动代写）」。
-           勾上之后 js/admin.js 一个字都不代写，描述框里写什么就原样存什么；
-           类别选「网站创新家」时会自动勾上（那一栏是站主自己写的）。 -->
+      <!-- 「✍️ 描述由我手写（不自动代写）」：勾上后 js/admin.js 一个字都不代写，描述框写什么原样存什么；类别选「网站创新家」时自动勾上。 -->
       <div class="form-group">
         <label class="manual-note-line" for="addThanksManualNote">
           <input type="checkbox" id="addThanksManualNote">
@@ -1708,10 +1388,8 @@
     </div>
   </div>
 
-  <!-- 2026-11-07 新增：确认一笔赞助登记的弹窗。
-       金额默认填登记时选的档位（自定义金额档必须手填）；感谢语默认用登记留言，
-       可改成只在鸣谢页公开的版本。
-       【回退办法】删掉这一整块 + js/admin.js 的 openRegConfirm/confirmReg 即可。 -->
+  <!-- 确认赞助登记的弹窗：金额默认填登记时选的档位（自定义金额档必须手填）；感谢语默认用登记留言，可改成只在鸣谢页公开的版本。
+  回退：删掉这一整块 + js/admin.js 的 openRegConfirm / confirmReg。 -->
   <div class="modal" id="sponsorConfirmModal">
     <div class="modal-content">
       <h2 id="sponsorConfirmTitle">✅ 确认入账</h2>
@@ -1801,15 +1479,7 @@
 
     document.querySelectorAll('iframe[data-tool-frame]').forEach(bindIframe);
 
-    /* 一级 / 二级 / 三级标签切换时，把对应面板里的 iframe 唤醒。
-       面板是分级嵌套的（一级 panel → 二级 subpanel → 三级 subpanel），
-       而 el 是个「容器」：它里面可能同时还装着别的、现在根本看不见的子面板
-       （原来 📦 合并工具里就并排放着四个工具）。
-       所以这里只走「当前可见的那条链」：祖先里但凡有一个 panel / subpanel
-       没带 .active，就说明这个 iframe 现在还看不见，先不加载。
-       这样就不写死任何 id，多深都能用。
-       （2026-09-29：合并工具搬去桌面本地版后，后台里已经一个 iframe 都没有了；
-        这套通用逻辑留着不碍事 —— 哪天再嵌 iframe 就还能直接用。） */
+    /* 标签切换时唤醒对应面板里的 iframe：面板分级嵌套，只沿「当前可见」这条链走（祖先有 panel / subpanel 没 .active 就跳过），不写死任何 id。后台目前没有 iframe，逻辑保留备用。 */
     function isVisibleIn(iframe, root) {
       var node = iframe.parentElement;
       /* root 的父节点是终点：从 iframe 一路查到 root（含 root）为止 */
@@ -1863,16 +1533,9 @@
   })();
 
   /* ============================================================
-     ➕ 添加歌曲：智能解析（认 ID / 认歌名）+ 智能分类
-     ------------------------------------------------------------
-     2026-10-01 用户要求「添加的时候更智能」，这一版做了三件事：
-       ① 歌名和 ID 之间没空格也认：「晴天1876950732」「1876950732《晴天》」都行；
-       ② 歌名里混着的《》【】「」引号括号 emoji「ID:」这类杂物自动清掉；
-       ③ 分类自己判断，而且只往站点现有的 14 个分类里归
-          —— 以前会冒出「周杰伦」「Phonk/DJ」这种站点里根本没有的类别，
-             宝库页会因此多出一颗没人认识的分类标签。
-     全是本地规则、不联网、不调任何接口。
-     ============================================================ */
+  ➕ 添加歌曲：智能解析（认 ID / 认歌名）+ 智能分类
+  ① 歌名与 ID 之间没空格也认；② 歌名里混的《》【】「」引号括号 emoji、「ID:」等杂物自动清掉；③ 类别只归到站点现有分类，不冒出站点里没有的类别。全是本地规则，不联网、不调接口。
+  ============================================================ */
   (function () {
     'use strict';
 
