@@ -1,69 +1,132 @@
 /* ============================================================
    织雾满穗 · 书卷层（book.js）
    ------------------------------------------------------------
-   把整站按「一本书」来摆，做五件事：
-     ① 设置面板：主题（亮 / 暗 / 跟随）、动效（完整 / 轻柔 / 关闭）、
-        宣纸颗粒（开 / 关）、字号（标准 / 大一号）。
-        导航右上角原来那颗切主题的小太阳，就是现在打开设置的地方。
-     ② 章节题签：每页正文开头一条「第一章 · 雾起」，带朱砂小印。
-     ③ 目录：导航里的「目录」拉出全书五章，当前章用朱砂标出。
-     ④ 幕号：页面里的板块标题前加「第一幕」，跟章号凑成「第1章 第1幕」。
-     ⑤ 阅读指示：左下角一小条，随滚动显示读到第几章第几幕，点它开目录。
+   把整站按「一本书」摆。文件按「工具 → 偏好 → 书 → 章 → 目录 →
+   设置 → 导航 → 键盘 → 启动」排，新增功能照着段落下手即可。
 
-   性能：
-     · 只用 IntersectionObserver，不挂 scroll 监听，滚动时零 JS 计算；
-     · 设置面板点开才创建 DOM（首屏不多一个节点）；
-     · 动效关掉时整页动画停摆（CSS 里 data-fx="off" 一段），最省电。
+   模块
+     0  小工具        $ / $$ / el / 读写存储 / 汉字数字 / 浮层开关
+     1  阅读偏好      主题、动效、宣纸颗粒、字号（存 zm_prefs）
+     2  书的结构      章表 CHAPTERS、目录 TOC、当前页、读到哪
+     3  章            题签 / 幕号 / 章末翻章 / 页脚藏书印 / 返回第一章
+     4  目录抽屉
+     5  设置面板
+     6  导航按钮      目录 + 设置
+     7  键盘          ← → 翻章、T 目录、Esc 关闭
+     8  启动
 
-   偏好保存：localStorage 的 zm_prefs；主题同时写旧 key zm_theme，
-   因为每个页面的 <head> 里都有一小段内联脚本靠它「首屏不闪」。
+   约定
+     · 只用原生 DOM，ES5 写法（与 js/common.js 保持一致），不引依赖；
+     · 动效只碰 transform / opacity；滚动只用 IntersectionObserver，
+       不挂 scroll 监听；
+     · 浮层（目录 / 设置）点开才建 DOM，首屏不多一个节点；
+     · 所有文案集中在「章表 / 目录表 / SETTING_ROWS」，改字不用翻逻辑。
 
-   【回退】删掉本文件和各页那一行 <script src="js/book.js" defer>，
-   再 git checkout -- css/style.css js/common.js（把新增样式和 applyTheme 的守卫一起撤掉）。
+   回退：删掉本文件与各页的 <script src="js/book.js" defer>，
+   再 git checkout -- css/style.css js/common.js。
    ============================================================ */
 (function () {
   'use strict';
 
+  /* ============================================================
+     0. 小工具
+     ============================================================ */
   var D = document;
   var root = D.documentElement;
 
+  function $(sel, ctx) { return (ctx || D).querySelector(sel); }
+  function $$(sel, ctx) { return (ctx || D).querySelectorAll(sel); }
+
+  /* 建节点：el('span', 'bc-title', '雾起') */
+  function el(tag, cls, html) {
+    var node = D.createElement(tag);
+    if (cls) node.className = cls;
+    if (html != null) node.innerHTML = html;
+    return node;
+  }
+
+  /* 读写 localStorage：store(k) 读、store(k, v) 写、store(k, null) 删。
+     隐私模式下读不到/写不进也不抛错，页面照常。 */
+  function store(key, val) {
+    try {
+      if (arguments.length === 1) return localStorage.getItem(key);
+      if (val === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, val);
+    } catch (e) {}
+    return null;
+  }
+
+  /* 浮层：先显示再加 .open，才有过渡；关的时候等动画完再 hidden */
+  function openLayer(node) {
+    if (!node) return;
+    node.hidden = false;
+    requestAnimationFrame(function () { node.classList.add('open'); });
+  }
+  function closeLayer(node, ms) {
+    if (!node || node.hidden) return;
+    node.classList.remove('open');
+    setTimeout(function () {
+      if (!node.classList.contains('open')) node.hidden = true;
+    }, ms);
+  }
+
+  /* 数字转汉字：只到 99，够用于「第一章 / 第几幕」 */
+  function han(n) {
+    var s = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+    if (n <= 10) return s[n];
+    if (n < 20) return '十' + s[n - 10];
+    return String(n);
+  }
+
   /* ============================================================
-     1. 偏好（主题 / 动效 / 颗粒 / 字号）
+     1. 阅读偏好
      ============================================================ */
   var PREF_KEY = 'zm_prefs';
   var THEME_KEY = 'zm_theme';
 
+  /* 默认值：跟随系统 + 完整动效 + 宣纸颗粒 + 标准字号 */
   var PREFS = { theme: 'auto', fx: 'full', texture: 'on', font: 'std' };
 
+  /* 合法值表：既能校验读进来的数据，也方便以后加一项 */
+  var PREFS_VALID = {
+    theme: ['light', 'dark', 'auto'],
+    fx: ['full', 'lite', 'off'],
+    texture: ['on', 'off'],
+    font: ['std', 'lg']
+  };
+
   function readPrefs() {
-    try {
-      var raw = localStorage.getItem(PREF_KEY);
-      if (!raw) return;
-      var p = JSON.parse(raw);
-      if (!p || typeof p !== 'object') return;
-      if (p.theme === 'light' || p.theme === 'dark' || p.theme === 'auto') PREFS.theme = p.theme;
-      if (p.fx === 'full' || p.fx === 'lite' || p.fx === 'off') PREFS.fx = p.fx;
-      if (p.texture === 'on' || p.texture === 'off') PREFS.texture = p.texture;
-      if (p.font === 'std' || p.font === 'lg') PREFS.font = p.font;
-    } catch (e) { /* 隐私模式读不到就当没设过 */ }
+    var raw = store(PREF_KEY);
+    if (!raw) return;
+    var p;
+    try { p = JSON.parse(raw); } catch (e) { return; }
+    if (!p || typeof p !== 'object') return;
+    Object.keys(PREFS_VALID).forEach(function (k) {
+      if (PREFS_VALID[k].indexOf(p[k]) >= 0) PREFS[k] = p[k];
+    });
   }
 
-  /* 老访客迁移：以前只有一个 zm_theme（小太阳写的），没有 zm_prefs。
-     如果只认新 key，这些人会被当成「没选过」而回落到系统主题 ——
-     等于把他们的选择弄丢了。所以第一次见到旧 key 就顺手记进新偏好。 */
+  function savePrefs() { store(PREF_KEY, JSON.stringify(PREFS)); }
+
+  function resetPrefs() {
+    PREFS.theme = 'auto';
+    PREFS.fx = 'full';
+    PREFS.texture = 'on';
+    PREFS.font = 'std';
+    savePrefs();
+    applyPrefs();
+  }
+
+  /* 老访客迁移：以前只有 zm_theme（小太阳写的），没有 zm_prefs。
+     只认新 key 的话，这些人会被当成「没选过」而回落系统主题 ——
+     等于把他们的选择弄丢了。第一次见到旧 key 就顺手记进新偏好。 */
   function migrateLegacyTheme() {
-    try {
-      if (localStorage.getItem(PREF_KEY)) return;
-      var old = localStorage.getItem(THEME_KEY);
-      if (old === 'light' || old === 'dark') {
-        PREFS.theme = old;
-        savePrefs();
-      }
-    } catch (e) {}
-  }
-
-  function savePrefs() {
-    try { localStorage.setItem(PREF_KEY, JSON.stringify(PREFS)); } catch (e) {}
+    if (store(PREF_KEY)) return;
+    var old = store(THEME_KEY);
+    if (old === 'light' || old === 'dark') {
+      PREFS.theme = old;
+      savePrefs();
+    }
   }
 
   function systemDark() {
@@ -72,51 +135,53 @@
 
   /* 主题：auto 时把 zm_theme 清掉，让各页 <head> 的内联脚本按系统走；
      选亮/暗则写两份（localStorage + cookie），手机上的怪毛病也是这么修的。 */
-  function applyThemePref() {
+  function applyTheme() {
     var t = PREFS.theme;
     if (t === 'auto') {
-      try { localStorage.removeItem(THEME_KEY); } catch (e) {}
+      store(THEME_KEY, null);
       try { D.cookie = THEME_KEY + '=; path=/; max-age=0; SameSite=Lax'; } catch (e) {}
       t = systemDark() ? 'dark' : 'light';
     } else {
-      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+      store(THEME_KEY, t);
       try { D.cookie = THEME_KEY + '=' + t + '; path=/; max-age=31536000; SameSite=Lax'; } catch (e) {}
     }
     root.setAttribute('data-theme', t);
     root.style.colorScheme = t;
-    var meta = D.querySelector('meta[name="theme-color"]');
+    var meta = $('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', t === 'dark' ? '#14110E' : '#F5F0E6');
   }
 
-  function applyFxPref() {
+  /* 动效档位：full 摘掉 lite，lite/off 挂上（粒子层与持续动画都靠这个类关掉）；
+     同时告诉 common.js「用户手动选过」，别再按设备自动降级覆盖。 */
+  function applyFx() {
     root.setAttribute('data-fx', PREFS.fx);
-    /* full 时把 lite 摘掉；lite/off 时挂上，粒子层与持续动画都靠这个类关掉 */
     root.classList.toggle('lite', PREFS.fx !== 'full');
-    /* 告诉 common.js：用户已经手动选了档位，别再按设备自动降级覆盖 */
     window.__ZM_FX_LOCK = PREFS.fx;
   }
 
-  function applyLookPref() {
+  function applyLook() {
     root.setAttribute('data-texture', PREFS.texture);
     root.setAttribute('data-font', PREFS.font);
   }
 
-  function applyAll() {
-    applyThemePref();
-    applyFxPref();
-    applyLookPref();
+  function applyPrefs() {
+    applyTheme();
+    applyFx();
+    applyLook();
   }
 
   /* ============================================================
-     2. 书的结构：章 / 幕 / 目录
+     2. 书的结构
      ============================================================ */
+
+  /* 本地是 file:// 或 xxx.html 预览时，链接要带 .html；
+     线上走 Cloudflare Pages 的干净 URL，不带后缀。 */
   var IS_FILE = /\.html?$/i.test(location.pathname);
 
-  function hrefFor(file) {
-    if (!file) return IS_FILE ? 'index.html' : './';
-    return IS_FILE ? file : file.replace(/\.html?$/i, '');
-  }
+  /* 页脚的「藏书印」用它。改版本时和 data/updates.json 一起改。 */
+  var BOOK_VERSION = '3.6.0';
 
+  /* 章表：key = 文件名（不含扩展名）。加一章 = 这里加一条 + TOC 加一行。 */
   var CHAPTERS = {
     'index': { no: '第一章', seal: '一', title: '雾起', note: '开篇 · 一个小而认真的个人站点' },
     'roblox_music': { no: '第二章', seal: '二', title: '拾穗', note: '宝库 · 游戏里能用的音乐与音效' },
@@ -127,7 +192,7 @@
     '404': { no: '外篇', seal: '外', title: '迷途', note: '雾里的岔路' }
   };
 
-  /* 全书目录只列公开的五章；后台不进目录。 */
+  /* 目录只列公开的五章；后台不进目录。顺序 = 翻章顺序 = 目录顺序。 */
   var TOC = [
     { file: '', key: 'index' },
     { file: 'roblox_music.html', key: 'roblox_music' },
@@ -136,182 +201,187 @@
     { file: 'support.html', key: 'support' }
   ];
 
-  function pageKey() {
+  function currentKey() {
     var seg = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     seg = seg.replace(/\.html?$/i, '');
-    if (!seg || seg === 'index' || seg === '') return 'index';
-    return seg;
+    return seg || 'index';
   }
 
-  var CURRENT = pageKey();
+  function hrefFor(file) {
+    if (!file) return IS_FILE ? 'index.html' : './';
+    return IS_FILE ? file : file.replace(/\.html?$/i, '');
+  }
+
+  var CURRENT = currentKey();
   var CH = CHAPTERS[CURRENT] || null;
 
-  function han(n) {
-    var s = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-    if (n <= 10) return s[n];
-    if (n < 20) return '十' + s[n - 10];
-    return String(n);
+  /* 读到哪了：只记「哪一章、第几幕」。下次开目录时，那一章会多标一行。 */
+  var READ_KEY = 'zm_read';
+  var LAST_READ = { page: '', act: 0 };
+
+  function readLastRead() {
+    var raw = store(READ_KEY);
+    if (!raw) return;
+    var r;
+    try { r = JSON.parse(raw); } catch (e) { return; }
+    if (!r || typeof r !== 'object') return;
+    if (typeof r.page === 'string') LAST_READ.page = r.page;
+    if (typeof r.act === 'number') LAST_READ.act = r.act;
   }
 
+  function saveLastRead() { store(READ_KEY, JSON.stringify(LAST_READ)); }
+
   /* ============================================================
-     3. 题签：正文最前面一条「第一章 · 雾起」
+     3. 章：题签 / 幕号 / 翻章 / 藏书印 / 返回第一章
      ============================================================ */
-  function buildChapterBlock() {
-    if (!CH) return;
-    var main = D.getElementById('main') || D.querySelector('main');
-    /* 后台没有 <main>：题签插在顶栏下面，别把工具条顶下去 */
-    var adminTop = D.querySelector('.admin-topbar');
-    if (!main && adminTop) {
-      if (D.querySelector('.book-chapter')) return;
-      var slim = D.createElement('header');
-      slim.className = 'book-chapter is-admin';
-      slim.setAttribute('aria-label', '章节');
-      slim.innerHTML =
-        '<span class="bc-seal" aria-hidden="true">' + CH.seal + '</span>' +
-        '<span class="bc-body">' +
-          '<span class="bc-no">' + CH.no + '</span>' +
-          '<span class="bc-title">' + CH.title + '</span>' +
-          '<span class="bc-note">' + CH.note + '</span>' +
-        '</span>';
-      adminTop.insertAdjacentElement('afterend', slim);
-      return;
-    }
-    if (!main || main.querySelector('.book-chapter')) return;
 
-    var el = D.createElement('header');
-    el.className = 'book-chapter';
-    el.setAttribute('aria-label', '章节');
-
-    el.innerHTML =
-      '<span class="bc-seal" aria-hidden="true">' + CH.seal + '</span>' +
+  /* 题签内部结构，普通页与后台共用一套 */
+  function chapterInner() {
+    return '<span class="bc-seal" aria-hidden="true">' + CH.seal + '</span>' +
       '<span class="bc-body">' +
         '<span class="bc-no">' + CH.no + '</span>' +
         '<span class="bc-title">' + CH.title + '</span>' +
         '<span class="bc-note">' + CH.note + '</span>' +
-      '</span>' +
-      '<span class="bc-rule" aria-hidden="true"></span>';
-
-    main.insertBefore(el, main.firstChild);
+      '</span>';
   }
 
-  /* ============================================================
-     4. 幕号：板块标题前加「第一幕」
-     ============================================================ */
+  function buildChapterBar() {
+    if (!CH) return;
+    var existing = $('.book-chapter');
+    if (existing) return;
+
+    var bar = el('header', 'book-chapter', chapterInner());
+    bar.setAttribute('aria-label', '章节');
+
+    /* 后台没有 <main>：题签插在顶栏下面，别把工具条顶下去 */
+    var main = D.getElementById('main') || $('main');
+    var adminTop = $('.admin-topbar');
+    if (!main && adminTop) {
+      bar.className = 'book-chapter is-admin';
+      adminTop.insertAdjacentElement('afterend', bar);
+      return;
+    }
+    if (!main) return;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  /* 幕号：正文里每个 .section-head 依次加「第一幕」；加 data-no-act 可跳过 */
   function numberActs() {
-    var heads = D.querySelectorAll('main .section-head');
     var list = [];
-    for (var i = 0; i < heads.length; i++) {
-      var head = heads[i];
-      if (head.closest('.modal') || head.hasAttribute('data-no-act')) continue;
-      var title = head.querySelector('h1, h2');
-      if (!title || head.querySelector('.act-no')) continue;
-      var tag = D.createElement('span');
-      tag.className = 'act-no';
+    $$('main .section-head').forEach(function (head) {
+      if (head.closest('.modal') || head.hasAttribute('data-no-act')) return;
+      if (!head.querySelector('h1, h2') || head.querySelector('.act-no')) return;
+      var tag = el('span', 'act-no', '第' + han(list.length + 1) + '幕');
       tag.setAttribute('aria-hidden', 'true');
-      tag.textContent = '第' + han(list.length + 1) + '幕';
       head.insertBefore(tag, head.firstChild);
       list.push(head);
-    }
+    });
     return list;
   }
 
-  /* ============================================================
-     4.5 章末翻章：上一章 / 目录 / 下一章
-     ============================================================ */
+  /* 章末翻章：没有上一章 / 下一章时给灰字，不造假链接 */
   function buildPager() {
     if (!CH || CURRENT === 'admin') return;
-    var main = D.getElementById('main') || D.querySelector('main');
-    if (!main || main.querySelector('.book-pager')) return;
+    var main = D.getElementById('main') || $('main');
+    if (!main || $('.book-pager')) return;
 
     var idx = -1;
-    for (var i = 0; i < TOC.length; i++) { if (TOC[i].key === CURRENT) idx = i; }
+    TOC.forEach(function (it, i) { if (it.key === CURRENT) idx = i; });
     if (idx < 0) return;
 
-    /* 章末横条：没有上一章/下一章时用灰字，不造死链接 */
-    function item(ch, cls, empty) {
-      if (!ch) return '<span class="bp-void">' + empty + '</span>';
-      var c = CHAPTERS[ch.key];
+    function jump(it, cls, empty) {
+      if (!it) return '<span class="bp-void">' + empty + '</span>';
+      var c = CHAPTERS[it.key];
       if (!c) return '';
       var text = cls === 'bp-prev' ? '← 上一章 · ' + c.title : '下一章 · ' + c.title + ' →';
-      return '<a class="' + cls + '" href="' + hrefFor(ch.file) + '">' + text + '</a>';
+      return '<a class="' + cls + '" href="' + hrefFor(it.file) + '">' + text + '</a>';
     }
 
-    var el = D.createElement('nav');
-    el.className = 'book-pager';
-    el.setAttribute('aria-label', '翻章');
-    el.innerHTML =
-      item(TOC[idx - 1], 'bp-prev', '已是卷首') +
+    var nav = el('nav', 'book-pager',
+      jump(TOC[idx - 1], 'bp-prev', '已是卷首') +
       '<button type="button" class="bp-toc">目录</button>' +
-      item(TOC[idx + 1], 'bp-next', '已至卷末');
+      jump(TOC[idx + 1], 'bp-next', '已至卷末')
+    );
+    nav.setAttribute('aria-label', '翻章');
+    main.appendChild(nav);
 
-    main.appendChild(el);
-    var tocBtn = el.querySelector('.bp-toc');
+    var tocBtn = $('.bp-toc', nav);
     if (tocBtn) tocBtn.addEventListener('click', openToc);
+
+    /* 键盘 ← / → 用这两个地址 */
+    PAGER.prev = TOC[idx - 1] ? hrefFor(TOC[idx - 1].file) : '';
+    PAGER.next = TOC[idx + 1] ? hrefFor(TOC[idx + 1].file) : '';
   }
 
-  /* ============================================================
-     5. 阅读指示：左下角「第一章 · 第一幕」
-     ============================================================ */
-  function buildMarker(acts) {
-    if (!CH) return null;
-    var btn = D.createElement('button');
-    btn.type = 'button';
-    btn.className = 'chapter-marker';
-    btn.setAttribute('aria-label', '打开目录');
-    btn.setAttribute('title', '打开目录');
-    btn.innerHTML =
-      '<span class="cm-ch">' + CH.no + '</span>' +
-      '<span class="cm-sep" aria-hidden="true">·</span>' +
-      '<span class="cm-act">卷首</span>';
-    D.body.appendChild(btn);
+  /* 页脚藏书印：一句「全书五章 · 第 3.x 版」 */
+  function buildColophon() {
+    var footer = $('.footer');
+    if (!footer || $('.book-colophon', footer)) return;
+    footer.appendChild(el('p', 'book-colophon',
+      '<span class="cc-seal" aria-hidden="true">穗</span>' +
+      '<span class="cc-text">全书五章 · 第 ' + BOOK_VERSION + ' 版</span>'
+    ));
+  }
 
-    var actEl = btn.querySelector('.cm-act');
+  var PAGER = { prev: '', next: '' };
 
-    if (!acts.length || !('IntersectionObserver' in window)) {
-      btn.classList.add('is-static');
-      return btn;
-    }
-
-    /* 只观察板块标题：滚到哪一幕就把标签换掉；不做任何 scroll 计算 */
+  /* 读到第几幕：只记不发。目录里那行「上次读到第 N 幕」靠它。
+     一个 IntersectionObserver 盯住板块标题，不做任何 scroll 计算。 */
+  function trackReading(acts) {
+    if (!acts.length || !('IntersectionObserver' in window)) return;
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         var idx = acts.indexOf(en.target);
         if (idx < 0) return;
-        actEl.textContent = '第' + han(idx + 1) + '幕';
+        LAST_READ.page = CURRENT;
+        LAST_READ.act = idx + 1;
+        saveLastRead();
       });
     }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    acts.forEach(function (node) { io.observe(node); });
+  }
 
-    acts.forEach(function (el) { io.observe(el); });
-    return btn;
+  /* 左下角「← 返回第一章」：不在第一页、也不在后台时出现 */
+  function buildBackLink() {
+    if (!CH || CURRENT === 'index' || CURRENT === 'admin') return;
+    var a = el('a', 'chapter-back',
+      '<span class="cb-ico" aria-hidden="true">←</span>返回第一章 · 雾起'
+    );
+    a.href = hrefFor('');
+    a.setAttribute('title', '回到第一章 · 雾起');
+    D.body.appendChild(a);
   }
 
   /* ============================================================
-     6. 目录抽屉
+     4. 目录抽屉
      ============================================================ */
   var tocEl = null;
+
+  function tocRow(it) {
+    var ch = CHAPTERS[it.key];
+    if (!ch) return '';
+
+    var isNow = it.key === CURRENT;
+    var last = '';
+    if (LAST_READ.page === it.key && LAST_READ.act > 0) {
+      last = '<span class="bt-last">上次读到第 ' + han(LAST_READ.act) + ' 幕</span>';
+    }
+
+    return '<li>' +
+      '<a class="bt-row' + (isNow ? ' is-now' : '') + '" href="' + hrefFor(it.file) + '"' +
+        (isNow ? ' aria-current="page"' : '') + '>' +
+        '<span class="bt-no">' + ch.no + '</span>' +
+        '<span class="bt-title">' + ch.title + '</span>' +
+        '<span class="bt-note">' + ch.note + last + '</span>' +
+      '</a>' +
+    '</li>';
+  }
 
   function buildToc() {
     if (tocEl) return tocEl;
 
-    tocEl = D.createElement('div');
-    tocEl.className = 'book-toc';
-    tocEl.hidden = true;
-
-    var rows = TOC.map(function (it) {
-      var ch = CHAPTERS[it.key];
-      if (!ch) return '';
-      var now = it.key === CURRENT ? ' is-now' : '';
-      return '<li>' +
-        '<a class="bt-row' + now + '" href="' + hrefFor(it.file) + '">' +
-          '<span class="bt-no">' + ch.no + '</span>' +
-          '<span class="bt-title">' + ch.title + '</span>' +
-          '<span class="bt-note">' + ch.note + '</span>' +
-        '</a>' +
-      '</li>';
-    }).join('');
-
-    tocEl.innerHTML =
+    tocEl = el('div', 'book-toc',
       '<div class="bt-scrim" data-toc-close></div>' +
       '<aside class="bt-panel" role="dialog" aria-modal="true" aria-label="目录">' +
         '<div class="bt-head">' +
@@ -319,40 +389,38 @@
           '<h2 class="bt-h">目录</h2>' +
           '<button type="button" class="bt-x" data-toc-close aria-label="关闭目录">×</button>' +
         '</div>' +
-        '<ol class="bt-list">' + rows + '</ol>' +
+        '<ol class="bt-list">' + TOC.map(tocRow).join('') + '</ol>' +
         '<p class="bt-foot">全书五章 · 读到哪一章，左上角的印会告诉你</p>' +
-      '</aside>';
-
+      '</aside>'
+    );
+    tocEl.hidden = true;
     D.body.appendChild(tocEl);
 
     tocEl.addEventListener('click', function (e) {
       if (e.target.closest('[data-toc-close]')) closeToc();
     });
-
     return tocEl;
   }
 
   function openToc() {
     buildToc();
-    tocEl.hidden = false;
-    /* 先显示再加类，才能吃到过渡动画 */
-    requestAnimationFrame(function () { tocEl.classList.add('open'); });
-    D.documentElement.classList.add('toc-open');
-    var first = tocEl.querySelector('.bt-row');
+    openLayer(tocEl);
+    root.classList.add('toc-open');
+    var first = $('.bt-row', tocEl);
     if (first && first.focus) first.focus({ preventScroll: true });
   }
 
   function closeToc() {
-    if (!tocEl || tocEl.hidden) return;
-    tocEl.classList.remove('open');
-    D.documentElement.classList.remove('toc-open');
-    setTimeout(function () { if (!tocEl.classList.contains('open')) tocEl.hidden = true; }, 240);
+    closeLayer(tocEl, 240);
+    root.classList.remove('toc-open');
   }
 
   /* ============================================================
-     7. 设置面板
+     5. 设置面板
      ============================================================ */
-  var ROWS = [
+
+  /* 一行 = 一个开关：key 进 PREFS，opts 是 [值, 标签]，demo 选小样 */
+  var SETTING_ROWS = [
     {
       key: 'theme', title: '主题', demo: 'theme',
       hint: '亮 = 宣纸底、墨字；暗 = 墨夜底、宣纸字；跟随 = 系统怎么变它就怎么变。',
@@ -377,24 +445,20 @@
 
   var setEl = null;
 
+  /* 每行右边的小样：直接反映当前真实状态（CSS 用 html 上的属性判断） */
   function demoHtml(kind) {
-    if (kind === 'theme') {
-      return '<span class="dm-paper" title="宣纸底"></span><span class="dm-ink" title="墨夜底"></span>';
-    }
-    if (kind === 'fx') {
-      return '<span class="dm-fx"><i></i><i></i><i></i></span>';
-    }
-    if (kind === 'texture') {
-      return '<span class="dm-tex"></span>';
-    }
+    if (kind === 'theme') return '<span class="dm-paper"></span><span class="dm-ink"></span>';
+    if (kind === 'fx') return '<span class="dm-fx"><i></i><i></i><i></i></span>';
+    if (kind === 'texture') return '<span class="dm-tex"></span>';
     return '<span class="dm-font">字</span>';
   }
 
-  function rowHtml(r) {
+  function settingRow(r) {
     var opts = r.opts.map(function (o) {
-      var on = PREFS[r.key] === o[0] ? ' is-on' : '';
-      return '<button type="button" class="set-opt' + on + '" data-set-key="' + r.key +
-        '" data-set-val="' + o[0] + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + o[1] + '</button>';
+      var on = PREFS[r.key] === o[0];
+      return '<button type="button" class="set-opt' + (on ? ' is-on' : '') + '"' +
+        ' data-set-key="' + r.key + '" data-set-val="' + o[0] + '"' +
+        ' aria-pressed="' + (on ? 'true' : 'false') + '">' + o[1] + '</button>';
     }).join('');
 
     return '<div class="set-row" data-row="' + r.key + '">' +
@@ -412,11 +476,7 @@
   function buildSettings() {
     if (setEl) return setEl;
 
-    setEl = D.createElement('div');
-    setEl.className = 'set-overlay';
-    setEl.hidden = true;
-
-    setEl.innerHTML =
+    setEl = el('div', 'set-overlay',
       '<div class="set-scrim" data-set-close></div>' +
       '<div class="set-sheet" role="dialog" aria-modal="true" aria-label="设置">' +
         '<div class="set-head">' +
@@ -426,164 +486,186 @@
           '</div>' +
           '<button type="button" class="set-x" data-set-close aria-label="关闭设置">×</button>' +
         '</div>' +
-        '<div class="set-body">' + ROWS.map(rowHtml).join('') + '</div>' +
-        '<p class="set-foot">设置只存在你这台设备的浏览器里，换个设备要重新选一次。</p>' +
-      '</div>';
-
+        '<div class="set-body">' + SETTING_ROWS.map(settingRow).join('') + '</div>' +
+        '<div class="set-foot">' +
+          '<p>设置只存在你这台设备的浏览器里，换个设备要重新选一次。</p>' +
+          '<p class="set-keys">键盘：← → 翻章 · T 目录 · Esc 关闭</p>' +
+          '<button type="button" class="set-reset" data-set-reset>恢复默认</button>' +
+        '</div>' +
+      '</div>'
+    );
+    setEl.hidden = true;
     D.body.appendChild(setEl);
 
     setEl.addEventListener('click', function (e) {
+      if (e.target.closest('[data-set-reset]')) { resetPrefs(); syncSettings(); return; }
       if (e.target.closest('[data-set-close]')) { closeSettings(); return; }
+
       var opt = e.target.closest('.set-opt');
       if (!opt) return;
       var key = opt.getAttribute('data-set-key');
       var val = opt.getAttribute('data-set-val');
       if (!key || !val) return;
+
       PREFS[key] = val;
       savePrefs();
-      applyAll();
+      applyPrefs();
       syncSettings();
-      /* 主题换完要重画一次，手机浏览器只改变量时会「只变一半」 */
-      if (key === 'theme' && D.body) void D.body.offsetHeight;
+      /* 主题换完重排一次：部分手机浏览器只改变量时会「只变一半」 */
+      if (key === 'theme') void D.body.offsetHeight;
     });
-
     return setEl;
   }
 
   function syncSettings() {
     if (!setEl) return;
-    ROWS.forEach(function (r) {
-      var row = setEl.querySelector('[data-row="' + r.key + '"]');
+    SETTING_ROWS.forEach(function (r) {
+      var row = $('[data-row="' + r.key + '"]', setEl);
       if (!row) return;
-      row.querySelectorAll('.set-opt').forEach(function (b) {
+      $$('.set-opt', row).forEach(function (b) {
         var on = b.getAttribute('data-set-val') === PREFS[r.key];
         b.classList.toggle('is-on', on);
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     });
-    setEl.setAttribute('data-theme-preview', PREFS.theme);
-    setEl.setAttribute('data-fx-preview', PREFS.fx);
   }
 
   function openSettings() {
     buildSettings();
     syncSettings();
-    setEl.hidden = false;
-    requestAnimationFrame(function () { setEl.classList.add('open'); });
-    D.documentElement.classList.add('set-open');
-    var first = setEl.querySelector('.set-opt.is-on') || setEl.querySelector('.set-opt');
+    openLayer(setEl);
+    root.classList.add('set-open');
+    var first = $('.set-opt.is-on', setEl) || $('.set-opt', setEl);
     if (first && first.focus) first.focus({ preventScroll: true });
   }
 
   function closeSettings() {
-    if (!setEl || setEl.hidden) return;
-    setEl.classList.remove('open');
-    D.documentElement.classList.remove('set-open');
-    setTimeout(function () { if (!setEl.classList.contains('open')) setEl.hidden = true; }, 220);
+    closeLayer(setEl, 220);
+    root.classList.remove('set-open');
   }
 
   /* ============================================================
-     8. 导航按钮：目录 + 设置
+     6. 导航按钮：目录 + 设置
      ============================================================ */
   function navSlot() {
-    var nav = D.querySelector('.navbar .nav-links');
+    var nav = $('.navbar .nav-links');
     if (nav) return { node: nav, li: true };
-    var admin = D.querySelector('.admin-topbar .actions');
+    var admin = $('.admin-topbar .actions');
     if (admin) return { node: admin, li: false };
     /* 宝库页没有 navbar，只有一个 [data-theme-slot] 落点（common.js 也认这个） */
-    var slot = D.querySelector('[data-theme-slot]');
+    var slot = $('[data-theme-slot]');
     if (slot) return { node: slot, li: false };
     return null;
+  }
+
+  function addToSlot(slot, node) {
+    if (slot.li) {
+      var li = D.createElement('li');
+      li.appendChild(node);
+      slot.node.appendChild(li);
+    } else {
+      slot.node.appendChild(node);
+    }
   }
 
   function injectButtons() {
     var slot = navSlot();
     if (!slot) return;
 
-    var isAdmin = CURRENT === 'admin';
-
-    /* 有了「目录」，导航栏就不再重复「首页 / 鸣谢 / 法律」（站主 2026-11-21 的要求）：
-       清空后只放 目录 + 设置；品牌 logo 本身就是回首页的入口。
-       注意这是渐进增强 —— JS 没跑起来时旧链接还在，不会走丢。 */
+    /* 有了「目录」，导航栏就不再重复「首页 / 鸣谢 / 法律」：
+       清空后只放 目录 + 设置，品牌 logo 本身就是回首页的入口。
+       渐进增强 —— JS 没跑起来时旧链接还在，不会走丢。 */
     if (slot.li) slot.node.innerHTML = '';
 
-    /* 目录：只在公开页面出现，后台是干活的地方，不做目录 */
-    if (!isAdmin && !D.querySelector('.book-toc-open')) {
-      var tbtn = D.createElement('button');
-      tbtn.type = 'button';
-      tbtn.className = 'book-toc-open';
-      tbtn.setAttribute('aria-label', '目录');
-      tbtn.setAttribute('title', '目录');
-      tbtn.innerHTML = '<span class="toc-ico" aria-hidden="true">☰</span><span>目录</span>';
-      tbtn.addEventListener('click', openToc);
-      if (slot.li) {
-        var li1 = D.createElement('li');
-        li1.appendChild(tbtn);
-        slot.node.appendChild(li1);
-      } else {
-        slot.node.appendChild(tbtn);
-      }
+    /* 目录：后台是干活的地方，不放 */
+    if (CURRENT !== 'admin' && !$('.book-toc-open')) {
+      var tocBtn = el('button', 'book-toc-open',
+        '<span class="toc-ico" aria-hidden="true">☰</span><span>目录</span>'
+      );
+      tocBtn.type = 'button';
+      tocBtn.setAttribute('aria-label', '目录');
+      tocBtn.setAttribute('title', '目录');
+      tocBtn.addEventListener('click', openToc);
+      addToSlot(slot, tocBtn);
     }
 
-    /* 设置：沿用 .theme-toggle 这个类，位置与圆钮外观直接复用全站样式；
-       common.js 的 injectThemeToggle 看到已有 .theme-toggle 就不会再造一颗。 */
-    if (!D.querySelector('.theme-toggle')) {
-      var sbtn = D.createElement('button');
-      sbtn.type = 'button';
-      sbtn.className = 'theme-toggle settings-btn';
-      sbtn.setAttribute('data-settings', '1');
-      sbtn.setAttribute('aria-label', '设置');
-      sbtn.setAttribute('title', '设置：主题 / 动效 / 字号');
-      sbtn.textContent = '⚙';
-      sbtn.addEventListener('click', openSettings);
-      if (slot.li) {
-        var li2 = D.createElement('li');
-        li2.appendChild(sbtn);
-        slot.node.appendChild(li2);
-      } else {
-        slot.node.appendChild(sbtn);
+    /* 设置：沿用 .theme-toggle 类复用全站圆钮样式；
+       common.js 的 injectThemeToggle 看到已有 .theme-toggle 就不会再造一颗。
+       万一别的脚本先造了，也把它改成「打开设置」。 */
+    var existing = $('.theme-toggle');
+    if (existing && existing.getAttribute('data-settings') === '1') {
+      if (!existing._zmSettingsBound) {
+        existing._zmSettingsBound = true;
+        existing.addEventListener('click', openSettings);
       }
-    } else {
-      /* 万一别的脚本先造了一颗，也把它改成「打开设置」 */
-      D.querySelectorAll('.theme-toggle').forEach(function (b) {
-        if (b.getAttribute('data-settings') === '1') {
-          if (!b._zmSetBound) { b._zmSetBound = 1; b.addEventListener('click', openSettings); }
-          return;
-        }
-      });
+      return;
     }
+    if (existing) return;
+
+    var setBtn = el('button', 'theme-toggle settings-btn', '⚙');
+    setBtn.type = 'button';
+    setBtn.setAttribute('data-settings', '1');
+    setBtn.setAttribute('aria-label', '设置');
+    setBtn.setAttribute('title', '设置：主题 / 动效 / 字号');
+    setBtn._zmSettingsBound = true;
+    setBtn.addEventListener('click', openSettings);
+    addToSlot(slot, setBtn);
   }
 
   /* ============================================================
-     9. 启动
+     7. 键盘：← → 翻章、T 目录、Esc 关闭
+     ============================================================ */
+  function bindKeys() {
+    D.addEventListener('keydown', function (e) {
+      /* Esc：先关设置，再关目录 */
+      if (e.key === 'Escape') {
+        if (setEl && !setEl.hidden) { closeSettings(); return; }
+        closeToc();
+        return;
+      }
+
+      /* 输入框打字、按着修饰键、开着设置时都不抢键 */
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
+                t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (setEl && !setEl.hidden) return;
+
+      if (e.key === 'ArrowLeft') {
+        if (PAGER.prev) location.href = PAGER.prev;
+      } else if (e.key === 'ArrowRight') {
+        if (PAGER.next) location.href = PAGER.next;
+      } else if ((e.key === 't' || e.key === 'T') && CURRENT !== 'admin') {
+        if (tocEl && !tocEl.hidden) closeToc(); else openToc();
+      }
+    });
+  }
+
+  /* ============================================================
+     8. 启动
      ============================================================ */
   function boot() {
     readPrefs();
     migrateLegacyTheme();
-    applyAll();
+    readLastRead();
+    applyPrefs();
 
+    /* 系统主题变了：只有「跟随」模式才跟着变 */
     if (window.matchMedia) {
       var mq = window.matchMedia('(prefers-color-scheme: dark)');
-      var onScheme = function () { if (PREFS.theme === 'auto') applyThemePref(); };
+      var onScheme = function () { if (PREFS.theme === 'auto') applyTheme(); };
       if (mq.addEventListener) mq.addEventListener('change', onScheme);
       else if (mq.addListener) mq.addListener(onScheme);
     }
 
-    /* ESC：先关设置，再关目录 */
-    D.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      if (setEl && !setEl.hidden) { closeSettings(); return; }
-      closeToc();
-    });
+    bindKeys();
 
-    buildChapterBlock();
-    var acts = numberActs();
-    buildMarker(acts);
+    buildChapterBar();
+    trackReading(numberActs());
+    buildBackLink();
     injectButtons();
     buildPager();
-
-    var marker = D.querySelector('.chapter-marker');
-    if (marker) marker.addEventListener('click', openToc);
+    buildColophon();
   }
 
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot);

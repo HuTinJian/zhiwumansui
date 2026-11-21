@@ -2373,7 +2373,7 @@ a.btn,
   }
 
   /* 书卷层：这颗钮现在是「设置」而不是切主题，导航栏里已经有「目录」陪着它；
-     手机上不再让它浮在右下角（会跟回到顶部、阅读指示挤在一起）。 */
+     手机上不再让它浮在右下角（会跟回到顶部、「返回第一章」挤在一起）。 */
   .navbar .theme-toggle.settings-btn {
     position: static;
     width: 40px;
@@ -2414,8 +2414,25 @@ a.btn,
 /* ============================================================
    15. 书卷层（js/book.js 配套）
    ------------------------------------------------------------
-   题签 / 幕号 / 目录 / 设置面板 / 阅读指示 + 阅读偏好（字号 / 颗粒 / 动效）。
-   这一层只加「形」，颜色照旧全部走第 1 节的令牌；深浅两套主题自动跟随。
+   题签 / 幕号 / 章末翻章 / 目录 / 设置 / 藏书印 / 返回第一章
+   + 阅读偏好（字号 / 颗粒 / 动效）。颜色全走第 1 节令牌，深浅自动跟随。
+
+   本节目录（按出现顺序）
+     · 令牌            --serif / --seal
+     · 阅读偏好        data-font / data-texture / data-fx
+     · 章节题签        .book-chapter
+     · 章末翻章        .book-pager
+     · 幕号            .act-no
+     · 目录入口        .book-toc-open
+     · 目录抽屉        .book-toc / .bt-*
+     · 返回第一章      .chapter-back
+     · 设置面板        .set-overlay / .set-* / .dm-*
+     · 页脚藏书印      .book-colophon
+     · 目录里的读位置  .bt-last
+     · 设置的小字行    .set-keys / .set-reset
+     · 翻页过渡        @view-transition
+     · 窄屏            两个 @media
+
    回退：删掉本节 + js/book.js 的引入即可。
    ============================================================ */
 
@@ -2453,39 +2470,39 @@ html.lite .particles { display: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  margin: 2px 0 18px;
-  padding: 7px 4px 8px;
+  gap: 10px;
+  margin: 2px 0 20px;
+  padding: 11px 8px 12px;
   text-align: center;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 .bc-seal {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   background: var(--seal);
   color: var(--seal-ink);
   font-family: var(--serif);
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   font-weight: 700;
   line-height: 1;
-  border-radius: 3px;
+  border-radius: 4px;
   transform: rotate(-3deg);
 }
 .bc-body { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .bc-no {
   font-family: var(--serif);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.2em;
   color: var(--accent);
   white-space: nowrap;
 }
 .bc-title {
   font-family: var(--serif);
-  font-size: 0.95rem;
+  font-size: 1.12rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   line-height: 1.3;
@@ -2493,7 +2510,7 @@ html.lite .particles { display: none; }
   white-space: nowrap;
 }
 .bc-note {
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   letter-spacing: 0.04em;
   color: var(--text);
   /* 浅色主题下 0.66 是本页小字的下限，再淡就低于 4.5:1 */
@@ -2503,8 +2520,8 @@ html.lite .particles { display: none; }
   text-overflow: ellipsis;
 }
 .bc-note::before { content: '·'; margin-right: 6px; opacity: 0.7; }
-.book-chapter.is-admin { margin: 2px 0 14px; padding: 6px 4px 7px; }
-.book-chapter.is-admin .bc-title { font-size: 0.95rem; }
+.book-chapter.is-admin { margin: 2px 0 16px; padding: 8px 4px 9px; }
+.book-chapter.is-admin .bc-title { font-size: 1.04rem; }
 
 
 
@@ -2703,15 +2720,15 @@ html.lite .particles { display: none; }
   opacity: 0.64;
 }
 
-/* ---------- 阅读指示（左下角） ---------- */
-.chapter-marker {
+/* ---------- 左下角「返回第一章」 ---------- */
+.chapter-back {
   position: fixed;
   left: 18px;
   bottom: 20px;
   z-index: 950;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   padding: 9px 15px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
@@ -2719,14 +2736,12 @@ html.lite .particles { display: none; }
   color: var(--text);
   font-family: var(--serif);
   font-size: 0.8rem;
-  letter-spacing: 0.16em;
-  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-decoration: none;
   box-shadow: var(--shadow-sm);
 }
-.chapter-marker .cm-ch { color: var(--accent); }
-.chapter-marker .cm-sep { opacity: 0.4; }
-.chapter-marker:hover { border-color: var(--gold); }
-.chapter-marker.is-static { cursor: default; }
+.chapter-back .cb-ico { color: var(--accent); }
+.chapter-back:hover { border-color: var(--gold); color: var(--accent); }
 
 /* ---------- 设置面板 ---------- */
 .set-overlay {
@@ -2854,6 +2869,7 @@ html.lite .particles { display: none; }
   color: var(--text);
   opacity: 0.64;
 }
+.set-foot p { margin: 0; }
 
 /* 设置里的「展示」小样：直接反映当前真实状态，所见即所得 */
 .dm-paper, .dm-ink { width: 26px; height: 26px; border-radius: 6px; }
@@ -2892,10 +2908,82 @@ html[data-texture="off"] .dm-tex { background-image: none; }
 .dm-font { font-family: var(--serif); font-size: 21px; line-height: 1; color: var(--text); }
 html[data-font="lg"] .dm-font { font-size: 27px; }
 
+
+/* ---------- 页脚藏书印 ---------- */
+.book-colophon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-family: var(--serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+.book-colophon .cc-seal {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--seal);
+  color: var(--seal-ink);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+  transform: rotate(-3deg);
+}
+.book-colophon .cc-text { color: var(--text); opacity: 0.62; }
+
+/* ---------- 目录里的「上次读到第 N 幕」 ---------- */
+.bt-last {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 设置面板：键盘说明 + 恢复默认 ---------- */
+.set-keys {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  opacity: 0.6;
+}
+.set-reset {
+  margin-top: 8px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.set-reset:hover { background: var(--bg-soft); color: var(--accent); }
+
+/* ---------- 翻页：跨页面过渡（支持 View Transitions 的浏览器才有） ----------
+   只做一次「淡出 + 微微上移」，像翻过一页；不支持就当普通跳转，
+   动效关闭（data-fx="off"）或系统「减少动态效果」时完全不动。 */
+@view-transition { navigation: auto; }
+@keyframes zmPageOut { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes zmPageIn { from { opacity: 0; transform: translateY(6px); } }
+::view-transition-old(root) { animation: zmPageOut 0.18s var(--ease-soft) both; }
+::view-transition-new(root) { animation: zmPageIn 0.26s var(--ease-out) both; }
+html[data-fx="off"]::view-transition-old(root),
+html[data-fx="off"]::view-transition-new(root) { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
 /* ---------- 窄屏 ---------- */
 @media (max-width: 768px) {
-  .book-chapter { gap: 7px; padding: 6px 2px 7px; margin-bottom: 14px; }
-  .bc-title { font-size: 0.88rem; letter-spacing: 0.12em; }
+  .book-chapter { gap: 8px; padding: 9px 2px 10px; margin-bottom: 15px; }
+  .bc-seal { width: 23px; height: 23px; font-size: 0.74rem; }
+  .bc-title { font-size: 1rem; letter-spacing: 0.12em; }
   .bc-note { display: none; }
   .book-toc-open { padding: 6px 10px; min-height: 36px; font-size: 0.82rem; }
   .book-toc-open .toc-ico { font-size: 0.85rem; }
@@ -2903,11 +2991,11 @@ html[data-font="lg"] .dm-font { font-size: 27px; }
   .set-side { justify-content: space-between; width: 100%; }
   .set-sheet { padding: 20px 16px 14px; max-height: 90vh; }
   .bt-panel { width: 92vw; padding: 22px 18px calc(18px + env(safe-area-inset-bottom)); }
-  .chapter-marker { left: 12px; bottom: 14px; padding: 7px 12px; font-size: 0.72rem; }
+  .chapter-back { left: 12px; bottom: 14px; padding: 7px 12px; font-size: 0.74rem; }
 }
 @media (max-width: 430px) {
   /* 导航栏撤掉旧链接后右侧空了，手机上「目录」两个字照样放得下，别缩成一个 ☰ */
   .book-toc-open { padding: 6px 11px; }
-  .chapter-marker .cm-ch { letter-spacing: 0.06em; }
+  .chapter-back { letter-spacing: 0.06em; }
 }
 
