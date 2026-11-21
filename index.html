@@ -167,8 +167,9 @@
       font-size: 0.76rem;
       font-weight: 800;
       letter-spacing: 1px;
-      /* 深底奶白字：跟全站主按钮同一套反差，浅深主题都看得清 */
-      color: var(--text-on-accent);
+      /* 底是 --primary（浅色墨 / 深色月白），字必须用 --bg 才能永远反色；
+         用 --text-on-accent 在深色主题下是「奶白压米白」，会看不清。 */
+      color: var(--bg);
       background: var(--primary);
       padding: 4px 11px;
       border-radius: var(--radius-pill);
@@ -176,15 +177,16 @@
     }
     .about-strip-text {
       margin: 0;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       line-height: 1.7;
-      color: var(--text-light);
+      color: var(--text);
     }
-    .about-strip-text b { color: var(--text); font-weight: 700; }
+    .about-strip-text b { color: var(--accent); font-weight: 800; }
     @media (max-width: 600px) {
       .about-strip { padding: 8px 12px; gap: 8px; align-items: flex-start; }
       .about-strip-badge { font-size: 0.7rem; padding: 3px 8px; }
-      .about-strip-text { font-size: 0.82rem; line-height: 1.65; }
+      .about-strip-text { font-size: 0.86rem; line-height: 1.68; }
     }
 
     /* ========== 🐧 QQ 群卡片（首页右侧） ==========
@@ -208,7 +210,7 @@
       padding: 11px 10px 10px;
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 0;                 /* 站主：QQ 群也用方框小卡片，不要圆角 */
       box-shadow: var(--shadow-sm);
       color: var(--text);
       font: inherit;
@@ -223,6 +225,9 @@
     }
     .qq-side-btn:active { transform: translateY(0) scale(0.98); }
     .qq-side-btn:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; }
+    /* 全站按钮统一层在 css/style.css 里写了 border-radius: 4px（选择器带 button:not(...)），
+       这里用 id 把 QQ 卡片压回直角，和赞助卡「方正」同一个做法。 */
+    #qqGroupBtn { border-radius: 0 !important; }
     .qq-side-head {
       display: inline-flex;
       align-items: center;
@@ -239,7 +244,7 @@
       padding: 3px;
       background: #fff;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 0;
     }
     .qq-side-no {
       font-size: 0.72rem;
@@ -257,21 +262,29 @@
         transform: none;
         width: auto;
       }
+      /* 窄屏也保持「方框小卡片」：一颗 66×66 的方块，图标在上、字在下 */
       .qq-side-btn {
-        flex-direction: row;
-        width: auto;
-        padding: 9px 15px;
-        border-radius: var(--radius-pill);
-        gap: 6px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        width: 66px;
+        height: 66px;
+        padding: 6px 4px;
+        border-radius: 0;
       }
       .qq-side-qr,
       .qq-side-no,
       .qq-side-hint { display: none; }
-      .qq-side-head { font-size: 0.82rem; }
+      .qq-side-head {
+        flex-direction: column;
+        gap: 1px;
+        font-size: 0.76rem;
+        line-height: 1.2;
+      }
     }
     @media (max-width: 600px) {
       .qq-side { bottom: 78px; right: 12px; }
-      .qq-side-btn { padding: 8px 13px; }
+      .qq-side-btn { width: 62px; height: 62px; padding: 5px 3px; }
     }
 
     /* QQ 群二维码弹窗 */
@@ -293,7 +306,7 @@
       padding: 6px;
       background: #fff;
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 0;
     }
     .qq-modal .qq-modal-no {
       margin: 12px 0 16px;
@@ -767,7 +780,7 @@
           <span class="hero-sponsor-stats">
             <span class="hero-sponsor-nums">
               <span class="hero-sponsor-cost">
-                <b data-site-cost>¥301.32</b>
+                <b data-site-cost>¥323.07</b>
                 <span class="hero-sponsor-cost-d">共花费</span>
               </span>
               <span class="hero-sponsor-cost hero-sponsor-cost-got">
@@ -775,7 +788,7 @@
                 <span class="hero-sponsor-cost-d">收到赞助</span>
               </span>
             </span>
-            <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-11-14</span></span>
+            <span class="hero-sponsor-cost-d hero-sponsor-stats-date">截至 <span data-site-cost-date>2026-11-21</span></span>
           </span>
         </button>
       </div>
