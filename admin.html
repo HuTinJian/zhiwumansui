@@ -47,7 +47,7 @@
     .tab {
       padding: 10px 22px; border: 2px solid var(--border);
       border-radius: var(--radius-pill); background: var(--bg-card);
-      color: var(--text-light); font-size: 0.92rem; font-weight: 600;
+      color: var(--text); font-size: 0.92rem; font-weight: 600;
       cursor: pointer; font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.3s var(--ease-bounce), border-color 0.25s var(--ease-soft);
     }
@@ -67,7 +67,7 @@
     }
     .subtab {
       padding: 9px 20px; border: none; border-radius: var(--radius-pill);
-      background: transparent; color: var(--text-light);
+      background: transparent; color: var(--text);
       font-size: 0.88rem; font-weight: 600; cursor: pointer;
       font-family: var(--font);
       transition: background 0.25s var(--ease-soft), color 0.25s var(--ease-soft), transform 0.25s var(--ease-bounce);
@@ -120,7 +120,7 @@
        保证「歌曲管理 / 无效音乐ID管理 / 鸣谢名单」的说明格式一模一样。
        （选择器不加 .panel-card 前缀 —— 添加弹窗里的说明文字也用这个类） */
     .panel-desc {
-      color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;
+      color: var(--text); font-size: 0.85rem; margin-bottom: 14px;
     }
     .panel-card h2 .head-actions button { font-size: 0.85rem; padding: 6px 16px; }
 
@@ -142,9 +142,9 @@
     }
     .list-item .type-tag.gold { background: var(--gold-bg); color: var(--gold-ink); }
     .list-item .type-tag.blue { background: var(--info-bg); color: var(--info-ink); }
-    .list-item .meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+    .list-item .meta { font-size: 0.8rem; color: var(--text); margin-bottom: 8px; }
     .list-item .message {
-      color: var(--text-light); font-size: 0.92rem; line-height: 1.7;
+      color: var(--text); font-size: 0.92rem; line-height: 1.7;
       white-space: pre-wrap; word-break: break-word; margin-bottom: 10px;
     }
     .list-item .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -194,7 +194,7 @@
       border-radius: 999px;
       border: 1px solid var(--border-strong);
       background: var(--bg-soft);
-      color: var(--text-light);
+      color: var(--text);
       cursor: pointer;
       white-space: nowrap;
       transition: background 0.2s var(--ease-soft), color 0.2s var(--ease-soft),
@@ -227,7 +227,7 @@
     /* 左边那句「已选 N 条」占满剩余宽度，把操作按钮推到右边 */
     .invalid-bar .invalid-bar-info {
       /* 「已选 N 条」用 margin-right:auto 把按钮推右；右侧按钮一律不许再写 margin-left:auto（两个 auto 会平分空白，多出一段空档）。手机端由下面 @media 的 flex:1 0 100% 让它独占一行。 */
-      font-size: 0.82rem; color: var(--text-light); margin-right: auto;
+      font-size: 0.82rem; color: var(--text); margin-right: auto;
     }
     .invalid-bar .invalid-bar-info strong { color: var(--primary); font-weight: 700; }
     .invalid-bar button {
@@ -243,9 +243,15 @@
     .invalid-bar .btn-pick-none { background: var(--border); color: var(--text); }
     /* 「❌ 批量拒绝」：拒绝类操作用中性描边，不用大红块抢眼。 */
     .invalid-bar .btn-batch-reject {
-      background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
     }
     .invalid-bar .btn-batch-reject:hover { background: var(--bg-tint); color: var(--danger); }
+    /* 「✅ 批量下架」= 真下架（歌从全站隐藏）。以前这一段漏写配色，按钮退化成浏览器
+       默认的灰底黑字（截图里那颗灰药丸），跟主题完全不搭。危险动作用 --danger-solid
+       实底 + 奶白字：--text 压在这块深红上只有约 2.4:1，浅色主题读不清。 */
+    .invalid-bar .btn-batch-remove { background: var(--danger-solid); color: var(--text-on-accent); }
+    .invalid-bar .btn-batch-remove:hover { background: color-mix(in srgb, var(--danger) 86%, var(--primary-btn-b)); }
+    .invalid-bar .btn-batch-remove:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     /* 这行描边用 --border-strong 令牌；写死浅灰粉在深色主题下字会看不见。 */
     .invalid-bar .btn-pick-none:hover { background: var(--border-strong); }
     .invalid-bar .btn-clear-ignored { background: var(--danger-solid); color: var(--text-on-accent); margin-left: auto; }
@@ -268,13 +274,13 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
     }
-    .panel-search-info { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .panel-search-info { font-size: 0.78rem; color: var(--text); white-space: nowrap; }
     /* 「➕ 手动下架 ID」用金色，与「已下架」语义对应 */
     /* 手动下架按钮用 margin-left:auto 顶到最右；「🔍 复检待处理」归「🚫 待处理上报」栏（它复检的是还没处理的上报），不要放回已下架栏。 */
     .invalid-bar .btn-manual-remove { background: var(--gold-strong); color: var(--text-on-accent); margin-left: auto; }
     .invalid-bar .btn-manual-remove:hover { background: color-mix(in srgb, var(--gold-strong) 86%, var(--primary-btn-b)); }
     /* 🔍 复检待处理 排在「🚫 待处理上报」栏末尾；这里绝对不能再写 margin-left:auto —— 左边「已选 N 条」已用 margin-right:auto，两个 auto 会平分空白、把按钮甩到最右。 */
-    .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
+    .invalid-bar .btn-scan-validity { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
     .invalid-bar .btn-scan-validity:hover { background: var(--bg-tint); color: var(--primary); }
     .invalid-bar .btn-scan-validity:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -311,7 +317,7 @@
     /* 「❌ 无效反馈」用中性描边（不是红色满块）：删的只是上报记录，歌还在。 */
     .list-item .actions .btn-invalid-ignore,
     .list-item .actions .btn-invalid-delete {
-      background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
     }
     .list-item .actions .btn-invalid-ignore:hover,
     .list-item .actions .btn-invalid-delete:hover { background: var(--bg-tint); color: var(--primary); transform: translateY(-1px); }
@@ -319,7 +325,7 @@
     /* 成功按钮 hover 不用会「变亮」的 --success-dark（深色主题下白字会糊），改用 14% 深朱砂压暗，与其它实底按钮一致。 */
     .list-item .actions .btn-submission-approve { background: var(--success-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-submission-approve:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
-    .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text-light); border: 1px solid var(--border); }
+    .list-item .actions .btn-submission-delete { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
     .list-item .actions .btn-submission-delete:hover { background: var(--bg-tint); color: var(--danger); transform: translateY(-1px); }
     .list-item .actions .btn-invalid-restore { background: var(--success-strong); color: var(--text-on-accent); }
     .list-item .actions .btn-invalid-restore:hover { background: color-mix(in srgb, var(--success-strong) 86%, var(--primary-btn-b)); transform: translateY(-1px); }
@@ -339,13 +345,13 @@
     }
     .stat-card:hover { transform: translateY(-3px) rotate(-1deg); border-color: var(--primary-light); }
     .stat-card .num { font-size: 1.3rem; font-weight: 800; color: var(--primary-ink); line-height: 1.15; }
-    .stat-card .label { font-size: 0.74rem; color: var(--text-light); margin-top: 3px; line-height: 1.35; }
+    .stat-card .label { font-size: 0.74rem; color: var(--text); margin-top: 3px; line-height: 1.35; }
 
     /* 2026-11-21：手机尺寸收集结束，尺寸统计相关样式（.src-* / .source-* / .stats-sub）已删除。 */
 
 
-    .loading { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.9; }
+    .loading { text-align: center; padding: 30px; color: var(--text); font-size: 0.9rem; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text); font-size: 0.95rem; line-height: 1.9; }
 
     .sponsor-group-title {
       font-weight: 700; color: var(--gold); margin: 16px 0 8px; font-size: 0.95rem;
@@ -372,7 +378,7 @@
 
     #batchImportModal .modal-content { max-width: 720px; }
     #batchImportModal .import-hint {
-      font-size: 0.82rem; color: var(--text-muted); line-height: 1.75;
+      font-size: 0.82rem; color: var(--text); line-height: 1.75;
       margin-bottom: 12px; background: rgba(var(--accent-rgb), 0.05);
       border-left: 3px solid var(--primary-light);
       padding: 10px 14px; border-radius: 0 8px 8px 0;
@@ -396,7 +402,7 @@
     }
     #batchImportModal .import-status {
       font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
-      color: var(--text-light); white-space: pre-wrap; word-break: break-word;
+      color: var(--text); white-space: pre-wrap; word-break: break-word;
       font-family: 'Courier New', monospace; line-height: 1.6;
     }
     #batchImportModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
@@ -428,11 +434,11 @@
       flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; color: var(--text);
     }
     #batchImportModal .import-preview .pv-cat {
-      color: var(--text-muted); flex: 0 0 auto; font-size: 0.88rem;
+      color: var(--text); flex: 0 0 auto; font-size: 0.88rem;
     }
     #batchImportModal .import-preview .pv-exist { color: var(--gold-ink); }
     #batchImportModal .import-preview .pv-more {
-      color: var(--text-muted); margin-top: 6px; font-size: 0.88rem;
+      color: var(--text); margin-top: 6px; font-size: 0.88rem;
     }
 
 
@@ -453,7 +459,7 @@
     }
     #manualRemoveModal .import-status {
       font-size: 0.85rem; margin-bottom: 10px; min-height: 20px;
-      color: var(--text-light); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+      color: var(--text); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
     }
     #manualRemoveModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #manualRemoveModal .import-status.err { color: var(--danger); font-weight: 600; }
@@ -469,11 +475,11 @@
     #infoEditModal .info-edit-note {
       font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
       padding: 10px 14px; border-radius: var(--radius-sm);
-      background: var(--bg-soft); color: var(--text-light);
+      background: var(--bg-soft); color: var(--text);
     }
     #infoEditModal .import-status {
       font-size: 0.85rem; margin: 10px 0; min-height: 20px;
-      color: var(--text-light); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+      color: var(--text); white-space: pre-wrap; word-break: break-word; line-height: 1.6;
     }
     #infoEditModal .import-status.ok { color: var(--success-dark); font-weight: 600; }
     #infoEditModal .import-status.err { color: var(--danger); font-weight: 600; }
@@ -486,7 +492,7 @@
     .select-trigger {
       width: 100%; padding: 12px 16px; border: 2px solid var(--border);
       border-radius: var(--radius-sm); background: var(--bg-soft);
-      color: var(--text-muted); font-size: 0.95rem;
+      color: var(--text); font-size: 0.95rem;
       font-family: var(--font); font-weight: 500;
       text-align: left; cursor: pointer;
       display: flex; align-items: center; justify-content: space-between;
@@ -533,7 +539,7 @@
     /* 「✍️ 描述由我手写（不自动代写）」勾选框：勾上后自动代写一个字都不许碰（「网站创新家」那一栏默认勾上）。 */
     .manual-note-line {
       display: flex; align-items: center; gap: 8px; cursor: pointer;
-      font-size: 0.88rem; color: var(--text-light); font-weight: 600;
+      font-size: 0.88rem; color: var(--text); font-weight: 600;
       padding: 10px 14px; border: 1px dashed var(--border);
       border-radius: var(--radius-sm); background: var(--bg-soft);
       transition: border-color 0.25s var(--ease-soft);
@@ -571,7 +577,7 @@
       outline: 2px solid var(--primary); outline-offset: 2px;
     }
     .manual-note-hint {
-      font-size: 0.78rem; color: var(--text-muted);
+      font-size: 0.78rem; color: var(--text);
       margin: 6px 0 0 2px; line-height: 1.6;
     }
 
@@ -584,7 +590,7 @@
     .pager[hidden] { display: none; }
     .pager button {
       min-width: 40px; height: 40px; padding: 0 12px;
-      border: 1px solid var(--border); background: var(--bg-card); color: var(--text-light);
+      border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
       border-radius: var(--radius-pill); font-family: var(--font);
       font-size: 0.88rem; font-weight: 600; cursor: pointer;
       transition: transform 0.22s var(--ease-bounce), background 0.22s var(--ease-soft),
@@ -604,7 +610,7 @@
     .pager .pager-gap { color: var(--text-muted); font-size: 0.82rem; padding: 0 2px; user-select: none; }
     .pager .pager-info {
       flex: 1 0 100%; text-align: center; margin-top: 4px;
-      font-size: 0.78rem; color: var(--text-muted);
+      font-size: 0.78rem; color: var(--text);
     }
     @media (max-width: 519px) { .pager .pager-edge { display: none; } }
 
@@ -725,7 +731,7 @@
     /* ⑨ 空状态/提示文字在深底上要够亮 */
     .empty-state,
     .loading {
-      color: var(--text-light);
+      color: var(--text);
     }
 
     .admin-topbar h1, .panel-card h2, .tab, .subtab { font-family: "Songti SC", "Noto Serif SC", "SimSun", serif; }

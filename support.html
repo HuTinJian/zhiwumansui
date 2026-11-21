@@ -79,7 +79,7 @@
     }
     .reg-hero p {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--text);
       line-height: 1.85;
     }
 
@@ -113,7 +113,7 @@
     .reg-list {
       margin: 0 0 6px;
       padding-left: 1.2em;
-      color: var(--text-muted);
+      color: var(--text);
       line-height: 1.9;
       font-size: 0.9rem;
     }
@@ -123,9 +123,18 @@
     .reg-hint {
       margin: 8px 0 0;
       font-size: 0.8rem;
-      color: var(--text-muted);
+      color: var(--text);
       line-height: 1.7;
     }
+    /* 正文里的链接：以前没写，浏览器直接套默认蓝/紫（深色主题下是浅紫 rgb(158,158,255)），
+       跟宣纸墨色完全不搭。统一用朱砂 + 下划线，两套主题都跟正文区分得开。 */
+    .reg-hint a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+    }
+    .reg-hint a:hover { color: var(--danger); }
 
     .reg-submit {
       width: 100%;
@@ -137,7 +146,7 @@
       margin: 14px 0 0;
       font-size: 0.88rem;
       line-height: 1.7;
-      color: var(--text-muted);
+      color: var(--text);
       min-height: 1.4em;
       word-break: break-word;
     }
@@ -155,7 +164,7 @@
     .reg-done.show { display: block; }
     .reg-done .big { font-size: 2.2rem; line-height: 1.2; }
     .reg-done h2 { margin: 10px 0 8px; }
-    .reg-done p { color: var(--text-muted); line-height: 1.8; margin: 0 0 14px; }
+    .reg-done p { color: var(--text); line-height: 1.8; margin: 0 0 14px; }
   </style>
 </head>
 <body>

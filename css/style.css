@@ -65,9 +65,9 @@
   --bg-glass: rgba(255, 252, 246, 0.78);
   --bg-glass-strong: rgba(255, 252, 246, 0.94);
   --gold-bg: #F7F0DF;
-  --text: #221C16;             /* 墨 */
-  --text-light: #544A3E;       /* 淡墨 */
-  --text-muted: #786B5B;       /* 弱文字（4.6:1，勿再调浅） */
+  --text: #221C16;             /* 墨：全站正文 / 说明 / 导航统一用它 */
+  --text-light: #544A3E;       /* 历史别名（旧「淡墨」）：正文已全部改用 --text，新增样式别再引用 */
+  --text-muted: #786B5B;       /* 弱文字：只留 placeholder / 分页省略号 / 禁用态（4.6:1） */
   --text-on-accent: #FFF8EE;   /* 朱砂 / 竹青底上的奶白字 */
   --text-on-gold: #241C12;     /* 金底上的墨字（5.2~11:1；奶白字压在金上只有 1.9~3:1，禁用） */
   --border: #DCD2C0;
@@ -178,9 +178,9 @@
   --bg-glass: rgba(32, 27, 21, 0.82);
   --bg-glass-strong: rgba(32, 27, 21, 0.95);
   --gold-bg: #262016;
-  --text: #F0E8D8;             /* 宣纸白 */
-  --text-light: #C8BCA8;
-  --text-muted: #9C8F7C;       /* 5.4:1 */
+  --text: #F0E8D8;             /* 宣纸白：全站正文 / 说明 / 导航统一用它 */
+  --text-light: #C8BCA8;       /* 历史别名：正文已全部改用 --text，别再引用 */
+  --text-muted: #9C8F7C;       /* 只留 placeholder / 省略号 / 禁用态（5.4:1） */
   --text-on-accent: #FFF8EE;
   --text-on-gold: #241C12;     /* 金底墨字，同浅色 */
   --border: #3A3228;
@@ -530,7 +530,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   padding: 8px 18px;
   border-radius: var(--radius-pill);
   text-decoration: none;
-  color: var(--text-light);
+  color: var(--text);
   font-weight: 500;
   font-size: 0.95rem;
   transition: background var(--dur) var(--ease-soft), color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-bounce);
@@ -631,7 +631,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 /* 次按钮 */
 .btn-secondary {
   background: transparent;
-  color: var(--text-light);
+  color: var(--text);
   border: 2px solid var(--border);
 }
 .btn-secondary:hover {
@@ -811,7 +811,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 }
 
 .modal-content p {
-  color: var(--text-light);
+  color: var(--text);
   font-size: 0.95rem;
   margin-bottom: 20px;
   line-height: 1.7;
@@ -878,7 +878,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   position: relative;
   text-align: center;
   padding: 32px 20px;
-  color: var(--text-muted);
+  color: var(--text);
   font-size: 0.85rem;
   border-top: 1px solid var(--border);
   margin-top: 20px;
@@ -891,7 +891,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   flex-wrap: wrap;
 }
 .footer .footer-links a {
-  color: var(--text-light);
+  color: var(--text);
   text-decoration: none;
   transition: color var(--dur) var(--ease-soft);
 }
@@ -932,12 +932,12 @@ body.modal-open .particles i { animation-play-state: paused; }
 .footer .footer-legal {
   max-width: 760px;
   margin: 10px auto 0;
-  color: var(--text-light);
+  color: var(--text);
   font-size: 0.78rem;
   line-height: 1.9;
 }
 .footer .footer-legal b {
-  color: var(--text-muted);
+  color: var(--text);
   font-weight: 600;
 }
 .footer .footer-legal a {
@@ -1031,7 +1031,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .update-modal .update-item {
   padding: 7px 0;
   font-size: 0.92rem;
-  color: var(--text-light);
+  color: var(--text);
   line-height: 1.7;
   border-bottom: 1px solid var(--border);
 }
@@ -1046,7 +1046,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 
 .update-modal .update-thanks {
   font-size: 0.88rem;
-  color: var(--text-light);
+  color: var(--text);
   margin-bottom: 12px;
 }
 
@@ -1072,7 +1072,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--bg-glass);
-  color: var(--text-light);
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1106,7 +1106,7 @@ body.modal-open .particles i { animation-play-state: paused; }
 .zb-invite-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--text);
   margin-bottom: 6px;
 }
 .zb-invite-text {
@@ -1135,7 +1135,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   margin: 12px 0 0;
   font-size: 0.78rem;
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--text);
 }
 .zb-invite-modal .modal-actions { margin-top: 16px; }
 @media (max-width: 480px) {
@@ -1270,13 +1270,13 @@ body.modal-open .particles i { animation-play-state: paused; }
 .credits-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 1px;
 }/* 名字比较长（「DeepSeek-V4.1-Flash-1017」字不少），窄屏上会折两行 ——
    把行高压紧一点，别把卡片撑得比旁边两张还高。 */
 .credits-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height: 1.35; }
-.credits-en { font-size: 0.83rem; color: var(--text-light); }
+.credits-en { font-size: 0.83rem; color: var(--text); }
 
 /* ---------- 公共：页面容器 ----------
    index.html / roblox_music.html 各自在页面内定义了自己的 .container，
@@ -1311,7 +1311,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   color: var(--text);
   letter-spacing: -0.3px;
 }
-.section-head .hint { font-size: 0.84rem; color: var(--text-muted); }
+.section-head .hint { font-size: 0.84rem; color: var(--text); }
 .section-head::after {
   content: '';
   flex: 1;
@@ -1346,7 +1346,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--text-light);
+  color: var(--text);
   font-size: 0.84rem;
   font-weight: 600;
   font-family: var(--font);
@@ -1435,14 +1435,14 @@ body.modal-open .particles i { animation-play-state: paused; }
   padding: 8px 0;
 }
 .thanks-person .p-name { font-weight: 600; color: var(--primary-ink); }
-.thanks-person .p-platform { color: var(--text-muted); font-size: 0.78rem; }
+.thanks-person .p-platform { color: var(--text); font-size: 0.78rem; }
 /* 赞助者的金额用金色。用 --gold-ink 而不是 --gold —— 它是专门给
    「浅底上的金色文字」准备的（对比度 5.2:1），深色模式下会自动换成浅金，
    两种主题都看得清。 */
 .thanks-person .p-amount { color: var(--gold-ink); font-size: 0.78rem; font-weight: 700; }
-.thanks-person .p-message { color: var(--text-light); font-size: 0.8rem; }
+.thanks-person .p-message { color: var(--text); font-size: 0.8rem; }
 
-.thanks-foot { margin: 18px 0 10px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+.thanks-foot { margin: 18px 0 10px; font-size: 0.8rem; color: var(--text); text-align: center; }
 .thanks-foot-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
 /* 空态 / 加载态：接口挂了或名单真的是空的，都长这样
@@ -1455,7 +1455,7 @@ body.modal-open .particles i { animation-play-state: paused; }
   padding: 12px 10px;
   text-align: center;
   font-size: 0.84rem;
-  color: var(--text-muted);
+  color: var(--text);
   list-style: none;
 }
 

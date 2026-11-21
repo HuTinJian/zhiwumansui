@@ -103,7 +103,7 @@
       flex-wrap: wrap;
       gap: 6px 18px;
       font-size: 0.88rem;
-      color: var(--text-light);
+      color: var(--text);
       flex: 1 1 auto;
     }
     .page-header .stats strong {
@@ -181,7 +181,7 @@
 
     /* ✏️ 信息出错 / ➕ 添加歌曲ID 两个弹窗里的表单（同一个样式块） */
     .info-err-form { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
-    .info-err-form label { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
+    .info-err-form label { font-size: 0.8rem; font-weight: 700; color: var(--text); }
     /* 「分类」下拉沿用同一套表单外观（与 input / textarea 完全一致）。【回退办法】删掉下面选择器里的 .info-err-form select, 这一行，下拉会退回浏览器默认外观（功能不受影响）。 */
     .info-err-form input,
     .info-err-form select,
@@ -235,13 +235,13 @@
       color: var(--gold-ink);
     }
     /* --gold-ink 在深色下本身就是提亮金，一套规则两套主题都够用，不需要深色专用覆盖，也少一处写死色值。 */
-    .myrep-note-cell { color: var(--text-light); font-size: 0.78rem; max-width: 260px; word-break: break-word; }
+    .myrep-note-cell { color: var(--text); font-size: 0.78rem; max-width: 260px; word-break: break-word; }
 
     .myrep-note {
       margin: 0 0 10px;
       font-size: 0.82rem;
       line-height: 1.75;
-      color: var(--text-muted);
+      color: var(--text);
     }
     .myrep-note .myrep-count { font-weight: 700; color: var(--primary); }
     /* 表格外层自己滚（弹窗本体不滚），手机上也不会把弹窗撑破 */
@@ -292,11 +292,11 @@
       gap: 8px;
       min-width: 0;
       font-size: 0.74rem;
-      color: var(--text-muted);
+      color: var(--text);
     }
     .myrep-row-sub .myrep-id {
       font-family: ui-monospace, Menlo, Consolas, monospace;
-      color: var(--text-light);
+      color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -306,7 +306,7 @@
     .myrep-row-sub .myrep-btn { margin-left: auto; flex: 0 0 auto; }
     .myrep-note-line {
       font-size: 0.74rem;
-      color: var(--text-light);
+      color: var(--text);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -328,7 +328,7 @@
       top: 0;
       z-index: 1;
       background: var(--bg-soft);
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 0.76rem;
       font-weight: 700;
       letter-spacing: 0.5px;
@@ -339,10 +339,10 @@
     .myrep-table .myrep-id {
       font-family: ui-monospace, Menlo, Consolas, monospace;
       font-size: 0.78rem;
-      color: var(--text-light);
+      color: var(--text);
       word-break: break-all;
     }
-    .myrep-table .myrep-time { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
+    .myrep-table .myrep-time { font-size: 0.76rem; color: var(--text); white-space: nowrap; }
     .myrep-status {
       display: inline-block;
       padding: 2px 8px;
@@ -381,7 +381,7 @@
     .myrep-empty {
       padding: 20px 12px;
       text-align: center;
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 0.86rem;
       line-height: 1.8;
     }
@@ -427,7 +427,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius-pill);
       background: var(--bg-card);
-      color: var(--text-light);
+      color: var(--text);
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
@@ -579,7 +579,7 @@
       margin-bottom: 10px;
     }
     /* 歌名后面的「玩家说：xxx」小字（玩家投稿时自己填的歌曲类型），刻意做小做淡，不抢主歌名。【回退办法】删掉这条规则。 */
-    /* 这枚小字代表「玩家自己说的话」，用青瓷与朱砂/墨区分开，一眼能看出「这是投稿者补充的、不是官方分类」。【回退办法】颜色改回 var(--text-muted) / var(--bg-soft) / var(--border)。 */
+    /* 这枚小字代表「玩家自己说的话」，用青瓷与朱砂/墨区分开，一眼能看出「这是投稿者补充的、不是官方分类」。【回退办法】颜色改回 var(--text) / var(--bg-soft) / var(--border)；想恢复旧的弱化观感就把第一项换回 var(--text-muted)。 */
     .genre-tip {
       margin-left: 8px;
       font-size: 0.72rem;
@@ -678,7 +678,7 @@
     }
     .id-actions .btn-fav {
       background: transparent;
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 1rem;
       padding: 4px 8px;
     }
@@ -712,7 +712,7 @@
     /* 「复制」后面那颗小一号的「🚫 无效处理」：字号 / 内边距都压一档，主次仍让「复制」当主角；已上报的行整条变灰、按钮换成「↩️ 撤销」，看得见也点得回来。 */
     .id-actions .btn-invalid {
       background: transparent;
-      color: var(--text-muted);
+      color: var(--text);
       border: 1px solid var(--border);
       font-size: 0.7rem;
       padding: 4px 9px;
@@ -749,7 +749,7 @@
     .group-actions .btn-info-error.blocked {
       opacity: 0.5;
       cursor: not-allowed;
-      color: var(--text-muted);
+      color: var(--text);
       border-color: var(--border);
       background: transparent;
     }
@@ -772,7 +772,7 @@
       cursor: default;
     }
     .id-row.reported .id-number {
-      color: var(--text-muted);
+      color: var(--text);
       text-decoration: line-through;
       text-decoration-color: rgba(var(--accent-rgb), 0.55);
     }
@@ -784,7 +784,7 @@
     .empty-state {
       text-align: center;
       padding: 50px 20px;
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 1rem;
       animation: fadeInUp 0.4s var(--ease-soft) both;
     }
@@ -809,7 +809,7 @@
       padding: 0 12px;
       border: 1px solid var(--border);
       background: var(--bg-card);
-      color: var(--text-light);
+      color: var(--text);
       border-radius: var(--radius-pill);
       font-family: var(--font);
       font-size: 0.88rem;
@@ -835,7 +835,7 @@
       transform: none;
     }
     .pager .pager-gap {
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 0.82rem;
       padding: 0 2px;
       user-select: none;
@@ -845,7 +845,7 @@
       text-align: center;
       margin-top: 4px;
       font-size: 0.78rem;
-      color: var(--text-muted);
+      color: var(--text);
     }
     /* 窄屏上「首页 / 末页」用不上（有上一页下一页和页码就够），
        让出来给页码，分页器就不会挤成两排 */
@@ -869,7 +869,7 @@
     .toolbar .tool-label {
       font-size: 0.76rem;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--text);
       letter-spacing: 1px;
       text-transform: uppercase;
       margin-right: 2px;
@@ -885,7 +885,7 @@
     .btn-random {
       border: 2px solid var(--border);
       background: var(--bg-card);
-      color: var(--text-light);
+      color: var(--text);
     }
     .btn-random:hover {
       border-color: var(--primary-light);
@@ -913,7 +913,7 @@
       align-items: center;
       gap: 10px;
       font-size: 0.82rem;
-      color: var(--text-muted);
+      color: var(--text);
       margin: 0 0 12px;
       min-height: 1.6em;
     }
@@ -969,14 +969,14 @@
     .empty-state .hint {
       display: block;
       font-size: 0.84rem;
-      color: var(--text-muted);
+      color: var(--text);
       margin-top: 8px;
     }
 
     /* ========== 排序指示 ========== */
     .sort-hint {
       font-size: 0.78rem;
-      color: var(--text-muted);
+      color: var(--text);
       margin-left: auto;
       white-space: nowrap;
     }
@@ -1056,7 +1056,7 @@
       font-style: normal;
       font-size: 0.74rem;
       line-height: 1.6;
-      color: var(--text-muted);
+      color: var(--text);
     }
     .risk-law-link .arrow { flex: 0 0 auto; font-weight: 700; color: var(--gold-ink); }
     #riskModal .risk-body,
@@ -1066,7 +1066,7 @@
       padding-right: 6px;
       font-size: 0.82rem;
       line-height: 1.8;
-      color: var(--text-light);
+      color: var(--text);
       white-space: pre-wrap;
       word-break: break-word;
       margin-bottom: 12px;
