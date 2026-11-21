@@ -274,7 +274,68 @@
     }
     /* 主题按钮悬停：朱砂，跟链接同一套强调色。
        【回退办法】改回 var(--primary-ink)。 */
-    .theme-toggle:hover { color: var(--accent); transform: rotate(-18deg) scale(1.08); }
+    .theme-toggle:hover { color: var(--accent); transform: scale(1.06); }
+
+    /* 章节题签（外篇 · 迷途）：一行小字 + 朱砂小印 */
+    .ch-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 4px;
+      font-size: 0.78rem;
+      letter-spacing: 0.24em;
+      color: var(--accent);
+      font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+    }
+    .ch-seal {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      /* 用压深的朱砂（--primary-btn-b）：小印只有 13px，浅朱砂配奶白字只有 3.3:1，
+         压深后 8.7:1，两套主题都够。 */
+      background: var(--primary-btn-b);
+      color: var(--text-on-accent);
+      font-size: 0.85rem;
+      letter-spacing: 0;
+      transform: rotate(-3deg);
+    }
+
+    /* 设置小面板：固定在齿轮下方 */
+    .mini-set {
+      position: fixed;
+      top: 66px;
+      right: 18px;
+      z-index: 60;
+      width: 196px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+    }
+    .mini-set[hidden] { display: none; }
+    .ms-title {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: var(--text);
+      opacity: 0.6;
+    }
+    .ms-opts { display: flex; gap: 4px; }
+    .ms-opts button {
+      flex: 1;
+      padding: 6px 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .ms-opts button.is-on { background: var(--primary); color: var(--bg); border-color: transparent; }
 
     @keyframes titleIn {
       0%   { opacity: 0; transform: scale(0.7) translateY(-14px); }
@@ -311,9 +372,19 @@
 </head>
 <body>
 
-  <button type="button" class="theme-toggle" id="themeToggle" aria-label="切换主题" title="切换主题">🌙</button>
+  <!-- 设置：只放主题三选（404 不加载 common.js / book.js，这一页自带最小的一份） -->
+  <button type="button" class="theme-toggle" id="settingsBtn" aria-label="设置" title="设置：主题">⚙</button>
+  <div class="mini-set" id="miniSet" hidden>
+    <p class="ms-title">主题</p>
+    <div class="ms-opts" role="group" aria-label="主题">
+      <button type="button" data-t="light">亮</button>
+      <button type="button" data-t="dark">暗</button>
+      <button type="button" data-t="auto">跟随</button>
+    </div>
+  </div>
 
   <span class="mist" aria-hidden="true">🌫️</span>
+  <p class="ch-line"><span class="ch-seal" aria-hidden="true">外</span>迷途</p>
   <div class="err-code">404</div>
   <h1>这片雾里没有你要找的页面</h1>
   <p class="desc">
@@ -337,22 +408,71 @@
 
       var root = document.documentElement;
 
-      /* ---------- 主题 ---------- */
-      var btn = document.getElementById('themeToggle');
-      function paint() {
-        var dark = root.getAttribute('data-theme') === 'dark';
-        btn.textContent = dark ? '☀️' : '🌙';
-        /* 404 不加载 common.js，浏览器状态栏颜色要在本页自己同步。
-                   回退：删掉下面两行 meta 同步（状态栏会固定在浅色 #F5F0E6）。 */
-        var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', dark ? '#14110E' : '#F5F0E6');
+      /* ---------- 设置（只放主题三选） ----------
+         404 不加载 common.js / book.js，这一页自带最小的一份；
+         偏好与别处共用 zm_prefs.theme，并继续写旧 key zm_theme
+         （各页 <head> 的内联脚本靠它做「首屏不闪」）。 */
+      var btn = document.getElementById('settingsBtn');
+      var panel = document.getElementById('miniSet');
+      var PREF_KEY = 'zm_prefs';
+      var THEME_KEY = 'zm_theme';
+
+      function readPrefTheme() {
+        try {
+          var p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+          if (p && (p.theme === 'light' || p.theme === 'dark' || p.theme === 'auto')) return p.theme;
+        } catch (e) {}
+        return 'auto';
       }
-      paint();
-      btn.addEventListener('click', function () {
-        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', next);
-        try { localStorage.setItem('zm_theme', next); } catch (e) {}
-        paint();
+
+      function writePrefTheme(v) {
+        try {
+          var p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+          if (!p || typeof p !== 'object') p = {};
+          p.theme = v;
+          localStorage.setItem(PREF_KEY, JSON.stringify(p));
+        } catch (e) {}
+      }
+
+      function syncPanel(v) {
+        if (!panel) return;
+        var list = panel.querySelectorAll('button[data-t]');
+        for (var i = 0; i < list.length; i++) {
+          var on = list[i].getAttribute('data-t') === v;
+          list[i].classList.toggle('is-on', on);
+          list[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+      }
+
+      function applyChoice(v) {
+        var t = v;
+        if (v === 'auto') {
+          try { localStorage.removeItem(THEME_KEY); } catch (e) {}
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        } else {
+          try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
+        }
+        root.setAttribute('data-theme', t);
+        if (root.style) root.style.colorScheme = t;
+        /* 浏览器状态栏颜色随主题。
+           回退：删掉下面两行 meta 同步（状态栏会固定在浅色 #F5F0E6）。 */
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', t === 'dark' ? '#14110E' : '#F5F0E6');
+        writePrefTheme(v);
+        syncPanel(v);
+      }
+
+      syncPanel(readPrefTheme());
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        panel.hidden = !panel.hidden;
+      });
+      panel.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-t]');
+        if (b) applyChoice(b.getAttribute('data-t'));
+      });
+      document.addEventListener('click', function () {
+        if (!panel.hidden) panel.hidden = true;
       });
 
       /* ---------- 返回上一页 ---------- */

@@ -78,6 +78,9 @@
     }
 
     document.querySelectorAll('.theme-toggle').forEach(btn => {
+      /* 书卷层的「设置」钮也挂 .theme-toggle 类，只为复用圆钮样式；
+         它的字形（⚙）与提示语是固定的，这里不能把它改写成 🌙 / ☀️。 */
+      if (btn.getAttribute('data-settings') === '1') return;
       const isDark = t === 'dark';
       btn.textContent = isDark ? '☀️' : '🌙';
       btn.setAttribute('aria-label', isDark ? '切换到浅色模式' : '切换到深色模式');
@@ -787,6 +790,12 @@ function initShareTriggers() {
   }
 
   function applyLiteMode() {
+    /* 用户在「设置」里手动挑过动效档位就听他的（book.js 会写 __ZM_FX_LOCK）；
+       没挑过才按设备自动降级 —— 否则手机上一选「完整」又被打回精简。 */
+    if (window.__ZM_FX_LOCK) {
+      document.documentElement.classList.toggle('lite', window.__ZM_FX_LOCK !== 'full');
+      return;
+    }
     if (isLiteMode()) document.documentElement.classList.add('lite');
   }
 

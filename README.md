@@ -630,6 +630,34 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 
 ---
 
+## 附三：书卷层（章节 / 目录 / 设置）
+
+整站按「一本书」摆：**每页 = 一章，页内板块 = 幕**，右上角齿轮是「设置」，导航里的「目录」是全书目录，
+左下角那条小字随滚动显示读到第几章第几幕（点它也能开目录）。
+
+| 东西 | 在哪 | 怎么改 |
+|---|---|---|
+| 章名（第一章 · 雾起 …） | `js/book.js` 的 `CHAPTERS` | 改 `title` / `note`；`seal` 是题签上那个朱砂字 |
+| 全书目录 | 同上 `TOC` | 加一行 `{ file: 'xxx.html', key: 'xxx' }`，并在 `CHAPTERS` 里补同名条目 |
+| 幕号 | 自动：页面里每个 `.section-head` 依次编号 | 某块不想编号，给它加 `data-no-act` |
+| 设置面板的开关 | `js/book.js` 的 `ROWS` | 一行一个开关：`key` 进 `PREFS`，`opts` 是选项 |
+| 题签 / 目录 / 设置的外观 | `css/style.css` 第 15 节（书卷层） | 颜色照旧全走第 1 节的令牌，深浅自动跟随 |
+
+**偏好存在浏览器里**（`localStorage`，只在本机有效）：
+
+- `zm_prefs`：`{ theme, fx, texture, font }`，设置面板写它；
+- `zm_theme`：主题的旧 key。各页 `<head>` 里有一小段内联脚本读它做「首屏不闪」，`book.js` 负责保持同步；
+- 老访客只存过 `zm_theme` 的，`book.js` 第一次运行会把它迁进 `zm_prefs`，**不会丢选择**；
+- 「跟随系统」= 把 `zm_theme` 清掉，由系统的 `prefers-color-scheme` 决定。
+
+**动效档位与性能**：`完整 / 轻柔 / 关闭` 写进 `data-fx`。`关闭` 会把所有动画压到 0.01ms
+（和系统「减少动态效果」同一套写法，一次性淡入仍然落得下终态），并把粒子层、极光层从渲染树里拿掉。
+手机上默认仍按设备自动降级（≤768px、省流量、核数少），但**用户在设置里手动选过就以用户为准**
+（`common.js` 的 `applyLiteMode` 会先看 `window.__ZM_FX_LOCK`）。
+
+**回退**：删掉 `js/book.js` 与各页那行 `<script src="js/book.js" defer>`，
+再 `git checkout -- css/style.css js/common.js`（把书卷层样式和 `applyTheme` / `applyLiteMode` 的守卫一起撤掉）。
+
 ## 附一：各功能的现状与约定
 
 ### 1）反馈：不用留邮箱了
