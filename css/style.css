@@ -174,11 +174,13 @@
   --gold-light: #EBD29A;
   --gold-strong: #8A6420;      /* 金按钮底（奶白字 5.1:1） */
   --gold-ink: #E3C47C;         /* 深底金字（11:1） */
-  /* 「功能建议」按钮的深色版：暗金底 + 浅金字，不发光、不刺眼 */
-  --suggest-gold-a: #322817;
-  --suggest-gold-b: #3A2D19;
-  --suggest-gold-line: #8A6A32;
-  --suggest-gold-ink: #EFD08A;
+  /* 「功能建议」按钮的深色版：必须是看得出来的金色，不能暗成褐块。
+     用「浅金 → 深金」的渐变 + 墨色字，最低对比度约 7:1；
+     比亮黄柔和，暗色背景上仍然是明确的暖金。 */
+  --suggest-gold-a: #E8CE93;
+  --suggest-gold-b: #C9A24E;
+  --suggest-gold-line: #F0D9A2;
+  --suggest-gold-ink: #241C12;
   --info-bg: #1E2A2E;
   --info-ink: #9CC6D6;         /* 石青提亮（8:1） */
   --danger-bg: #2C1E19;
