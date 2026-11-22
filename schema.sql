@@ -79,6 +79,26 @@ CREATE TABLE IF NOT EXISTS sponsor_regs (
   confirmed_at TEXT
 );
 
+-- 功能建议（首页「💡 功能建议」按钮提交；后台「💡 功能建议」查看）
+-- 为什么要它（2026-11-23）：站主想开始收集玩家对网站功能的任何建议。
+-- 字段口径：
+--   name      玩家自己填的昵称（不是真名；只用于站主回复时称呼）
+--   chapter   分类（第一章 · 雾起 … 第五章 · 投桃；空串 = 整站 / 不确定）
+--   category  章内位置：第一章的「【卡片】…」或「第X幕 · …」；空串 = 整章 / 不确定
+--   content   建议正文（原样保留换行）
+--   status    new 未读 | read 已读（只在后台用，公开页面永远看不到这张表）
+-- 表名用 feature_suggestions，不是 2026-11-07 删掉的旧 suggestions，
+-- 避免老库残留的同名表结构不一致。
+CREATE TABLE IF NOT EXISTS feature_suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  chapter TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT '',
+  content TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 -- 版本信息（page_key 必须 UNIQUE，ON CONFLICT 才能生效）
 CREATE TABLE IF NOT EXISTS page_updates (
   page_key TEXT PRIMARY KEY,
@@ -104,6 +124,9 @@ CREATE INDEX IF NOT EXISTS idx_thanks_category ON thanks(category, id);
 -- 同一张爱发电订单只能登记一次（重复提交返回 409，不会写两条）
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sponsor_reg_order ON sponsor_regs(order_no);
 CREATE INDEX IF NOT EXISTS idx_sponsor_reg_status ON sponsor_regs(status, id);
+-- 功能建议：后台按「未读在前、新的在前」翻，两个字段各建一条
+CREATE INDEX IF NOT EXISTS idx_feature_suggest_status ON feature_suggestions(status, id);
+CREATE INDEX IF NOT EXISTS idx_feature_suggest_created ON feature_suggestions(created_at);
 CREATE INDEX IF NOT EXISTS idx_songs_line ON songs_extra(line_index);
 -- 无效上报的唯一键（同一浏览器对同一个 ID 只算一条）+ 按状态取列表
 CREATE UNIQUE INDEX IF NOT EXISTS idx_invalid_unique ON invalid_reports(music_id, reporter);

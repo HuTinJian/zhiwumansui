@@ -181,3 +181,25 @@ CREATE INDEX IF NOT EXISTS idx_sponsor_reg_status ON sponsor_regs(status, id);
 
 -- 如果 page_updates 里还留着 sponsor 这行旧公告，一并清掉；没有就什么也不做。
 DELETE FROM page_updates WHERE page_key = 'sponsor';
+
+
+-- ---------- 第 8 组：功能建议（2026-11-23） ----------
+-- 站主原话：「现在网站要开始收集玩家们的功能建议，任何的」。
+-- 首页原来那颗「🔗 分享本站」按钮改成「💡 功能建议」，弹窗里选「第几章」，
+-- 第一章再选「【卡片】…」，玩家填昵称 + 建议正文，存这张表。
+-- 后台「💡 功能建议」面板读它；公开页面读不到、也不显示。
+-- 可重复执行：CREATE IF NOT EXISTS / 索引同理，跑几次都不报错。
+-- 【回退办法】在后台删掉这个面板与对应接口；要连数据一起清就执行：
+--   DROP TABLE IF EXISTS feature_suggestions;
+CREATE TABLE IF NOT EXISTS feature_suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  chapter TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT '',
+  content TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_feature_suggest_status ON feature_suggestions(status, id);
+CREATE INDEX IF NOT EXISTS idx_feature_suggest_created ON feature_suggestions(created_at);

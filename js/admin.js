@@ -185,6 +185,11 @@ function scrollListIntoView(el) {
         window.ensureSponsors();
       }
 
+      /* 💡 功能建议面板：切过去时才去拉（不在打开后台时就发请求） */
+      if (tab.dataset.panel === 'panel-suggestions' && typeof window.loadSuggestions === 'function') {
+        window.loadSuggestions();
+      }
+
     });
   });
 
@@ -3234,3 +3239,180 @@ if (confirmSponsorConfirm) {
 }
 
 window.loadSponsorRegs = loadSponsorRegs;
+
+/* ============================================================
+   💡 功能建议（2026-11-23）
+   ------------------------------------------------------------
+   玩家在首页「💡 功能建议」提交的内容存在 D1 的 feature_suggestions 表：
+     · GET  /api/suggestions/list   → 列表 + 总数 / 未读数
+     · POST /api/suggestions/handle → { action:'read'|'unread'|'delete', id }
+   这里只做三件事：看、标已读 / 未读、真删。没有回复入口（表里不收联系方式）。
+   回退：删掉这一段 + admin.html 的 #panel-suggestions + tab 按钮；
+        functions/api/suggestions/ 与 D1 表可以留着，不影响其它功能。
+   ============================================================ */
+let suggestionCache = [];
+let suggestionPage = 1;
+
+/* 接口错误码 → 人话（只在本面板用） */
+function suggestionErrorText(code, status) {
+  if (code === 'unauthorized') return '登录过期了，刷新页面重新登录';
+  if (code === 'table missing') return 'D1 还没建 feature_suggestions 表，先跑 migrations.sql 的第 8 组';
+  if (code === 'bad origin') return '来源校验没通过，刷新页面再试';
+  if (code === 'not found') return '这条建议不见了，刷新后再试';
+  if (code === 'bad action' || code === 'invalid id') return '请求参数不对，刷新后再试';
+  if (code === 'server error' || status >= 500) return '服务端出错了，稍后再试';
+  if (code) return code;
+  return 'HTTP ' + status;
+}
+
+async function loadSuggestions() {
+  const container = document.getElementById('suggestionList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  let data = null;
+  let httpStatus = 0;
+  try {
+    const res = await fetch('/api/suggestions/list?t=' + Date.now(), { credentials: 'include' });
+    httpStatus = res.status;
+    data = await res.json().catch(() => null);
+  } catch (err) {
+    data = null;
+  }
+
+  if (!data || !data.ok) {
+    suggestionCache = [];
+    setStatText('statSuggestTotal', 0);
+    setStatText('statSuggestUnread', 0);
+    container.innerHTML = '<div class="empty-state">⚠️ 加载失败：' +
+      escapeHtml(suggestionErrorText(data && data.error, httpStatus)) + '</div>';
+    const pager = document.getElementById('suggestionPager');
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  suggestionCache = Array.isArray(data.items) ? data.items : [];
+  const stats = data.stats || {};
+  setStatText('statSuggestTotal', Number(stats.total) || 0);
+  setStatText('statSuggestUnread', Number(stats.unread) || 0);
+  renderSuggestionPage();
+}
+
+function renderSuggestionPage() {
+  const container = document.getElementById('suggestionList');
+  const pager = document.getElementById('suggestionPager');
+  if (!container) return;
+
+  const total = suggestionCache.length;
+  suggestionPage = clampPage(suggestionPage, total);
+
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">还没有人提建议。' +
+      '（首页那颗「💡 功能建议」提交后会出现在这里）</div>';
+    if (pager) pager.hidden = true;
+    return;
+  }
+
+  const start = (suggestionPage - 1) * ADMIN_PAGE_SIZE;
+  const pageItems = suggestionCache.slice(start, start + ADMIN_PAGE_SIZE);
+
+  container.innerHTML = '';
+  pageItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+
+    const unread = item.status !== 'read';
+    const where = [item.chapter, item.category].filter(Boolean).join(' · ') || '整站 / 不确定';
+
+    el.innerHTML =
+      '<div class="row1">' +
+        '<span class="name">' + escapeHtml(item.name || '(没写名字)') + '</span>' +
+        '<span class="type-tag ' + (unread ? 'gold' : 'blue') + '">' +
+          (unread ? '🔴 未读' : '🔵 已读') + '</span>' +
+      '</div>' +
+      '<div class="meta">📍 ' + escapeHtml(where) +
+        ' · <span title="北京时间">🕒 ' + escapeHtml(adminTime(item.created_at)) + '</span>' +
+      '</div>' +
+      '<div class="message">' + escapeHtml(item.content || '') + '</div>' +
+      '<div class="actions">' +
+        (unread
+          ? '<button class="btn-edit-sponsor" data-act="read" data-id="' + escapeHtml(String(item.id)) + '">✅ 标记已读</button>'
+          : '<button class="btn-edit-sponsor" data-act="unread" data-id="' + escapeHtml(String(item.id)) + '">↩️ 标为未读</button>') +
+        '<button class="btn-delete" data-act="delete" data-id="' + escapeHtml(String(item.id)) + '">🗑️ 删除</button>' +
+      '</div>';
+
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      const act = btn.dataset.act;
+      if (act === 'delete') deleteSuggestion(id);
+      else setSuggestionStatus(id, act);
+    });
+  });
+
+  renderAdminPager(pager, total, suggestionPage, '条', (p) => {
+    suggestionPage = p;
+    renderSuggestionPage();
+    scrollListIntoView(container);
+  });
+}
+
+async function setSuggestionStatus(id, action) {
+  try {
+    const res = await fetch('/api/suggestions/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast(action === 'read' ? '✅ 已标为已读' : '↩️ 已改回未读');
+      loadSuggestions();
+    } else {
+      showToast('操作失败：' + suggestionErrorText(data && data.error, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+async function deleteSuggestion(id) {
+  const row = suggestionCache.find(x => Number(x.id) === Number(id));
+  const label = row && row.name ? '「' + row.name + '」的这条建议' : '这条建议';
+  const ok = await showConfirm(
+    '删除建议',
+    '确定删除' + label + '吗？\n\n删除后不可恢复；只想留个已读标记的话，点「✅ 标记已读」就行。'
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch('/api/suggestions/handle', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: Number(id) })
+    });
+    const data = await res.json().catch(() => null);
+    if (data && data.ok) {
+      showToast('🗑️ 已删除这条建议');
+      loadSuggestions();
+    } else {
+      showToast('删除失败：' + suggestionErrorText(data && data.error, res.status));
+    }
+  } catch (err) {
+    showToast('网络异常');
+  }
+}
+
+const refreshSuggestionsBtn = document.getElementById('refreshSuggestionsBtn');
+if (refreshSuggestionsBtn) {
+  refreshSuggestionsBtn.addEventListener('click', function () {
+    loadSuggestions();
+  });
+}
+
+window.loadSuggestions = loadSuggestions;

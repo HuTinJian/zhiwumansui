@@ -820,6 +820,7 @@
     <div class="tabs" id="mainTabs">
       <button class="tab active" data-panel="panel-cards">🎮 卡片管理</button>
       <button class="tab" data-panel="panel-thanks">❤️ 鸣谢名单</button>
+      <button class="tab" data-panel="panel-suggestions">💡 功能建议</button>
       <button class="tab" data-panel="panel-stats">📈 数据统计</button>
     </div>
 
@@ -1175,6 +1176,43 @@
             <div class="loading">加载中...</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 💡 功能建议（2026-11-23）
+         首页「💡 功能建议」按钮提交的内容落在这里：D1 的 feature_suggestions 表。
+         这个面板只看 / 标已读 / 删；没有「回复」——表里故意不收联系方式。
+         回退：删掉这个 panel + 上面的 tab 按钮 + js/admin.js 里
+               loadSuggestions / renderSuggestionPage / setSuggestionStatus / deleteSuggestion 四段，
+               接口目录 functions/api/suggestions/ 可一并删除。 -->
+    <div class="panel" id="panel-suggestions">
+      <div class="panel-card">
+        <h2>📈 数据统计</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="num" id="statSuggestTotal">-</div>
+            <div class="label">共收到</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="statSuggestUnread">-</div>
+            <div class="label">未读</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h2>
+          <span class="head-actions">
+            <button class="btn btn-secondary" id="refreshSuggestionsBtn">🔄 刷新</button>
+          </span>
+        </h2>
+        <p class="panel-desc">
+          玩家在首页「💡 功能建议」提交的内容；「标记已读」只改状态，不动正文。
+        </p>
+        <div id="suggestionList">
+          <div class="loading">加载中...</div>
+        </div>
+        <nav class="pager" id="suggestionPager" aria-label="功能建议分页" hidden></nav>
       </div>
     </div>
 

@@ -53,6 +53,13 @@
   --gold-light: #D3B77A;
   --gold-strong: #7D5C22;      /* 金按钮底（奶白字 5.8:1） */
   --gold-ink: #7A571B;         /* 浅底金字（5.8:1） */
+  /* 「功能建议」按钮专用的一套护眼金：低饱和、暖而不刺眼。
+     浅色是宣纸上的淡金底 + 深褐字；深色是暗金底 + 浅金字。
+     两套都避开 #FFD700 那种高亮黄，长时间看不扎眼。 */
+  --suggest-gold-a: #F6E7C4;
+  --suggest-gold-b: #E6CD93;
+  --suggest-gold-line: #C9A55C;
+  --suggest-gold-ink: #4F3A12;
   --info-bg: #E8EFF0;          /* 石青淡底 */
   --info-ink: #2B627C;         /* 石青字（5.7:1） */
   --danger-bg: #F8EBE6;
@@ -167,6 +174,11 @@
   --gold-light: #EBD29A;
   --gold-strong: #8A6420;      /* 金按钮底（奶白字 5.1:1） */
   --gold-ink: #E3C47C;         /* 深底金字（11:1） */
+  /* 「功能建议」按钮的深色版：暗金底 + 浅金字，不发光、不刺眼 */
+  --suggest-gold-a: #322817;
+  --suggest-gold-b: #3A2D19;
+  --suggest-gold-line: #8A6A32;
+  --suggest-gold-ink: #EFD08A;
   --info-bg: #1E2A2E;
   --info-ink: #9CC6D6;         /* 石青提亮（8:1） */
   --danger-bg: #2C1E19;
@@ -689,6 +701,30 @@ body.modal-open .particles i { animation-play-state: paused; }
 .zb-invite:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .zb-invite .ripple { background: rgba(var(--gold-rgb), 0.35); }
 
+/* ---------- 「💡 功能建议」按钮（护眼暖金） ----------
+   2026-11-23 站主要求：首页原来那颗「🔗 分享本站」改成功能建议入口，
+   按钮颜色换成护眼的金色。这里不复用 .btn-gold（那是亮金渐变，偏抢眼），
+   用一套低饱和暖金：淡金底 + 深褐字，hover 只加深描边和一点点阴影。
+   ⚠ 类名 / 属性不叫 share：广告拦截插件会按 share 隐藏元素。
+   【回退办法】把 index.html 那颗按钮改回 class="btn zb-invite" data-invite，
+   本段可以留着不用。 */
+.zb-suggest {
+  background: linear-gradient(135deg, var(--suggest-gold-a), var(--suggest-gold-b));
+  color: var(--suggest-gold-ink);
+  border: 2px solid var(--suggest-gold-line);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--gold-rgb), 0.18);
+}
+.zb-suggest:hover {
+  border-color: var(--gold);
+  color: var(--suggest-gold-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(var(--gold-rgb), 0.24);
+}
+.zb-suggest:active { transform: translateY(0) scale(0.98); }
+.zb-suggest:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.zb-suggest .ripple { background: rgba(var(--gold-rgb), 0.35); }
+
 /* 点击水波纹（由 common.js 注入 span.ripple） */
 .ripple {
   position: absolute;
@@ -1140,6 +1176,94 @@ body.modal-open .particles i { animation-play-state: paused; }
 .zb-invite-modal .modal-actions { margin-top: 16px; }
 @media (max-width: 480px) {
   .zb-invite-actions .btn { flex: 1 1 100%; }
+}
+
+/* ---------- 「💡 功能建议」弹窗 ----------
+   弹窗本体（#suggestModal）由 js/common.js 0.8 节动态拼出来，这里只管长相。
+   结构：第几章 + 具体位置（第一章多一层【卡片】）→ 名字 → 正文 → 提交。
+   配色全走主题变量，深色模式自动跟随；不引第三方组件。 */
+.modal-content.zb-suggest-modal { max-width: 560px; }
+.modal-content .zb-suggest-lead {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.zb-suggest-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+.zb-suggest-grid .form-group { margin-bottom: 8px; }
+.zb-suggest-opt,
+.zb-suggest-req {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+.zb-suggest-req { color: var(--danger); }
+
+.modal-content .zb-suggest-where {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  background: var(--gold-bg);
+  border-left: 3px solid var(--gold);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.zb-suggest-count {
+  margin-top: 4px;
+  text-align: right;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.modal-content .zb-suggest-privacy {
+  margin: 0 0 6px;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.zb-suggest-status {
+  min-height: 1.35em;
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+/* 没有错误 / 提示时不占那一行高度，手机上底部按钮能更早露出来 */
+.zb-suggest-status:empty { display: none; }
+.zb-suggest-status.err { color: var(--danger); }
+.zb-suggest-status.ok { color: var(--success); }
+
+.zb-suggest-done { text-align: center; padding: 4px 0 2px; }
+.zb-suggest-done-icon { font-size: 2.4rem; line-height: 1.2; }
+.zb-suggest-done h3 {
+  margin: 8px 0 10px;
+  font-family: "Songti SC", "Noto Serif SC", "SimSun", serif;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+.modal-content .zb-suggest-done p {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+.zb-suggest-done .modal-actions { justify-content: center; }
+
+@media (max-width: 520px) {
+  .zb-suggest-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  /* 手机屏矮：把留白和正文框收紧一点，别让「发送建议」要滑很久才露出来 */
+  .modal-content.zb-suggest-modal { padding: 20px; }
+  .modal-content .zb-suggest-lead { font-size: 0.85rem; margin-bottom: 10px; line-height: 1.65; }
+  .zb-suggest-modal .form-group { margin-bottom: 12px; }
+  .zb-suggest-modal .form-group textarea { min-height: 96px; }
 }
 
 /* ---------- 阅读进度条 ----------

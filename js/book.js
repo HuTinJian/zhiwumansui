@@ -179,7 +179,7 @@
   var IS_FILE = /\.html?$/i.test(location.pathname);
 
   /* 页脚的「藏书印」用它。改版本时和 data/updates.json 一起改。 */
-  var BOOK_VERSION = '3.6.0';
+  var BOOK_VERSION = '3.7.0';
 
   /* 章表：key = 文件名（不含扩展名）。加一章 = 这里加一条 + TOC 加一行。 */
   var CHAPTERS = {

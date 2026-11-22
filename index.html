@@ -749,13 +749,15 @@
         这里会陆续放上各种资料库和在线小工具，不追求数量，只求打开就能用。
       </p><div class="hero-actions">
         <a class="btn btn-primary" href="#explore">🚀 开始逛逛</a>
-        <!-- 分享按钮用专用的 .zb-invite（暖金色，见 css/style.css）：
-                     颜色贴合站点的粉 + 金主题，也比主按钮柔和一些、不抢「开始逛逛」的焦点。
+        <!-- 功能建议按钮用专用的 .zb-suggest（护眼暖金，见 css/style.css）：
+                     2026-11-23 站主要求把原来的「🔗 分享本站」换成这个入口，
+                     颜色改成护眼的金色。点开是「第几章 / 第一章的【卡片】 / 昵称 / 建议」
+                     表单，提交到 /api/suggestions/submit。
                      ⚠ 类名 / 属性刻意不叫 share —— 电脑上的广告拦截插件常按「class 里有没有 share」
-                        隐藏元素（曾出现「手机端有、电脑端没有」）；现在用 zb-invite / data-invite，
-                        JS 仍然兼容老的 [data-share]。
-                     弹窗（文案 + 复制 + 系统分享）由 js/common.js 的 openShareModal 提供。 -->
-        <button type="button" class="btn zb-invite" data-invite>🔗 分享本站</button>
+                        隐藏元素（曾出现「手机端有、电脑端没有」）；分享弹窗代码仍在
+                        js/common.js 的 0.7 节，只是首页不再有它的入口。 -->
+        <button type="button" class="btn zb-suggest" data-suggest
+                title="有想法？点这里告诉站主">💡 功能建议</button>
       </div>
 
       <!-- ☕ 赞助卡：站主要求放在「开始逛逛」和 B 站关注横幅之间（2026-11-14）。
@@ -1021,7 +1023,7 @@
     <p class="footer-legal">
       本站仅提供<b>跳转 Roblox 官方页面</b>的链接，<b>不存储、不传播任何音频文件</b>；试听与下载都在 Roblox 官网完成。<br>
       完整法律条文（著作权法 / 信息网络传播权保护条例 / 民法典 / 刑法等）见 <a href="law">⚖️ 法律与风险提示</a>。<br>
-      隐私说明：本站只在你的浏览器本地保存一个<b>随机 ID</b>，不收集姓名、手机号等个人信息，服务端不保存 IP。<br>
+      隐私说明：本站只在你的浏览器本地保存一个<b>随机 ID</b>；「💡 功能建议」只保存你自愿填写的<b>昵称与建议内容</b>，服务端不保存 IP，也不收集手机号等其它个人信息。<br>
       联系站长（权利人有异议、要求下架内容请直接找我；<b>收到通知后我们会立即断开相关链接</b>）：<a href="mailto:2560803486@qq.com">2560803486@qq.com</a> · QQ：2560803486
     </p>
   </footer>

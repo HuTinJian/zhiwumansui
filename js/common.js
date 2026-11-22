@@ -386,11 +386,424 @@ function initShareTriggers() {
   document.addEventListener('click', e => {
     /* 新写法是 [data-invite]；[data-share] 留着兼容可能还缓存在访客浏览器里的旧页面。
        （改名的原因见 css/style.css 里 .zb-invite 那段注释：电脑上的广告拦截插件
-        会按 class / 属性里有没有 share 来隐藏元素。） */
+        会按 class / 属性里有没有 share 来隐藏元素。）
+       2026-11-23：首页那颗按钮已改成「💡 功能建议」，这里保留旧入口兼容旧缓存页面。 */
     const trigger = e.target.closest && e.target.closest('[data-invite], [data-share]');
     if (!trigger) return;
     e.preventDefault();
     openShareModal();
+  });
+}
+
+/* ============================================================
+   0.8 功能建议
+   ------------------------------------------------------------
+   为什么有这一节（2026-11-23）：
+     站主要开始收集玩家对网站功能的任何建议。首页原来那颗
+     「🔗 分享本站」按钮改成「💡 功能建议」，点开是这个表单。
+   分类口径（与 js/book.js 的 CHAPTERS 同步）：
+     · 第几章：第一章 · 雾起 … 第五章 · 投桃；也可以选「整站 / 不确定」；
+     · 第一章再多一层「【卡片】」：Roblox ID 宝库 / 临界 · 紧急调度 / 怀旧版 · 时光机；
+       其它章节如果页面里有 .section-head，也会列出「第几幕」。
+   数据流向：POST /api/suggestions/submit → D1 的 feature_suggestions 表
+     → 后台「💡 功能建议」面板。公开页面不显示任何建议。
+   隐私：只提交昵称 / 分类 / 正文；IP 只在服务端内存里做限速，不落库。
+   【回退办法】删掉本节 + initUI 里的 initSuggestTriggers() + 全局导出里的
+     openSuggestModal；再把 index.html 那颗按钮改回 data-invite 即可。
+   ============================================================ */
+const SUGGEST_CHAPTERS = [
+  { key: 'index', label: '第一章 · 雾起' },
+  { key: 'roblox_music', label: '第二章 · 拾穗' },
+  { key: 'law', label: '第三章 · 立规' },
+  { key: 'thanks', label: '第四章 · 结草' },
+  { key: 'support', label: '第五章 · 投桃' }
+];
+
+/* 第一章那张卡片的顺序/名字从首页 #contentGrid 读，卡片改了不用改这里；
+   只有「时光机」这类 card-tag 比标题更好认的，补一个短名字。 */
+const SUGGEST_CARD_LABELS = { '时光机': '怀旧版 · 时光机' };
+
+let suggestPlaceSeq = 0;
+const suggestDocCache = Object.create(null);
+
+function currentSuggestChapter() {
+  const seg = (location.pathname.split('/').pop() || 'index.html')
+    .toLowerCase().replace(/\.html?$/i, '');
+  return seg || 'index';
+}
+
+/* 与 book.js 的 han() 同一口径：第几幕最多到 99，够用 */
+function suggestHan(n) {
+  const s = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  if (n <= 10) return s[n];
+  if (n < 20) return '十' + s[n - 10];
+  return String(n);
+}
+
+/* 当前页直接用 document；别的章节去同源拿 HTML 再解析。
+   只在打开弹窗 / 切章节时发生，且按章节缓存，不会每次输入都请求。 */
+function suggestChapterUrl(key) {
+  const isFile = /\.html?$/i.test(location.pathname);
+  if (key === 'index') return isFile ? 'index.html' : './';
+  return isFile ? key + '.html' : key;
+}
+
+async function getSuggestChapterDoc(key) {
+  if (key === currentSuggestChapter()) return document;
+  if (suggestDocCache[key]) return suggestDocCache[key];
+
+  const res = await fetch(suggestChapterUrl(key), { credentials: 'same-origin' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const html = await res.text();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  suggestDocCache[key] = doc;
+  return doc;
+}
+
+/* 第一章首页的卡片：标题取 h3；「时光机」用短名字，玩家一眼能对上 */
+function collectSuggestCards(doc) {
+  const out = [];
+  doc.querySelectorAll('#contentGrid .card').forEach(card => {
+    const h = card.querySelector('h3');
+    if (!h) return;
+    const category = String(card.getAttribute('data-category') || '').trim();
+    const title = h.textContent.trim();
+    if (!title) return;
+    out.push(SUGGEST_CARD_LABELS[category] || title);
+  });
+  return out;
+}
+
+/* 章节里的「幕」：与 book.js 的 numberActs() 同一口径；
+   当前页的 DOM 已经编过号，直接读 .act-no，别的页面按顺序补。 */
+function collectSuggestActs(doc) {
+  const out = [];
+  doc.querySelectorAll('main .section-head').forEach(head => {
+    if (head.closest('.modal') || head.hasAttribute('data-no-act')) return;
+    const h = head.querySelector('h1, h2');
+    if (!h) return;
+    const tag = head.querySelector('.act-no');
+    out.push({
+      no: tag ? tag.textContent.trim() : ('第' + suggestHan(out.length + 1) + '幕'),
+      title: h.textContent.trim()
+    });
+  });
+  return out;
+}
+
+async function collectSuggestPlaces(key) {
+  if (!key) return { cards: [], acts: [] };
+  try {
+    const doc = await getSuggestChapterDoc(key);
+    return {
+      cards: key === 'index' ? collectSuggestCards(doc) : [],
+      acts: collectSuggestActs(doc)
+    };
+  } catch (e) {
+    /* 拿不到就当这一章没有分幕，只留「整章 / 不确定」——不挡提交 */
+    return { cards: [], acts: [] };
+  }
+}
+
+function currentSuggestActIndex() {
+  try {
+    const r = JSON.parse(localStorage.getItem('zm_read') || 'null');
+    if (r && r.page === currentSuggestChapter() && Number(r.act) > 0) return Number(r.act);
+  } catch (e) {}
+  return 0;
+}
+
+function updateSuggestWhere() {
+  const ch = document.getElementById('suggestChapter');
+  const place = document.getElementById('suggestPlace');
+  const hint = document.getElementById('suggestWhere');
+  if (!ch || !place || !hint) return;
+
+  if (!ch.value) {
+    hint.textContent = '📍 这条建议会归到：整站 / 不确定';
+    return;
+  }
+  const chapterText = ch.options[ch.selectedIndex] ? ch.options[ch.selectedIndex].textContent : ch.value;
+  hint.textContent = '📍 这条建议会归到：' + chapterText + ' · ' + (place.value || '整章 / 不确定');
+}
+
+async function loadSuggestPlaces(prefillAct) {
+  const chapterSel = document.getElementById('suggestChapter');
+  const placeSel = document.getElementById('suggestPlace');
+  if (!chapterSel || !placeSel) return;
+
+  const key = String(chapterSel.value || '');
+  const seq = ++suggestPlaceSeq;
+
+  placeSel.innerHTML = '<option value="">读取章节位置…</option>';
+  placeSel.disabled = true;
+
+  const groups = await collectSuggestPlaces(key);
+  if (seq !== suggestPlaceSeq) return;   /* 用户又切章了，丢弃这次结果 */
+
+  placeSel.innerHTML = '';
+
+  const whole = document.createElement('option');
+  whole.value = '';
+  whole.textContent = key ? '整章 / 不确定' : '不限（整站）';
+  placeSel.appendChild(whole);
+
+  if (groups.cards.length) {
+    const og = document.createElement('optgroup');
+    og.label = '【卡片】';
+    groups.cards.forEach(title => {
+      const opt = document.createElement('option');
+      opt.value = '【卡片】' + title;
+      opt.textContent = '【卡片】' + title;
+      og.appendChild(opt);
+    });
+    placeSel.appendChild(og);
+  }
+
+  if (groups.acts.length) {
+    const og = document.createElement('optgroup');
+    og.label = '章内位置（第几幕）';
+    groups.acts.forEach(act => {
+      const opt = document.createElement('option');
+      opt.value = act.no + ' · ' + act.title;
+      opt.textContent = act.no + ' · ' + act.title;
+      og.appendChild(opt);
+    });
+    placeSel.appendChild(og);
+  }
+
+  placeSel.disabled = false;
+
+  /* 默认带到「你正在读的那一幕」；只有刚打开弹窗时这么做，
+     手动切章节时保持「整章」，别把玩家拽到别的位置。 */
+  if (prefillAct && key === currentSuggestChapter()) {
+    const idx = currentSuggestActIndex();
+    if (idx > 0) {
+      const prefix = '第' + suggestHan(idx) + '幕';
+      for (const opt of placeSel.options) {
+        if (opt.value.indexOf(prefix) === 0) { placeSel.value = opt.value; break; }
+      }
+    }
+  }
+
+  updateSuggestWhere();
+}
+
+function setSuggestStatus(text, kind) {
+  const el = document.getElementById('suggestStatus');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'zb-suggest-status' + (kind ? ' ' + kind : '');
+}
+
+function suggestErrorText(code, status, wait) {
+  if (code === 'too many requests') {
+    return '发得有点勤，等 ' + (wait || '几分钟') + ' 秒再试。';
+  }
+  if (code === 'missing name') return '先留一个名字吧，昵称就行。';
+  if (code === 'name too long') return '名字最多 40 个字。';
+  if (code === 'missing content') return '建议内容还没写。';
+  if (code === 'content too long') return '建议最多 500 个字，砍掉一点再发。';
+  if (code === 'chapter too long' || code === 'category too long') return '选的位置太长了，刷新页面再试。';
+  if (code === 'bad origin') return '来源校验没通过，刷新页面再试。';
+  if (code === 'table missing') return '建议箱还没准备好，稍后再试；一直失败就发邮件找站主。';
+  if (/turnstile/i.test(code || '')) return '人机验证没通过，刷新页面再试。';
+  if (code === 'server error' || status >= 500) return '服务端出错了，稍后再试；一直失败就发邮件找站主。';
+  return '提交失败（HTTP ' + status + '），稍后再试。';
+}
+
+function buildSuggestModal() {
+  let modal = document.getElementById('suggestModal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'suggestModal';
+  modal.className = 'modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'suggestTitle');
+  modal.innerHTML = `
+    <div class="modal-content zb-suggest-modal">
+      <h2 id="suggestTitle">💡 给织雾满穗提个功能建议</h2>
+      <p class="zb-suggest-lead">想要的新功能、用着别扭的地方、希望补的资料 —— 任何想法都可以。站主每个周末统一看。</p>
+
+      <form id="suggestForm" novalidate>
+        <div class="zb-suggest-grid">
+          <div class="form-group">
+            <label for="suggestChapter">分类 · 第几章</label>
+            <select id="suggestChapter"></select>
+          </div>
+          <div class="form-group">
+            <label for="suggestPlace">具体位置 <span class="zb-suggest-opt">选填 · 卡片 / 第几幕</span></label>
+            <select id="suggestPlace"><option value="">整章 / 不确定</option></select>
+          </div>
+        </div>
+
+        <p class="zb-suggest-where" id="suggestWhere">📍 这条建议会归到：整站 / 不确定</p>
+
+        <div class="form-group">
+          <label for="suggestName">你的名字 <span class="zb-suggest-req">*</span></label>
+          <input type="text" id="suggestName" maxlength="40" autocomplete="nickname"
+                 placeholder="昵称就行，不用真名">
+        </div>
+
+        <div class="form-group">
+          <label for="suggestContent">建议内容 <span class="zb-suggest-req">*</span></label>
+          <textarea id="suggestContent" maxlength="500" rows="5"
+                    placeholder="越具体越好：你希望它怎么用？现在哪里不方便？"></textarea>
+          <div class="zb-suggest-count"><span id="suggestCount">0</span> / 500</div>
+        </div>
+
+        <p class="zb-suggest-privacy">🔒 只保存你填的昵称和建议内容，不保存 IP，也不会公开。</p>
+        <p class="zb-suggest-status" id="suggestStatus" role="status" aria-live="polite"></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="suggestCancel">取消</button>
+          <button type="submit" class="btn btn-primary" id="suggestSubmit">📨 发送建议</button>
+        </div>
+      </form>
+
+      <div class="zb-suggest-done" id="suggestDone" hidden>
+        <div class="zb-suggest-done-icon" aria-hidden="true">🌸</div>
+        <h3>建议收到啦</h3>
+        <p id="suggestDoneText">谢谢你的想法。站主每个周末统一看，能做的会排进更新。</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="suggestDoneClose">关闭</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const chapterSel = document.getElementById('suggestChapter');
+  chapterSel.innerHTML = '<option value="">整站 / 不确定</option>' +
+    SUGGEST_CHAPTERS.map(c => '<option value="' + c.key + '">' + c.label + '</option>').join('');
+
+  chapterSel.addEventListener('change', () => {
+    setSuggestStatus('', '');
+    loadSuggestPlaces(false);
+  });
+  document.getElementById('suggestPlace').addEventListener('change', updateSuggestWhere);
+
+  const contentEl = document.getElementById('suggestContent');
+  contentEl.addEventListener('input', () => {
+    document.getElementById('suggestCount').textContent = String(contentEl.value.length);
+  });
+
+  document.getElementById('suggestCancel').addEventListener('click', () => closeModal('suggestModal'));
+  document.getElementById('suggestDoneClose').addEventListener('click', () => closeModal('suggestModal'));
+  document.getElementById('suggestForm').addEventListener('submit', submitSuggestForm);
+
+  return modal;
+}
+
+async function submitSuggestForm(event) {
+  event.preventDefault();
+
+  const nameEl = document.getElementById('suggestName');
+  const contentEl = document.getElementById('suggestContent');
+  const chapterSel = document.getElementById('suggestChapter');
+  const placeSel = document.getElementById('suggestPlace');
+  const submitBtn = document.getElementById('suggestSubmit');
+
+  const name = nameEl.value.trim();
+  const content = contentEl.value.trim();
+  const chapterKey = chapterSel.value;
+  const chapterMeta = SUGGEST_CHAPTERS.find(c => c.key === chapterKey);
+  const chapter = chapterMeta ? chapterMeta.label : '';
+  const category = placeSel.value;
+
+  if (!name) {
+    setSuggestStatus('先留一个名字吧，昵称就行。', 'err');
+    nameEl.focus();
+    return;
+  }
+  if (name.length > 40) {
+    setSuggestStatus('名字最多 40 个字。', 'err');
+    nameEl.focus();
+    return;
+  }
+  if (!content) {
+    setSuggestStatus('建议内容还没写。', 'err');
+    contentEl.focus();
+    return;
+  }
+  if (content.length > 500) {
+    setSuggestStatus('建议最多 500 个字，砍掉一点再发。', 'err');
+    contentEl.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  setSuggestStatus('正在发送…', '');
+
+  try {
+    const payload = { name, chapter, category, content };
+    const send = (window.ZMTurnstile && typeof window.ZMTurnstile.postJson === 'function')
+      ? window.ZMTurnstile.postJson('/api/suggestions/submit', payload, 'suggest')
+      : fetch('/api/suggestions/submit', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+    const res = await send;
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data && data.ok) {
+      document.getElementById('suggestForm').hidden = true;
+      document.getElementById('suggestDone').hidden = false;
+      document.getElementById('suggestDoneText').textContent =
+        '谢谢 ' + name + ' 的想法。站主每个周末统一看，能做的会排进更新。';
+
+      /* 只清正文，名字留着：同一个人想再提一条时不用重填 */
+      contentEl.value = '';
+      document.getElementById('suggestCount').textContent = '0';
+      setSuggestStatus('', '');
+    } else {
+      setSuggestStatus('❌ ' + suggestErrorText(data && data.error, res.status, data && data.wait), 'err');
+      submitBtn.disabled = false;
+    }
+  } catch (e) {
+    setSuggestStatus('❌ 网络好像断了，稍后再试。', 'err');
+    submitBtn.disabled = false;
+  }
+}
+
+async function openSuggestModal() {
+  buildSuggestModal();
+
+  const form = document.getElementById('suggestForm');
+  const done = document.getElementById('suggestDone');
+  const submitBtn = document.getElementById('suggestSubmit');
+  const contentEl = document.getElementById('suggestContent');
+
+  /* 每次打开都回到表单（上一条成功后的「收到啦」不留在下次） */
+  form.hidden = false;
+  done.hidden = true;
+  submitBtn.disabled = false;
+  setSuggestStatus('', '');
+  document.getElementById('suggestCount').textContent = String(contentEl.value.length);
+
+  const chapterSel = document.getElementById('suggestChapter');
+  const here = currentSuggestChapter();
+  const matched = SUGGEST_CHAPTERS.find(c => c.key === here);
+  chapterSel.value = matched ? matched.key : '';
+
+  openModal('suggestModal');
+
+  /* 先显示弹窗再异步补位置：即使网络慢，玩家也能马上开始填。
+     openModal 已经把焦点放到第一个可聚焦项（分类下拉），这里不再抢焦点。 */
+  await loadSuggestPlaces(true);
+}
+
+function initSuggestTriggers() {
+  document.addEventListener('click', e => {
+    const trigger = e.target.closest && e.target.closest('[data-suggest]');
+    if (!trigger) return;
+    e.preventDefault();
+    openSuggestModal();
   });
 }
 
@@ -1108,7 +1521,8 @@ function initShareTriggers() {
   applyLiteMode();
   fillSiteCost();
   fillSponsorTotal();     /* 「收到的赞助」：按 D1 + 底档现算（0.6 节） */
-  initShareTriggers();    /* 全站 [data-share] 分享入口（0.7 节） */
+  initShareTriggers();    /* 旧版 [data-invite] 分享入口（兼容缓存页面） */
+  initSuggestTriggers();  /* 首页「💡 功能建议」入口（0.8 节） */
     bindModalA11y();
     injectAtmosphere();
     injectThemeToggle();
@@ -1710,7 +2124,8 @@ function initShareTriggers() {
     showToast,        // 底部短提示
     showNotice,       // 顶部提示条
     showConfirm,      // 确认弹窗（返回 Promise）
-    openShareModal,   // 打开「分享本站」弹窗（页脚 / 宝库工具栏等自己加按钮时用）
+    openShareModal,   // 打开「分享本站」弹窗（旧入口已下线，函数留着备用）
+    openSuggestModal, // 打开「功能建议」弹窗（首页 💡 按钮用）
     openModal,        // 打开弹窗
     closeModal,       // 关闭弹窗
     copyText,         // 复制到剪贴板
