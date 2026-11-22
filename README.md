@@ -66,7 +66,7 @@
 │       ├── hot/               list.js（公开榜单）/ report.js（上报）/ delete.js（后台清榜）
 │       ├── notices/           mine.js（后台公告）
 │       ├── sponsor/           list.js / register.js（登记订单）/ handle.js（核对）
-│       ├── suggestions/       submit.js（公开提交）/ list.js / handle.js（后台看 / 标已读 / 删）
+│       ├── suggestions/       submit.js（公开提交）/ list.js / handle.js（后台）/ health.js（自检建表）/ _schema.js（自动建表）
 │       ├── thanks.js          鸣谢名单（GET 公开，POST 需登录）
 │       ├── updates.js         版本公告（GET 公开，写需登录；**页面已改读 data/updates.json，这里只当备胎**）
 │       └── risk.js            风险弹窗版本
@@ -492,7 +492,7 @@ Cloudflare 面板 → Workers & Pages → 本项目 → **Settings → Enable ac
 | **首页最上面那条滚动公告** | `index.html`（位置 + 文案）+ `js/common.js`（弹窗本体 `showSiteNotice`） | 2026-10-04 起它就在**导航栏正下方**，是一条通栏走马灯：轨道里放两份一模一样的文案，CSS 动画左移 50% 做无缝循环（悬停暂停）。改文案要**两份一起改**（第二份带 `aria-hidden="true"`），否则接缝会露馅 |
 | **~~「分享本站」入口~~（已换成功能建议）** | `js/common.js` 的 `buildShareModal()` / `initShareTriggers()` + `css/style.css` | 分享弹窗代码仍保留，但 **2026-11-23 起首页那颗按钮已改成「💡 功能建议」**（`.zb-suggest` / `data-suggest`），站内不再有分享入口。以后要加回：写一个 `<button class="btn zb-invite" data-invite>🔗 分享本站</button>` 即可复用原逻辑；页脚仍然不放（2026-10-04 站主明确要求）。 |
 | **「💡 功能建议」按钮的颜色** | `css/style.css` 的 `--suggest-gold-a/b/line/ink` + `.zb-suggest` | 站主 2026-11-23 要求「护眼的金色」：浅色淡金底 `#F6E7C4 → #E6CD93` + 深褐字 `#4F3A12`（实测 6.95~8.81:1），深色暗金底 `#322817 → #3A2D19` + 浅金字 `#EFD08A`（8.96~9.69:1）。刻意避开亮黄 `#FFD700`；换色只改这四个变量。 |
-| **功能建议怎么收、怎么看** | `index.html` + `js/common.js` 0.8 节 + `functions/api/suggestions/` + 后台第 3 个标签 | 公开提交 `POST /api/suggestions/submit`：同源 + IP 10 分钟 6 条 + Turnstile + 长度/尖括号校验，存 D1 的 `feature_suggestions`；后台 `GET /api/suggestions/list`、`POST /api/suggestions/handle`（read / unread / delete）都要登录。分类下拉从真实的章表 / 首页 `#contentGrid` 卡片 / `.section-head` 幕号生成。老库先跑 `d1-add-feature-suggestions.sql`（只建这一张表，可重复执行）；全新库 `schema.sql` 已含表。详见第 22 节。 |
+| **功能建议怎么收、怎么看** | `index.html` + `js/common.js` 0.8 节 + `functions/api/suggestions/` + 后台第 3 个标签 | 公开提交 `POST /api/suggestions/submit`：同源 + IP 10 分钟 6 条 + Turnstile + 长度/尖括号校验，存 D1 的 `feature_suggestions`；后台 `GET /api/suggestions/list`、`POST /api/suggestions/handle`（read / unread / delete）都要登录。分类下拉从真实的章表 / 首页 `#contentGrid` 卡片 / `.section-head` 幕号生成。**接口第一次被用到时会自动建表**（`/api/suggestions/health` 可主动触发自检）；手动兜底可跑 `d1-add-feature-suggestions.sql`，全新库 `schema.sql` 也已含表。详见第 22 节。 |
 | **~~建议 / 反馈两页~~（整块已删）** | ~~`suggest.html` / `feedback.html`~~ | **2026-11-07 站主要求：「建议和反馈的页面删除了！包括跟 D1，后台有关的内容」** —— 两个页面、`functions/api/suggest/`、`functions/api/feedback/`、`functions/api/inbox/`（后台列表接口）、后台「📬 建议/反馈」标签与整块面板、`js/admin.js` 的整套 inbox 逻辑、`data/updates.json` 的 `suggest` / `feedback` 两键、四个页面导航里的两个入口，**全部删除**。D1 用 `migrations.sql` 第 6 组清（`DROP TABLE IF EXISTS suggestions; DROP TABLE IF EXISTS site_feedback;` + 清公告行；**这一步要站主自己在 D1 Console 执行**）。2026-09 那版老 `feedback` 表默认不删（早已无代码读写，属历史数据；要删见第 6 组末尾注释）。旧站快照 `legacy/2026-08-25/` 里的那份反馈页属「时光机」展品，没动。 |
 | **鸣谢名单的类别** | 后台 →「❤️ 鸣谢名单」→ 对应子面板的「➕ 添加鸣谢 / ➕ 添加玩家感谢」 | 类别**只能从下拉里现有的项选**：固定几项（`💡 网站创新家` / `🎬 ID公益UP主/作者` / `📋 歌单整理者`）+ D1 里已经出现过的类别（`js/admin.js` 的 `syncThanksCategoryOptions()` 自动补进列表，所以历史数据、以前自建过的类别照样选得到）。**2026-10-05 站主要求「把后台的所有关于自定义类别的都删除了」**：原来下拉最后那一项「✏️ 自定义类别…」和它旁边那个输入框、以及「在玩家感谢栏保存时自动补 `🙏 ` 前缀」的逻辑，全部删掉（历史实现见 `git show 4e559d0 -- admin.html js/admin.js`）。**2026-10-07 站主要求删掉「💬 反馈贡献者」**：下拉里那一项已移除，`thanks.html` 加了一道 `REMOVED_CATEGORY` 过滤（D1 里那几行即使还没清也**不会显示**），数据用 `migrations.sql` 第 3 组的 `DELETE FROM thanks WHERE category = '💬 反馈贡献者';` 清。要加新类别：改 `admin.html` 下拉里的固定项（一行一个 `div.select-option`，记得写 `data-scope="roblox"` 或 `"players"`）。**2026-10-05 起下拉还按子面板过滤**：在「🎮 Roblox ID 宝库」里只列不属于玩家感谢的类别，在「🙏 玩家感谢」里只列属于它的。`thanks.html` 按类别名分块显示 |
 | **~~宝库页隔离区的反馈入口~~（已下线）** | ~~`roblox_music.html`（`#quarantineFeedbackBtn`）~~ | **2026-10-05：「⛔ 我的隔离区」弹窗整个删除**（连带那颗「💬 去反馈」），访客隔离区、批量隔离、每行的 ✕ 三条老路全部由「🚫 无效处理」取代（那颗「无效批量处理」按钮 2026-10-05 也按站主要求删了）；本地旧键 `roblox_quarantine_guest` 不再被读取（数据留在访客浏览器里，不主动删） |
@@ -1886,9 +1886,9 @@ D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare →
   表名故意不用 2026-11-07 删掉的旧 `suggestions`，避免老库同名表结构不一致。
 - 后台接口：`GET /api/suggestions/list`（登录后，返回列表 + `total/unread`）、
   `POST /api/suggestions/handle`（`read` / `unread` / `delete`，均需登录 + 同源）。
-- 老库需要跑 `d1-add-feature-suggestions.sql`（只建 `feature_suggestions`，可重复执行，
-  不会像整份 `migrations.sql` 那样在老库上撞到前面的 `ALTER TABLE`）；全新部署直接跑 `schema.sql`
-  就已经有这张表。完整增量说明仍在 `migrations.sql` **第 8 组**。
+- **表会自动建**：`functions/api/suggestions/_schema.js` 在第一次提交 / 后台第一次打开面板时执行
+  写死的 `CREATE TABLE / INDEX IF NOT EXISTS`；部署后访问一次 `/api/suggestions/health` 也能主动建表并自检。
+  手动兜底仍是 `d1-add-feature-suggestions.sql`（可重复执行），完整增量说明在 `migrations.sql` 第 8 组。
 
 **④ 后台「💡 功能建议」**
 
@@ -1920,8 +1920,9 @@ D1 里还没有 `sponsor_regs` 表，代码部署后**必须**去 Cloudflare →
 
 **⑧ 需要站主做的事 / 回退**
 
-- 代码推上去后 Pages 自动部署；**老库先跑 `d1-add-feature-suggestions.sql`**（只建 `feature_suggestions`），
-  不跑的话提交会提示「建议箱还没准备好」。
+- 代码推上去后 Pages 自动部署；**不需要手动跑 D1 SQL**：部署完成后访问一次
+  `https://zhiwumansui.pages.dev/api/suggestions/health`，看到 `{"ok":true,"table":"feature_suggestions"}` 就说明表已就绪。
+  如果以后再建新库，也可以手动跑 `d1-add-feature-suggestions.sql` 兜底。
 - 回退：改动前的 7 个文件备份在
   `归档\2026-11-23-000049-首页建议按钮\`；只撤入口就把 `index.html` 那颗按钮改回
   `<button class="btn zb-invite" data-invite>🔗 分享本站</button>` 即可（CSS / JS 都不用删）。

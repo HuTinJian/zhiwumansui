@@ -33,6 +33,7 @@ import {
   requireSameOrigin,
   turnstileRejection
 } from '../_utils.js';
+import { ensureFeatureSuggestionsTable } from './_schema.js';
 
 /* 同一 IP 10 分钟最多 6 条。正常玩家提建议不会连着刷；
    就算被恶意刷，也只是在后台多几条可删的记录。 */
@@ -86,6 +87,10 @@ export async function onRequestPost(context) {
   if (content.length > MAX_CONTENT) return json({ ok: false, error: 'content too long' }, 400);
 
   try {
+    /* 第一次被真正用到时自动建表（token 没有列账户权限，跑不了 D1 迁移；
+       这里的 DDL 全是写死的 IF NOT EXISTS，不碰已有数据）。 */
+    await ensureFeatureSuggestionsTable(env);
+
     await env.DB.prepare(
       `INSERT INTO feature_suggestions (name, chapter, category, content, status)
        VALUES (?, ?, ?, ?, 'new')`

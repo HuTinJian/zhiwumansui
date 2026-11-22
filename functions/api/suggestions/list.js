@@ -13,6 +13,7 @@
    ============================================================ */
 
 import { json, checkAuth } from '../_utils.js';
+import { ensureFeatureSuggestionsTable } from './_schema.js';
 
 /* 一次最多取 1000 条：功能建议不是高频数据，够翻很久；
    总数 / 未读数另用 COUNT 查，不受这个上限影响。 */
@@ -26,6 +27,9 @@ export async function onRequestGet(context) {
   }
 
   try {
+    /* 后台第一次打开面板时自动补表（与 submit 共用同一段建表 SQL） */
+    await ensureFeatureSuggestionsTable(env);
+
     const result = await env.DB.prepare(
       `SELECT id, name, chapter, category, content, status, created_at
        FROM feature_suggestions

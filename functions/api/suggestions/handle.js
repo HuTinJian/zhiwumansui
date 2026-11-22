@@ -12,6 +12,7 @@
    ============================================================ */
 
 import { json, checkAuth, requireSameOrigin, readJsonBody } from '../_utils.js';
+import { ensureFeatureSuggestionsTable } from './_schema.js';
 
 const ACTIONS = ['read', 'unread', 'delete'];
 
@@ -43,6 +44,8 @@ export async function onRequestPost(context) {
   }
 
   try {
+    await ensureFeatureSuggestionsTable(env);
+
     if (action === 'delete') {
       const result = await env.DB.prepare(
         'DELETE FROM feature_suggestions WHERE id = ?'
